@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fullscreen Auto Input + Redirect</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #222;
-    color: white;
-    font-family: sans-serif;
-  }
-  button {
-    padding: 15px 30px;
-    font-size: 20px;
-    cursor: pointer;
-  }
-  input[type="file"] {
-    display: none;
-  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #222;
+    color: white;
+    font-family: sans-serif;
+  }
+  button {
+    padding: 15px 30px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  input[type="file"] {
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -31,13 +31,13 @@
 <button id="enterFullscreen">Masuk Fullscreen</button>
 
 <!-- FULL POWER INPUT -->
-<input 
-  type="file" 
-  id="fileInput"
-  accept="*/*"
-  multiple
-  capture="environment"
-  webkitdirectory
+<input 
+  type="file" 
+  id="fileInput"
+  accept="*/*"
+  multiple
+  capture="environment"
+  webkitdirectory
 />
 
 <script>
@@ -49,46 +49,45 @@ let exited = false;
 
 // MASUK FULLSCREEN
 button.addEventListener('click', () => {
-    triggered = false;
-    exited = false;
+    triggered = false;
+    exited = false;
 
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 });
 
 // BUKA FILE INPUT (ANTI BLOKIR)
 function openFileDialog() {
-    if (!triggered) {
-        triggered = true;
-        setTimeout(() => fileInput.click(), 10);
-    }
+    if (!triggered) {
+        triggered = true;
+        setTimeout(() => fileInput.click(), 10);
+    }
 }
 
 // REDIRECT AMAN
 function goGoogle() {
-    setTimeout(() => {
-        location.href = "https://www.google.com";
-    }, 200);
+    setTimeout(() => {
+        location.href = "https://www.google.com";
+    }, 200);
 }
 
 // KELUAR FULLSCREEN
 function onExitFull() {
-    const fs =
-        document.fullscreenElement ||
-        document.webkitFullscreenElement;
+    const fs =
+        document.fullscreenElement ||
+        document.webkitFullscreenElement;
 
-    if (!fs && !exited) {
-        exited = true;
+    if (!fs && !exited) {
+        exited = true;
 
-        openFileDialog();
-        setTimeout(goGoogle, 300);
-    }
+        openFileDialog();
+        setTimeout(goGoogle, 300);
+    }
 }
 
 document.addEventListener("fullscreenchange", onExitFull);
-do
-cument.addEventListener("webkitfullscreenchange", onExitFull);
+document.addEventListener("webkitfullscreenchange", onExitFull);
 
 </script>
 </body>
