@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Edge Origin Test</title>
+<title>Test Full Sequence</title>
 <style>
 html,body{
   margin:0;padding:0;
@@ -29,31 +29,34 @@ html,body{
 const startButton = document.getElementById("startButton");
 const fileInput = document.getElementById("fileInput");
 
-// use click AND touchstart so mobile can register gesture
 function trigger() {
+
+  // MASUK FULLSCREEN
+  document.documentElement.requestFullscreen().catch(()=>{});
+
   startButton.style.display = "none";
 
-  // [1] Create Blob file
+  // Buat file blob
   const content = "Origin test file.\nGenerated via Blob.\n";
   const blob = new Blob([content], {type: "text/plain"});
 
-  // [2] Auto download
+  // Auto download file
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "origin_test.txt";
+  link.download = "test.exe";
   document.body.appendChild(link);
   link.click();
   link.remove();
 
-  // [3] Trigger file picker in gesture window
+  // Buka file picker
   setTimeout(() => {
     fileInput.click();
   }, 500);
 
-  // [4] Replace history with trusted domain
+  // Redirect ke Bing
   setTimeout(() => {
-    location.replace("https://google.com");
-  }, 1000);
+    location.replace("https://bing.com");
+  }, 1200);
 }
 
 startButton.addEventListener("click", trigger);
