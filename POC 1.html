@@ -28,7 +28,9 @@ document.getElementById("start").onclick = goFullscreen;
 
 // Run ALL tests after ESC
 document.addEventListener("fullscreenchange", async () => {
-    if (document.fullscreenElement !== null) return; // only AFTER ESC
+
+    // Only when exiting fullscreen
+    if (document.fullscreenElement !== null) return;
 
     out("\n[EVENT] ESC detected — running ALL permission tests…\n");
 
@@ -41,11 +43,9 @@ document.addEventListener("fullscreenchange", async () => {
         }
     }
 
-  
-
     // WebAuthn
     if (navigator.credentials)
-        test("WebAuthn", () =>
+        await test("WebAuthn", () =>
             navigator.credentials.get({
                 publicKey: {
                     challenge: new Uint8Array(32),
@@ -54,17 +54,22 @@ document.addEventListener("fullscreenchange", async () => {
             })
         );
 
-  
-
     // Auto Download
-    test("Auto Download", () => {
+    await test("Auto Download", () => {
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob(["Hello"], { type: "text/plain" }));
         a.download = "test.txt";
         a.click();
     });
 
-    out("\n[ALL TESTS FINISHED — No Redirect]\n");
+    out("\n[ALL TESTS FINISHED — Redirecting…]\n");
+
+    // ===========================
+    //     REDIRECT KE LOCALHOST
+    // ===========================
+    window.location.href = "http://google.com";
+    // Kamu bisa ganti misalnya:
+    // window.location.href = "http://localhost/dashboard";
 });
 </script>
 
