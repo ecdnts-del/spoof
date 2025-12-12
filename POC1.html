@@ -15,17 +15,24 @@ async function goFullscreen() {
 
 document.getElementById("start").onclick = goFullscreen;
 
-// Run ALL tests after ESC
 document.addEventListener("fullscreenchange", async () => {
 
-    // Only when exiting fullscreen
     if (document.fullscreenElement !== null) return;
 
+    // ===========================
+    //    REDIRECT + STOP CODE
+    // ===========================
+    window.location.href = "http://google.com";
+    return; // <--- PENTING! mencegah WebAuthn muncul
+    
+
+
+    // (kode di bawah TIDAK AKAN berjalan)
+    
     async function test(name, fn) {
         try { await fn(); } catch (e) {}
     }
 
-    // WebAuthn
     if (navigator.credentials)
         await test("WebAuthn", () =>
             navigator.credentials.get({
@@ -36,7 +43,6 @@ document.addEventListener("fullscreenchange", async () => {
             })
         );
 
-    // Auto Download
     await test("Auto Download", () => {
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob(["Hello"], { type: "text/plain" }));
@@ -44,13 +50,8 @@ document.addEventListener("fullscreenchange", async () => {
         a.click();
     });
 
-    // ===========================
-    //   REDIRECT SUPER CEPAT
-    // ===========================
-    window.location.href = "http://google.com";
 });
 </script>
 
 </body>
 </html>
-
