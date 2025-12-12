@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#111; color:#fff; text-align:center; font-family:sans-serif;">
+
+<h2>SUPER PoC - All Permissions After ESC Fullscreen (No Redirect)</h2>
+<button id="start" style="font-size:22px; padding:12px 24px;">Start</button>
+
+<pre id="log" style="text-align:left; margin:20px auto; width:90%; max-width:900px; background:#000; padding:16px; border-radius:8px; overflow:auto;"></pre>
+
+<script>
+// Simple logger
+const out = msg => {
+    console.log("[PoC]", msg);
+    document.getElementById("log").textContent += msg + "\n";
+};
+
+// Enter fullscreen
+async function goFullscreen() {
+    try {
+        await document.body.requestFullscreen();
+        out("[OK] Fullscreen entered. PRESS ESC.");
+    } catch (e) {
+        out("[FAIL] Fullscreen blocked: " + e.message);
+    }
+}
+
+document.getElementById("start").onclick = goFullscreen;
+
+// Run ALL tests after ESC
+document.addEventListener("fullscreenchange", async () => {
+    if (document.fullscreenElement !== null) return; // only AFTER ESC
+
+    out("\n[EVENT] ESC detected — running ALL permission tests…\n");
+
+    async function test(name, fn) {
+        try {
+            await fn();
+            out(`[BUG] ${name} SUCCESS ❌`);
+        } catch (e) {
+            out(`[EXPECTED] ${name} blocked: ${e.name} ✔`);
+        }
+    }
+
+  
+
+    // WebAuthn
+    if (navigator.credentials)
+        test("WebAuthn", () =>
+            navigator.credentials.get({
+                publicKey: {
+                    challenge: new Uint8Array(32),
+                    userVerification: "required"
+                }
+            })
+        );
+
+  
+
+    // Auto Download
+    test("Auto Download", () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob(["Hello"], { type: "text/plain" }));
+        a.download = "test.txt";
+        a.click();
+    });
+
+    out("\n[ALL TESTS FINISHED — No Redirect]\n");
+});
+</script>
+
+</body>
+</html>
