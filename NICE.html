@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Activation Resume Test (Android)</title>
+  <style>
+    body { background:#111; color:#0f0; font-family: monospace; padding:20px; }
+    button { font-size:18px; padding:10px 20px; }
+    pre { margin-top:20px; }
+  </style>
+</head>
+<body>
+
+<h2>App Switch / Resume – Activation Diagnostic PoC</h2>
+
+<button id="start">Start Test</button>
+
+<pre id="log"></pre>
+
+<script>
+const log = msg => {
+  document.getElementById("log").textContent += msg + "\n";
+};
+
+function dumpActivation(label) {
+  log(
+    `[${label}] hasBeenActive=${navigator.userActivation.hasBeenActive}, ` +
+    `isActive=${navigator.userActivation.isActive}`
+  );
+}
+
+document.getElementById("start").onclick = async () => {
+  dumpActivation("Before fullscreen");
+
+  try {
+    await document.body.requestFullscreen();
+    dumpActivation("Entered fullscreen");
+  } catch (e) {
+    log("Fullscreen blocked");
+  }
+
+  log("\n👉 NOW:");
+  log("1. Open Recent Apps (app switch)");
+  log("2. Switch to another app");
+  log("3. Return to Chrome");
+  log("4. Do NOT tap the page\n");
+};
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    dumpActivation("After resume (visibilitychange)");
+  }
+});
+
+window.addEventListener("focus", () => {
+  dumpActivation("After resume (focus)");
+});
+</script>
+
+</body>
+</html>
