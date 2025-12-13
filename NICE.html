@@ -1,60 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Activation Resume Test (Android)</title>
-  <style>
-    body { background:#111; color:#0f0; font-family: monospace; padding:20px; }
-    button { font-size:18px; padding:10px 20px; }
-    pre { margin-top:20px; }
-  </style>
+  <meta charset="UTF-8" />
+  <title>App Switch / Resume – Activation Diagnostic PoC</title>
 </head>
-<body>
+<body style="background:#111;color:#fff;font-family:sans-serif;text-align:center;">
 
 <h2>App Switch / Resume – Activation Diagnostic PoC</h2>
+<button id="start" style="font-size:20px;padding:12px 24px;">Start Test</button>
 
-<button id="start">Start Test</button>
-
-<pre id="log"></pre>
+<pre id="log" style="margin:20px auto;width:90%;max-width:900px;background:#000;padding:16px;border-radius:8px;text-align:left;white-space:pre-wrap;"></pre>
 
 <script>
-const log = msg => {
-  document.getElementById("log").textContent += msg + "\n";
+const logEl = document.getElementById('log');
+const log = (m) => {
+  console.log(m);
+  logEl.textContent += m + "\n";
 };
 
-function dumpActivation(label) {
-  log(
-    `[${label}] hasBeenActive=${navigator.userActivation.hasBeenActive}, ` +
-    `isActive=${navigator.userActivation.isActive}`
-  );
+function activationState(tag) {
+  log(`[${tag}] hasBeenActive=${navigator.userActivation.hasBeenActive}, isActive=${navigator.userActivation.isActive}`);
 }
 
-document.getElementById("start").onclick = async () => {
-  dumpActivation("Before fullscreen");
-
+async function goFullscreen() {
+  activationState('Before fullscreen');
   try {
-    await document.body.requestFullscreen();
-    dumpActivation("Entered fullscreen");
+    await document.documentElement.requestFullscreen();
+    activationState('Entered fullscreen');
   } catch (e) {
-    log("Fullscreen blocked");
+    log('[ERROR] Fullscreen blocked');
+  }
+}
+
+// ===== API probes (NO user click) =====
+async function probeAPIs(tag) {
+  log(`\n[API PROBE] ${tag}`);
+
+  // Clipboard
+  try {
+    await navigator.clipboard.writeText('POC_TEST');
+    log('❌ clipboard.writeText SUCCESS (BUG if no gesture)');
+  } catch (e) {
+    log('✔ clipboard.writeText blocked');
   }
 
-  log("\n👉 NOW:");
-  log("1. Open Recent Apps (app switch)");
-  log("2. Switch to another app");
-  log("3. Return to Chrome");
-  log("4. Do NOT tap the page\n");
-};
+  // Auto-download
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['test'], { type: 'text/plain' }));
+    a.download = 'poc.txt';
+    a.click();
+    log('❌ auto-download SUCCESS (BUG if no gesture)');
+  } catch (e) {
+    log('✔ auto-download blocked');
+  }
+}
 
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    dumpActivation("After resume (visibilitychange)");
+// ===== Lifecycle listeners =====
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    activationState('After resume (visibility)');
+    probeAPIs('after visibility resume');
   }
 });
 
-window.addEventListener("focus", () => {
-  dumpActivation("After resume (focus)");
+window.addEventListener('focus', () => {
+  activationState('After resume (focus)');
+  probeAPIs('after focus');
 });
+
+// ===== ESC / fullscreen exit =====
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    activationState('After fullscreen exit');
+    probeAPIs('after fullscreen exit');
+  }
+});
+
+// ===== Start =====
+document.getElementById('start').onclick = goFullscreen;
+
+log('Instructions:');
+log('1. Click Start Test');
+log('2. Enter fullscreen');
+log('3. App switch (Alt+Tab / Recent Apps)');
+log('4. Return to browser');
+log('5. DO NOT click the page');
+log('6. Observe activation + API results');
 </script>
 
 </body>
