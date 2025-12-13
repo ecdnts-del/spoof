@@ -2,91 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>App Switch / Resume – Activation Diagnostic PoC</title>
+  <title>App Switch / Resume – NON‑Fullscreen PoC</title>
 </head>
 <body style="background:#111;color:#fff;font-family:sans-serif;text-align:center;">
 
-<h2>App Switch / Resume – Activation Diagnostic PoC</h2>
-<button id="start" style="font-size:20px;padding:12px 24px;">Start Test</button>
+<h2>App Switch / Resume – NON‑Fullscreen PoC</h2>
+<button id="start" style="font-size:20px;padding:12px 24px;">Start</button>
 
 <pre id="log" style="margin:20px auto;width:90%;max-width:900px;background:#000;padding:16px;border-radius:8px;text-align:left;white-space:pre-wrap;"></pre>
 
 <script>
 const logEl = document.getElementById('log');
-const log = (m) => {
-  console.log(m);
-  logEl.textContent += m + "\n";
-};
+const log = m => { console.log(m); logEl.textContent += m + '\n'; };
 
-function activationState(tag) {
+function state(tag) {
   log(`[${tag}] hasBeenActive=${navigator.userActivation.hasBeenActive}, isActive=${navigator.userActivation.isActive}`);
 }
 
-async function goFullscreen() {
-  activationState('Before fullscreen');
-  try {
-    await document.documentElement.requestFullscreen();
-    activationState('Entered fullscreen');
-  } catch (e) {
-    log('[ERROR] Fullscreen blocked');
-  }
-}
-
-// ===== API probes (NO user click) =====
-async function probeAPIs(tag) {
-  log(`\n[API PROBE] ${tag}`);
-
-  // Clipboard
+async function probe(tag) {
+  log(`\n[PROBE] ${tag}`);
   try {
     await navigator.clipboard.writeText('POC_TEST');
     log('❌ clipboard.writeText SUCCESS (BUG if no gesture)');
   } catch (e) {
     log('✔ clipboard.writeText blocked');
   }
-
-  // Auto-download
-  try {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['test'], { type: 'text/plain' }));
-    a.download = 'poc.txt';
-    a.click();
-    log('❌ auto-download SUCCESS (BUG if no gesture)');
-  } catch (e) {
-    log('✔ auto-download blocked');
-  }
 }
 
-// ===== Lifecycle listeners =====
+// ---- lifecycle listeners ----
+window.addEventListener('focus', () => {
+  state('After resume (focus)');
+  probe('after focus');
+});
+
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
-    activationState('After resume (visibility)');
-    probeAPIs('after visibility resume');
+    state('After resume (visibility)');
+    probe('after visibility resume');
   }
 });
 
-window.addEventListener('focus', () => {
-  activationState('After resume (focus)');
-  probeAPIs('after focus');
-});
+// ---- start ----
+document.getElementById('start').onclick = () => {
+  state('After start click');
+  log('NOW: App switch to another app, then return. DO NOT click page.');
+};
 
-// ===== ESC / fullscreen exit =====
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement) {
-    activationState('After fullscreen exit');
-    probeAPIs('after fullscreen exit');
-  }
-});
-
-// ===== Start =====
-document.getElementById('start').onclick = goFullscreen;
-
-log('Instructions:');
-log('1. Click Start Test');
-log('2. Enter fullscreen');
-log('3. App switch (Alt+Tab / Recent Apps)');
-log('4. Return to browser');
-log('5. DO NOT click the page');
-log('6. Observe activation + API results');
+log('Steps:');
+log('1. Click Start');
+log('2. App switch (Alt+Tab / Recent Apps)');
+log('3. Return to Chrome');
+log('4. Do NOT click the page');
 </script>
 
 </body>
