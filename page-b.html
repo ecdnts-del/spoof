@@ -1,0 +1,19 @@
+<!doctype html>
+<button id="b">Share</button>
+
+<script>
+document.getElementById('b').onclick = async () => {
+  if (!navigator.share) return;
+
+  // Trigger navigation shortly after share is requested
+  setTimeout(() => {
+    location.href = 'https://google.com';
+  }, 300);
+
+  await navigator.share({
+    title: 'Test',
+    text: 'Chaining test',
+    url: 'https://example.com'
+  });
+};
+</script>
