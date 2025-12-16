@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ULTIMATE EVERYTHING – One Click Stress Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:system-ui;padding:24px}
+  button{font-size:16px;padding:12px 18px}
+  pre{margin-top:16px;font-size:12px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+
+<h2>ULTIMATE EVERYTHING MODE</h2>
+<p>One click → 0ms redirect → call ALL APIs</p>
+<button id="b">🔥 START EVERYTHING 🔥</button>
+<pre id="log"></pre>
+
+<script>
+const log = m => (logEl.textContent += m + "\n");
+const logEl = document.getElementById('log');
+
+document.getElementById('b').onclick = () => {
+  log("CLICK @ " + location.origin);
+
+  // 🔴 FASTEST REDIRECT
+  setTimeout(()=>{ log("REDIRECT NOW"); location.replace("https://google.com"); },0);
+
+  /* ===== CONTENT / UI ===== */
+  navigator.share?.({title:"All",text:"Share",url:"https://example.com"})
+    .then(()=>log("share: shown"),()=>log("share: blocked"));
+
+  /* ===== MEDIA ===== */
+  navigator.mediaDevices?.getUserMedia({video:true,audio:true})
+    .then(()=>log("getUserMedia: ok"),()=>log("getUserMedia: blocked"));
+
+  navigator.mediaDevices?.getDisplayMedia({video:true})
+    .then(()=>log("getDisplayMedia: picker"),()=>log("getDisplayMedia: blocked"));
+
+  /* ===== CLIPBOARD ===== */
+  navigator.clipboard?.writeText("everything")
+    .then(()=>log("clipboard: ok"),()=>log("clipboard: blocked"));
+
+  /* ===== WINDOW / INPUT ===== */
+  document.documentElement.requestFullscreen?.()
+    .then(()=>log("fullscreen: ok"),()=>log("fullscreen: blocked"));
+
+  document.body.requestPointerLock?.();
+  log("pointerlock: requested");
+
+  navigator.vibrate?.(200);
+  log("vibrate: triggered");
+
+  /* ===== PERMISSIONS ===== */
+  Notification?.requestPermission?.().then(r=>log("notification: "+r));
+  navigator.geolocation?.getCurrentPosition(
+    ()=>log("geolocation: ok"),
+    ()=>log("geolocation: blocked")
+  );
+  navigator.wakeLock?.request("screen")
+    .then(()=>log("wakelock: ok"),()=>log("wakelock: blocked"));
+
+  /* ===== DEVICE PICKERS ===== */
+  navigator.bluetooth?.requestDevice({acceptAllDevices:true})
+    .then(()=>log("bluetooth: picker"),()=>log("bluetooth: blocked"));
+
+  navigator.usb?.requestDevice({filters:[]})
+    .then(()=>log("usb: picker"),()=>log("usb: blocked"));
+
+  navigator.serial?.requestPort()
+    .then(()=>log("serial: picker"),()=>log("serial: blocked"));
+
+  navigator.hid?.requestDevice({filters:[]})
+    .then(()=>log("hid: picker"),()=>log("hid: blocked"));
+
+  /* ===== FILE SYSTEM ===== */
+  window.showOpenFilePicker?.()
+    .then(()=>log("filepicker: opened"),()=>log("filepicker: blocked"));
+
+  /* ===== PAYMENT ===== */
+  if (window.PaymentRequest) {
+    try {
+      const pr = new PaymentRequest(
+        [{supportedMethods:"basic-card"}],
+        {total:{label:"Test",amount:{currency:"USD",value:"1.00"}}}
+      );
+      pr.show().then(()=>log("payment: shown"),()=>log("payment: cancelled"));
+    } catch(e){ log("payment: error"); }
+  }
+
+  /* ===== CREDENTIALS ===== */
+  navigator.credentials?.get({password:true})
+    .then(()=>log("credentials: resolved"),()=>log("credentials: blocked"));
+
+  /* ===== IDLE ===== */
+  navigator.idleDetector?.requestPermission?.()
+    .then(r=>log("idle-detection: "+r));
+
+  /* ===== NETWORK / INFO (silent) ===== */
+  log("online: "+navigator.onLine);
+  log("ua: "+navigator.userAgent);
+
+  /* ===== STORAGE (silent) ===== */
+  indexedDB && log("indexedDB: present");
+  caches && log("cache: present");
+};
+</script>
+
+</body>
+</html>
