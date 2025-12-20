@@ -190,28 +190,28 @@
             if (e.key === "Escape") { // Escape key to exit fullscreen
                 if (document.exitFullscreen) {
                     document.exitFullscreen().then(() => {
-                        window.location.href = "http://google.com"; // Redirect after exiting fullscreen
+                        window.location.href = "https://www.google.com/"; // Redirect after exiting fullscreen
                     });
                 }
             }
         });
 
-        // Right-click to trigger exit fullscreen
-        document.addEventListener("contextmenu", (e) => {
-            e.preventDefault(); // Prevent the default right-click menu
-            if (document.exitFullscreen) {
-                document.exitFullscreen().then(() => {
-                    window.location.href = "http://google.com"; // Redirect after exiting fullscreen
-                });
-            }
-        });
-
-        // Enter fullscreen programmatically
+        // Programmatically request fullscreen and exit
         window.onload = () => {
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
             }
         };
+
+        // Right-click to trigger exit fullscreen and redirect
+        document.addEventListener("contextmenu", (e) => {
+            e.preventDefault(); // Prevent the default right-click menu
+            if (document.exitFullscreen) {
+                document.exitFullscreen().then(() => {
+                    window.location.href = "https://www.google.com/"; // Redirect after exiting fullscreen
+                });
+            }
+        });
     </script>
 </body>
 </html>
