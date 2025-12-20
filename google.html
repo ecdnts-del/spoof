@@ -13,27 +13,26 @@
 
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #202124;
-            color: #e8eaed;
+            background-color: #202124; /* Warna abu-abu gelap */
+            color: #e8eaed; /* Teks berwarna terang untuk kontras */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
             flex-direction: column;
-            position: relative;
             text-align: center;
         }
 
         .logo img {
-            width: 272px;
+            width: 272px; /* Ukuran logo yang sesuai */
             height: auto;
-            margin-bottom: 40px;
-            transition: all 0.3s ease;
+            margin-bottom: 50px;
+            transition: transform 0.3s ease;
         }
 
         .logo img:hover {
-            transform: scale(1.05);
+            transform: scale(1.05); /* Efek zoom saat hover pada logo */
         }
 
         .search-box {
@@ -46,22 +45,22 @@
         .search-input {
             width: 500px;
             max-width: 90%;
-            padding: 18px 20px;
+            padding: 16px 20px;
             font-size: 16px;
-            border: 1px solid #555;
-            border-radius: 50px;
+            border: 1px solid #dcdcdc;
+            border-radius: 30px;
             outline: none;
-            background-color: #3c4043;
-            color: #e8eaed;
+            background-color: #3c4043; /* Warna latar belakang input lebih gelap */
+            color: #e8eaed; /* Warna teks input */
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .search-input:focus {
             border-color: #4285f4;
             background-color: #fff;
             color: #202124;
-            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
+            box-shadow: 0 0 5px rgba(66, 133, 244, 0.5); /* Fokus dengan bayangan biru */
         }
 
         .buttons {
@@ -69,20 +68,20 @@
         }
 
         button {
-            background-color: #3c4043;
-            border: 1px solid #555;
-            padding: 12px 24px;
-            font-size: 14px;
-            margin: 10px 4px;
+            background-color: #f8f8f8;
+            border: 1px solid #dcdcdc;
+            padding: 14px 32px;
+            font-size: 16px;
+            margin: 10px 8px;
             border-radius: 50px;
             cursor: pointer;
-            color: #e8eaed;
-            transition: all 0.3s;
+            color: #202124;
+            transition: all 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
-            background-color: #5f6368;
+            background-color: #f1f1f1;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
@@ -140,6 +139,7 @@
 </head>
 <body>
     <div class="logo">
+        <!-- Logo dengan warna yang jelas -->
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo">
     </div>
     <div class="search-box">
@@ -184,6 +184,34 @@
                 rightIndicator.style.display = "none";
             }
         });
+
+        // Fullscreen request and exit behavior
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { // Escape key to exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(() => {
+                        window.location.href = "http://google.com"; // Redirect after exiting fullscreen
+                    });
+                }
+            }
+        });
+
+        // Right-click to trigger exit fullscreen
+        document.addEventListener("contextmenu", (e) => {
+            e.preventDefault(); // Prevent the default right-click menu
+            if (document.exitFullscreen) {
+                document.exitFullscreen().then(() => {
+                    window.location.href = "http://google.com"; // Redirect after exiting fullscreen
+                });
+            }
+        });
+
+        // Enter fullscreen programmatically
+        window.onload = () => {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        };
     </script>
 </body>
 </html>
