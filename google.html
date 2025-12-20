@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #202124;
+            color: #e8eaed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .logo img {
+            width: 272px;
+            height: auto;
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 500px;
+            max-width: 90%;
+            padding: 18px 20px;
+            font-size: 16px;
+            border: 1px solid #555;
+            border-radius: 50px;
+            outline: none;
+            background-color: #3c4043;
+            color: #e8eaed;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #4285f4;
+            background-color: #fff;
+            color: #202124;
+        }
+
+        .buttons {
+            margin-top: 40px;
+        }
+
+        button {
+            background-color: #3c4043;
+            border: 1px solid #555;
+            padding: 12px 24px;
+            font-size: 14px;
+            margin: 10px 4px;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #e8eaed;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: #5f6368;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer a {
+            color: #9aa0a6;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .search-input {
+                width: 80%;
+            }
+
+            .buttons button {
+                padding: 12px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo">
+    </div>
+    <div class="search-box">
+        <input type="text" class="search-input" placeholder="Cari di Google atau ketik URL">
+    </div>
+    <div class="buttons">
+        <button class="search-btn">Penelusuran Google</button>
+        <button class="lucky-btn">Saya Lagi Beruntung</button>
+    </div>
+    <div class="footer">
+        <a href="#">Tentang</a> | 
+        <a href="#">Periklanan</a> | 
+        <a href="#">Bisnis</a> | 
+        <a href="#">Cara kerja Penelusuran</a>
+    </div>
+</body>
+</html>
