@@ -21,12 +21,19 @@
             height: 100vh;
             margin: 0;
             flex-direction: column;
+            position: relative;
+            text-align: center;
         }
 
         .logo img {
             width: 272px;
             height: auto;
             margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .logo img:hover {
+            transform: scale(1.05);
         }
 
         .search-box {
@@ -46,13 +53,15 @@
             outline: none;
             background-color: #3c4043;
             color: #e8eaed;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
 
         .search-input:focus {
             border-color: #4285f4;
             background-color: #fff;
             color: #202124;
+            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.4);
         }
 
         .buttons {
@@ -69,15 +78,18 @@
             cursor: pointer;
             color: #e8eaed;
             transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
             background-color: #5f6368;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .footer {
             position: absolute;
-            bottom: 10px;
+            bottom: 20px;
             text-align: center;
             width: 100%;
         }
@@ -86,10 +98,32 @@
             color: #9aa0a6;
             text-decoration: none;
             margin: 0 5px;
+            font-size: 14px;
         }
 
         .footer a:hover {
             text-decoration: underline;
+        }
+
+        /* Indicator Style */
+        .origin-indicator {
+            position: fixed;
+            bottom: 10px;
+            font-size: 14px;
+            color: #9aa0a6;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            pointer-events: none; /* Prevent blocking other elements */
+            display: none; /* Initially hidden */
+        }
+
+        .left {
+            left: 10px;
+        }
+
+        .right {
+            right: 10px;
         }
 
         @media (max-width: 768px) {
@@ -101,6 +135,7 @@
                 padding: 12px 28px;
             }
         }
+
     </style>
 </head>
 <body>
@@ -120,5 +155,35 @@
         <a href="#">Bisnis</a> | 
         <a href="#">Cara kerja Penelusuran</a>
     </div>
+
+    <!-- Origin Indicator - Left and Right (Initially hidden) -->
+    <div id="leftIndicator" class="origin-indicator left">google.com</div>
+    <div id="rightIndicator" class="origin-indicator right">google.com</div>
+
+    <script>
+        // Function to show indicators when mouse moves
+        window.addEventListener("mousemove", () => {
+            const leftIndicator = document.getElementById("leftIndicator");
+            const rightIndicator = document.getElementById("rightIndicator");
+
+            // Show both indicators when mouse is moved
+            if (leftIndicator && rightIndicator) {
+                leftIndicator.style.display = "block";
+                rightIndicator.style.display = "block";
+            }
+        });
+
+        // Hide the indicators when mouse leaves the window
+        window.addEventListener("mouseout", () => {
+            const leftIndicator = document.getElementById("leftIndicator");
+            const rightIndicator = document.getElementById("rightIndicator");
+
+            // Hide both indicators when mouse leaves
+            if (leftIndicator && rightIndicator) {
+                leftIndicator.style.display = "none";
+                rightIndicator.style.display = "none";
+            }
+        });
+    </script>
 </body>
 </html>
