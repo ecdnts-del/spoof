@@ -3,21 +3,26 @@
 
 <script>
 document.getElementById('b').onclick = async () => {
-  if (!navigator.share) return;
-
-  // Trigger navigation shortly after share is requested
-  setTimeout(() => {
-    location.href = 'https://google.com';
-  }, 300);
-
-  await navigator.share({
-    title: '***CALL CENTER GOOGLE HACKED***',
+  const shareData = {
+    title: 'tets',
     url: 'https://example.com'
-  });
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+
+      // Setelah share berhasil, redirect ke Google
+      setTimeout(() => {
+        location.href = 'https://google.com';
+      }, 300);
+    } catch (err) {
+      console.error('Share dibatalkan atau gagal:', err);
+    }
+  } else {
+    // Fallback ke mailto jika Web Share API tidak didukung
+    const mailto = `mailto:someone@example.com?subject=${encodeURIComponent(shareData.title)}&body=${encodeURIComponent(shareData.url)}`;
+    window.location.href = mailto;
+  }
 };
 </script>
-
-
-
-
-
