@@ -1,18 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test</title>
+  <script>
+    function go() {
+      var x = window.open('https://google.com');
 
-<script>
-function go(){
-var x=window.open('https://www.google.com/')
-setTimeout(function(){
-  x.document.body.innerHTML = `
-    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5IYWxsbzwvdGV4dD4KPC9zdmc+">
-    <h2>Please login</h2>
-  `;
-}, 3000);
+      setTimeout(function () {
+        // pastikan window sudah terbuka
+        if (x && !x.closed) {
+          x.document.body.innerHTML = `
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5IYWxsbzwvdGV4dD4KPC9zdmc+">
+            <h2>Please login</h2>
+          `;
+        }
+      }, 3000);
+    }
+  </script>
+</head>
+<body>
 
-<button onclick="go()">go</button>
+  <button onclick="go()">Go</button>
 
-
-
-
-
-
+</body>
+</html>
