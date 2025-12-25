@@ -1,25 +1,46 @@
-<script>
-function go(){
-var x=window.open('https://www.google.com/spoof')
+<!DOCTYPE html>
+<html>
+<head>
+  <script>
+    function go() {
+      var x = window.open('about:blank');
 
       setTimeout(function () {
-        // pastikan window sudah terbuka
-        if (x && !x.closed) {
-          x.document.body.innerHTML = `
-            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZpbGw9ImJsYWNrIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5IYWxsbzwvdGV4dD4KPC9zdmc+">
-            <h2>Please login</h2>
-          `;
-        }
+        if (!x || x.closed) return;
+
+        x.document.open();
+        x.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Demo</title>
+          </head>
+          <body style="font-family:Arial;text-align:center;">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SGFsbG88L3RleHQ+PC9zdmc+">
+            <h1>Please login</h1>
+
+            Email:<br>
+            <input id="email"><br><br>
+
+            Pass:<br>
+            <input id="pass" type="password"><br><br>
+
+            <button onclick="
+              alert(
+                'Email: ' + document.getElementById('email').value +
+                '\\nPass: ' + document.getElementById('pass').value
+              )
+            ">Login</button>
+          </body>
+          </html>
+        `);
+        x.document.close();
       }, 3000);
     }
   </script>
 </head>
+
 <body>
-
   <button onclick="go()">Go</button>
-
 </body>
 </html>
-
-
-
