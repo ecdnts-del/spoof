@@ -1,49 +1,30 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow"> <!-- Hindari Indeks oleh Mesin Pencari -->
-  <title>Proof of Concept - Pengalihan ke Zoom</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    #status-message {
-      display: none;
-      color: green;
-      font-size: 16px;
-      margin-top: 20px;
-    }
-  </style>
+<html>
+ <head> 
+  <meta charset="utf-8">
+<style>
+.button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+</style>
+ </head> 
+ <body> 
   <script>
-    function startRedirect() {
-      // Tampilkan pesan status untuk memberi tahu pengguna
-      document.getElementById("status-message").style.display = "block";
-
-      // Pastikan pengalihan ini dimulai oleh pengguna (klik tombol)
-      const zoomUrl = "zoommtg://zoom.us/join?confno=123456&pwd=abcdef";
-      const fallbackUrl = "https://zoom.us/join?confno=123456&pwd=abcdef";
-
-      // Coba buka aplikasi Zoom menggunakan protokol zoommtg://
-      window.location.href = zoomUrl;
-
-      // Jika gagal, fallback ke halaman Zoom di web
-      setTimeout(() => {
-        window.location.href = fallbackUrl;
-      }, 1000); // Tunggu 1 detik sebelum fallback ke URL web Zoom
-    }
-  </script>
-</head>
-<body>
-  <h1>Proof of Concept - Pengalihan ke Zoom</h1>
-  
-  <!-- Tombol yang memulai pengalihan -->
-  <button onclick="startRedirect()">Mulai Pengalihan ke Zoom</button>
-
-  <!-- Pesan Status untuk memberi tahu pengguna bahwa pengalihan sedang berlangsung -->
-  <div id="status-message">Mengalihkan ke aplikasi Zoom, harap tunggu...</div>
-</body>
+function a(){
+    window.open('https://google.com', 'x');
+    setTimeout(function(){
+        window.open('https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.apk&sa=D&sntz=1&usg=AOvVaw1yrgrWLTeaZGNgtqAE4rR7', 'x');
+    }, 5000);
+}
+</script> 
+  <center><input type="button" class="button" value="Download From Original Site" onclick="a()"> </center>
+ </body>
 </html>
