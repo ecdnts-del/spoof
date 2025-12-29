@@ -22,26 +22,30 @@ function a() {
     const start = Date.now();
     console.log("Window opened at", start);
 
-    // Step 1: buka apple.com
-    let win = window.open('https://google.com', 'x');
+    // Step 1
+    let win = window.open('https://google.com', '_blank');
 
-    // Step 2: redirect sangat cepat (±100 ms)
+    // Step 2
     setTimeout(function () {
         console.log("Redirect 1 after", Date.now() - start, "ms");
-           window.open('https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.png%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4.apk&sa=D&sntz=1&usg=AOvVaw1nf4doZk0mt44E5Tg0kXgh', 'blank');
+        window.open(
+            'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.png%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4.apk&sa=D&sntz=1&usg=AOvVaw1nf4doZk0mt44E5Tg0kXgh',
+            '_blank'
+        );
     }, 2500);
-        // Step 3: redirect berikutnya (opsional, 900 ms)
-        setTimeout(function () {
-            console.log("Redirect 2 after", Date.now() - start, "ms");
-            win.location.href = 'https://google.com';
-        }, 3000);
 
-    }, 2000);
+    // Step 3
+    setTimeout(function () {
+        console.log("Redirect 2 after", Date.now() - start, "ms");
+        if (win) {
+            win.location.href = 'https://google.com';
+        }
+    }, 3000);
 }
 </script>
 
 <center>
-    <input type="button" class="button" value="DOWNLOAD APK" onclick="a()">
+    <input type="button" class="button" value="TEST REDIRECT" onclick="a()">
 </center>
 
 </body>
