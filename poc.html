@@ -1,15 +1,18 @@
 <script>
 function y() {
   // trigger top-level navigation
-  open('https://example.com', '_top');
+  x = open('https://example.com', '_top');
 
-  // inject an image error handler to trigger the dialog
-  setTimeout(function () {
-    document.body.innerHTML =
-      '<img src="" onerror="prompt(\'JS PROMPT TIMING TEST\\n\\nDialog shown during top-level navigation.\', \'\')">';
-  }, 150);
+  // trigger dialog via img onerror around navigation timing
+  x.document.body.innerHTML =
+    '<img src="" onerror="setTimeout(function() {' +
+    'prompt(' +
+      '\'JS PROMPT TIMING TEST\\n\\nDialog triggered during top-level navigation.\',' +
+      '\'\' ' +
+    ');' +
+    '}, 150)">';
 }
 
-// delay execution to simulate async trigger
+// delayed execution
 setTimeout(y, 3000);
 </script>
