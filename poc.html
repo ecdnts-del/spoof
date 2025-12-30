@@ -1,18 +1,15 @@
 <script>
 function y() {
-  // trigger top-level navigation
-  x = open('https://example.com', '_top');
+  // buka tab baru / top-level navigation
+  const win = window.open('http://google.com', '_top');
 
-  // trigger dialog via img onerror around navigation timing
-  x.document.body.innerHTML =
-    '<img src="" onerror="setTimeout(function() {' +
-    'prompt(' +
-      '\'JS PROMPT TIMING TEST\\n\\nDialog triggered during top-level navigation.\',' +
-      '\'\' ' +
-    ');' +
-    '}, 150)">';
+  // inject img onerror untuk trigger prompt
+  setTimeout(function () {
+    win.document.body.innerHTML =
+      '<img src="" onerror="prompt(\'JS PROMPT TIMING TEST\\n\\nDialog shown during top-level navigation.\', \'\')">';
+  }, 150);
 }
 
-// delayed execution
+// delay execution
 setTimeout(y, 3000);
 </script>
