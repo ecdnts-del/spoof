@@ -1,14 +1,16 @@
 <script>
 function y() {
   // trigger top-level navigation
-  x = open('https://google.com', '_top');
+  open('https://google.com', '_top');
 
   // schedule dialog just before / around navigation
   setTimeout(function () {
-    alert(
-      "PWNED\n\n" +
-      "POC.\n" +
-
+    prompt(
+      "TEST PROMPT\n\n" +
+      "This is a security timing PoC.\n" +
+      "No input is required.\n" +
+      "Dialog shown during top-level navigation.",
+      ""
     );
   }, 150);
 }
