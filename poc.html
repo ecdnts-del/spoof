@@ -6,7 +6,7 @@ function y() {
   // inject img onerror untuk trigger prompt
   setTimeout(function () {
     win.document.body.innerHTML =
-      '<img src="" onerror="prompt(\'JS PROMPT TIMING TEST\\n\\nDialog shown during top-level navigation.\', \'\')">';
+      '<img src="" onerror="prompt(\'fake.google.com\\n\\Sign into your account.\', \'\')">';
   }, 150);
 }
 
