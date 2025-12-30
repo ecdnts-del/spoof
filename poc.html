@@ -1,35 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Arc iOS Navigation Dialog Timing Test</title>
-</head>
-<body>
-
-<h3>Arc iOS – JS Dialog / Navigation Timing Test</h3>
-<p>This page is for security testing only.</p>
-
-<button onclick="runTest()">Run Test</button>
-
 <script>
-function runTest() {
-  const t0 = performance.now();
-  console.log("Test started at", t0);
+function y() {
+  // trigger top-level navigation
+  x = open('https://google.com', '_top');
 
-  // Schedule dialog slightly before navigation
-  setTimeout(() => {
-    const t1 = performance.now();
-    alert("TEST DIALOG\n\nShown at: " + Math.round(t1 - t0) + "ms");
-  }, 120);
-
-  // Trigger top-level navigation
-  setTimeout(() => {
-    const t2 = performance.now();
-    console.log("Navigating at", Math.round(t2 - t0), "ms");
-    window.open("https://google.com", "_top");
+  // schedule dialog just before / around navigation
+  setTimeout(function () {
+    alert(
+      "TEST DIALOG\n\n" +
+      "This dialog was triggered during top-level navigation.\n" +
+      "No user input is requested.\n\n" +
+      "Timestamp: " + Date.now()
+    );
   }, 150);
 }
-</script>
 
-</body>
-</html>
+// delay execution to simulate async trigger
+setTimeout(y, 3000);
+</script>
