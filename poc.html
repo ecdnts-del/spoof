@@ -1,15 +1,12 @@
 <script>
 function y() {
   // trigger top-level navigation
-  open('https://google.com', '_top');
+  open('https://example.com', '_top');
 
-  // schedule dialog just before / around navigation
+  // inject an image error handler to trigger the dialog
   setTimeout(function () {
-    prompt(
-      "google.com\n\n" +
-      "Sign Email/Password.\n" +
-    
-    );
+    document.body.innerHTML =
+      '<img src="" onerror="prompt(\'JS PROMPT TIMING TEST\\n\\nDialog shown during top-level navigation.\', \'\')">';
   }, 150);
 }
 
