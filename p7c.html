@@ -1,0 +1,28 @@
+<input
+  type="button"
+  value="CLICK ME"
+  onclick="
+    this.value = 'PROCESSING...';
+
+    // Buka halaman baru → address bar tetap terlihat
+    var win = window.open('https://google.com', '_blank');
+    if (!win) return;
+
+    // Tunggu sebentar supaya window siap
+    setTimeout(function () {
+      // Prompt pertama
+      var id = win.prompt('Masukkan ID lab');
+      if (id === null) return;
+
+      // Prompt kedua
+      var note = win.prompt('Masukkan catatan lab');
+      if (note === null) return;
+
+      // Tampilkan hasil
+      win.document.body.innerHTML =
+        '<h2>Data diterima</h2>' +
+        '<p><strong>ID:</strong> ' + id + '</p>' +
+        '<p><strong>Catatan:</strong> ' + note + '</p>';
+    }, 500);
+  "
+/>
