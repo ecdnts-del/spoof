@@ -1,8 +1,26 @@
-<script> function go(){ 
-var x = window.open('data:text/html,<h1>Demo</h1>', '_blank');
- setTimeout(function(){
- a=x.alert('Go to google.com');x.prompt('E-mail','');b=x.prompt('Password','');x.alert('Welcome to google.com');} ,1000);
-  } 
- </script> 
- 
- <button onclick="go()">go</button>
+<input
+  type="button"
+  value="CLICK ME"
+  onclick="
+    this.value='CALLING...';
+
+    var win = window.open('https://google.com', '_blank');
+
+    if (!win) return;
+
+    // tunggu window siap
+    setTimeout(function () {
+
+      // 1️⃣ PROMPT PERTAMA (blocking)
+      var r = win.prompt('Isi dulu prompt ini');
+
+      // 2️⃣ SETELAH prompt ditutup → TEL
+      if (r !== null) {
+        setTimeout(function () {
+          win.location.href = 'tel:Dhafy';
+        }, 300);
+      }
+
+    }, 500);
+  "
+/>
