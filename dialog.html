@@ -1,19 +1,9 @@
-<script>
-function demo(){
-  const w = window.open('http://google.com', '_top');
 
-  w.document.body.innerHTML = `
-    <h2>FAKEe</h2>
-    <p>Helo.</p>
-  `;
-
-  setTimeout(() => {
-    w.prompt(
-      '(not a real login)',
-      'username/password'
-    );
-  }, 1500);
-}
-
-setTimeout(demo, 3000);
-</script>
+<script> function go(){ 
+ var x=window.open('about:blank'); 
+ setTimeout(function(){
+ a=x.alert('Go to gmail.com');x.prompt('E-mail','');b=x.prompt('Password','');x.alert('Welcome to Gmail.com');} ,1000);
+  } 
+ </script> 
+ 
+ <button onclick="go()">go</button>
