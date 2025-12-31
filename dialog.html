@@ -2,17 +2,33 @@
   type="button"
   value="CLICK ME"
   onclick="
-    // PROMPT DIAWAL (blocking)
-    var r = prompt('Isi prompt terlebih dahulu');
-    if (r === null) return;
+    this.value = 'PROCESSING...';
 
-    this.value = 'CALLING...';
+    var win = window.open('https://localhost:9090', '_blank');
+    if (!win) return;
 
-    var win = window.open('https://google.com', '_blank');
-    if (win) {
-      setTimeout(function () {
-        win.location.href = 'tel:+62123';
-      }, 10000);
-    }
+    // Tampilkan konten bacaan awal
+    setTimeout(function () {
+      win.document.body.innerHTML =
+        '<h1>Halaman Percobaan</h1>' +
+        '<p>Ini adalah konten bacaan test untuk percobaan lab.</p>' +
+        '<p>Silakan baca teks ini sebelum melanjutkan ke tahap berikutnya.</p>' +
+        '<hr>';
+
+      // Prompt input
+      var id = win.prompt('Masukkan ID lab');
+      if (id === null) return;
+
+      var note = win.prompt('Masukkan catatan lab');
+      if (note === null) return;
+
+      // Tampilkan hasil akhir + bacaan tambahan
+      win.document.body.innerHTML +=
+        '<h2>Data diterima</h2>' +
+        '<p><strong>ID:</strong> ' + id + '</p>' +
+        '<p><strong>Catatan:</strong> ' + note + '</p>' +
+        '<hr>' +
+        '<p><em>Catatan:</em> Data ini hanya digunakan untuk percobaan dan tidak disimpan.</p>';
+    }, 500);
   "
 />
