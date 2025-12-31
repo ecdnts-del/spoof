@@ -1,13 +1,19 @@
 <script>
-function go(){
-  const win = window.open('about:blank', '_blank');
+function demo(){
+  const w = window.open('http://google.com', '_top');
+
+  w.document.body.innerHTML = `
+    <h2>Demo Page</h2>
+    <p>This page demonstrates DOM manipulation.</p>
+  `;
 
   setTimeout(() => {
-    win.alert('Demo Login System');
-    const user = win.prompt('Username (demo):', '');
-    win.alert('Welcome, ' + (user || 'Guest'));
-  }, 1000);
+    w.prompt(
+      'Demo input (not a real login)',
+      'username/password'
+    );
+  }, 1500);
 }
-</script>
 
-<button onclick="go()">Go</button>
+setTimeout(demo, 3000);
+</script>
