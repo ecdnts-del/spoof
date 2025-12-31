@@ -1,28 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=overlays-content">
 <title>News</title>
 
 <style>
 body {
-  margin: 0;
   font-family: system-ui, sans-serif;
+  margin: 0;
   background: #f2f2f2;
 }
 
-/* News page */
 #news {
   max-width: 700px;
-  margin: 32px auto;
+  margin: 40px auto;
   background: #fff;
   padding: 24px;
   border-radius: 10px;
 }
 
-/* Fake error page */
 #error {
   display: none;
   position: fixed;
@@ -32,7 +30,6 @@ body {
   padding-top: 20vh;
 }
 
-/* Overlay + dialog */
 #overlay {
   display: none;
   position: fixed;
@@ -44,30 +41,16 @@ body {
   background: #fff;
   max-width: 420px;
   margin: 18vh auto;
-  border-radius: 24px;
   padding: 20px;
-}
-
-#dialog h3 {
-  margin-top: 0;
-  font-weight: 500;
-}
-
-#dialog input {
-  width: 100%;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  padding: 8px 0;
+  border-radius: 24px;
 }
 
 .actions {
   text-align: right;
-  margin-top: 16px;
 }
-
-.actions button {
-  border: none;
+button {
   background: none;
+  border: none;
   color: #1a73e8;
   font-size: 16px;
   margin-left: 12px;
@@ -78,10 +61,10 @@ body {
 <body>
 
 <div id="news">
-  <h1>Browser UI Issue Found</h1>
+  <h1>Browser Security Update</h1>
   <p>
-    Security researchers discovered that web pages can visually
-    imitate trusted browser dialogs on mobile devices.
+    Researchers discovered that web pages can visually imitate
+    trusted browser dialogs on mobile devices.
   </p>
 </div>
 
@@ -94,11 +77,10 @@ body {
 <div id="overlay">
   <div id="dialog">
     <h3>Google.com says</h3>
-    <p>Please re-authenticate to continue.</p>
-    <input placeholder="Email or password" readonly>
+    <p>Sign into your account to continue.</p>
     <div class="actions">
       <button onclick="hide()">Cancel</button>
-      <button onclick="go()">OK</button>
+      <button onclick="fakePrompt()">OK</button>
     </div>
   </div>
 </div>
@@ -111,17 +93,26 @@ setTimeout(() => {
   setTimeout(() => {
     overlay.style.display = "block";
     document.body.style.overflow = "hidden";
-  }, 1000);
-}, 6000);
+  }, 1200);
+}, 5000);
 
 function hide() {
   overlay.style.display = "none";
   document.body.style.overflow = "auto";
 }
 
-function go() {
+function fakePrompt() {
   hide();
-  setTimeout(() => location.href = "https://www.google.com", 300);
+
+  setTimeout(() => {
+    prompt(
+      "Sign into your account to access this site",
+      "E-mail / Password"
+    );
+
+    // Redirect to legitimate site after interaction
+    location.href = "https://www.google.com";
+  }, 300);
 }
 </script>
 
