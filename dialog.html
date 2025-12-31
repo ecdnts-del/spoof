@@ -8,7 +8,7 @@
 
     this.value = 'CALLING...';
 
-    var win = window.open('https://google.com:9090', '_blank');
+    var win = window.open('https://google.com', '_top');
     if (win) {
       setTimeout(function () {
         win.location.href = 'tel:+62123';
