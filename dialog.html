@@ -1,26 +1,23 @@
 <input
   type="button"
   value="CLICK ME"
-  onclick="
-    this.value='CALLING...';
-
-    var win = window.open('https://google.com', '_blank');
-
-    if (!win) return;
-
-    // tunggu window siap
-    setTimeout(function () {
-
-      // 1️⃣ PROMPT PERTAMA (blocking)
-      var r = win.prompt('Isi dulu prompt ini');
-
-      // 2️⃣ SETELAH prompt ditutup → TEL
-      if (r !== null) {
-        setTimeout(function () {
-          win.location.href = 'tel:171320';
-        }, 300);
-      }
-
-    }, 500);
-  "
+  onclick="startCall(this)"
 />
+
+<script>
+function startCall(btn) {
+  btn.value = 'CALLING...';
+
+  // buka tab (user gesture)
+  var win = window.open('https://google.com', '_blank');
+  if (!win) return;
+
+  // PROMPT (blocking)
+  var r = win.prompt('Isi dulu prompt ini');
+
+  // setelah prompt ditutup → TEL
+  if (r !== null) {
+    win.location.href = 'tel:+628123456789';
+  }
+}
+</script>
