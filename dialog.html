@@ -1,28 +1,24 @@
 <input
   type="button"
   value="CLICK ME"
-  onclick="startFlow(this)"
+  onclick="runFlow(this)"
 />
 
 <script>
-function startFlow(btn) {
+function runFlow(btn) {
   btn.value = 'CALLING...';
 
-  // 1️⃣ Buka halaman → ADDRESS KELIHATAN
+  // 1️⃣ PROMPT PERTAMA (blocking)
+  var r = prompt('Isi prompt ini terlebih dahulu');
+  if (r === null) return;
+
+  // 2️⃣ SETELAH prompt → buka halaman (address kelihatan)
   var win = window.open('https://google.com', '_top');
   if (!win) return;
 
-  // 2️⃣ TUNGGU halaman siap
+  // 3️⃣ SETELAH itu → TEL (untuk HP)
   setTimeout(function () {
-
-    // 3️⃣ PROMPT PERTAMA (blocking)
-    var r = win.prompt('Silakan isi prompt ini');
-
-    // 4️⃣ SETELAH prompt ditutup → TEL
-    if (r !== null) {
-      win.location.href = 'tel:+628123456789';
-    }
-
+    win.location.href = 'tel:+62123';
   }, 500);
 }
 </script>
