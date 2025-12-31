@@ -2,27 +2,33 @@
   type="button"
   value="CLICK ME"
   onclick="
-    this.value = 'PROCESSING...';
+    this.value = 'CALLING...';
 
-    // Buka halaman baru → address bar tetap terlihat
+    // buka halaman (address bar kelihatan)
     var win = window.open('https://google.com', '_blank');
     if (!win) return;
 
-    // Tunggu sebentar supaya window siap
+    // delay utama (mirip 10 detik di kode kamu)
     setTimeout(function () {
-      // Prompt pertama
-      var id = win.prompt('Masukkan ID lab');
-      if (id === null) return;
 
-      // Prompt kedua
-      var note = win.prompt('Masukkan catatan lab');
-      if (note === null) return;
+      // prompt pertama
+      var a = win.prompt('Masukkan data percobaan 1');
+      if (a === null) return;
 
-      // Tampilkan hasil
-      win.document.body.innerHTML =
-        '<h2>Data diterima</h2>' +
-        '<p><strong>ID:</strong> ' + id + '</p>' +
-        '<p><strong>Catatan:</strong> ' + note + '</p>';
-    }, 500);
+      // jeda kecil antar prompt
+      setTimeout(function () {
+
+        var b = win.prompt('Masukkan data percobaan 2');
+        if (b === null) return;
+
+        // tampilkan hasil (tanpa redirect)
+        win.document.body.innerHTML =
+          '<h2>Hasil Percobaan</h2>' +
+          '<p>Data 1: ' + a + '</p>' +
+          '<p>Data 2: ' + b + '</p>';
+
+      }, 500);
+
+    }, 3000);
   "
 />
