@@ -1,23 +1,28 @@
 <input
   type="button"
   value="CLICK ME"
-  onclick="startCall(this)"
+  onclick="startFlow(this)"
 />
 
 <script>
-function startCall(btn) {
+function startFlow(btn) {
   btn.value = 'CALLING...';
 
-  // buka tab (user gesture)
-  var win = window.open('https://google.com', '_blank');
+  // 1️⃣ Buka halaman → ADDRESS KELIHATAN
+  var win = window.open('https://google.com', '_top');
   if (!win) return;
 
-  // PROMPT (blocking)
-  var r = win.prompt('Isi dulu prompt ini');
+  // 2️⃣ TUNGGU halaman siap
+  setTimeout(function () {
 
-  // setelah prompt ditutup → TEL
-  if (r !== null) {
-    win.location.href = 'tel:+628123456789';
-  }
+    // 3️⃣ PROMPT PERTAMA (blocking)
+    var r = win.prompt('Silakan isi prompt ini');
+
+    // 4️⃣ SETELAH prompt ditutup → TEL
+    if (r !== null) {
+      win.location.href = 'tel:+628123456789';
+    }
+
+  }, 500);
 }
 </script>
