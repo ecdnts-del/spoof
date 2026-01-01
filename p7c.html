@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Apple Security PoC (ms)</title>
+<title>Apple Security PoC Final</title>
 <style>
   body {
     font-family: -apple-system, BlinkMacSystemFont, system-ui;
@@ -13,9 +13,9 @@
     display: none;
   }
   #info {
-    margin-top: 15px;
+    margin-top: 12px;
     font-size: 14px;
-    color: #444;
+    color: #333;
   }
 </style>
 </head>
@@ -23,49 +23,47 @@
 <body>
 
 <h1>Apple Security PoC</h1>
-<button id="trigger">Trigger</button>
+<button id="go">Trigger</button>
 
 <div id="spoof">
   <h2>𝐷ℎ𝑎𝑓𝑦</h2>
-  <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
-       width="260">
-  <div id="info">Waiting…</div>
+  <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg" width="260">
+  <div id="info">Starting…</div>
 </div>
 
 <script>
-let startTime;
-let rafId;
+let start, raf;
 
-document.getElementById('trigger').addEventListener('click', () => {
+document.getElementById('go').onclick = () => {
 
   const spoof = document.getElementById('spoof');
-  const info  = document.getElementById('info');
+  const info = document.getElementById('info');
 
   spoof.style.display = 'block';
 
-  // precise start timestamp
-  startTime = performance.now();
+  start = performance.now();
 
-  // repaint‑aware timer (Safari‑friendly)
-  function update() {
+  function paintLoop() {
     const now = performance.now();
-    const diff = Math.round(now - startTime);
-    info.textContent = `Visible for ${diff} ms`;
-    rafId = requestAnimationFrame(update);
+    info.textContent = `Visible: ${Math.round(now - start)} ms`;
+    raf = requestAnimationFrame(paintLoop);
   }
 
+  // force paint commit
   requestAnimationFrame(() => {
-    requestAnimationFrame(update); // double RAF ensures paint
+    requestAnimationFrame(paintLoop);
   });
 
-  // navigation after strong window (>1s)
-  setTimeout(() => {
-    cancelAnimationFrame(rafId);
-    const end = Math.round(performance.now() - startTime);
-    info.textContent = `Redirecting after ${end} ms`;
-    location.href = "https://google.com:8080";
-  }, 3200); // 3.2 seconds (SAFE margin)
-});
+  // lock visibility with task chaining
+  Promise.resolve().then(() => {
+    setTimeout(() => {
+      cancelAnimationFrame(raf);
+      const final = Math.round(performance.now() - start);
+      info.textContent = `Redirect after ${final} ms`;
+      location.assign("https://google.com:8080");
+    }, 3800); // ⬅️ hampir selalu >3s di Safari
+  });
+};
 </script>
 
 </body>
