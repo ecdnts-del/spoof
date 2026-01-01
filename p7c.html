@@ -1,9 +1,10 @@
+<!-- a.test -->
 <script>
 setTimeout(() => {
-  alert("google.com\nSecurity verification required");
-}, 100);
+  // 1. Trigger dialog dari attacker-origin
+  alert("Persistent dialog from a.test");
 
-setTimeout(() => {
-  location.href = "https://www.google.com";
-}, 150);
+  // 2. Navigate top-level ke b.test
+  location.href = "https://b.test";
+}, 1000);
 </script>
