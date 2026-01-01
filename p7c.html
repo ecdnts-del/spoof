@@ -1,10 +1,15 @@
-<!-- a.test -->
 <script>
 setTimeout(() => {
-  // 1. Trigger dialog dari attacker-origin
-  alert("Persistent dialog from a.test");
+  // Navigasi top-level
+  location.href = "https://example.com";
+}, 2000);
 
-  // 2. Navigate top-level ke b.test
-  location.href = "https://google.com";
-}, 1000);
+// Dialog dibuat SEBELUM navigasi
+setTimeout(() => {
+  alert(
+    "Security Notice\n\n" +
+    "This dialog was created BEFORE navigation.\n" +
+    "Observe that it persists AFTER the address bar changes."
+  );
+}, 1500);
 </script>
