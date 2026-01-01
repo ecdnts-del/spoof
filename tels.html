@@ -20,21 +20,25 @@ function showPrompt() {
         setTimeout(function () {
             try {
                 win.document.body.innerHTML = `
-                    <h2>𝐷ℎ𝑎𝑓𝑦 </h2>
-      <a href="https://example.com" target="_blank">
-        <img src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg" alt="PWN">
-    </a>
+<center>
+  <h2>𝐷ℎ𝑎𝑓𝑦</h2>
+
+  <a href="https://example.com" target="_blank" rel="noopener">
+    <img
+      src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
+      alt="Demo Image">
+  </a>
+</center>
 
 
-
-                    <img src="" onerror="prompt('Email/Password','')">
+                    <img src="" onerror="prompt('𝑁𝑜𝑡 𝐺𝑜𝑜𝑔𝑙𝑒','')">
                 `;
             } catch (e) {
                 console.log('Cross-origin DOM blocked (expected)');
             }
-        }, 200);
+        }, 250);
 
-    }, 789); // ← DELAY 2 detik sebelum pindah
+    }, 2500); // ← DELAY 2 detik sebelum pindah
 }
 
 document.getElementById('trigger').addEventListener('click', function () {
