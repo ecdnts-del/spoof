@@ -2,30 +2,63 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>MSRC PoC Demo</title>
+  <title>MSRC / Apple Accurate PoC</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      text-align: center;
+      margin-top: 60px;
+    }
+    #demo {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-<h1>MSRC PoC Demo</h1>
+<h1>MSRC PoC</h1>
 <button id="trigger">Trigger</button>
 
-<div id="demo" style="display:none;">
+<div id="demo">
   <h2>Demo</h2>
+  <div id="timer">0 ms</div>
 </div>
 
 <script>
+let startTime;
+let rafId;
+
 document.getElementById('trigger').onclick = () => {
 
-  // tampilkan konten demo (user gesture)
-  document.getElementById('demo').style.display = 'block';
+  const demo  = document.getElementById('demo');
+  const timer = document.getElementById('timer');
 
-  // delay sebelum redirect
+  // tampilkan konten (user gesture)
+  demo.style.display = 'block';
+
+  // timestamp akurat
+  startTime = performance.now();
+
+  // loop repaint → memastikan konten benar-benar terlihat
+  function update() {
+    const now = performance.now();
+    timer.textContent = Math.round(now - startTime) + " ms";
+    rafId = requestAnimationFrame(update);
+  }
+
+  // double RAF = paint confirmed (Safari friendly)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(update);
+  });
+
+  // redirect setelah window waktu yang jelas
   setTimeout(() => {
-    // top-level navigation
+    cancelAnimationFrame(rafId);
     window.location.href = 'https://google.com:9090';
-  }, 1000); // 1 detik
+  }, 1500); // 1500 ms visible (akurasi tinggi)
 };
 </script>
 
 </body>
 </html>
+
