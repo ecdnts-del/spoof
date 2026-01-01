@@ -1,30 +1,37 @@
 <!doctype html>
 <html>
 <body>
-<h3>Prompt Persistence Test</h3>
+<h2>UI Persistence – Security Impact Simulation (Localhost)</h2>
+<p>This PoC is intentionally non-exploitative.</p>
 
 <script>
 function poc() {
   const origin = location.origin;
   const time = new Date().toISOString();
 
-  // trigger navigasi top-level
-  window.open('https://www.google.com', '_top');
+  // Trigger top-level navigation
+  window.open('https://google.com', '_top');
 
-  // delay singkat lalu tampilkan prompt
+  // Show dialog after navigation
   setTimeout(() => {
-    prompt(
-      'Persistent Dialog Test\n\n' +
-      'UI Origin: ' + origin + '\n' +
+    alert(
+      'UI Persistence Demonstration\n\n' +
+      'Dialog Origin: ' + origin + '\n' +
       'Created at: ' + time + '\n\n' +
-      'If this dialog is visible while the address bar shows another domain,\n' +
-      'this indicates UI persistence across navigation.',
-      ''
+
+      '[SIMULATION ONLY]\n' +
+      '- No credential capture\n' +
+      '- No impersonation\n' +
+      '- No data exfiltration\n' +
+      '- No origin policy bypass\n\n' +
+
+      'This dialog demonstrates that UI created by a previous origin\n' +
+      'may remain visible after navigation, which could theoretically\n' +
+      'enable the above impacts if interactive elements were present.'
     );
-  }, 100);
+  }, 150);
 }
 
-// delay awal agar jelas sequencing-nya
 setTimeout(poc, 1500);
 </script>
 </body>
