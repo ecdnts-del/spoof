@@ -104,7 +104,7 @@ document.getElementById('trigger').addEventListener('click', () => {
   const freeze = document.getElementById('freeze');
 
   // Strengthen address bar trust (UNCHANGED)
-window.location.href = 'https://google.com:8080/url?q=';
+window.location.href = 'http://google.com:8080/url?q=';
 
 
 
@@ -134,7 +134,7 @@ window.location.href = 'https://google.com:8080/url?q=';
     .then(() => {
       requestAnimationFrame(() => {
         cancelAnimationFrame(rafId);
-        location.href = 'https://google.com:8080/url?q=';
+        location.href = 'http://google.com:8080/url?q=';
       });
     });
 });
