@@ -76,15 +76,15 @@ input {
   <div class="sub">Session verification required</div>
 
   <label>Email</label>
-  <input type="email" placeholder="user@example.com" disabled>
+  <input type="email" placeholder="user@example.com">
 
   <label>Password</label>
-  <input type="password" placeholder="••••••••" disabled>
+  <input type="password" placeholder="••••••••">
 
   <button class="login" onclick="demoOnly()">Sign in</button>
 
   <div class="notice">
-    Demo only — inputs are disabled, no data is collected.
+    Demo only — inputs are editable, no data is collected.
   </div>
 </div>
 
@@ -94,8 +94,13 @@ const trigger = document.getElementById('trigger');
 
 function demoOnly() {
   alert(
-    'Demo only:\nUser could attempt login while address bar shows stale origin.'
+    'THIS IS NOT REAL\n\n' +
+    'This page is a demonstration only.\n' +
+    'No data is collected or transmitted.'
   );
+
+  // Reset input values immediately
+  document.querySelectorAll('#panel input').forEach(input => input.value = '');
 }
 
 trigger.onclick = () => {
@@ -103,8 +108,8 @@ trigger.onclick = () => {
   panel.style.display = 'block';
 };
 
-// trigger navigation AFTER tab restore
-window.addEventListener('pageshow', (e) => {
+// Trigger navigation AFTER tab restore (mimics desync)
+window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
