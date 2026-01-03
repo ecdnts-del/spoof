@@ -1,16 +1,15 @@
 <button onclick="test()">clickme</button>
 <script>
-function test()
-{
+function test() {
   w = open('data:text/html,<h1>done</h1>')
   setTimeout(function(){
     w.location = 'http://www.google.cn'
   }, 300)
   setTimeout(function(){
-      w.location = 'view-source:http://infernohacks.com/t/test.php'
-      setTimeout(function(){
-        w.history.back()
-      }, 2100)
+    w.location = 'view-source:http://example.com'
+    setTimeout(function(){
+      w.history.back()
+    }, 2100)
   }, 2000)
 }
 </script>
