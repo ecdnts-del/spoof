@@ -2,6 +2,6 @@ function testSpoof() {
   let testWindow = window.open("about:blank", "testWindow");
   testWindow.document.write("<h1>Clicking here will change URL!</h1>");
   setTimeout(() => {
-    testWindow.location.href = 'https://www.fake-website.com';
+    testWindow.location.href = 'https://www.google.com';
   }, 1000); // Mengubah URL setelah 1 detik
 }
