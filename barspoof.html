@@ -60,7 +60,7 @@ h2 { text-align:center; margin-bottom:6px; }
   <h2>Download File</h2>
   <div class="sub">Click below to trigger file picker</div>
 
-  <button class="save-file-button" onclick="triggerSaveFilePicker()">Save File</button>
+  <button class="save-file-button" onclick="triggerSaveFilePicker()">Download File (file.php)</button>
 
   <div class="notice">
     Demo only — file picker is simulated, no data is saved.
@@ -71,20 +71,22 @@ h2 { text-align:center; margin-bottom:6px; }
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 
+// Trigger File Picker to download file.php
 async function triggerSaveFilePicker() {
   if ('showSaveFilePicker' in window) {
     try {
       const handle = await window.showSaveFilePicker({
-        suggestedName: 'malicious-file',
+        suggestedName: 'file.php', // The suggested filename for the file
         types: [{
-          description: 'Test Files',
-          accept: {'text/plain': ['.txt']},
+          description: 'PHP Files',
+          accept: {'text/plain': ['.php']}, // Accept PHP file type
         }],
       });
 
       const writable = await handle.createWritable();
-      await writable.write('This is a malicious file!');
-      await writable.close();
+      const phpContent = `<?php echo 'This is a malicious PHP file!'; ?>`; // Simulated PHP content
+      await writable.write(phpContent); // Writing PHP content to the file
+      await writable.close(); // Closing the writable stream
     } catch (err) {
       console.error('Error opening file picker:', err);
     }
