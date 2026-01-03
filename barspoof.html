@@ -104,7 +104,7 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'http://google.com'; // Malicious URL to simulate context change
+        location.href = 'http://google.com:8080'; // Malicious URL to simulate context change
       }, 80);
     });
   });
