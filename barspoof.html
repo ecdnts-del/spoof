@@ -1,7 +1,28 @@
-function testSpoof() {
-  let testWindow = window.open("about:blank", "testWindow");
-  testWindow.document.write("<h1>Clicking here will change URL!</h1>");
-  setTimeout(() => {
-    testWindow.location.href = 'https://www.google.com';
-  }, 1000); // Mengubah URL setelah 1 detik
-}
+<html>
+<head>
+  <title>Test URL Spoofing PoC</title>
+  <script>
+    function spoofURL() {
+      let newWindow = window.open("about:blank", "_blank");
+      newWindow.document.write(`
+        <html>
+          <head><title>Suspicious Page</title></head>
+          <body>
+            <h1>URL Spoofing Test</h1>
+            <p>This page will simulate a URL spoofing attempt.</p>
+            <script>
+              setTimeout(function() {
+                window.location.href = 'https://www.example.com'; // Ganti dengan URL target
+              }, 2000); // Redirect setelah 2 detik
+            </script>
+          </body>
+        </html>
+      `);
+    }
+  </script>
+</head>
+<body>
+  <h1>Click below to test URL Spoofing</h1>
+  <a href="javascript:void(0);" onclick="spoofURL()">Click to Test</a>
+</body>
+</html>
