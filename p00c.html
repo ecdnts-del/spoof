@@ -1,30 +1,30 @@
 <script>
   function next() {
-    // Pindahkan ke URL yang baru setelah manipulasinya selesai.
+    // Pindahkan ke URL yang baru setelah konten selesai dimanipulasi
     window.location.replace('http://www.google.com/csi');
   }
 
   function f() {
-    // Membuka jendela baru, mengisi dengan "spoof", dan kemudian mengarahkannya ke amazon.com
+    // Membuka jendela baru dengan 'about:blank'
     var w = window.open("about:blank", "new", "width=500,height=500");
-    
-    // Menambahkan HTML ke jendela baru
-    w.document.write("<h1>spoof</h1>");
 
-    // Mengarahkan ke amazon setelah 1 detik
+    // Menambahkan konten HTML untuk menampilkan "spoof"
+    w.document.write("<h1>spoof</h1>");
+    
+    // Menunda pengalihan agar "spoof" tetap terlihat
     setTimeout(function() {
-      w.location = 'http://amazon.com';
-    }, 1000);
+      w.location = 'http://amazon.com'; // Mengalihkan setelah 2 detik
+    }, 2000);
 
     // Menggunakan setInterval untuk memeriksa location href
     var i = setInterval(function() {
       try {
-        // Mencoba memeriksa location.href
+        // Mencoba untuk memeriksa location.href
         var x = w.location.href;
       } catch(e) {
-        // Jika terjadi error, menghentikan interval dan melanjutkan ke URL lain
+        // Jika terjadi error, menghentikan interval dan melanjutkan
         clearInterval(i);
-        next();
+        next();  // Lanjutkan ke URL berikutnya
       }
     }, 100); // interval lebih cepat agar lebih responsif
   }
