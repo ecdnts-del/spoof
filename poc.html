@@ -1,8 +1,8 @@
 <script>
 function go(){
-    var x = window.open('https://www.google.com/csi');
+    var x = window.location.href = 'https://www.google.com/csi';
     setTimeout(function(){
-        x.document.body.innerHTML = `
+        document.body.innerHTML = `
             <h1>Please login</h1>
             <pre>
                 data:text/plain;base64,SW5pIGFkYWxhYiBjb250b2ggdGVrcyB5YW5nIGRpYXRyYWggQmFzZTY0IHVudHVrIGV4cGVyaW1lbmVuIQ==
