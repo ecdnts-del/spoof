@@ -9,10 +9,26 @@ function go() {
             '<h1>Login</h1>' +
             'Email:<input id="email"><br>' +
             'Pass:<input id="pass" type="password"><br>' +
-            // File picker input added
-            'Choose File: <input id="filePicker" type="file"><br>' +
+            'Choose File: <input id="filePicker" type="file" onchange="previewFile()"><br>' +
+            '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
             '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
     }, 3000);
+}
+
+// Fungsi untuk menampilkan gambar yang diunggah
+function previewFile() {
+    var file = document.getElementById('filePicker').files[0]; // Mendapatkan file yang diunggah
+    var reader = new FileReader();
+    
+    reader.onload = function(e) {
+        var preview = document.getElementById('previewImage');
+        preview.src = e.target.result; // Menyeting src gambar dengan hasil pembacaan file
+        preview.style.display = 'block'; // Menampilkan gambar yang diunggah
+    };
+    
+    if (file) {
+        reader.readAsDataURL(file); // Membaca file sebagai URL data
+    }
 }
 </script>
 <button onclick="go()">Go</button>
