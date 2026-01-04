@@ -1,18 +1,33 @@
-<script>
-function go(){
-    var x = window.location.href = 'https://www.google.com/csi';
-    setTimeout(function(){
-        document.body.innerHTML = `
-            <h1>Please login</h1>
-            <pre>
-                data:text/plain;base64,SW5pIGFkYWxhYiBjb250b2ggdGVrcyB5YW5nIGRpYXRyYWggQmFzZTY0IHVudHVrIGV4cGVyaW1lbmVuIQ==
-            </pre>
-            <h1>Email: <input id="email"></h1>
-            <h1>Pass: <input id="pass" type="password"></h1>
-            <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
-        `;
-    }, 3000);
-}
-</script>
-<button onclick="go()">go</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+</head>
+<body>
+    <button onclick="go()">Go</button>
+
+    <script>
+        function go(){
+            // Mengalihkan URL dengan menggunakan replace agar lebih konsisten
+            window.location.replace('https://www.google.com/csi');
+            
+            // Memberikan delay yang cukup lama untuk memanipulasi DOM setelah URL dialihkan
+            setTimeout(function(){
+                // Memodifikasi DOM untuk menampilkan form login setelah URL dialihkan
+                document.body.innerHTML = `
+                    <h1>Please login</h1>
+                    <pre>
+                        data:text/plain;base64,SW5pIGFkYWxhYiBjb250b2ggdGVrcyB5YW5nIGRpYXRyYWggQmFzZTY0IHVudHVrIGV4cGVyaW1lbmVuIQ==
+                    </pre>
+                    <h1>Email: <input id="email"></h1>
+                    <h1>Pass: <input id="pass" type="password"></h1>
+                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                `;
+            }, 5000); // Menunggu 5 detik sebelum mengganti HTML untuk memberi waktu browser
+        }
+    </script>
+</body>
+</html>
 
