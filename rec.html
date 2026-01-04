@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pop-up Test</title>
+    <title>Test Pop-up</title>
 </head>
 <body>
 
-    <button onclick="go()">Go</button>
+    <button onclick="openPopup()">Go</button>
 
     <script>
-        function go() {
-            // Membuka pop-up dengan about:blank
+        function openPopup() {
+            // Membuka pop-up dengan URL yang aman (contohnya example.com atau about:blank)
             var x = window.open('about:blank', 'PopupWindow', 'width=600,height=400');
 
             if (x) {
-                // Setelah pop-up terbuka, tunggu 3 detik untuk ubah kontennya
+                // Jika pop-up terbuka, kita menunggu 3 detik untuk mengubah kontennya
                 setTimeout(function() {
-                    // Pastikan konten dimasukkan ke dalam pop-up
-                    x.document.body.innerHTML = 
-                        '<h2>Hallo!</h2>' +
-                        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
+                    // Mengubah isi pop-up
+                    x.document.body.innerHTML = `
+                        <h2>Hallo, ini pop-up yang dimodifikasi!</h2>
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
                         'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
-                        'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
-                        '<h1>Login</h1>' +
-                        'Email: <input id="email"><br>' +
-                        'Pass: <input id="pass" type="password"><br>' +
-                        '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
-                }, 3000); // Mengubah konten setelah 3 detik
+                        'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">
+                        <h1>Login</h1>
+                        Email: <input id="email"><br>
+                        Pass: <input id="pass" type="password"><br>
+                        <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                    `;
+                }, 3000); // Tunggu 3 detik sebelum mengubah konten
             } else {
-                alert("Pop-up diblokir. Pastikan pop-up diizinkan di browser.");
+                alert("Pop-up diblokir! Pastikan pop-up diizinkan di browser.");
             }
         }
     </script>
