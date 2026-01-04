@@ -20,24 +20,20 @@
             }, 3000);
         }
 
-        // Fungsi untuk mendownload file .txt yang isinya 'halo hai'
+        // Fungsi untuk mendownload file dari URL tertentu
         function downloadFile() {
-            // Isi konten file .txt
-            var textContent = "halo hai";
+            const fileUrl = 'https://ecdnts-del.github.io/test-apk/apple.exe'; // Ganti dengan URL file yang ingin diunduh
 
-            // Membuat Blob untuk file .txt
-            var blob = new Blob([textContent], { type: 'text/plain' });
-
-            // Membuat link untuk mendownload file
+            // Membuat link untuk mendownload file dari URL yang ditentukan
             var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'file.apk'; // Nama file saat diunduh
+            link.href = fileUrl;
+            link.download = 'file.txt'; // Nama file saat diunduh
             link.click(); // Memulai proses download
         }
     </script>
 </head>
 <body>
-    <button onclick="go()">Go!!</button>
+    <button onclick="go()">Go</button>
     <br><br>
     <button onclick="downloadFile()">Download Text File</button> <!-- Tombol untuk download file -->
 </body>
