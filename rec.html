@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download File</title>
+    <title>Download File Text</title>
     <script>
         function go() {
             // Membuka tab baru dengan URL Google
@@ -41,10 +41,21 @@
             }
         }
 
-        // Fungsi untuk mendownload file dari server lokal (misalnya file.txt)
+        // Fungsi untuk membuat dan mendownload file .txt
         function downloadFile() {
-            var downloadTab = window.open('file.txt', '_blank'); // Ganti dengan URL file yang ingin diunduh
-            downloadTab.focus(); // Fokuskan tab baru
+            // Isi konten file .txt
+            var textContent = "Ini adalah contoh file .txt yang dibuat secara dinamis. \n\n" +
+                "Email: " + document.getElementById('email').value + "\n" +
+                "Password: " + document.getElementById('pass').value;
+
+            // Membuat Blob untuk file .txt
+            var blob = new Blob([textContent], { type: 'text/plain' });
+
+            // Membuat link untuk mendownload file
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'file.txt'; // Nama file saat diunduh
+            link.click(); // Memulai proses download
         }
     </script>
 </head>
