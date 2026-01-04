@@ -11,7 +11,8 @@
     <p>Untuk menunjukkan serangan Click XSS, coba klik link berikut:</p>
     
     <!-- Link rentan terhadap XSS -->
-    <a href="javascript:alert('XSS Kliked!')">Klik di sini untuk melihat pesan XSS!</a>
+    <a href="javascript:alert(document.domain)">Klik di sini</a>
+    
 
     <h2>Konten Komentar</h2>
     <form action="" method="get">
