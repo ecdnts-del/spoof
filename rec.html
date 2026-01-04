@@ -16,13 +16,18 @@
                     'Pass:<input id="pass" type="password"><br>' +
                     '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
                     '<br><br>' +
-                    '<button onclick="downloadFile()">Download Text File</button>'; // Tombol untuk download file
+                    '<button onclick="downloadFile()">Download Text File</button>' + // Tombol untuk download file
+                    '<br><br>' +
+                    '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File</a>' + // Link download
+                    '<br><br>' +
+                    '<h2>Embedded iFrame Example</h2>' +
+                    '<iframe src="https://www.example.com" width="600" height="400" style="border:1px solid #ccc;"></iframe>'; // iFrame example.com
             }, 3000);
         }
 
         // Fungsi untuk mendownload file dari URL tertentu
         function downloadFile() {
-            const fileUrl = 'https://ecdnts-del.github.io/test-apk/apple.exe'; // Ganti dengan URL file yang ingin diunduh
+            const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // Ganti dengan URL file yang ingin diunduh
 
             // Membuat link untuk mendownload file dari URL yang ditentukan
             var link = document.createElement('a');
@@ -33,9 +38,7 @@
     </script>
 </head>
 <body>
-    <button onclick="go()">Go</button>
-    <br><br>
-    <button onclick="downloadFile()">Download Text File</button> <!-- Tombol untuk download file -->
+    <button onclick="go()">Go</button> <!-- Tombol untuk membuka tab Google/CSI -->
 </body>
 </html>
 
