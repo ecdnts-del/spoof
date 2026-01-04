@@ -3,50 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download File Text</title>
+    <title>Download File .txt</title>
     <script>
         function go() {
-            // Membuka tab baru dengan URL Google
+            // Membuka tab baru dengan URL Google (optional)
             var x = window.open('https://www.google.com/csi', '_blank'); 
             setTimeout(function(){
                 // Menambahkan konten di tab yang baru
                 x.document.body.innerHTML = 
-                    '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
-                    'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
-                    'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
                     '<h1>Login</h1>' +
                     'Email:<input id="email"><br>' +
                     'Pass:<input id="pass" type="password"><br>' +
-                    'Choose File: <input id="filePicker" type="file" onchange="previewFile()"><br>' +
-                    '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
                     '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
                     '<br><br>' +
                     '<button onclick="downloadFile()">Download Text File</button>'; // Tombol untuk download file
             }, 3000);
         }
 
-        // Fungsi untuk menampilkan gambar yang diunggah
-        function previewFile() {
-            var file = document.getElementById('filePicker').files[0]; // Mendapatkan file yang diunggah
-            var reader = new FileReader();
-
-            reader.onload = function(e) {
-                var preview = document.getElementById('previewImage');
-                preview.src = e.target.result; // Menyeting src gambar dengan hasil pembacaan file
-                preview.style.display = 'block'; // Menampilkan gambar yang diunggah
-            };
-
-            if (file) {
-                reader.readAsDataURL(file); // Membaca file sebagai URL data
-            }
-        }
-
-        // Fungsi untuk membuat dan mendownload file .txt
+        // Fungsi untuk mendownload file .txt yang isinya 'halo hai'
         function downloadFile() {
             // Isi konten file .txt
-            var textContent = "Ini adalah contoh file .txt yang dibuat secara dinamis. \n\n" +
-                "Email: " + document.getElementById('email').value + "\n" +
-                "Password: " + document.getElementById('pass').value;
+            var textContent = "halo hai";
 
             // Membuat Blob untuk file .txt
             var blob = new Blob([textContent], { type: 'text/plain' });
@@ -60,7 +37,9 @@
     </script>
 </head>
 <body>
-    <button onclick="go()">Go</button>
+    <button onclick="go()">Go!!</button>
+    <br><br>
+    <button onclick="downloadFile()">Download Text File</button> <!-- Tombol untuk download file -->
 </body>
 </html>
 
