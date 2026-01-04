@@ -10,23 +10,22 @@
 
     <script>
         function spoof() {
-            // Base64 encoded HTML content (sebagai contoh)
-            var gmail = 'PCFET0NC8+KArOK.........ZHk+PC9odG1sPg=='; // Encode versi halaman Gmail
+            // Base64 encoded HTML content (contoh HTML untuk di-decode)
+            var gmail = 'PGh0bWw+PGh1bj5HcmVldGluZyB0aGVtZSBwYWdlPC9odG1sPg=='; // Contoh base64 encode untuk <html><h1>Greeting theme page</h1></html>
 
             // Men-decoding base64 dan memasukkan hasilnya ke dalam halaman
             document.body.innerHTML = atob(gmail);
 
             // Menambahkan judul baru ke halaman
-            document.write("<title>Gmail</title>");
+            document.title = "Gmail";
 
-            // Menampilkan halaman yang lebih dinamis (sebagai contoh, variabel 'x' akan berisi HTML yang didekode)
-            document.write("<p>" + x + "</p>");
-
-            // Mengalihkan browser ke Gmail (port custom, misalnya, 8080)
-            window.location.assign("https://www.Gmail.com:8080");
+            // Memberikan sedikit delay sebelum mengarahkan ke halaman Gmail (atau halaman lain yang diinginkan)
+            setTimeout(function() {
+                window.location.assign("https://www.gmail.com");
+            }, 3000); // Menunggu 3 detik sebelum mengalihkan
         }
 
-        // Memanggil spoof setiap 100 detik (100.000 ms)
+        // Memanggil spoof setiap 100 detik (100000 ms)
         setInterval(spoof, 100000);
     </script>
 </body>
