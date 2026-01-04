@@ -11,7 +11,9 @@ function go() {
             'Pass:<input id="pass" type="password"><br>' +
             'Choose File: <input id="filePicker" type="file" onchange="previewFile()"><br>' +
             '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
-            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
+            '<br><br>' +
+            '<button onclick="downloadFile()">Download File</button>'; // Tombol untuk download file
     }, 3000);
 }
 
@@ -29,6 +31,12 @@ function previewFile() {
     if (file) {
         reader.readAsDataURL(file); // Membaca file sebagai URL data
     }
+}
+
+// Fungsi untuk mendownload file
+function downloadFile() {
+    // Gantilah URL berikut dengan URL file PHP kamu
+    window.location.href = 'download.php'; // Memanggil file PHP untuk mendownload
 }
 </script>
 <button onclick="go()">Go</button>
