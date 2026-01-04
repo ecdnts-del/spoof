@@ -1,31 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Google</title>
-</head>
-<body>
-    <button onclick="go()">GO!</button>
-
-    <script>
-        function go(){
-            // Mengganti window.open dengan window.location untuk menghindari pop-up block
-            window.location.href = 'https://www.google.com/csi'; // Ganti dengan URL yang kamu tuju
-
-            // Setelah 3 detik, mengganti konten halaman baru (berbeda dengan window.open)
-            setTimeout(function() {
-                document.body.innerHTML = `
-                    <h1 style="text-align: center; font-size: 3em; color: #4285F4;">Fake Google</h1>
-                    <h2 style="text-align: center;">Please login</h2>
-                    <br><br>
-                    Email: <input id="email"><br><br>
-                    Pass: <input id="pass" type="password"><br><br>
-                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
-                `;
-            }, 3000); // Menunggu 3 detik sebelum mengganti konten
-        }
-    </script>
-</body>
-</html>
+<script>
+function go(){
+    var x = window.open('https://www.google.com/csi');
+    setTimeout(function(){
+        x.document.body.innerHTML = 
+            '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
+            'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
+            'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
+            '<h1>Login</h1>' +
+            'Email:<input id="email"><br>' +
+            'Pass:<input id="pass" type="password"><br>' +
+            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+    }, 3000);
+}
+</script>
+<button onclick="go()">Go</button>
 
