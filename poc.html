@@ -2,69 +2,61 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Fake Google Redirect PoC</title>
+<title>Base64 Content Test</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  background: #f5f5f7;
-  text-align: center;
+  font-family: system-ui, -apple-system;
+  background: #f1f3f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
 button {
-  margin: 40px;
-  font-size: 18px;
-  padding: 10px 18px;
-  background-color: #4285F4;
-  color: #fff;
+  padding: 12px 20px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
+  background: #1a73e8;
+  color: white;
+  margin-bottom: 24px;
 }
 
-#message {
-  display: none;
-  margin-top: 50px;
-  font-size: 24px;
-  color: #4285F4;
+img {
+  max-width: 260px;
 }
 </style>
 </head>
 
 <body>
 
-<div>
-  <button id="trigger">Start Fake Google</button>
-</div>
+<button id="go">Open Content</button>
 
-<div id="message">
-  <h2>Welcome to <span style="color: #fbbc05;">google.com</span></h2>
-  <p>This is a fake Google page for demonstration purposes.</p>
-</div>
+<img id="img" style="display:none"
+src="data:image/svg+xml;base64,
+PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI2MCAxNjAi
+IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+
+PHJlY3Qgd2lkdGg9IjI2MCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiMxYTczZTgiLz4K
+PHRleHQgeD0iMTMwIiB5PSI4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIg
+Zm9udC1zaXplPSIyMCIgZmlsbD0id2hpdGUiPkZBS0UgR09PR0xFPC90ZXh0Pgo8L3N2Zz4=">
 
 <script>
-const trigger = document.getElementById('trigger');
-const message = document.getElementById('message');
+const btn = document.getElementById('go');
+const img = document.getElementById('img');
 
-trigger.onclick = () => {
-  // Manipulate the history state and simulate redirect to fake Google
-  history.pushState({}, '', 'http://google.com:9000');  // URL with port
+btn.onclick = () => {
+  img.style.display = 'block';
 
-  message.style.display = 'block';
-
-  // Delay redirect to make sure it's processed correctly
+  // optional redirect test
   setTimeout(() => {
-    location.href = 'http://google.com:9000';  // Redirect to Google with port 9000
-  }, 500); // Adjust delay as needed
+    location.href = 'http://google.com:9000';
+  }, 800);
 };
-
-// Trigger navigation after the page is shown (simulating desync)
-window.addEventListener('pageshow', () => {
-  setTimeout(() => {
-    location.href = 'http://google.com:9000';  // Direct to Google with port
-  }, 500); // Increased delay for consistency
-});
 </script>
 
 </body>
