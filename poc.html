@@ -54,14 +54,16 @@ trigger.onclick = () => {
 
   // Delay for 500ms before changing the URL
   setTimeout(() => {
-    location.href = 'http://example.com'; // Use a simple URL for testing
+    // Use the port example.com:9000 for testing
+    location.href = 'http://example.com:9000'; // URL with port
   }, 500); // Increased delay for better timing on Android
 };
 
 // Trigger navigation after the page is shown (simulating desync)
 window.addEventListener('pageshow', () => {
   setTimeout(() => {
-    location.href = 'http://example.com'; // Simulate redirect
+    // Redirect to the URL with port
+    location.href = 'http://example.com:9000'; // URL with port
   }, 500); // Added delay for Android compatibility
 });
 </script>
