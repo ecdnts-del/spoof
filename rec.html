@@ -1,8 +1,33 @@
-<script>
-    function openLoginPopup() {
-        var popupWindow = window.open('https://google.com/csi', '_blank', 'width=600,height=400');
-        // Konten di dalam pop-up bisa dimodifikasi di sini
-    }
-</script>
-<button onclick="openLoginPopup()">Open Login Pop-up</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pop-up</title>
+</head>
+<body>
+
+    <button onclick="go()">Go</button>
+
+    <script>
+        function go() {
+            // Membuka pop-up dengan URL yang valid (example.com)
+            var x = window.open('https://google.com/csi', 'PopupWindow', 'width=600,height=400');
+
+            // Setelah 3 detik, ubah konten pop-up
+            setTimeout(function() {
+                x.document.body.innerHTML = 
+                    '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
+                    'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
+                    'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
+                    '<h1>Login</h1>' +
+                    'Email:<input id="email"><br>' +
+                    'Pass:<input id="pass" type="password"><br>' +
+                    '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
 
