@@ -13,7 +13,7 @@ function go() {
             '<img id="previewImage" style="max-width: 100%; max-height: 200px; display: none;"><br>' +
             '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
             '<br><br>' +
-            '<button onclick="downloadFile()">Download File</button>'; // Tombol untuk download file
+            '<button onclick="downloadTextFile()">Download Text File</button>'; // Tombol untuk download file
     }, 3000);
 }
 
@@ -33,10 +33,14 @@ function previewFile() {
     }
 }
 
-// Fungsi untuk mendownload file
-function downloadFile() {
-    // Gantilah URL berikut dengan URL file PHP kamu
-    window.location.href = 'download.php'; // Memanggil file PHP untuk mendownload
+// Fungsi untuk mendownload file teks
+function downloadTextFile() {
+    var text = "This is an example text file.\nHello, World!"; // Konten file teks
+    var blob = new Blob([text], { type: 'text/plain' }); // Membuat Blob dari teks
+    var link = document.createElement('a'); // Membuat elemen link
+    link.href = URL.createObjectURL(blob); // Membuat URL untuk Blob
+    link.download = 'example.txt'; // Nama file yang diunduh
+    link.click(); // Menyimulasikan klik untuk mengunduh
 }
 </script>
 <button onclick="go()">Go</button>
