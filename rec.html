@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Pop-up</title>
+    <title>Test Pop-up with File Picker</title>
 </head>
 <body>
 
@@ -11,40 +11,42 @@
 
     <script>
         function openPopup() {
-            // Membuka pop-up dengan URL yang valid
-            var x = window.open('https://google.com/csi', 'PopupWindow', 'width=600,height=400');
+            // Membuka pop-up dengan URL yang valid (misalnya example.com atau URL lain)
+            var x = window.open('https://example.com', 'PopupWindow', 'width=600,height=400');
 
             if (x) {
-                // Jika pop-up berhasil terbuka, kita mengubah kontennya setelah 1 detik
+                // Jika pop-up berhasil dibuka, kita menambahkan file picker setelah 3 detik
                 setTimeout(function() {
-                    // Mengubah isi pop-up setelah 1 detik
                     var content = `
                         <html>
                         <head>
-                            <title>Pop-up Konten</title>
-                            <style>
-                                body { font-family: Arial, sans-serif; }
-                                img { max-width: 100%; }
-                            </style>
+                            <title>Pop-up File Picker</title>
                         </head>
                         <body>
-                            <h2>Hallo, ini pop-up yang dimodifikasi!</h2>
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
-                            'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
-                            'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">
-                            <h1>Login</h1>
-                            Email: <input id="email"><br>
-                            Pass: <input id="pass" type="password"><br>
-                            <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                            <h2>Halo, pilih file untuk diunggah!</h2>
+                            <input type="file" id="filePicker" />
+                            <button onclick="handleFile()">Upload File</button>
                         </body>
                         </html>
                     `;
-                    // Menulis konten ke dalam pop-up
+                    
+                    // Menulis konten HTML (file picker) ke dalam pop-up
                     x.document.write(content);
                     x.document.close();  // Pastikan pop-up dimuat sepenuhnya
-                }, 1000); // Tunggu 1 detik untuk memastikan konten dimuat
+                }, 3000); // Tunggu 3 detik untuk memastikan pop-up dimuat
             } else {
                 alert("Pop-up diblokir! Pastikan pop-up diizinkan di browser.");
+            }
+        }
+
+        function handleFile() {
+            var input = document.getElementById('filePicker');
+            var file = input.files[0]; // Ambil file yang dipilih
+
+            if (file) {
+                alert("File yang dipilih: " + file.name);
+            } else {
+                alert("Tidak ada file yang dipilih.");
             }
         }
     </script>
