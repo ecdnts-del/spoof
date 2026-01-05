@@ -7,41 +7,35 @@
 </head>
 <body>
     <h1>Login Response</h1>
-    <p>Login berhasil! Data yang diterima:</p>
-    <div id="login-data">
-        <strong>Email: </strong><span id="email">Not Available</span><br>
-        <strong>Password: </strong><span id="password">Not Available</span><br>
+    <p>Data yang diterima:</p>
+    <div>
+        <strong>Email: </strong><span id="email"></span><br>
+        <strong>Password: </strong><span id="password"></span><br>
     </div>
 
     <script>
         // Fungsi untuk mendapatkan parameter dari URL (query string)
         function getQueryParams() {
             const params = {};
-            const queryString = window.location.search.substring(1);  // Mengambil query string setelah "?"
-            const pairs = queryString.split("&");  // Pisahkan setiap key-value
-            pairs.forEach(function(pair) {
-                const [key, value] = pair.split("=");  // Pisahkan key dan value
-                params[key] = decodeURIComponent(value);  // Dekodekan value
-            });
-            console.log("Query String Parameters:", params);  // Log untuk melihat apakah data diterima dengan benar
+            window.location.search
+                .substring(1)
+                .split("&")
+                .forEach(function(pair) {
+                    const [key, value] = pair.split("=");
+                    params[key] = decodeURIComponent(value);
+                });
             return params;
         }
 
         // Mendapatkan parameter dari query string
         const params = getQueryParams();
 
-        // Debugging: Log untuk memeriksa apakah email dan password sudah diterima
-        console.log("Email:", params.email);
-        console.log("Password:", params.password);
-
-        // Memeriksa apakah data email dan password ada
+        // Menampilkan data login pada halaman
         if (params.email && params.password) {
-            // Tampilkan data di halaman
             document.getElementById("email").innerText = params.email;
             document.getElementById("password").innerText = params.password;
         } else {
-            // Jika tidak ada data yang diterima, tampilkan pesan kesalahan
-            document.getElementById("login-data").innerHTML = "<h2>No data received!</h2>";
+            document.body.innerHTML = "<h2>No data received!</h2>";
         }
     </script>
 </body>
