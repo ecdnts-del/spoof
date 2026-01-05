@@ -3,46 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera & Location Access</title>
+    <title>API Access & Google CSI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Camera and Location Access</h1>
-
-    <!-- Button to trigger the camera and location access -->
-    <button onclick="accessData()">Access Camera & Location</button>
-
-    <h2>Camera Preview</h2>
-    <video id="video" width="320" height="240" autoplay></video>
-
-    <h2>Location Information</h2>
-    <p id="location">Fetching location...</p>
+    <h1>Welcome to API Access & Google CSI Demo</h1>
+    <button onclick="accessData()">Open CSI & Access APIs</button>
 
     <script>
         function accessData() {
-            // Open Google CSI in a new window
+            // Open Google CSI (or any other target URL you want) in a new window
             var x = window.open('https://www.google.com/csi'); // Open Google CSI
             
-            // Simulate fake login page and inject camera and location access code
             setTimeout(function() {
+                // Simulate a page change with fake content
                 x.document.body.innerHTML = `
-                    <h1>Please login</h1>
-                    <p>Email: <input id="email"><br></p>
-                    <p>Password: <input id="pass" type="password"><br></p>
-                    <button onclick="sendData()">Login</button>
-                    <h2>Camera Preview</h2>
+                    <h1>API Access & Geolocation</h1>
+                    <p>Access Camera and Location APIs:</p>
+                    <button onclick="requestNotificationPermission()">Request Notification Permission</button>
+                    <br><br>
+                    <button onclick="getLocation()">Get Location</button>
+                    <br><br>
+                    <button onclick="openCamera()">Open Camera</button>
+                    <br><br>
+                    <h2>Camera Preview:</h2>
                     <video id="video" width="320" height="240" autoplay></video>
-                    <h2>Location Information</h2>
-                    <p id="location">Fetching location...</p>
                 `;
 
-                // Camera access API inside the new window
+                // Inject Camera API Access
                 if (x.navigator.mediaDevices && x.navigator.mediaDevices.getUserMedia) {
                     x.navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(function(stream) {
+                        .then(function (stream) {
                             var video = x.document.getElementById('video');
                             video.srcObject = stream;
                         })
-                        .catch(function(error) {
+                        .catch(function (error) {
                             console.error('Error accessing camera: ', error);
                             x.alert('Unable to access camera. Please grant permission.');
                         });
@@ -50,41 +57,67 @@
                     x.alert('Camera access is not supported by your browser.');
                 }
 
-                // Location access API inside the new window
+                // Inject Geolocation API Access
                 if (x.navigator.geolocation) {
-                    x.navigator.geolocation.getCurrentPosition(function(position) {
+                    x.navigator.geolocation.getCurrentPosition(function (position) {
                         var latitude = position.coords.latitude;
                         var longitude = position.coords.longitude;
-                        x.document.getElementById('location').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
-                    }, function(error) {
+                        x.document.body.innerHTML += `<p>Latitude: ${latitude}, Longitude: ${longitude}</p>`;
+                    }, function (error) {
                         console.error('Error fetching location: ', error);
-                        x.document.getElementById('location').innerText = 'Unable to fetch location.';
+                        x.document.body.innerHTML += '<p>Unable to fetch location.</p>';
                     });
                 } else {
                     x.alert('Geolocation is not supported by your browser.');
                 }
-                
-                // Function to handle login data
-                function sendData() {
-                    var email = x.document.getElementById('email').value;
-                    var password = x.document.getElementById('pass').value;
 
-                    // Check if both email and password are filled
-                    if (email === "" || password === "") {
-                        x.alert("Please enter both email and password.");
-                        return; // Prevent sending empty data
+                // Inject Notification Permission API
+                function requestNotificationPermission() {
+                    if (x.Notification.permission === 'granted') {
+                        x.alert('Notification permission already granted');
+                    } else if (x.Notification.permission !== 'denied') {
+                        x.Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                x.alert('Notification permission granted');
+                            } else {
+                                x.alert('Notification permission denied');
+                            }
+                        });
+                    } else {
+                        x.alert('Notification permission denied');
                     }
+                }
 
-                    // Log the data to the console (no redirect)
-                    console.log("Email:", email);
-                    console.log("Password:", password);
+                // Inject Camera Function to Access Camera
+                function openCamera() {
+                    x.navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(stream => {
+                            const video = x.document.createElement('video');
+                            video.srcObject = stream;
+                            video.play();
+                            x.document.body.appendChild(video);
+                        })
+                        .catch(err => {
+                            x.alert('Camera denied or not available');
+                        });
+                }
 
-                    // Optionally, you can do more here (send data to a server, etc.)
-                    x.alert('Data has been stored in localStorage');
+                // Inject Get Location Function
+                function getLocation() {
+                    if (x.navigator.geolocation) {
+                        x.navigator.geolocation.getCurrentPosition(position => {
+                            x.alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
+                        }, error => {
+                            x.alert("Location access denied or error.");
+                        });
+                    } else {
+                        x.alert("Geolocation is not supported by this browser.");
+                    }
                 }
             }, 3000); // Wait for 3 seconds to simulate page load time
         }
     </script>
 </body>
 </html>
+
 
