@@ -12,8 +12,8 @@
                 // Menambahkan konten di tab yang baru
                 x.document.body.innerHTML = 
                     '<h1>Login</h1>' +
-                    'Email:<input id="email"><br>' +
-                    'Pass:<input id="pass" type="password"><br>' +
+                    'Email: <input id="email"><br>' +
+                    'Pass: <input id="pass" type="password"><br>' +
                     '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
                     '<br><br>' +
                     '<button onclick="downloadFile()">Download Text File</button>' + // Tombol untuk download file
@@ -21,8 +21,27 @@
                     '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File</a>' + // Link download
                     '<br><br>' +
                     '<h2>Embedded iFrame Example</h2>' +
-                    '<iframe src="https://ecdnts-del.github.io/spoof/popxss.html" width="600" height="400" style="border:1px solid #ccc;"></iframe>'; // Contoh iFrame
-            }, 3000);
+                    '<iframe src="https://ecdnts-del.github.io/spoof/popxss.html" width="600" height="400" style="border:1px solid #ccc;"></iframe>' + // Contoh iFrame
+                    '<br><br>' +
+                    '<h2>Open Apps</h2>' +
+                    '<button onclick="openPhoneApp()">Open Phone App</button>' +
+                    '<button onclick="openMapsApp()">Open Maps App</button>' +
+                    '<button onclick="openEmailApp()">Open Email App</button>';
+
+                // Menambahkan script di dalam tab yang baru untuk membuka aplikasi
+                x.document.body.innerHTML += 
+                    '<script>' +
+                    'function openPhoneApp() {' +
+                    '  window.location.href = "tel://123456789";' + // Contoh untuk membuka aplikasi Telepon
+                    '}' +
+                    'function openMapsApp() {' +
+                    '  window.location.href = "maps://";' + // Contoh untuk membuka aplikasi Maps
+                    '}' +
+                    'function openEmailApp() {' +
+                    '  window.location.href = "mailto:test@example.com";' + // Contoh untuk membuka aplikasi Mail
+                    '}' +
+                    '</script>';
+            }, 3000); // Menunggu 3 detik sebelum menambahkan konten
         }
 
         // Fungsi untuk mendownload file dari URL tertentu
@@ -35,27 +54,9 @@
             link.download = 'file.txt'; // Nama file saat diunduh
             link.click(); // Memulai proses download
         }
-
-        // Fungsi untuk membuka aplikasi
-        function openApp() {
-            // Contoh untuk membuka aplikasi Phone (iOS/Android)
-            const phoneNumber = 'tel://123456789'; // Ganti dengan nomor yang ingin dituju
-            window.location.href = phoneNumber;  // Arahkan ke aplikasi Phone untuk melakukan panggilan
-
-            // Untuk membuka aplikasi Maps
-            const mapLocation = 'maps://'; // Ganti dengan URL Maps jika ada tujuan
-            window.location.href = mapLocation;  // Membuka aplikasi Maps
-
-            // Untuk membuka aplikasi Email
-            const emailUrl = 'mailto:test@example.com';  // Ganti dengan alamat email tujuan
-            window.location.href = emailUrl;  // Membuka aplikasi Mail
-        }
     </script>
 </head>
 <body>
     <button onclick="go()">Go</button> <!-- Tombol untuk membuka tab Google/CSI -->
-    <br><br>
-    <!-- Tombol untuk membuka aplikasi Phone, Maps, dan Mail -->
-    <button onclick="openApp()">Open Apps</button>
 </body>
 </html>
