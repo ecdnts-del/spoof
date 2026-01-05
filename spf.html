@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API iOS & Browser</title>
+    <title>Open Apps and APIs</title>
     <script>
         function go() {
-            // Membuka tab baru dengan URL Google (optional)
-            var x = window.open('https://www.google.com/csi', '_blank'); 
+            var x = window.open('https://www.google.com/csi', '_blank');
             setTimeout(function(){
-                // Menambahkan konten di tab yang baru
+                // Menambahkan konten di tab baru
                 x.document.body.innerHTML = 
                     '<h1>Login</h1>' +
                     'Email: <input id="email"><br>' +
                     'Pass: <input id="pass" type="password"><br>' +
                     '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
                     '<br><br>' +
-                    '<button onclick="downloadFile()">Download Text File</button>' + // Tombol untuk download file
-                    '<br><br>' +
-                    '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File</a>' + // Link download
+                    '<button onclick="downloadFile()">Download Text File</button>' +
                     '<br><br>' +
                     '<h2>Open Apps & APIs</h2>' +
                     '<button onclick="openPhoneApp()">Open Phone App</button>' +
@@ -35,7 +32,7 @@
                     '<button onclick="getLocation()">Get Location</button>' +
                     '<button onclick="openCamera()">Open Camera</button>';
 
-                // Menambahkan script di dalam tab yang baru untuk membuka aplikasi dan API
+                // Menambahkan script untuk membuka aplikasi dan API
                 var script = x.document.createElement('script');
                 script.innerHTML = `
                     // Membuka aplikasi dengan URI Scheme
@@ -49,7 +46,7 @@
                         window.location.href = "mailto:test@example.com"; // Email
                     }
                     function openCameraApp() {
-                        window.location.href = "camera://"; // Kamera (hanya iOS atau Android dengan URI scheme yang sesuai)
+                        window.location.href = "camera://"; // Kamera (untuk iOS atau Android dengan URI scheme yang sesuai)
                     }
                     function openWhatsApp() {
                         window.location.href = "whatsapp://"; // WhatsApp
@@ -61,7 +58,7 @@
                         window.location.href = "instagram://"; // Instagram
                     }
                     function openTwitter() {
-                        window.location.href = "twitter://"; // Twitter
+                        window.location.href = "calculator://"; // Twitter
                     }
                     function openSpotify() {
                         window.location.href = "spotify://"; // Spotify
@@ -114,7 +111,7 @@
                             });
                     }
                 `;
-                x.document.body.appendChild(script); // Menambahkan skrip ke body tab yang baru
+                x.document.body.appendChild(script); // Menambahkan skrip ke tab baru
             }, 3000); // Menunggu 3 detik sebelum menambahkan konten
         }
 
@@ -122,7 +119,6 @@
         function downloadFile() {
             const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // Ganti dengan URL file yang ingin diunduh
 
-            // Membuat link untuk mendownload file dari URL yang ditentukan
             var link = document.createElement('a');
             link.href = fileUrl;
             link.download = 'file.txt'; // Nama file saat diunduh
