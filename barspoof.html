@@ -92,7 +92,69 @@ trigger.onclick = () => {
   panel.style.display = 'block';
 };
 
-  // User gesture triggering native permission
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Permission UI Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system, system-ui;
+  background:#f5f5f7;
+}
+#panel {
+  display:none;
+  max-width:360px;
+  margin:90px auto;
+  background:#fff;
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+}
+button {
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="panel">
+  <h3 style="text-align:center">Permission Timing Demo</h3>
+  <p style="text-align:center;color:#666">
+    UI becomes interactive during tab restore
+  </p>
+
+  <button id="permBtn">Request Location Permission</button>
+
+  <div class="notice">
+    Demo only — no data stored or transmitted
+  </div>
+</div>
+
+<script>
+const panel = document.getElementById('panel');
+const btn = document.getElementById('permBtn');
+
+// Show UI immediately
+panel.style.display = 'block';
+
+// User gesture triggering native permission
 btn.addEventListener('click', () => {
   if (!navigator.geolocation) {
     alert('Geolocation not supported');
