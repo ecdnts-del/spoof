@@ -9,9 +9,9 @@
     <h1>Login Response</h1>
     
     <p>Login berhasil! Data yang diterima:</p>
-    <div>
-        <strong>Email: </strong><span id="email"></span><br>
-        <strong>Password: </strong><span id="password"></span><br>
+    <div id="login-data">
+        <strong>Email: </strong><span id="email">Not Available</span><br>
+        <strong>Password: </strong><span id="password">Not Available</span><br>
     </div>
 
     <script>
@@ -31,12 +31,13 @@
         // Mendapatkan parameter dari query string
         const params = getQueryParams();
 
-        // Menampilkan data login pada halaman
+        // Memeriksa apakah data email dan password ada
         if (params.email && params.password) {
             document.getElementById("email").innerText = params.email;
             document.getElementById("password").innerText = params.password;
         } else {
-            document.body.innerHTML = "<h2>No data received!</h2>";
+            // Jika data tidak ada, tampilkan pesan kesalahan
+            document.getElementById("login-data").innerHTML = "<h2>No valid data received!</h2>";
         }
     </script>
 </body>
