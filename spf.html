@@ -4,137 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Open Apps and APIs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
     <script>
         function go() {
             var x = window.open('https://www.google.com/csi', '_blank');
-            setTimeout(function(){
-                // Menambahkan konten di tab baru
-                x.document.body.innerHTML = 
-                    '<h1>Login</h1>' +
-                    'Email: <input id="email"><br>' +
-                    'Pass: <input id="pass" type="password"><br>' +
-                    '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>' +
-                    '<br><br>' +
-                    '<button onclick="downloadFile()">Download Text File</button>' +
-                    '<br><br>' +
-                    '<h2>Open Apps & APIs</h2>' +
-                    '<button onclick="openPhoneApp()">Open Phone App</button>' +
-                    '<button onclick="openMapsApp()">Open Maps App</button>' +
-                    '<button onclick="openEmailApp()">Open Email App</button>' +
-                    '<button onclick="openCameraApp()">Open Camera App</button>' +
-                    '<button onclick="openWhatsApp()">Open WhatsApp</button>' +
-                    '<button onclick="openFacebook()">Open Facebook</button>' +
-                    '<button onclick="openInstagram()">Open Instagram</button>' +
-                    '<button onclick="openTwitter()">Open Twitter</button>' +
-                    '<button onclick="opencalculator()">Open Calculator</button>' +
-                    '<button onclick="openSpotify()">Open Spotify</button>' +
-                    '<button onclick="openYouTube()">Open YouTube</button>' +
-                    '<br><br>' +
-                    '<button onclick="requestNotificationPermission()">Request Notification Permission</button>' +
-                    '<button onclick="getLocation()">Get Location</button>' +
-                    '<button onclick="openCamera()">Open Camera</button>';
-
-                // Menambahkan script untuk membuka aplikasi dan API
-                var script = x.document.createElement('script');
-                script.innerHTML = `
-                    // Membuka aplikasi dengan URI Scheme
-                    function openPhoneApp() {
-                        window.location.href = "tel://123456789"; // Telepon
-                    }
-                    function openMapsApp() {
-                        window.location.href = "maps://"; // Maps
-                    }
-                    function openEmailApp() {
-                        window.location.href = "mailto:test@example.com"; // Email
-                    }
-                    function openCameraApp() {
-                        window.location.href = "camera://"; // Kamera (untuk iOS atau Android dengan URI scheme yang sesuai)
-                    }
-                    function openWhatsApp() {
-                        window.location.href = "whatsapp://"; // WhatsApp
-                    }
-                    function openFacebook() {
-                        window.location.href = "fb://"; // Facebook
-                    }
-                    function openInstagram() {
-                        window.location.href = "instagram://"; // Instagram
-                    }
-                    function openTwitter() {
-                        window.location.href = "twitter://"; // Twitter
-                    }
-                    function opencalculator() {
-                        window.location.href = "calculator://"; // Calculator
-                    }
-                    function openSpotify() {
-                        window.location.href = "spotify://"; // Spotify
-                    }
-                    function openYouTube() {
-                        window.location.href = "youtube://"; // YouTube
-                    }
-                    // Fungsi untuk mendownload file dari URL tertentu
-                    function downloadFile() {
-                        const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // URL file yang akan diunduh
-                        var link = document.createElement('a');
-                        link.href = fileUrl;
-                        link.download = 'file.txt';
-                        link.click();
-                    }
-                    // Fungsi untuk meminta izin notifikasi
-                    function requestNotificationPermission() {
-                        if (Notification.permission === 'granted') {
-                            alert('Notification permission already granted');
-                        } else if (Notification.permission !== 'denied') {
-                            Notification.requestPermission().then(permission => {
-                                if (permission === 'granted') {
-                                    alert('Notification permission granted');
-                                } else {
-                                    alert('Notification permission denied');
-                                }
-                            });
-                        }
-                    }
-                    // Fungsi untuk mendapatkan lokasi
-                    function getLocation() {
-                        if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition(position => {
-                                alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
-                            }, error => {
-                                alert("Location access denied");
-                            });
-                        } else {
-                            alert("Geolocation is not supported by this browser.");
-                        }
-                    }
-                    // Fungsi untuk membuka kamera
-                    function openCamera() {
-                        navigator.mediaDevices.getUserMedia({ video: true })
-                            .then(stream => {
-                                const video = document.createElement('video');
-                                video.srcObject = stream;
-                                video.play();
-                                document.body.appendChild(video);
-                            })
-                            .catch(err => {
-                                alert('Camera denied');
-                            });
-                    }
+            setTimeout(function() {
+                x.document.body.innerHTML = `
+                    <h1>Login</h1>
+                    Email: <input id="email"><br>
+                    Pass: <input id="pass" type="password"><br>
+                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                    <br><br>
+                    <button onclick="downloadFile()">Download Text File</button>
+                    <br><br>
+                    <h2>Open Apps & APIs</h2>
+                    <button onclick="openApp('tel://123456789')">Open Phone App</button>
+                    <button onclick="openApp('maps://')">Open Maps App</button>
+                    <button onclick="openApp('mailto:test@example.com')">Open Email App</button>
+                    <button onclick="openApp('camera://')">Open Camera App</button>
+                    <button onclick="openApp('whatsapp://')">Open WhatsApp</button>
+                    <button onclick="openApp('fb://')">Open Facebook</button>
+                    <button onclick="openApp('instagram://')">Open Instagram</button>
+                    <button onclick="openApp('twitter://')">Open Twitter</button>
+                    <button onclick="openApp('calculator://')">Open Calculator</button>
+                    <button onclick="openApp('spotify://')">Open Spotify</button>
+                    <button onclick="openApp('youtube://')">Open YouTube</button>
+                    <br><br>
+                    <button onclick="requestNotificationPermission()">Request Notification Permission</button>
+                    <button onclick="getLocation()">Get Location</button>
+                    <button onclick="openCamera()">Open Camera</button>
                 `;
-                x.document.body.appendChild(script); // Menambahkan skrip ke tab baru
-            }, 3000); // Menunggu 3 detik sebelum menambahkan konten
+            }, 2000); // Allow time for the window to open
         }
 
-        // Fungsi untuk mendownload file dari URL tertentu
-        function downloadFile() {
-            const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // Ganti dengan URL file yang ingin diunduh
+        // Open apps using URI schemes
+        function openApp(uri) {
+            window.location.href = uri;
+        }
 
+        // Download file after user clicks
+        function downloadFile() {
+            const fileUrl = 'https://www.example.com/path/to/your/file.txt';
             var link = document.createElement('a');
             link.href = fileUrl;
-            link.download = 'file.txt'; // Nama file saat diunduh
-            link.click(); // Memulai proses download
+            link.download = 'file.txt';
+            link.click();
+        }
+
+        // Request permission for notifications
+        function requestNotificationPermission() {
+            if (Notification.permission === 'granted') {
+                alert('Notification permission already granted');
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        alert('Notification permission granted');
+                    } else {
+                        alert('Notification permission denied');
+                    }
+                });
+            } else {
+                alert('Notification permission denied');
+            }
+        }
+
+        // Get geolocation of the user
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
+                }, error => {
+                    alert("Location access denied or error.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Open camera using getUserMedia
+        function openCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    document.body.appendChild(video);
+                })
+                .catch(err => {
+                    alert('Camera denied or not available');
+                });
         }
     </script>
 </head>
 <body>
-    <button onclick="go()">Go</button> <!-- Tombol untuk membuka tab Google/CSI -->
+    <h1>Welcome to App & API Demonstration</h1>
+    <button onclick="go()">Open App & API Demonstration</button>
 </body>
 </html>
