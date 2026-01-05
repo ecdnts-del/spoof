@@ -7,7 +7,6 @@
 </head>
 <body>
     <h1>Login Response</h1>
-    
     <p>Login berhasil! Data yang diterima:</p>
     <div id="login-data">
         <strong>Email: </strong><span id="email">Not Available</span><br>
@@ -19,25 +18,29 @@
         function getQueryParams() {
             const params = {};
             window.location.search
-                .substring(1)
-                .split("&")
+                .substring(1)  // Hapus tanda "?"
+                .split("&")    // Pisahkan setiap parameter
                 .forEach(function(pair) {
-                    const [key, value] = pair.split("=");
-                    params[key] = decodeURIComponent(value);
+                    const [key, value] = pair.split("=");  // Pisahkan key dan value
+                    params[key] = decodeURIComponent(value);  // Decode value
                 });
-            return params;
+            return params;  // Kembalikan parameter sebagai object
         }
 
         // Mendapatkan parameter dari query string
         const params = getQueryParams();
 
+        // Debugging: Log the received data to console
+        console.log("Received Params:", params);
+
         // Memeriksa apakah data email dan password ada
         if (params.email && params.password) {
+            // Tampilkan data di halaman
             document.getElementById("email").innerText = params.email;
             document.getElementById("password").innerText = params.password;
         } else {
-            // Jika data tidak ada, tampilkan pesan kesalahan
-            document.getElementById("login-data").innerHTML = "<h2>No valid data received!</h2>";
+            // Jika tidak ada data yang diterima, tampilkan pesan kesalahan
+            document.getElementById("login-data").innerHTML = "<h2>No data received!</h2>";
         }
     </script>
 </body>
