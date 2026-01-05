@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proof of Concept - File Save Test</title>
+    <title>Proof of Concept - Download PHP File</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,36 +26,28 @@
 </head>
 
 <body>
-    <h1>Testing File Save Vulnerability - PHP</h1>
-    <button id="saveFileButton">Save .php File</button>
+    <h1>Download .php File for Testing</h1>
+    <button id="downloadFileButton">Download .php File</button>
     <div id="status"></div>
 
     <script>
-        // Function to handle file saving
-        async function saveFile() {
-            try {
-                const options = {
-                    suggestedName: 'example.php', // Suggest a .php file instead of .url
-                    types: [{
-                        description: 'PHP File',
-                        accept: {
-                            'text/plain': ['.php']  // Block save for other files like .txt
-                        }
-                    }]
-                };
-                // Request the file save with .php extension
-                const fileHandle = await window.showSaveFilePicker(options);
-                const writable = await fileHandle.createWritable();
-                await writable.write('<?php echo "This is a malicious PHP script"; ?>'); // Fake PHP content
-                await writable.close();
-                document.getElementById('status').textContent = "File saved as .php!";
-            } catch (err) {
-                document.getElementById('status').textContent = "Error: " + err.message;
-            }
+        // Function to handle file download
+        function downloadFile() {
+            const phpContent = '<?php echo "This is a malicious PHP script"; ?>'; // Fake PHP content
+            const blob = new Blob([phpContent], { type: 'text/plain' }); // Create a Blob with the PHP content
+            const url = URL.createObjectURL(blob); // Create a URL for the Blob
+
+            // Create a temporary link element to trigger the download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'example.php'; // Set the file name
+            link.click(); // Trigger the download
+
+            document.getElementById('status').textContent = "File download initiated.";
         }
 
         // Add event listener to the button
-        document.getElementById('saveFileButton').addEventListener('click', saveFile);
+        document.getElementById('downloadFileButton').addEventListener('click', downloadFile);
     </script>
 </body>
 
