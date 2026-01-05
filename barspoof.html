@@ -92,6 +92,18 @@ trigger.onclick = () => {
   panel.style.display = 'block';
 };
 
+  // User gesture triggering native permission
+btn.addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Geolocation not supported');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    () => alert('Permission granted (demo)'),
+    () => alert('Permission denied (demo)')
+  );
+});
 // Trigger navigation AFTER tab restore (mimics desync)
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
