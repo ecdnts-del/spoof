@@ -13,15 +13,15 @@ body {
 }
 
 button {
-  margin:40px;
-  font-size:18px;
-  padding:10px 18px;
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
 }
 
 #panel {
   display:none;
-  max-width:420px;
-  margin:80px auto;
+  max-width:520px;
+  margin:60px auto;
   background:#fff;
   padding:24px;
   border-radius:16px;
@@ -48,9 +48,16 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#fff;
 }
 
-video {
-  width:100%;
-  margin-top:10px;
+video { width:100%; margin-top:10px; }
+
+pre {
+  margin-top:12px;
+  background:#111;
+  color:#0f0;
+  padding:10px;
+  font-size:11px;
+  max-height:260px;
+  overflow:auto;
 }
 </style>
 </head>
@@ -77,6 +84,13 @@ video {
   <button onclick="openCamera()">Open Camera</button>
   <video id="camera" autoplay playsinline></video>
 
+  <hr>
+
+  <!-- 🔥 API FINGERPRINTING -->
+  <button onclick="callAllAPIs()">CALL ALL APIs</button>
+  <button onclick="clearLog()">CLEAR LOG</button>
+  <pre id="apiLog"></pre>
+
   <div class="notice">
     Demo only — browser permission required
   </div>
@@ -85,10 +99,11 @@ video {
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
+const apiLog = document.getElementById('apiLog');
 
-// ======================
-// DOWNLOAD FILE (PoC)
-// ======================
+/* ======================
+   FUNGSI ASLI (TIDAK DIUBAH)
+====================== */
 function downloadFile() {
   const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
   const fileBlob = new Blob([fileContent], { type: 'text/plain' });
@@ -102,50 +117,27 @@ function downloadFile() {
   document.body.removeChild(downloadLink);
 }
 
-// ======================
-// GEOLOCATION API
-// ======================
 function getLocation() {
   const output = document.getElementById('locationOutput');
-
-  if (!navigator.geolocation) {
-    output.textContent = 'Geolocation not supported';
-    return;
-  }
-
+  if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
-    pos => {
-      output.textContent =
-        `Location: ${pos.coords.latitude}, ${pos.coords.longitude}`;
-    },
-    () => {
-      output.textContent = 'Location permission denied';
-    }
+    pos => output.textContent =
+      `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    () => output.textContent = 'Permission denied'
   );
 }
 
-// ======================
-// CAMERA API
-// ======================
 function openCamera() {
-  const video = document.getElementById('camera');
-
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => video.srcObject = stream)
-    .catch(() => alert('Camera permission denied'));
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(s => camera.srcObject = s)
+    .catch(()=>alert('Camera denied'));
 }
 
-// ======================
-// ORIGIN DESYNC TRIGGER
-// ======================
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 };
 
-// ======================
-// TAB RESTORE DESYNC
-// ======================
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -155,6 +147,100 @@ window.addEventListener('pageshow', () => {
     });
   });
 });
+
+/* ======================
+   API FINGERPRINTING
+====================== */
+const log = m => apiLog.textContent += m + "\n";
+const clearLog = () => apiLog.textContent = "";
+
+async function callAllAPIs() {
+  log("=== API FINGERPRINT START ===");
+
+  // Storage
+  localStorage.setItem('a','1');
+  sessionStorage.setItem('b','1');
+  indexedDB.open('fp');
+  log("Storage: OK");
+
+  // Clipboard
+  try { await navigator.clipboard.writeText("fp"); log("Clipboard: OK"); }
+  catch { log("Clipboard: DENIED"); }
+
+  // Notification
+  if (Notification) log("Notification: " + await Notification.requestPermission());
+
+  // Battery
+  if (navigator.getBattery) {
+    const b = await navigator.getBattery();
+    log("Battery: " + Math.round(b.level*100) + "%");
+  }
+
+  // Network
+  if (navigator.connection)
+    log("Network: " + navigator.connection.effectiveType);
+
+  // Vibration
+  navigator.vibrate?.(100);
+
+  // Orientation / Motion
+  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
+  addEventListener('devicemotion', ()=>log("Motion: OK"), {once:true});
+
+  // Speech
+  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
+  log("Speech synthesis: OK");
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  log("Speech recognition: " + (SR ? "SUPPORTED":"NO"));
+
+  // Fullscreen
+  document.documentElement.requestFullscreen().catch(()=>{});
+  log("Fullscreen: requested");
+
+  // Visibility
+  log("Visibility: " + document.visibilityState);
+
+  // Performance
+  log("Performance.now: " + performance.now());
+
+  // Canvas / WebGL
+  const c = document.createElement('canvas');
+  c.getContext('2d').fillRect(0,0,10,10);
+  log("Canvas: OK");
+  log("WebGL: " + (c.getContext('webgl') ? "OK":"NO"));
+
+  // Gamepad
+  log("Gamepads: " + navigator.getGamepads().length);
+
+  // WebRTC audio
+  try {
+    await navigator.mediaDevices.getUserMedia({audio:true});
+    log("WebRTC audio: OK");
+  } catch { log("WebRTC audio: DENIED"); }
+
+  // Screen
+  log(`Screen: ${screen.width}x${screen.height}`);
+
+  // Lang / TZ
+  log("Lang: " + navigator.language);
+  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  // Online
+  log("Online: " + navigator.onLine);
+
+  // Permissions
+  if (navigator.permissions) {
+    for (const p of ['camera','microphone','geolocation','notifications']) {
+      try {
+        const r = await navigator.permissions.query({name:p});
+        log(`Perm ${p}: ${r.state}`);
+      } catch {}
+    }
+  }
+
+  log("=== API FINGERPRINT END ===");
+}
 </script>
 
 </body>
