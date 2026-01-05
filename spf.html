@@ -29,18 +29,19 @@
                     '<button onclick="openEmailApp()">Open Email App</button>';
 
                 // Menambahkan script di dalam tab yang baru untuk membuka aplikasi
-                x.document.body.innerHTML += 
-                    '<script>' +
-                    'function openPhoneApp() {' +
-                    '  window.location.href = "tel://123456789";' + // Contoh untuk membuka aplikasi Telepon
-                    '}' +
-                    'function openMapsApp() {' +
-                    '  window.location.href = "maps://";' + // Contoh untuk membuka aplikasi Maps
-                    '}' +
-                    'function openEmailApp() {' +
-                    '  window.location.href = "mailto:test@example.com";' + // Contoh untuk membuka aplikasi Mail
-                    '}' +
-                    '</script>';
+                var script = x.document.createElement('script');
+                script.innerHTML = `
+                    function openPhoneApp() {
+                        window.location.href = "tel://123456789"; // Contoh untuk membuka aplikasi Telepon
+                    }
+                    function openMapsApp() {
+                        window.location.href = "maps://"; // Contoh untuk membuka aplikasi Maps
+                    }
+                    function openEmailApp() {
+                        window.location.href = "mailto:test@example.com"; // Contoh untuk membuka aplikasi Mail
+                    }
+                `;
+                x.document.body.appendChild(script); // Menambahkan skrip ke body tab yang baru
             }, 3000); // Menunggu 3 detik sebelum menambahkan konten
         }
 
