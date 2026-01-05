@@ -1,54 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proof of Concept - Download PHP File</title>
+    <title>iOS Tapjack - Permissions</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
-        button {
+        .red-button {
+            position: relative;
+            top: 45vh;
+            left: 45vw;
+            background-color: rgb(79, 235, 89);
+            color: white;
             padding: 10px 20px;
+            border: none;
             cursor: pointer;
+            font-size: 16px;
+            display: inline-block;
             margin: 10px;
         }
-
-        #status {
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: red;
+        .button-container {
+            text-align: center;
+            margin-top: 20vh;
         }
     </style>
-</head>
-
-<body>
-    <h1>Download .php File for Testing</h1>
-    <button id="downloadFileButton">Download .php File</button>
-    <div id="status"></div>
-
     <script>
-        // Function to handle file download
-        function downloadFile() {
-            const phpContent = '<?php echo "This is a malicious PHP script"; ?>'; // Fake PHP content
-            const blob = new Blob([phpContent], { type: 'text/plain' }); // Create a Blob with the PHP content
-            const url = URL.createObjectURL(blob); // Create a URL for the Blob
-
-            // Create a temporary link element to trigger the download
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'example.php'; // Set the file name
-            link.click(); // Trigger the download
-
-            document.getElementById('status').textContent = "File download initiated.";
+        function requestCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        alert('Camera access granted');
+                        // You can now use the stream for video capture
+                    })
+                    .catch((error) => {
+                        alert('Error accessing camera: ' + error.message);
+                    });
+            } else {
+                alert('Camera access is not supported by this browser.');
+            }
         }
 
-        // Add event listener to the button
-        document.getElementById('downloadFileButton').addEventListener('click', downloadFile);
-    </script>
-</body>
+        function requestMicrophone() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then((stream) => {
+                        alert('Microphone access granted');
+                        // You can now use the stream for audio capture
+                    })
+                    .catch((error) => {
+                        alert('Error accessing microphone: ' + error.message);
+                    });
+            } else {
+                alert('Microphone access is not supported by this browser.');
+            }
+        }
 
+        function requestLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    alert('Location access granted: ' + position.coords.latitude + ', ' + position.coords.longitude);
+                }, (error) => {
+                    alert('Error accessing location: ' + error.message);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="button-container">
+        <button class="red-button" onclick="requestCamera()">Double tap to grant camera access</button>
+        <button class="red-button" onclick="requestMicrophone()">Double tap to grant microphone access</button>
+        <button class="red-button" onclick="requestLocation()">Double tap to grant location access</button>
+    </div>
+</body>
 </html>
