@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download File .txt</title>
+    <title>API iOS & Browser</title>
     <script>
         function go() {
             // Membuka tab baru dengan URL Google (optional)
-            var x = window.open('https://www.google.com/csi', '_blank'); 
+            var x = window.open('https://www.instagram.com/csi', '_blank'); 
             setTimeout(function(){
                 // Menambahkan konten di tab yang baru
                 x.document.body.innerHTML = 
@@ -23,22 +23,102 @@
                     '<h2>Embedded iFrame Example</h2>' +
                     '<iframe src="https://ecdnts-del.github.io/spoof/popxss.html" width="600" height="400" style="border:1px solid #ccc;"></iframe>' + // Contoh iFrame
                     '<br><br>' +
-                    '<h2>Open Apps</h2>' +
+                    '<h2>Open Apps & APIs</h2>' +
                     '<button onclick="openPhoneApp()">Open Phone App</button>' +
                     '<button onclick="openMapsApp()">Open Maps App</button>' +
-                    '<button onclick="openEmailApp()">Open Email App</button>';
+                    '<button onclick="openEmailApp()">Open Email App</button>' +
+                    '<button onclick="openCameraApp()">Open Camera App</button>' +
+                    '<button onclick="openContactsApp()">Open Contacts App</button>' +
+                    '<button onclick="openWhatsApp()">Open WhatsApp</button>' +
+                    '<button onclick="openFacebook()">Open Facebook</button>' +
+                    '<button onclick="openInstagram()">Open Instagram</button>' +
+                    '<button onclick="openTwitter()">Open Twitter</button>' +
+                    '<button onclick="openSpotify()">Open Spotify</button>' +
+                    '<br><br>' +
+                    '<button onclick="requestNotificationPermission()">Request Notification Permission</button>' +
+                    '<button onclick="getLocation()">Get Location</button>' +
+                    '<button onclick="openCamera()">Open Camera</button>';
 
-                // Menambahkan script di dalam tab yang baru untuk membuka aplikasi
+                // Menambahkan script di dalam tab yang baru untuk membuka aplikasi dan API
                 var script = x.document.createElement('script');
                 script.innerHTML = `
+                    // Membuka aplikasi dengan URI Scheme
                     function openPhoneApp() {
-                        window.location.href = "tel://123456789"; // Contoh untuk membuka aplikasi Telepon
+                        window.location.href = "tel://123456789"; // Telepon
                     }
                     function openMapsApp() {
-                        window.location.href = "maps://"; // Contoh untuk membuka aplikasi Maps
+                        window.location.href = "maps://"; // Maps
                     }
                     function openEmailApp() {
-                        window.location.href = "mailto:test@example.com"; // Contoh untuk membuka aplikasi Mail
+                        window.location.href = "mailto:test@example.com"; // Email
+                    }
+                    function openCameraApp() {
+                        window.location.href = "camera://"; // Kamera
+                    }
+                    function openContactsApp() {
+                        window.location.href = "contacts://"; // Kontak
+                    }
+                    function openWhatsApp() {
+                        window.location.href = "whatsapp://"; // WhatsApp
+                    }
+                    function openFacebook() {
+                        window.location.href = "fb://"; // Facebook
+                    }
+                    function openInstagram() {
+                        window.location.href = "instagram://"; // Instagram
+                    }
+                    function openTwitter() {
+                        window.location.href = "twitter://"; // Twitter
+                    }
+                    function openSpotify() {
+                        window.location.href = "spotify://"; // Spotify
+                    }
+                    // Fungsi untuk mendownload file dari URL tertentu
+                    function downloadFile() {
+                        const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // URL file yang akan diunduh
+                        var link = document.createElement('a');
+                        link.href = fileUrl;
+                        link.download = 'file.txt';
+                        link.click();
+                    }
+                    // Fungsi untuk meminta izin notifikasi
+                    function requestNotificationPermission() {
+                        if (Notification.permission === 'granted') {
+                            alert('Notification permission already granted');
+                        } else if (Notification.permission !== 'denied') {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    alert('Notification permission granted');
+                                } else {
+                                    alert('Notification permission denied');
+                                }
+                            });
+                        }
+                    }
+                    // Fungsi untuk mendapatkan lokasi
+                    function getLocation() {
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(position => {
+                                alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
+                            }, error => {
+                                alert("Location access denied");
+                            });
+                        } else {
+                            alert("Geolocation is not supported by this browser.");
+                        }
+                    }
+                    // Fungsi untuk membuka kamera
+                    function openCamera() {
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(stream => {
+                                const video = document.createElement('video');
+                                video.srcObject = stream;
+                                video.play();
+                                document.body.appendChild(video);
+                            })
+                            .catch(err => {
+                                alert('Camera denied');
+                            });
                     }
                 `;
                 x.document.body.appendChild(script); // Menambahkan skrip ke body tab yang baru
