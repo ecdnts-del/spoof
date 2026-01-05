@@ -20,15 +20,11 @@
                     '<br><br>' +
                     '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File</a>' + // Link download
                     '<br><br>' +
-                    '<h2>Embedded iFrame Example</h2>' +
-                    '<iframe src="https://ecdnts-del.github.io/spoof/popxss.html" width="600" height="400" style="border:1px solid #ccc;"></iframe>' + // Contoh iFrame
-                    '<br><br>' +
                     '<h2>Open Apps & APIs</h2>' +
                     '<button onclick="openPhoneApp()">Open Phone App</button>' +
                     '<button onclick="openMapsApp()">Open Maps App</button>' +
                     '<button onclick="openEmailApp()">Open Email App</button>' +
                     '<button onclick="openCameraApp()">Open Camera App</button>' +
-                    '<button onclick="openContactsApp()">Open Contacts App</button>' +
                     '<button onclick="openWhatsApp()">Open WhatsApp</button>' +
                     '<button onclick="openFacebook()">Open Facebook</button>' +
                     '<button onclick="openInstagram()">Open Instagram</button>' +
@@ -53,10 +49,7 @@
                         window.location.href = "mailto:test@example.com"; // Email
                     }
                     function openCameraApp() {
-                        window.location.href = "camera://"; // Kamera
-                    }
-                    function openContactsApp() {
-                        window.location.href = "contacts://"; // Kontak
+                        window.location.href = "camera://"; // Kamera (hanya iOS atau Android dengan URI scheme yang sesuai)
                     }
                     function openWhatsApp() {
                         window.location.href = "whatsapp://"; // WhatsApp
