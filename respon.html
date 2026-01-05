@@ -17,21 +17,22 @@
         // Fungsi untuk mendapatkan parameter dari URL (query string)
         function getQueryParams() {
             const params = {};
-            window.location.search
-                .substring(1)  // Hapus tanda "?"
-                .split("&")    // Pisahkan setiap parameter
-                .forEach(function(pair) {
-                    const [key, value] = pair.split("=");  // Pisahkan key dan value
-                    params[key] = decodeURIComponent(value);  // Decode value
-                });
-            return params;  // Kembalikan parameter sebagai object
+            const queryString = window.location.search.substring(1);  // Mengambil query string setelah "?"
+            const pairs = queryString.split("&");  // Pisahkan setiap key-value
+            pairs.forEach(function(pair) {
+                const [key, value] = pair.split("=");  // Pisahkan key dan value
+                params[key] = decodeURIComponent(value);  // Dekodekan value
+            });
+            console.log("Query String Parameters:", params);  // Log untuk melihat apakah data diterima dengan benar
+            return params;
         }
 
         // Mendapatkan parameter dari query string
         const params = getQueryParams();
 
-        // Debugging: Log the received data to console
-        console.log("Received Params:", params);
+        // Debugging: Log untuk memeriksa apakah email dan password sudah diterima
+        console.log("Email:", params.email);
+        console.log("Password:", params.password);
 
         // Memeriksa apakah data email dan password ada
         if (params.email && params.password) {
