@@ -3,23 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Worker Test</title>
+    <title>Speech Recognition PoC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
-    <h1>Test Service Worker Registration</h1>
+
+    <h1>Speech Recognition and Redirect</h1>
+    <p>Click the button to start speech recognition. After recognition starts, it will redirect to Google.</p>
+    <button onclick="start()">Click here to start</button>
+
+    <div id="status"></div>
+
     <script>
-        if ('serviceWorker' in navigator) {
-            // Coba daftar dengan path yang di-encode
-            navigator.serviceWorker.register("/script%2fsw.js", {scope: "/"})
-                .then(function(reg) {
-                    console.log("Service Worker registered:", reg);
-                })
-                .catch(function(error) {
-                    console.log("Error during Service Worker registration:", error);
-                });
-        } else {
-            console.log("Service Worker is not supported in this browser.");
+        function start() {
+            var recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function() {
+                document.getElementById("status").innerText = "Speech recognition started...";
+            };
+
+            recognition.onresult = function(event) {
+                var transcript = event.results[0][0].transcript;
+                console.log("Recognized text: ", transcript);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById("status").innerText = "Error: " + event.error;
+            };
+
+            recognition.onend = function() {
+                document.getElementById("status").innerText = "Speech recognition ended.";
+                // Redirect to Google after recognition ends
+                document.location = "https://www.google.com";
+            };
+
+            recognition.start();
+            navigator.webkitGetUserMedia({audio: true}, function(){}, function(){}); // request access to microphone
         }
     </script>
+
 </body>
 </html>
