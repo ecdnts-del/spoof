@@ -97,6 +97,11 @@
 
     <hr>
 
+    <button onclick="openCalculator()">Open Calculator</button>
+    <button onclick="openOtherApp()">Open Other App</button>
+
+    <hr>
+
     <!-- 🔥 API FINGERPRINTING -->
     <button onclick="callAllAPIs()">CALL ALL APIs</button>
     <button onclick="clearLog()">CLEAR LOG</button>
@@ -142,6 +147,19 @@
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(s => camera.srcObject = s)
         .catch(() => alert('Camera denied'));
+    }
+
+    function openCalculator() {
+      // On iOS, trying to open the calculator app may not work due to restrictions.
+      // On Android, it may work if the device supports URI scheme.
+      const url = 'calculator://';  // This is a URI scheme for Android's calculator
+      window.location.href = url;  // Try opening calculator
+    }
+
+    function openOtherApp() {
+      // Example: Open the phone dialer (may vary based on device support)
+      const url = 'tel://123456789'; // Replace with any phone number to dial
+      window.location.href = url;
     }
 
     trigger.onclick = () => {
