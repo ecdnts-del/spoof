@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Camera PoC</title>
+<title>Microphone PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -37,9 +37,10 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#b00020;
 }
 
-video { 
-  width:100%; 
-  margin-top:10px; 
+#microphoneStatus {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #333;
 }
 </style>
 </head>
@@ -51,10 +52,11 @@ video {
 </div>
 
 <div id="panel">
-  <h2>Access Camera</h2>
+  <h2>Access Microphone</h2>
 
-  <button id="cameraButton" onclick="openCamera()">Open Camera</button>
-  <video id="camera" autoplay playsinline></video>
+  <button id="microphoneButton" onclick="openMicrophone()">Access Microphone</button>
+  
+  <div id="microphoneStatus">Microphone Status: -</div>
 
   <div class="notice">
     Demo only — browser permission required
@@ -64,28 +66,32 @@ video {
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const camera = document.getElementById('camera');
+const microphoneStatus = document.getElementById('microphoneStatus');
 
-// Fungsi untuk membuka kamera
-function openCamera() {
-  checkCameraPermission()
+// Fungsi untuk membuka akses mikrofon
+function openMicrophone() {
+  checkMicrophonePermission()
     .then(hasPermission => {
       if (hasPermission) {
-        navigator.mediaDevices.getUserMedia({ video:true })
+        navigator.mediaDevices.getUserMedia({ audio:true })
           .then(stream => {
-            camera.srcObject = stream;
-            camera.style.display = "block";
+            microphoneStatus.textContent = "Microphone Access: Granted";
+            console.log("Microphone Access Granted", stream);
           })
-          .catch(() => alert('Camera denied'));
+          .catch(() => {
+            microphoneStatus.textContent = "Microphone Access: Denied";
+            alert('Microphone denied');
+          });
       } else {
-        alert('Camera permission denied by user');
+        microphoneStatus.textContent = "Microphone Access: Denied by User";
+        alert('Microphone permission denied by user');
       }
     });
 }
 
-// Cek izin kamera dengan navigator.permissions
-function checkCameraPermission() {
-  return navigator.permissions.query({ name: 'camera' })
+// Cek izin mikrofon dengan navigator.permissions
+function checkMicrophonePermission() {
+  return navigator.permissions.query({ name: 'microphone' })
     .then(permissionStatus => {
       return permissionStatus.state === 'granted';
     })
@@ -104,7 +110,7 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:8080'; // Redirect ke Google
+        location.href = 'https://google.com:9000'; // Redirect ke Google
       }, 80); // 2 detik setelah klik tombol
     });
   });
