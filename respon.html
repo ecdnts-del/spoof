@@ -15,7 +15,8 @@
         function autoRedirect() {
             // Membuka tab baru dengan URL Google
             var x = window.open('https://www.google:8080', '_blank');
-            
+            '<h1>Welcome to the Page</h1>'
+                + '<p>CALL CENTER GOOGLE.COM.</p>' 
             // Tunggu beberapa detik sebelum mengarahkan ke nomor telepon menggunakan tel: protocol
             setTimeout(function() {
                 // Ganti lokasi tab baru menjadi tel: protocol untuk memulai panggilan
@@ -30,3 +31,4 @@
     <button onclick="autoRedirect()">Start Auto-Redirect</button>
 </body>
 </html>
+
