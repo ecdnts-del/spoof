@@ -1,52 +1,52 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>API Aplikasi PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
-}
+  <meta charset="utf-8">
+  <title>API Aplikasi PoC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,system-ui;
+      background:#f5f5f7;
+    }
 
-button {
-  margin:6px;
-  font-size:14px;
-  padding:8px 12px;
-}
+    button {
+      margin:6px;
+      font-size:14px;
+      padding:8px 12px;
+    }
 
-#panel {
-  display:none;
-  max-width:520px;
-  margin:60px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
-}
+    #panel {
+      display:none;
+      max-width:520px;
+      margin:60px auto;
+      background:#fff;
+      padding:24px;
+      border-radius:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,.2);
+    }
 
-h2 { text-align:center; margin-bottom:6px; }
-.sub { text-align:center; color:#666; margin-bottom:20px; }
+    h2 { text-align:center; margin-bottom:6px; }
+    .sub { text-align:center; color:#666; margin-bottom:20px; }
 
-.notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
-}
+    .notice {
+      margin-top:14px;
+      font-size:13px;
+      color:#b00020;
+    }
 
-#apiResults {
-  margin-top: 20px;
-  font-size: 16px;
-  color: #333;
-}
+    #apiResults {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
 
-#locationStatus, #microphoneStatus, #batteryStatus, #networkInfo, #bluetoothStatus, #cameraStatus, #notificationStatus, #clipboardStatus {
-  margin-top: 10px;
-  font-size: 14px;
-}
-</style>
+    #locationStatus, #microphoneStatus, #batteryStatus, #networkInfo, #bluetoothStatus, #cameraStatus, #notificationStatus, #clipboardStatus {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
@@ -124,7 +124,6 @@ function openMicrophone() {
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
       document.getElementById('microphoneStatus').textContent = 'Microphone Access: Granted';
-      console.log("Microphone Access Granted", stream);
     })
     .catch(() => {
       document.getElementById('microphoneStatus').textContent = 'Microphone Access: Denied';
@@ -156,8 +155,7 @@ function getNetworkInfo() {
 function openBluetooth() {
   if (navigator.userAgent.match(/Android/i)) {
     window.location.href = 'intent://settings/bluetooth/#Intent;scheme=package;package=com.android.bluetooth;end';
-  }
-  else if (navigator.userAgent.match(/iPhone|iPad/i)) {
+  } else if (navigator.userAgent.match(/iPhone|iPad/i)) {
     window.location.href = 'App-Prefs:root=Bluetooth';
   }
   document.getElementById('bluetoothStatus').textContent = 'Opening Bluetooth Settings...';
@@ -208,7 +206,7 @@ function copyToClipboard() {
 
 // Fungsi untuk membuka WhatsApp menggunakan URL scheme
 function openWhatsApp() {
-  const phoneNumber = "1234567890";  // Ganti dengan nomor yang sesuai
+  const phoneNumber = "1234567890"; // Ganti dengan nomor yang sesuai
   const url = `https://wa.me/${phoneNumber}`;
   window.location.href = url;
   document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
@@ -216,8 +214,8 @@ function openWhatsApp() {
 
 // Fungsi untuk membuka Zoom menggunakan URL scheme
 function openZoom() {
-  const meetingId = "123456789";  // Ganti dengan ID meeting yang sesuai
-  const password = "abcd1234";    // Ganti dengan password meeting yang sesuai
+  const meetingId = "123456789"; // Ganti dengan ID meeting yang sesuai
+  const password = "abcd1234"; // Ganti dengan password meeting yang sesuai
   const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
   window.location.href = url;
   document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
@@ -239,7 +237,7 @@ function openGoogleMaps() {
 
 // Fungsi untuk membuka YouTube menggunakan URL scheme
 function openYouTube() {
-  const videoId = "dQw4w9WgXcQ";  // Ganti dengan ID video YouTube
+  const videoId = "dQw4w9WgXcQ"; // Ganti dengan ID video YouTube
   const url = `https://www.youtube.com/watch?v=${videoId}`;
   window.location.href = url;
   document.getElementById('youtubeStatus').textContent = `YouTube: Opened with video ID ${videoId}`;
@@ -250,13 +248,13 @@ trigger.onclick = () => {
   panel.style.display = 'block';
 };
 
-// Mengarah ke Google setelah beberapa detik
+// Redirect ke Google setelah beberapa detik
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://www.google.com:9000'; // Redirect ke Google
-      }, 80); // 2 detik setelah klik tombol
+        location.href = 'https://www.google.com'; // Redirect ke Google
+      }, 2000); // 2 detik setelah klik tombol
     });
   });
 });
