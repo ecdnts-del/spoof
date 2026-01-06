@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Microphone PoC</title>
+<title>API Aplikasi PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -37,7 +37,7 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#b00020;
 }
 
-#microphoneStatus {
+#apiResults {
   margin-top: 20px;
   font-size: 16px;
   color: #333;
@@ -52,11 +52,19 @@ h2 { text-align:center; margin-bottom:6px; }
 </div>
 
 <div id="panel">
-  <h2>Access Microphone</h2>
+  <h2>API Aplikasi</h2>
 
-  <button id="microphoneButton" onclick="openMicrophone()">Access Microphone</button>
-  
-  <div id="microphoneStatus">Microphone Status: -</div>
+  <button onclick="getLocation()">Get Location</button>
+  <div id="locationStatus">Location: -</div>
+
+  <button onclick="openMicrophone()">Access Microphone</button>
+  <div id="microphoneStatus">Microphone: -</div>
+
+  <button onclick="getBatteryStatus()">Get Battery Status</button>
+  <div id="batteryStatus">Battery: -</div>
+
+  <button onclick="getNetworkInfo()">Get Network Info</button>
+  <div id="networkInfo">Network Info: -</div>
 
   <div class="notice">
     Demo only — browser permission required
@@ -66,38 +74,51 @@ h2 { text-align:center; margin-bottom:6px; }
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const microphoneStatus = document.getElementById('microphoneStatus');
 
-// Fungsi untuk membuka akses mikrofon
+// Fungsi untuk mendapatkan lokasi
+function getLocation() {
+  const locationStatus = document.getElementById('locationStatus');
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => locationStatus.textContent = `Location: Latitude: ${pos.coords.latitude}, Longitude: ${pos.coords.longitude}`,
+      () => locationStatus.textContent = 'Location access denied'
+    );
+  } else {
+    locationStatus.textContent = 'Geolocation not supported';
+  }
+}
+
+// Fungsi untuk membuka mikrofon
 function openMicrophone() {
-  checkMicrophonePermission()
-    .then(hasPermission => {
-      if (hasPermission) {
-        navigator.mediaDevices.getUserMedia({ audio:true })
-          .then(stream => {
-            microphoneStatus.textContent = "Microphone Access: Granted";
-            console.log("Microphone Access Granted", stream);
-          })
-          .catch(() => {
-            microphoneStatus.textContent = "Microphone Access: Denied";
-            alert('Microphone denied');
-          });
-      } else {
-        microphoneStatus.textContent = "Microphone Access: Denied by User";
-        alert('Microphone permission denied by user');
-      }
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      document.getElementById('microphoneStatus').textContent = 'Microphone Access: Granted';
+      console.log("Microphone Access Granted", stream);
+    })
+    .catch(() => {
+      document.getElementById('microphoneStatus').textContent = 'Microphone Access: Denied';
+      alert('Microphone access denied');
     });
 }
 
-// Cek izin mikrofon dengan navigator.permissions
-function checkMicrophonePermission() {
-  return navigator.permissions.query({ name: 'microphone' })
-    .then(permissionStatus => {
-      return permissionStatus.state === 'granted';
-    })
-    .catch(() => {
-      return false; // Jika tidak dapat mengecek izin, anggap ditolak
+// Fungsi untuk mendapatkan status baterai
+function getBatteryStatus() {
+  if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+      document.getElementById('batteryStatus').textContent = `Battery Level: ${Math.round(battery.level * 100)}%`;
     });
+  } else {
+    document.getElementById('batteryStatus').textContent = 'Battery API not supported';
+  }
+}
+
+// Fungsi untuk mendapatkan informasi jaringan
+function getNetworkInfo() {
+  if (navigator.connection) {
+    document.getElementById('networkInfo').textContent = `Network: ${navigator.connection.effectiveType}`;
+  } else {
+    document.getElementById('networkInfo').textContent = 'Network API not supported';
+  }
 }
 
 trigger.onclick = () => {
@@ -110,8 +131,8 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:9000'; // Redirect ke Google
-      }, 80); // 2 detik setelah klik tombol
+        location.href = 'https://www.google.com'; // Redirect ke Google
+      }, 2000); // 2 detik setelah klik tombol
     });
   });
 });
