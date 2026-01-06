@@ -1,10 +1,9 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>API Aplikasi PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body {
   margin:0;
@@ -88,6 +87,15 @@ h2 { text-align:center; margin-bottom:6px; }
 
   <button onclick="openZoom()">Open Zoom</button>
   <div id="zoomStatus">Zoom: -</div>
+
+  <button onclick="openGmail()">Open Gmail</button>
+  <div id="gmailStatus">Gmail: -</div>
+
+  <button onclick="openGoogleMaps()">Open Google Maps</button>
+  <div id="googleMapsStatus">Google Maps: -</div>
+
+  <button onclick="openYouTube()">Open YouTube</button>
+  <div id="youtubeStatus">YouTube: -</div>
 
   <div class="notice">
     Demo only — browser permission required
@@ -213,6 +221,28 @@ function openZoom() {
   const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
   window.location.href = url;
   document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
+}
+
+// Fungsi untuk membuka Gmail menggunakan URL scheme
+function openGmail() {
+  const url = "googlegmail://";
+  window.location.href = url;
+  document.getElementById('gmailStatus').textContent = "Gmail: Opened";
+}
+
+// Fungsi untuk membuka Google Maps menggunakan URL scheme
+function openGoogleMaps() {
+  const location = "https://www.google.com/maps"; // Ganti dengan alamat atau koordinat yang diinginkan
+  window.location.href = location;
+  document.getElementById('googleMapsStatus').textContent = "Google Maps: Opened";
+}
+
+// Fungsi untuk membuka YouTube menggunakan URL scheme
+function openYouTube() {
+  const videoId = "dQw4w9WgXcQ";  // Ganti dengan ID video YouTube
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  window.location.href = url;
+  document.getElementById('youtubeStatus').textContent = `YouTube: Opened with video ID ${videoId}`;
 }
 
 trigger.onclick = () => {
