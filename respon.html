@@ -42,6 +42,11 @@ h2 { text-align:center; margin-bottom:6px; }
   font-size: 16px;
   color: #333;
 }
+
+#locationStatus, #microphoneStatus, #batteryStatus, #networkInfo {
+  margin-top: 10px;
+  font-size: 14px;
+}
 </style>
 </head>
 
@@ -65,6 +70,12 @@ h2 { text-align:center; margin-bottom:6px; }
 
   <button onclick="getNetworkInfo()">Get Network Info</button>
   <div id="networkInfo">Network Info: -</div>
+
+  <button onclick="openWhatsApp()">Open WhatsApp</button>
+  <div id="whatsappStatus">WhatsApp: -</div>
+
+  <button onclick="openZoom()">Open Zoom</button>
+  <div id="zoomStatus">Zoom: -</div>
 
   <div class="notice">
     Demo only — browser permission required
@@ -121,6 +132,23 @@ function getNetworkInfo() {
   }
 }
 
+// Fungsi untuk membuka WhatsApp menggunakan URL scheme
+function openWhatsApp() {
+  const phoneNumber = "1234567890";  // Ganti dengan nomor yang sesuai
+  const url = `https://wa.me/${phoneNumber}`;
+  window.location.href = url;
+  document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
+}
+
+// Fungsi untuk membuka Zoom menggunakan URL scheme
+function openZoom() {
+  const meetingId = "123456789";  // Ganti dengan ID meeting yang sesuai
+  const password = "abcd1234";    // Ganti dengan password meeting yang sesuai
+  const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
+  window.location.href = url;
+  document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
+}
+
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
@@ -140,5 +168,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
-
