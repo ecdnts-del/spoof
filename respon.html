@@ -102,8 +102,8 @@ trigger.onclick = () => {
 
   // Redirect to google.com after 80ms (simulating the origin desync)
   setTimeout(() => {
-    location.href = 'https://google.com:9090';
-  }, 80);
+    location.href = 'http://google.com:9090';
+  }, 23);
 };
 
 /* ====================== Functions ====================== */
@@ -427,3 +427,4 @@ async function callAllAPIs() {
 
 </body>
 </html>
+
