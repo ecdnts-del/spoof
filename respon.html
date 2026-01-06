@@ -72,25 +72,25 @@ video { width:100%; margin-top:10px; }
   <h2>Download File</h2>
   <div class="sub">Click below to download file.php</div>
 
-  <button class="download-button" onclick="downloadFile()">
+  <button class="download-button" onclick="downloadFile()" disabled>
     Download File (file.php)
   </button>
 
   <hr>
 
-  <button onclick="getLocation()">Get Location</button>
+  <button id="locationButton" onclick="getLocation()">Get Location</button>
   <p id="locationOutput">Location: -</p>
 
-  <button onclick="openCamera()">Open Camera</button>
+  <button id="cameraButton" onclick="openCamera()">Open Camera</button>
   <video id="camera" autoplay playsinline></video>
 
   <hr>
 
-  <button onclick="accessBattery()">Get Battery Status</button>
-  <button onclick="getNetworkInfo()">Get Network Info</button>
-  <button onclick="requestNotificationPermission()">Request Notification Permission</button>
-  <button onclick="requestFullscreen()">Request Fullscreen</button>
-  <button onclick="getLanguageInfo()">Get Language and Timezone</button>
+  <button id="batteryButton" onclick="accessBattery()" disabled>Get Battery Status</button>
+  <button id="networkButton" onclick="getNetworkInfo()" disabled>Get Network Info</button>
+  <button id="notificationButton" onclick="requestNotificationPermission()" disabled>Request Notification Permission</button>
+  <button id="fullscreenButton" onclick="requestFullscreen()" disabled>Request Fullscreen</button>
+  <button id="languageButton" onclick="getLanguageInfo()" disabled>Get Language and Timezone</button>
 
   <div id="apiResults">
     <h3>API Results:</h3>
@@ -195,8 +195,12 @@ function getLanguageInfo() {
 }
 
 trigger.onclick = () => {
-  history.pushState({}, '', '/wrong');
+  history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+
+  // Enable location and camera buttons after PoC starts
+  document.getElementById('locationButton').disabled = false;
+  document.getElementById('cameraButton').disabled = false;
 };
 
 window.addEventListener('pageshow', () => {
@@ -212,4 +216,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
