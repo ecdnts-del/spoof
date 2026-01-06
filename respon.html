@@ -49,6 +49,16 @@ h2 { text-align:center; margin-bottom:6px; }
 }
 
 video { width:100%; margin-top:10px; }
+
+#apiResults {
+  margin-top: 20px;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  font-size: 14px;
+  max-height: 400px;
+  overflow-y: auto;
+}
 </style>
 </head>
 
@@ -82,6 +92,16 @@ video { width:100%; margin-top:10px; }
   <button onclick="requestFullscreen()">Request Fullscreen</button>
   <button onclick="getLanguageInfo()">Get Language and Timezone</button>
 
+  <div id="apiResults">
+    <h3>API Results:</h3>
+    <div id="batteryStatus">Battery Status: -</div>
+    <div id="networkInfo">Network Info: -</div>
+    <div id="languageInfo">Language & Timezone: -</div>
+    <div id="locationInfo">Location: -</div>
+    <div id="fullscreenStatus">Fullscreen Status: -</div>
+    <div id="notificationStatus">Notification Status: -</div>
+  </div>
+
   <div class="notice">
     Demo only — browser permission required
   </div>
@@ -92,8 +112,9 @@ const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const locationOutput = document.getElementById('locationOutput');
 const camera = document.getElementById('camera');
+const apiResults = document.getElementById('apiResults');
 
-/* ====================== FUNGSI ASLI (TIDAK DIUBAH) ====================== */
+// FUNGSI ASLI (TIDAK DIUBAH)
 function downloadFile() {
   const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
   const fileBlob = new Blob([fileContent], { type: 'text/plain' });
@@ -116,45 +137,65 @@ function getLocation() {
 }
 
 function openCamera() {
-  navigator.mediaDevices.getUserMedia({ video:true })
-    .then(s => camera.srcObject = s)
-    .catch(() => alert('Camera denied'));
+  checkCameraPermission()
+    .then(hasPermission => {
+      if (hasPermission) {
+        navigator.mediaDevices.getUserMedia({ video:true })
+          .then(s => camera.srcObject = s)
+          .catch(() => alert('Camera denied'));
+      } else {
+        alert('Camera permission denied by user');
+      }
+    });
 }
 
+// Cek izin kamera dengan navigator.permissions
+function checkCameraPermission() {
+  return navigator.permissions.query({ name: 'camera' })
+    .then(permissionStatus => {
+      return permissionStatus.state === 'granted';
+    })
+    .catch(() => {
+      return false; // Jika tidak dapat mengecek izin, anggap ditolak
+    });
+}
+
+// API Functions with Results in the UI
 function accessBattery() {
   if (navigator.getBattery) {
     navigator.getBattery().then(battery => {
-      alert(`Battery Level: ${Math.round(battery.level * 100)}%`);
+      document.getElementById('batteryStatus').textContent = `Battery Status: ${Math.round(battery.level * 100)}%`;
     });
   }
 }
 
 function getNetworkInfo() {
   if (navigator.connection) {
-    alert(`Network Type: ${navigator.connection.effectiveType}`);
+    document.getElementById('networkInfo').textContent = `Network Info: ${navigator.connection.effectiveType}`;
   }
 }
 
 function requestNotificationPermission() {
   if (Notification) {
     Notification.requestPermission().then(permission => {
-      alert(`Notification permission: ${permission}`);
+      document.getElementById('notificationStatus').textContent = `Notification Permission: ${permission}`;
     });
   }
 }
 
 function requestFullscreen() {
   document.documentElement.requestFullscreen().catch(() => {});
+  document.getElementById('fullscreenStatus').textContent = 'Fullscreen Requested';
 }
 
 function getLanguageInfo() {
   const language = navigator.language;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  alert(`Language: ${language}, Timezone: ${timezone}`);
+  document.getElementById('languageInfo').textContent = `Language: ${language}, Timezone: ${timezone}`;
 }
 
 trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
+  history.pushState({}, '', 'https://google.com:9090');
   panel.style.display = 'block';
 };
 
