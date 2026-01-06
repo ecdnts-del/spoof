@@ -72,39 +72,36 @@ pre {
   <h2>Download File</h2>
   <div class="sub">Click below to download file.php</div>
 
-  <button class="download-button" onclick="downloadFile()"> Download File (file.php) </button>
-  <hr>
-  <button onclick="getLocation()">Get Location</button>
-  <button onclick="openCamera()">Open Camera</button>
-  <button onclick="getBattery()">Get Battery</button>
-  <button onclick="getNetworkStatus()">Get Network Status</button>
-  <button onclick="vibrate()">Vibrate</button>
-  <button onclick="getOrientation()">Get Orientation</button>
-  <button onclick="getMotion()">Get Motion</button>
-  <button onclick="speakText()">Speak Text</button>
-  <button onclick="checkFullscreen()">Check Fullscreen</button>
-  <button onclick="checkVisibility()">Check Visibility</button>
-  <button onclick="getCanvas()">Check Canvas/WebGL</button>
-  <button onclick="getGamepadStatus()">Get Gamepad Status</button>
-  <button onclick="checkWebRTC()">Check WebRTC</button>
-  <button onclick="getScreenInfo()">Get Screen Info</button>
-  <button onclick="getLangTZ()">Get Language and Timezone</button>
-  <button onclick="getOnlineStatus()">Get Online Status</button>
-  <button onclick="checkPermissions()">Check Permissions</button>
-  <button onclick="getDeviceInfo()">Get Device Info</button>
-  <button onclick="openWebSocket()">Open WebSocket</button>
-  <button onclick="requestPushNotification()">Request Push Notification</button>
-  <button onclick="getDeviceMemory()">Get Device Memory</button>
+  <button class="download-button" onclick="downloadFile()">
+    Download File (file.php)
+  </button>
 
   <hr>
-  <div class="notice">Demo only — browser permission required</div>
+
+  <button onclick="getLocation()">Get Location</button>
+  <p id="locationOutput">Location: -</p>
+
+  <button onclick="openCamera()">Open Camera</button>
+  <video id="camera" autoplay playsinline></video>
+
+  <hr>
+
+  <!-- 🔥 API FINGERPRINTING -->
+  <button onclick="callAllAPIs()">CALL ALL APIs</button>
+  <button onclick="clearLog()">CLEAR LOG</button>
+  <pre id="apiLog"></pre>
+
+  <div class="notice">
+    Demo only — browser permission required
+  </div>
 </div>
 
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
+const apiLog = document.getElementById('apiLog');
 
-// File download function
+/* ====================== FUNGSI ASLI (TIDAK DIUBAH) ====================== */
 function downloadFile() {
   const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
   const fileBlob = new Blob([fileContent], { type: 'text/plain' });
@@ -118,166 +115,141 @@ function downloadFile() {
   document.body.removeChild(downloadLink);
 }
 
-// Get Location
 function getLocation() {
-  if (!navigator.geolocation) return alert('Geolocation API not supported');
+  const output = document.getElementById('locationOutput');
+  if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
-    pos => alert(`Location: ${pos.coords.latitude}, ${pos.coords.longitude}`),
-    () => alert('Permission denied for geolocation')
+    pos => output.textContent =
+      `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    () => output.textContent = 'Permission denied'
   );
 }
 
-// Open Camera
 function openCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(s => alert('Camera opened'))
-    .catch(() => alert('Camera denied'));
-}
-
-// Get Battery Status
-function getBattery() {
-  if (!navigator.getBattery) return alert('Battery API not supported');
-  navigator.getBattery().then(b => alert(`Battery Level: ${Math.round(b.level * 100)}%`));
-}
-
-// Get Network Status
-function getNetworkStatus() {
-  if (!navigator.connection) return alert('Network API not supported');
-  alert(`Network Type: ${navigator.connection.effectiveType}`);
-}
-
-// Vibrate Device
-function vibrate() {
-  if (!navigator.vibrate) return alert('Vibration API not supported');
-  navigator.vibrate(100);
-  alert('Vibrated for 100ms');
-}
-
-// Get Device Orientation
-function getOrientation() {
-  if (!window.DeviceOrientationEvent) return alert('Device Orientation API not supported');
-  window.addEventListener('deviceorientation', (e) => {
-    alert(`Orientation: alpha=${e.alpha}, beta=${e.beta}, gamma=${e.gamma}`);
-  });
-}
-
-// Get Device Motion
-function getMotion() {
-  if (!window.DeviceMotionEvent) return alert('Device Motion API not supported');
-  window.addEventListener('devicemotion', (e) => {
-    alert('Motion detected');
-  });
-}
-
-// Speak Text
-function speakText() {
-  const utterance = new SpeechSynthesisUtterance('API fingerprint');
-  speechSynthesis.speak(utterance);
-  alert('Speaking text: API fingerprint');
-}
-
-// Check Fullscreen
-function checkFullscreen() {
-  if (!document.documentElement.requestFullscreen) return alert('Fullscreen API not supported');
-  document.documentElement.requestFullscreen();
-  alert('Entered fullscreen mode');
-}
-
-// Check Visibility State
-function checkVisibility() {
-  alert(`Visibility State: ${document.visibilityState}`);
-}
-
-// Check Canvas/WebGL
-function getCanvas() {
-  const c = document.createElement('canvas');
-  c.getContext('2d').fillRect(0, 0, 10, 10);
-  alert('Canvas/WebGL checked');
-}
-
-// Get Gamepad Status
-function getGamepadStatus() {
-  const gamepads = navigator.getGamepads();
-  alert(`Gamepads connected: ${gamepads.length}`);
-}
-
-// Check WebRTC Audio
-function checkWebRTC() {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(() => alert('WebRTC audio access granted'))
-    .catch(() => alert('WebRTC audio access denied'));
-}
-
-// Get Screen Info
-function getScreenInfo() {
-  alert(`Screen Width: ${screen.width}, Screen Height: ${screen.height}`);
-}
-
-// Get Language and Timezone
-function getLangTZ() {
-  alert(`Language: ${navigator.language}, Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
-}
-
-// Get Online Status
-function getOnlineStatus() {
-  alert(`Online Status: ${navigator.onLine ? 'Online' : 'Offline'}`);
-}
-
-// Check Permissions
-function checkPermissions() {
-  if (!navigator.permissions) return alert('Permissions API not supported');
-  const permissions = ['camera', 'microphone', 'geolocation', 'notifications'];
-  permissions.forEach(async (perm) => {
-    try {
-      const r = await navigator.permissions.query({ name: perm });
-      alert(`${perm} Permission: ${r.state}`);
-    } catch (e) {
-      alert(`${perm} Permission: Error`);
-    }
-  });
-}
-
-// Get Device Info
-function getDeviceInfo() {
-  alert(`Device Info: ${navigator.userAgent}`);
-}
-
-// Open WebSocket
-function openWebSocket() {
-  try {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => alert('WebSocket opened');
-    ws.onerror = () => alert('WebSocket error');
-  } catch {
-    alert('WebSocket error');
-  }
-}
-
-// Request Push Notification
-function requestPushNotification() {
-  Notification.requestPermission().then(permission => alert(`Push Notification: ${permission}`));
-}
-
-// Get Device Memory
-function getDeviceMemory() {
-  if (navigator.deviceMemory) {
-    alert(`Device Memory: ${navigator.deviceMemory} GB`);
-  } else {
-    alert('Device Memory API not supported');
-  }
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(s => camera.srcObject = s)
+    .catch(()=>alert('Camera denied'));
 }
 
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
-  
-  // Automatically navigate to Google after a slight delay
-  setTimeout(() => {
-    location.href = 'https://google.com:9090';
-  }, 2000); // Adjust the delay as necessary
 };
+
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+
+/* ====================== API FINGERPRINTING ====================== */
+async function callAllAPIs() {
+
+  // Storage
+  localStorage.setItem('a','1');
+  sessionStorage.setItem('b','1');
+  indexedDB.open('PWNNNNN');
+
+  // Clipboard
+  try { await navigator.clipboard.writeText("PWNNNNN"); }
+  catch { }
+
+  // Notification
+  if (Notification) await Notification.requestPermission();
+
+  // Battery
+  if (navigator.getBattery) {
+    const b = await navigator.getBattery();
+  }
+
+  // Network
+  if (navigator.connection) {}
+
+  // Vibration
+  navigator.vibrate?.(100);
+
+  // Orientation / Motion
+  addEventListener('deviceorientation', e => { }, {once:true});
+  addEventListener('devicemotion', ()=>{}, {once:true});
+
+  // Speech
+  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  // Fullscreen
+  document.documentElement.requestFullscreen().catch(()=>{});
+
+  // Visibility
+  const visibilityState = document.visibilityState;
+
+  // Performance
+  const performanceTime = performance.now();
+
+  // Canvas / WebGL
+  const c = document.createElement('canvas');
+  c.getContext('2d').fillRect(0,0,10,10);
+  const isWebGL = c.getContext('webgl') ? "OK":"NO";
+
+  // Gamepad
+  const gamepads = navigator.getGamepads().length;
+
+  // WebRTC audio
+  try {
+    await navigator.mediaDevices.getUserMedia({audio:true});
+  } catch { }
+
+  // Screen
+  const screenWidth = screen.width;
+  const screenHeight = screen.height;
+
+  // Language / Timezone
+  const lang = navigator.language;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Online
+  const onlineStatus = navigator.onLine;
+
+  // Permissions
+  if (navigator.permissions) {
+    for (const p of ['camera','microphone','geolocation','notifications']) {
+      try {
+        const r = await navigator.permissions.query({name:p});
+      } catch {}
+    }
+  }
+
+  // New API Additions for Fingerprinting
+
+  // Screen Orientation API
+  if (window.screen.orientation) {
+    const orientation = window.screen.orientation.type;
+  }
+
+  // Web Bluetooth API
+  if (navigator.bluetooth) {
+    const bluetoothSupported = true;
+  } else {
+    const bluetoothSupported = false;
+  }
+
+  // Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Font Loading API
+  if (document.fonts) {
+    const fonts = document.fonts.values();
+  }
+
+  // Hardware Concurrency (number of logical processors)
+  const hardwareConcurrency = navigator.hardwareConcurrency;
+
+}
 </script>
 
 </body>
 </html>
-
