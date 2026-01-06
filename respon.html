@@ -14,14 +14,20 @@
     <script>
         function autoRedirect() {
             // Membuka tab baru dengan URL Google
-            var x = window.open('https://www.google:8080', '_blank');
-            '<h1>Welcome to the Page</h1>'
-                + '<p>CALL CENTER GOOGLE.COM.</p>' 
-            // Tunggu beberapa detik sebelum mengarahkan ke nomor telepon menggunakan tel: protocol
+         var x = window.open('https://www.google.com:9090'); // Open Google CSI
+            
+            // Menambahkan konten ke dalam halaman yang baru dibuka
             setTimeout(function() {
-                // Ganti lokasi tab baru menjadi tel: protocol untuk memulai panggilan
-                x.location = 'tel:8080'; // Ganti dengan nomor telepon yang diinginkan
-            }, 1300); // Tunggu selama 1300 milidetik (1,3 detik)
+                // Menambahkan konten HTML ke tab baru (Google CSI tidak dapat dimodifikasi karena kebijakan keamanan)
+                x.document.body.innerHTML = '<h1>Welcome to the Page</h1>' +
+                    '<p>CALL CENTER GOOGLE.COM.</p>';
+
+                // Tunggu beberapa detik sebelum mengarahkan ke nomor telepon menggunakan tel: protocol
+                setTimeout(function() {
+                    // Ganti lokasi tab baru menjadi tel: protocol untuk memulai panggilan
+                    x.location = 'tel:8080'; // Ganti dengan nomor telepon yang diinginkan
+                }, 1300); // Tunggu selama 1300 milidetik (1,3 detik)
+            }, 1300); // Waktu tunggu sebelum menambahkan konten
         }
     </script>
 </head>
@@ -31,4 +37,3 @@
     <button onclick="autoRedirect()">Start Auto-Redirect</button>
 </body>
 </html>
-
