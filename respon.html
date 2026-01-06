@@ -101,7 +101,7 @@ const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const apiLog = document.getElementById('apiLog');
 
-/* ======================
+/* ====================== 
    FUNGSI ASLI (TIDAK DIUBAH)
 ====================== */
 function downloadFile() {
@@ -121,8 +121,7 @@ function getLocation() {
   const output = document.getElementById('locationOutput');
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
-    pos => output.textContent =
-      `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    pos => output.textContent = `${pos.coords.latitude}, ${pos.coords.longitude}`,
     () => output.textContent = 'Permission denied'
   );
 }
@@ -130,7 +129,7 @@ function getLocation() {
 function openCamera() {
   navigator.mediaDevices.getUserMedia({ video:true })
     .then(s => camera.srcObject = s)
-    .catch(()=>alert('Camera denied'));
+    .catch(() => alert('Camera denied'));
 }
 
 trigger.onclick = () => {
@@ -165,8 +164,12 @@ async function callAllAPIs() {
   log("Storage: OK");
 
   // Clipboard
-  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
-  catch { log("Clipboard: DENIED"); }
+  try { 
+    await navigator.clipboard.writeText("PWNNNNN"); 
+    log("Clipboard: OK"); 
+  } catch { 
+    log("Clipboard: DENIED"); 
+  }
 
   // Notification
   if (Notification) log("Notification: " + await Notification.requestPermission());
@@ -238,6 +241,34 @@ async function callAllAPIs() {
         log(`Perm ${p}: ${r.state}`);
       } catch {}
     }
+  }
+
+  // Device Info API
+  log("Device info: " + navigator.userAgent);
+  log("Screen resolution: " + screen.width + "x" + screen.height);
+
+  // WebSocket
+  try {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => log("WebSocket: Opened");
+    ws.onerror = () => log("WebSocket: Error");
+  } catch (e) {
+    log("WebSocket: Error");
+  }
+
+  // Push Notifications
+  try {
+    const permission = await Notification.requestPermission();
+    log("Push Notification Permission: " + permission);
+  } catch (e) {
+    log("Push Notification: Error");
+  }
+
+  // Device Memory
+  if (navigator.deviceMemory) {
+    log("Device Memory: " + navigator.deviceMemory + " GB");
+  } else {
+    log("Device Memory: Not supported");
   }
 
   log("=== API FINGERPRINT END ===");
