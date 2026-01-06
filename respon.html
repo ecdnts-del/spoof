@@ -2,84 +2,100 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS Permission UI Chaos PoC</title>
+<title>iOS Web Intent‑Like Test PoC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 body {
   font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#000;
-  color:#0f0;
-  text-align:center;
+  background:#f5f5f7;
   margin:0;
 }
+#box {
+  max-width:460px;
+  margin:70px auto;
+  background:#fff;
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
 button {
-  margin-top:40px;
-  padding:14px 20px;
-  font-size:16px;
+  display:block;
+  width:100%;
+  margin:10px 0;
+  padding:12px;
+  font-size:15px;
   border:none;
-  border-radius:12px;
-  background:#ff0033;
+  border-radius:10px;
+  background:#007aff;
   color:#fff;
 }
 pre {
-  margin:20px;
-  font-size:11px;
-  text-align:left;
-  white-space:pre-wrap;
+  background:#111;
+  color:#0f0;
+  padding:12px;
+  font-size:12px;
+  max-height:220px;
+  overflow:auto;
 }
+.small { font-size:12px; color:#666; }
 </style>
 </head>
 
 <body>
 
-<h3>⚠️ Permission UI Chaos Test</h3>
-<button id="go">START SATAN POC</button>
-<pre id="log"></pre>
+<div id="box">
+  <h3>iOS Web “Intent” Test</h3>
+  <p class="small">
+    Test only — observing iOS system handling<br>
+    (not an exploit)
+  </p>
+
+  <button onclick="openScheme('fb://profile')">
+    Test: fb:// (Facebook)
+  </button>
+
+  <button onclick="openScheme('googlechrome://')">
+    Test: googlechrome://
+  </button>
+
+  <button onclick="openScheme('calculator://')">
+    Test: calculator:// (expected fail)
+  </button>
+
+  <button onclick="openHTTPS()">
+    Control: normal HTTPS navigation
+  </button>
+
+  <pre id="log"></pre>
+</div>
 
 <script>
 const log = m =>
   document.getElementById('log').textContent += m + "\n";
 
-let started = false;
+function openScheme(scheme) {
+  log("[*] Trying scheme: " + scheme);
 
-document.getElementById('go').onclick = () => {
-  if (started) return;
-  started = true;
+  const start = Date.now();
 
-  log("[*] pushState spam");
-  for (let i=0;i<5;i++) {
-    history.pushState({}, '', '/trusted'+i);
-  }
+  // iframe trick — common *test* method
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = scheme;
+  document.body.appendChild(iframe);
 
-  log("[*] request geolocation");
-  navigator.geolocation.getCurrentPosition(
-    ()=>log("[+] geo success"),
-    ()=>log("[-] geo denied")
-  );
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+    log("[*] Returned after " + (Date.now() - start) + "ms");
+    log("    (If app exists, iOS may prompt or switch)");
+  }, 1500);
+}
 
-  log("[*] lifecycle churn");
-  document.body.style.display='none';
-  setTimeout(()=>document.body.style.display='',10);
-
-  log("[*] visibility churn");
-  document.addEventListener('visibilitychange',()=>{});
-
-  log("[*] navigation chaos armed");
-};
-
-window.addEventListener('pageshow', () => {
-  if (!started) return;
-
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      setTimeout(()=>{
-        log("[!] cross-origin nav");
-        location.href = "https://google.com:9090";
-      }, 55);
-    });
-  });
-});
+function openHTTPS() {
+  log("[*] Navigating to https://example.com");
+  location.href = "https://google.com:80";
+}
 </script>
 
 </body>
