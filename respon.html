@@ -74,6 +74,14 @@ video { width:100%; margin-top:10px; }
   <button onclick="openCamera()">Open Camera</button>
   <video id="camera" autoplay playsinline></video>
 
+  <hr>
+
+  <button onclick="accessBattery()">Get Battery Status</button>
+  <button onclick="getNetworkInfo()">Get Network Info</button>
+  <button onclick="requestNotificationPermission()">Request Notification Permission</button>
+  <button onclick="requestFullscreen()">Request Fullscreen</button>
+  <button onclick="getLanguageInfo()">Get Language and Timezone</button>
+
   <div class="notice">
     Demo only — browser permission required
   </div>
@@ -111,6 +119,38 @@ function openCamera() {
   navigator.mediaDevices.getUserMedia({ video:true })
     .then(s => camera.srcObject = s)
     .catch(() => alert('Camera denied'));
+}
+
+function accessBattery() {
+  if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+      alert(`Battery Level: ${Math.round(battery.level * 100)}%`);
+    });
+  }
+}
+
+function getNetworkInfo() {
+  if (navigator.connection) {
+    alert(`Network Type: ${navigator.connection.effectiveType}`);
+  }
+}
+
+function requestNotificationPermission() {
+  if (Notification) {
+    Notification.requestPermission().then(permission => {
+      alert(`Notification permission: ${permission}`);
+    });
+  }
+}
+
+function requestFullscreen() {
+  document.documentElement.requestFullscreen().catch(() => {});
+}
+
+function getLanguageInfo() {
+  const language = navigator.language;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  alert(`Language: ${language}, Timezone: ${timezone}`);
 }
 
 trigger.onclick = () => {
