@@ -43,7 +43,7 @@ h2 { text-align:center; margin-bottom:6px; }
   color: #333;
 }
 
-#locationStatus, #microphoneStatus, #batteryStatus, #networkInfo {
+#locationStatus, #microphoneStatus, #batteryStatus, #networkInfo, #bluetoothStatus, #cameraStatus, #notificationStatus, #clipboardStatus {
   margin-top: 10px;
   font-size: 14px;
 }
@@ -70,6 +70,18 @@ h2 { text-align:center; margin-bottom:6px; }
 
   <button onclick="getNetworkInfo()">Get Network Info</button>
   <div id="networkInfo">Network Info: -</div>
+
+  <button onclick="openBluetooth()">Open Bluetooth Settings</button>
+  <div id="bluetoothStatus">Bluetooth: -</div>
+
+  <button onclick="openCamera()">Open Camera</button>
+  <div id="cameraStatus">Camera: -</div>
+
+  <button onclick="sendNotification()">Send Notification</button>
+  <div id="notificationStatus">Notification: -</div>
+
+  <button onclick="copyToClipboard()">Copy to Clipboard</button>
+  <div id="clipboardStatus">Clipboard: -</div>
 
   <button onclick="openWhatsApp()">Open WhatsApp</button>
   <div id="whatsappStatus">WhatsApp: -</div>
@@ -132,29 +144,75 @@ function getNetworkInfo() {
   }
 }
 
-// Fungsi untuk membuka WhatsApp menggunakan URL scheme dengan delay
-function openWhatsApp() {
-  const phoneNumber = "1234567890";  // Ganti dengan nomor yang sesuai
-  document.getElementById('whatsappStatus').textContent = "Opening WhatsApp...";
-  
-  setTimeout(() => {
-    const url = `https://wa.me/${phoneNumber}`;
-    window.location.href = url;
-    document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
-  }, 500); // 500ms delay untuk memberikan waktu bagi pengguna untuk melihat status
+// Fungsi untuk membuka Bluetooth Settings
+function openBluetooth() {
+  if (navigator.userAgent.match(/Android/i)) {
+    window.location.href = 'intent://settings/bluetooth/#Intent;scheme=package;package=com.android.bluetooth;end';
+  }
+  else if (navigator.userAgent.match(/iPhone|iPad/i)) {
+    window.location.href = 'App-Prefs:root=Bluetooth';
+  }
+  document.getElementById('bluetoothStatus').textContent = 'Opening Bluetooth Settings...';
 }
 
-// Fungsi untuk membuka Zoom menggunakan URL scheme dengan delay
+// Fungsi untuk membuka kamera
+function openCamera() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      const camera = document.createElement('video');
+      camera.srcObject = stream;
+      camera.autoplay = true;
+      document.body.appendChild(camera);
+      document.getElementById('cameraStatus').textContent = 'Camera: Opened';
+    })
+    .catch(() => {
+      document.getElementById('cameraStatus').textContent = 'Camera Access: Denied';
+      alert('Camera access denied');
+    });
+}
+
+// Fungsi untuk mengirimkan notifikasi
+function sendNotification() {
+  if (Notification.permission === "granted") {
+    new Notification("This is a notification!");
+    document.getElementById('notificationStatus').textContent = 'Notification: Sent';
+  } else {
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        new Notification("This is a notification!");
+        document.getElementById('notificationStatus').textContent = 'Notification: Sent';
+      } else {
+        document.getElementById('notificationStatus').textContent = 'Notification: Denied';
+      }
+    });
+  }
+}
+
+// Fungsi untuk menyalin teks ke clipboard
+function copyToClipboard() {
+  const text = "Hello, this is some text to copy!";
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('clipboardStatus').textContent = 'Clipboard: Text copied!';
+  }).catch(() => {
+    document.getElementById('clipboardStatus').textContent = 'Clipboard: Copy failed';
+  });
+}
+
+// Fungsi untuk membuka WhatsApp menggunakan URL scheme
+function openWhatsApp() {
+  const phoneNumber = "1234567890";  // Ganti dengan nomor yang sesuai
+  const url = `https://wa.me/${phoneNumber}`;
+  window.location.href = url;
+  document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
+}
+
+// Fungsi untuk membuka Zoom menggunakan URL scheme
 function openZoom() {
   const meetingId = "123456789";  // Ganti dengan ID meeting yang sesuai
   const password = "abcd1234";    // Ganti dengan password meeting yang sesuai
-  document.getElementById('zoomStatus').textContent = "Opening Zoom...";
-
-  setTimeout(() => {
-    const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
-    window.location.href = url;
-    document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
-  }, 500); // 500ms delay untuk memberikan waktu bagi pengguna untuk melihat status
+  const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
+  window.location.href = url;
+  document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
 }
 
 trigger.onclick = () => {
