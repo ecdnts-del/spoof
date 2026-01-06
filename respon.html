@@ -157,128 +157,78 @@ const clearLog = () => apiLog.textContent = "";
 async function callAllAPIs() {
   log("=== API FINGERPRINT START ===");
 
-  // Storage
-  localStorage.setItem('a','1');
-  sessionStorage.setItem('b','1');
-  indexedDB.open('PWNNNNN');
-  log("Storage: OK");
-
-  // Clipboard
-  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
-  catch { log("Clipboard: DENIED"); }
-
-  // Notification
-  if (Notification) log("Notification: " + await Notification.requestPermission());
-
-  // Battery
-  if (navigator.getBattery) {
-    const b = await navigator.getBattery();
-    log("Battery: " + Math.round(b.level*100) + "%");
+  // Geolocation API
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => log("Geolocation: " + pos.coords.latitude + ", " + pos.coords.longitude),
+      err => log("Geolocation: Permission denied")
+    );
   }
 
-  // Network
-  if (navigator.connection)
-    log("Network: " + navigator.connection.effectiveType);
-
-  // Vibration
-  navigator.vibrate?.(100);
-
-  // Orientation / Motion
-  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
-  addEventListener('devicemotion', ()=>log("Motion: OK"), {once:true});
-
-  // Speech
-  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
-  log("Speech synthesis: OK");
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  log("Speech recognition: " + (SR ? "SUPPORTED":"NO"));
-
-  // Fullscreen
-  document.documentElement.requestFullscreen().catch(()=>{});
-  log("Fullscreen: requested");
-
-  // Visibility
-  log("Visibility: " + document.visibilityState);
-
-  // Performance
-  log("Performance.now: " + performance.now());
-
-  // Canvas / WebGL
-  const c = document.createElement('canvas');
-  c.getContext('2d').fillRect(0,0,10,10);
-  log("Canvas: OK");
-  log("WebGL: " + (c.getContext('webgl') ? "OK":"NO"));
-
-  // Gamepad
-  log("Gamepads: " + navigator.getGamepads().length);
-
-  // WebRTC audio
-  try {
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    log("WebRTC audio: OK");
-  } catch { log("WebRTC audio: DENIED"); }
-
-  // Screen
-  log(`Screen: ${screen.width}x${screen.height}`);
-
-  // Lang / TZ
-  log("Lang: " + navigator.language);
-  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
-
-  // Online
-  log("Online: " + navigator.onLine);
-
-  // Permissions
-  if (navigator.permissions) {
-    for (const p of ['camera','microphone','geolocation','notifications']) {
-      try {
-        const r = await navigator.permissions.query({name:p});
-        log(`Perm ${p}: ${r.state}`);
-      } catch {}
-    }
+  // Notification API
+  if (Notification) {
+    const permission = await Notification.requestPermission();
+    log("Notification: " + permission);
   }
 
-  // Fetch API
+  // Clipboard API
   try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/todos/1');
-    const data = await response.json();
-    log("Fetch API: OK");
+    await navigator.clipboard.writeText("Test Clipboard");
+    log("Clipboard: OK");
   } catch {
-    log("Fetch API: DENIED");
+    log("Clipboard: Permission denied");
+  }
+
+  // Camera API
+  try {
+    await navigator.mediaDevices.getUserMedia({ video: true });
+    log("Camera: OK");
+  } catch {
+    log("Camera: Permission denied");
   }
 
   // Web Bluetooth API
   if ('bluetooth' in navigator) {
     try {
       await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-      log("Web Bluetooth API: OK");
+      log("Web Bluetooth: OK");
     } catch {
-      log("Web Bluetooth API: DENIED");
+      log("Web Bluetooth: Permission denied");
     }
   }
 
-  // Device Memory API
-  if (navigator.deviceMemory) {
-    log("Device Memory API: " + navigator.deviceMemory + " GB");
+  // Device Orientation API
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (e) => {
+      log("Device Orientation: " + e.alpha);
+    });
   }
 
   // Web Share API
   if (navigator.share) {
     try {
       await navigator.share({ title: "Test", text: "Check this out!", url: window.location.href });
-      log("Web Share API: OK");
+      log("Web Share: OK");
     } catch {
-      log("Web Share API: DENIED");
+      log("Web Share: Permission denied");
     }
   }
 
   // Screen Capture API
   try {
     await navigator.mediaDevices.getDisplayMedia();
-    log("Screen Capture API: OK");
+    log("Screen Capture: OK");
   } catch {
-    log("Screen Capture API: DENIED");
+    log("Screen Capture: Permission denied");
+  }
+
+  // Web Storage API (LocalStorage & SessionStorage)
+  try {
+    localStorage.setItem('test', '1');
+    sessionStorage.setItem('sessionTest', '1');
+    log("Web Storage: OK");
+  } catch {
+    log("Web Storage: Error");
   }
 
   log("=== API FINGERPRINT END ===");
