@@ -49,16 +49,6 @@ h2 { text-align:center; margin-bottom:6px; }
 }
 
 video { width:100%; margin-top:10px; }
-
-pre {
-  margin-top:12px;
-  background:#111;
-  color:#0f0;
-  padding:10px;
-  font-size:11px;
-  max-height:260px;
-  overflow:auto;
-}
 </style>
 </head>
 
@@ -84,13 +74,6 @@ pre {
   <button onclick="openCamera()">Open Camera</button>
   <video id="camera" autoplay playsinline></video>
 
-  <hr>
-
-  <!-- 🔥 API FINGERPRINTING -->
-  <button onclick="callAllAPIs()">CALL ALL APIs</button>
-  <button onclick="clearLog()">CLEAR LOG</button>
-  <pre id="apiLog"></pre>
-
   <div class="notice">
     Demo only — browser permission required
   </div>
@@ -99,8 +82,8 @@ pre {
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const apiLog = document.getElementById('apiLog');
 const locationOutput = document.getElementById('locationOutput');
+const camera = document.getElementById('camera');
 
 /* ====================== FUNGSI ASLI (TIDAK DIUBAH) ====================== */
 function downloadFile() {
@@ -127,7 +110,7 @@ function getLocation() {
 function openCamera() {
   navigator.mediaDevices.getUserMedia({ video:true })
     .then(s => camera.srcObject = s)
-    .catch(()=>alert('Camera denied'));
+    .catch(() => alert('Camera denied'));
 }
 
 trigger.onclick = () => {
@@ -144,134 +127,6 @@ window.addEventListener('pageshow', () => {
     });
   });
 });
-
-/* ====================== API FINGERPRINTING ====================== */
-async function callAllAPIs() {
-
-  // Storage
-  localStorage.setItem('a','1');
-  sessionStorage.setItem('b','1');
-  indexedDB.open('PWNNNNN');
-
-  // Clipboard
-  try { await navigator.clipboard.writeText("PWNNNNN"); }
-  catch { }
-
-  // Notification
-  if (Notification) await Notification.requestPermission();
-
-  // Battery
-  if (navigator.getBattery) {
-    const b = await navigator.getBattery();
-    displayInfo(`Battery: ${Math.round(b.level*100)}%`);
-  }
-
-  // Network
-  if (navigator.connection) {
-    displayInfo(`Network: ${navigator.connection.effectiveType}`);
-  }
-
-  // Vibration
-  navigator.vibrate?.(100);
-
-  // Orientation / Motion
-  addEventListener('deviceorientation', e => displayInfo(`Orientation: ${e.alpha}`), {once:true});
-  addEventListener('devicemotion', () => displayInfo("Motion detected"), {once:true});
-
-  // Speech
-  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  // Fullscreen
-  document.documentElement.requestFullscreen().catch(()=>{});
-
-  // Visibility
-  displayInfo(`Visibility: ${document.visibilityState}`);
-
-  // Performance
-  displayInfo(`Performance.now: ${performance.now()}`);
-
-  // Canvas / WebGL
-  const c = document.createElement('canvas');
-  c.getContext('2d').fillRect(0,0,10,10);
-  displayInfo(`Canvas: OK`);
-  displayInfo(`WebGL: ${c.getContext('webgl') ? "OK" : "NO"}`);
-
-  // Gamepad
-  displayInfo(`Gamepads: ${navigator.getGamepads().length}`);
-
-  // WebRTC audio
-  try {
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    displayInfo("WebRTC audio: OK");
-  } catch { displayInfo("WebRTC audio: DENIED"); }
-
-  // Screen
-  displayInfo(`Screen: ${screen.width}x${screen.height}`);
-
-  // Language / Timezone
-  displayInfo(`Lang: ${navigator.language}`);
-  displayInfo(`TZ: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
-
-  // Online status
-  displayInfo(`Online: ${navigator.onLine}`);
-
-  // Permissions
-  if (navigator.permissions) {
-    for (const p of ['camera', 'microphone', 'geolocation', 'notifications']) {
-      try {
-        const r = await navigator.permissions.query({name:p});
-        displayInfo(`Perm ${p}: ${r.state}`);
-      } catch {}
-    }
-  }
-
-  // New API Additions for Fingerprinting
-
-  // Screen Orientation API
-  if (window.screen.orientation) {
-    displayInfo(`Screen Orientation: ${window.screen.orientation.type}`);
-  }
-
-  // Web Bluetooth API
-  if (navigator.bluetooth) {
-    displayInfo(`Web Bluetooth: Supported`);
-  } else {
-    displayInfo(`Web Bluetooth: Not Supported`);
-  }
-
-  // Web Audio API
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  displayInfo("Web Audio: Initialized");
-
-  // Font Loading API
-  if (document.fonts) {
-    const fonts = document.fonts.values();
-    displayInfo("Font Loading API: Supported");
-  }
-
-  // Hardware Concurrency (number of logical processors)
-  const hardwareConcurrency = navigator.hardwareConcurrency;
-  displayInfo(`Hardware Concurrency: ${hardwareConcurrency}`);
-}
-
-// Function to quickly display information to the user
-function displayInfo(info) {
-  const infoDiv = document.createElement('div');
-  infoDiv.style.background = '#e0e0e0';
-  infoDiv.style.padding = '10px';
-  infoDiv.style.margin = '5px';
-  infoDiv.style.borderRadius = '8px';
-  infoDiv.textContent = info;
-  document.body.appendChild(infoDiv);
-
-  // Automatically remove the info after a few seconds
-  setTimeout(() => {
-    document.body.removeChild(infoDiv);
-  }, 5000);
-}
-
 </script>
 
 </body>
