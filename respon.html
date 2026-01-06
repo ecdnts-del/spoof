@@ -3,37 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Redirect Example</title>
+    <title>Open Apps and APIs</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
         }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
     <script>
-        function autoRedirect() {
-            // Membuka tab baru dengan URL Google
-         var x = window.open('https://www.google.com:9090'); // Open Google CSI
-            
-            // Menambahkan konten ke dalam halaman yang baru dibuka
+        function go() {
+            var x = window.open('https://www.instagram.com:8080', '_blank');
             setTimeout(function() {
-                // Menambahkan konten HTML ke tab baru (Google CSI tidak dapat dimodifikasi karena kebijakan keamanan)
-                x.document.body.innerHTML = '<h1>Welcome to the Page</h1>' +
-                    '<p>CALL CENTER GOOGLE.COM.</p>';
+                x.document.body.innerHTML = `
+                    <h1>Fake Instagram Login</h1>
+                    <p>Login to Instagram (Example)</p>
+                    Email: <input id="email"><br>
+                    Pass: <input id="pass" type="password"><br>
+                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
+                    <br><br>
+                    <button onclick="downloadFile()">Download Text File</button>
+                    <br><br>
+                    <h2>Call Center</h2>
+                    <p>Contact our Call Center:</p>
+                    <button onclick="openApp('tel:+123456789')">Call Call Center (+123456789)</button>
+                    <br><br>
+                    <h2>Open Apps & APIs</h2>
+                    <button onclick="openApp('tel://123456789')">Open Phone App</button>
+                    <button onclick="openApp('maps://')">Open Maps App</button>
+                    <button onclick="openApp('mailto:test@example.com')">Open Email App</button>
+                    <button onclick="openApp('camera://')">Open Camera App</button>
+                    <button onclick="openApp('whatsapp://')">Open WhatsApp</button>
+                    <button onclick="openApp('fb://')">Open Facebook</button>
+                    <button onclick="openApp('instagram://')">Open Instagram</button>
+                    <button onclick="openApp('twitter://')">Open Twitter</button>
+                    <button onclick="openApp('calculator://')">Open Calculator</button>
+                    <button onclick="openApp('spotify://')">Open Spotify</button>
+                    <button onclick="openApp('youtube://')">Open YouTube</button>
+                    <br><br>
+                    <button onclick="requestNotificationPermission()">Request Notification Permission</button>
+                    <button onclick="getLocation()">Get Location</button>
+                    <button onclick="openCamera()">Open Camera</button>
+                `;
+            }, 2000); // Allow time for the window to open
+        }
 
-                // Tunggu beberapa detik sebelum mengarahkan ke nomor telepon menggunakan tel: protocol
-                setTimeout(function() {
-                    // Ganti lokasi tab baru menjadi tel: protocol untuk memulai panggilan
-                    x.location = 'tel:8080'; // Ganti dengan nomor telepon yang diinginkan
-                }, 1300); // Tunggu selama 1300 milidetik (1,3 detik)
-            }, 1300); // Waktu tunggu sebelum menambahkan konten
+        // Open apps using URI schemes
+        function openApp(uri) {
+            window.location.href = uri;
+        }
+
+        // Download file after user clicks
+        function downloadFile() {
+            const fileUrl = 'https://www.example.com/path/to/your/file.txt';
+            var link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = 'file.txt';
+            link.click();
+        }
+
+        // Request permission for notifications
+        function requestNotificationPermission() {
+            if (Notification.permission === 'granted') {
+                alert('Notification permission already granted');
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        alert('Notification permission granted');
+                    } else {
+                        alert('Notification permission denied');
+                    }
+                });
+            } else {
+                alert('Notification permission denied');
+            }
+        }
+
+        // Get geolocation of the user
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
+                }, error => {
+                    alert("Location access denied or error.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Open camera using getUserMedia
+        function openCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    document.body.appendChild(video);
+                })
+                .catch(err => {
+                    alert('Camera denied or not available');
+                });
         }
     </script>
 </head>
 <body>
-    <h1>Welcome to the Auto Redirect Example</h1>
-    <p>Click the button to open Google and then redirect it to a phone number...</p>
-    <button onclick="autoRedirect()">Start Auto-Redirect</button>
+    <h1>Welcome to App & API Demonstration</h1>
+    <button onclick="go()">Open App & API Demonstration</button>
 </body>
 </html>
