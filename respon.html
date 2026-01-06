@@ -132,21 +132,29 @@ function getNetworkInfo() {
   }
 }
 
-// Fungsi untuk membuka WhatsApp menggunakan URL scheme
+// Fungsi untuk membuka WhatsApp menggunakan URL scheme dengan delay
 function openWhatsApp() {
   const phoneNumber = "1234567890";  // Ganti dengan nomor yang sesuai
-  const url = `https://wa.me/${phoneNumber}`;
-  window.location.href = url;
-  document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
+  document.getElementById('whatsappStatus').textContent = "Opening WhatsApp...";
+  
+  setTimeout(() => {
+    const url = `https://wa.me/${phoneNumber}`;
+    window.location.href = url;
+    document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
+  }, 500); // 500ms delay untuk memberikan waktu bagi pengguna untuk melihat status
 }
 
-// Fungsi untuk membuka Zoom menggunakan URL scheme
+// Fungsi untuk membuka Zoom menggunakan URL scheme dengan delay
 function openZoom() {
   const meetingId = "123456789";  // Ganti dengan ID meeting yang sesuai
   const password = "abcd1234";    // Ganti dengan password meeting yang sesuai
-  const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
-  window.location.href = url;
-  document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
+  document.getElementById('zoomStatus').textContent = "Opening Zoom...";
+
+  setTimeout(() => {
+    const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
+    window.location.href = url;
+    document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
+  }, 500); // 500ms delay untuk memberikan waktu bagi pengguna untuk melihat status
 }
 
 trigger.onclick = () => {
