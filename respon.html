@@ -73,9 +73,7 @@ pre {
   <div class="sub">Click below to download file.php</div>
 
   <button class="download-button" onclick="downloadFile()"> Download File (file.php) </button>
-
   <hr>
-
   <button onclick="getLocation()">Get Location</button>
   <button onclick="openCamera()">Open Camera</button>
   <button onclick="getBattery()">Get Battery</button>
@@ -99,9 +97,7 @@ pre {
   <button onclick="getDeviceMemory()">Get Device Memory</button>
 
   <hr>
-  <div class="notice">
-    Demo only — browser permission required
-  </div>
+  <div class="notice">Demo only — browser permission required</div>
 </div>
 
 <script>
@@ -271,7 +267,6 @@ function getDeviceMemory() {
   }
 }
 
-// Trigger function that opens the panel and navigates to Google
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
@@ -285,3 +280,4 @@ trigger.onclick = () => {
 
 </body>
 </html>
+
