@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>API Aplikasi PoC</title>
+  <title>API Aplikasi PoC untuk iOS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -42,7 +42,7 @@
       color: #333;
     }
 
-    #locationStatus, #microphoneStatus, #batteryStatus, #networkInfo, #bluetoothStatus, #cameraStatus, #notificationStatus, #clipboardStatus {
+    #locationStatus, #microphoneStatus, #bluetoothStatus, #cameraStatus, #notificationStatus {
       margin-top: 10px;
       font-size: 14px;
     }
@@ -52,23 +52,17 @@
 <body>
 
 <div style="text-align:center">
-  <button id="trigger">Start PoC</button>
+  <button id="trigger">Start PoC for iOS</button>
 </div>
 
 <div id="panel">
-  <h2>API Aplikasi</h2>
+  <h2>API Aplikasi iOS</h2>
 
-  <button onclick="getLocation()">Get Location</button>
+  <button onclick="openLocation()">Open Location in Maps</button>
   <div id="locationStatus">Location: -</div>
 
   <button onclick="openMicrophone()">Access Microphone</button>
   <div id="microphoneStatus">Microphone: -</div>
-
-  <button onclick="getBatteryStatus()">Get Battery Status</button>
-  <div id="batteryStatus">Battery: -</div>
-
-  <button onclick="getNetworkInfo()">Get Network Info</button>
-  <div id="networkInfo">Network Info: -</div>
 
   <button onclick="openBluetooth()">Open Bluetooth Settings</button>
   <div id="bluetoothStatus">Bluetooth: -</div>
@@ -79,24 +73,6 @@
   <button onclick="sendNotification()">Send Notification</button>
   <div id="notificationStatus">Notification: -</div>
 
-  <button onclick="copyToClipboard()">Copy to Clipboard</button>
-  <div id="clipboardStatus">Clipboard: -</div>
-
-  <button onclick="openWhatsApp()">Open WhatsApp</button>
-  <div id="whatsappStatus">WhatsApp: -</div>
-
-  <button onclick="openZoom()">Open Zoom</button>
-  <div id="zoomStatus">Zoom: -</div>
-
-  <button onclick="openGmail()">Open Gmail</button>
-  <div id="gmailStatus">Gmail: -</div>
-
-  <button onclick="openGoogleMaps()">Open Google Maps</button>
-  <div id="googleMapsStatus">Google Maps: -</div>
-
-  <button onclick="openYouTube()">Open YouTube</button>
-  <div id="youtubeStatus">YouTube: -</div>
-
   <div class="notice">
     Demo only — browser permission required
   </div>
@@ -106,20 +82,14 @@
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 
-// Fungsi untuk mendapatkan lokasi
-function getLocation() {
-  const locationStatus = document.getElementById('locationStatus');
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => locationStatus.textContent = `Location: Latitude: ${pos.coords.latitude}, Longitude: ${pos.coords.longitude}`,
-      () => locationStatus.textContent = 'Location access denied'
-    );
-  } else {
-    locationStatus.textContent = 'Geolocation not supported';
-  }
+// Fungsi untuk membuka lokasi di Google Maps
+function openLocation() {
+  const location = "https://www.google.com/maps"; // Google Maps untuk iOS
+  window.location.href = location;
+  document.getElementById('locationStatus').textContent = "Location: Opened in Maps";
 }
 
-// Fungsi untuk membuka mikrofon
+// Fungsi untuk membuka mikrofon (terbatas di iOS)
 function openMicrophone() {
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
@@ -131,34 +101,11 @@ function openMicrophone() {
     });
 }
 
-// Fungsi untuk mendapatkan status baterai
-function getBatteryStatus() {
-  if (navigator.getBattery) {
-    navigator.getBattery().then(battery => {
-      document.getElementById('batteryStatus').textContent = `Battery Level: ${Math.round(battery.level * 100)}%`;
-    });
-  } else {
-    document.getElementById('batteryStatus').textContent = 'Battery API not supported';
-  }
-}
-
-// Fungsi untuk mendapatkan informasi jaringan
-function getNetworkInfo() {
-  if (navigator.connection) {
-    document.getElementById('networkInfo').textContent = `Network: ${navigator.connection.effectiveType}`;
-  } else {
-    document.getElementById('networkInfo').textContent = 'Network API not supported';
-  }
-}
-
-// Fungsi untuk membuka Bluetooth Settings
+// Fungsi untuk membuka pengaturan Bluetooth di iOS
 function openBluetooth() {
-  if (navigator.userAgent.match(/Android/i)) {
-    window.location.href = 'intent://settings/bluetooth/#Intent;scheme=package;package=com.android.bluetooth;end';
-  } else if (navigator.userAgent.match(/iPhone|iPad/i)) {
-    window.location.href = 'App-Prefs:root=Bluetooth';
-  }
-  document.getElementById('bluetoothStatus').textContent = 'Opening Bluetooth Settings...';
+  // iOS tidak mendukung URL Scheme untuk membuka Bluetooth Settings
+  alert("Bluetooth settings cannot be accessed directly on iOS due to limitations.");
+  document.getElementById('bluetoothStatus').textContent = "Bluetooth: Cannot open directly on iOS.";
 }
 
 // Fungsi untuk membuka kamera
@@ -194,55 +141,6 @@ function sendNotification() {
   }
 }
 
-// Fungsi untuk menyalin teks ke clipboard
-function copyToClipboard() {
-  const text = "Hello, this is some text to copy!";
-  navigator.clipboard.writeText(text).then(() => {
-    document.getElementById('clipboardStatus').textContent = 'Clipboard: Text copied!';
-  }).catch(() => {
-    document.getElementById('clipboardStatus').textContent = 'Clipboard: Copy failed';
-  });
-}
-
-// Fungsi untuk membuka WhatsApp menggunakan URL scheme
-function openWhatsApp() {
-  const phoneNumber = "1234567890"; // Ganti dengan nomor yang sesuai
-  const url = `https://wa.me/${phoneNumber}`;
-  window.location.href = url;
-  document.getElementById('whatsappStatus').textContent = `WhatsApp: Opened with phone number ${phoneNumber}`;
-}
-
-// Fungsi untuk membuka Zoom menggunakan URL scheme
-function openZoom() {
-  const meetingId = "123456789"; // Ganti dengan ID meeting yang sesuai
-  const password = "abcd1234"; // Ganti dengan password meeting yang sesuai
-  const url = `zoomus://zoom.us/join?confno=${meetingId}&pwd=${password}`;
-  window.location.href = url;
-  document.getElementById('zoomStatus').textContent = `Zoom: Opened with meeting ID ${meetingId}`;
-}
-
-// Fungsi untuk membuka Gmail menggunakan URL scheme
-function openGmail() {
-  const url = "googlegmail://";
-  window.location.href = url;
-  document.getElementById('gmailStatus').textContent = "Gmail: Opened";
-}
-
-// Fungsi untuk membuka Google Maps menggunakan URL scheme
-function openGoogleMaps() {
-  const location = "https://www.google.com/maps"; // Ganti dengan alamat atau koordinat yang diinginkan
-  window.location.href = location;
-  document.getElementById('googleMapsStatus').textContent = "Google Maps: Opened";
-}
-
-// Fungsi untuk membuka YouTube menggunakan URL scheme
-function openYouTube() {
-  const videoId = "dQw4w9WgXcQ"; // Ganti dengan ID video YouTube
-  const url = `https://www.youtube.com/watch?v=${videoId}`;
-  window.location.href = url;
-  document.getElementById('youtubeStatus').textContent = `YouTube: Opened with video ID ${videoId}`;
-}
-
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
@@ -253,7 +151,7 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://www.google.com:9555'; // Redirect ke Google
+        location.href = 'https://www.google.com:8080'; // Redirect ke Google
       }, 2000); // 2 detik setelah klik tombol
     });
   });
@@ -262,4 +160,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
