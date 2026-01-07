@@ -1,54 +1,65 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Origin Desync Login PoC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,system-ui;
-      background:#f5f5f7;
-    }
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
 
-    button {
-      margin:6px;
-      font-size:14px;
-      padding:8px 12px;
-    }
+button {
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
+}
 
-    #panel {
-      display:none;
-      max-width:520px;
-      margin:60px auto;
-      background:#fff;
-      padding:24px;
-      border-radius:16px;
-      box-shadow:0 20px 60px rgba(0,0,0,.2);
-    }
+#panel {
+  display:none;
+  max-width:520px;
+  margin:60px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
 
-    h2 { text-align:center; margin-bottom:6px; }
-    .sub { text-align:center; color:#666; margin-bottom:20px; }
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
 
-    .notice {
-      margin-top:14px;
-      font-size:13px;
-      color:#b00020;
-    }
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
 
-    video { width:100%; margin-top:10px; }
+.download-button {
+  margin-top:20px;
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
 
-    pre {
-      margin-top:12px;
-      background:#111;
-      color:#0f0;
-      padding:10px;
-      font-size:11px;
-      max-height:260px;
-      overflow:auto;
-    }
-  </style>
+video { width:100%; margin-top:10px; }
+
+pre {
+  margin-top:12px;
+  background:#111;
+  color:#0f0;
+  padding:10px;
+  font-size:11px;
+  max-height:260px;
+  overflow:auto;
+}
+</style>
 </head>
 
 <body>
@@ -58,8 +69,12 @@
 </div>
 
 <div id="panel">
-  <h2>Demo</h2>
-  <div class="sub">This is a proof of concept for origin desynchronization.</div>
+  <h2>Download File</h2>
+  <div class="sub">Click below to download file.php</div>
+
+  <button class="download-button" onclick="downloadFile()">
+    Download File (file.php)
+  </button>
 
   <hr>
 
@@ -71,8 +86,10 @@
 
   <hr>
 
+  <!-- 🔥 API FINGERPRINTING -->
   <button onclick="callAllAPIs()">CALL ALL APIs</button>
   <button onclick="clearLog()">CLEAR LOG</button>
+  <button onclick="requestFullscreen()">Go Fullscreen</button>
   <pre id="apiLog"></pre>
 
   <div class="notice">
@@ -85,19 +102,28 @@ const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const apiLog = document.getElementById('apiLog');
 
-function log(message) {
-  apiLog.textContent += message + "\n";
+/* ======================
+   FUNGSI ASLI (TIDAK DIUBAH)
+====================== */
+function downloadFile() {
+  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
+  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
+  const fileUrl = URL.createObjectURL(fileBlob);
+
+  const downloadLink = document.createElement('a');
+  downloadLink.href = fileUrl;
+  downloadLink.download = 'file.php';
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
 
-// Function to clear the log
-const clearLog = () => apiLog.textContent = "";
-
-// Original PoC functions
 function getLocation() {
   const output = document.getElementById('locationOutput');
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
-    pos => output.textContent = `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    pos => output.textContent =
+      `${pos.coords.latitude}, ${pos.coords.longitude}`,
     () => output.textContent = 'Permission denied'
   );
 }
@@ -123,56 +149,79 @@ window.addEventListener('pageshow', () => {
   });
 });
 
-// New API Fingerprinting Function
+/* ======================
+   FULLSCREEN API FUNCTIONALITY
+====================== */
+function requestFullscreen() {
+  const doc = document.documentElement; // Get the document root element
+
+  if (doc.requestFullscreen) {
+    doc.requestFullscreen(); // Standard Fullscreen API
+  } else if (doc.mozRequestFullScreen) { // Firefox
+    doc.mozRequestFullScreen();
+  } else if (doc.webkitRequestFullscreen) { // Safari/Chrome
+    doc.webkitRequestFullscreen();
+  } else if (doc.msRequestFullscreen) { // Internet Explorer/Edge
+    doc.msRequestFullscreen();
+  } else {
+    alert("Fullscreen API is not supported by your browser.");
+  }
+}
+
+/* ======================
+   API FINGERPRINTING
+====================== */
+const log = m => apiLog.textContent += m + "\n";
+const clearLog = () => apiLog.textContent = "";
+
 async function callAllAPIs() {
   log("=== API FINGERPRINT START ===");
 
-  // Storage API
-  localStorage.setItem('a', '1');
-  sessionStorage.setItem('b', '1');
+  // Storage
+  localStorage.setItem('a','1');
+  sessionStorage.setItem('b','1');
   indexedDB.open('PWNNNNN');
   log("Storage: OK");
 
-  // Clipboard API
+  // Clipboard
   try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
   catch { log("Clipboard: DENIED"); }
 
-  // Notification API
+  // Notification
   if (Notification) log("Notification: " + await Notification.requestPermission());
 
-  // Battery API
+  // Battery
   if (navigator.getBattery) {
     const b = await navigator.getBattery();
-    log("Battery: " + Math.round(b.level * 100) + "%");
+    log("Battery: " + Math.round(b.level*100) + "%");
   }
 
-  // Network Information API
+  // Network
   if (navigator.connection)
     log("Network: " + navigator.connection.effectiveType);
 
-  // Vibration API
+  // Vibration
   navigator.vibrate?.(100);
 
-  // Device Orientation / Motion API
-  addEventListener('deviceorientation', e => log("Orientation: " + e.alpha), { once: true });
-  addEventListener('devicemotion', () => log("Motion: OK"), { once: true });
+  // Orientation / Motion
+  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
+  addEventListener('devicemotion', () => log("Motion: OK"), {once:true});
 
-  // Speech Synthesis API
+  // Speech
   speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
   log("Speech synthesis: OK");
 
-  // Speech Recognition API
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   log("Speech recognition: " + (SR ? "SUPPORTED" : "NO"));
 
-  // Fullscreen API
-  document.documentElement.requestFullscreen().catch(() => {});
+  // Fullscreen
+  requestFullscreen();
   log("Fullscreen: requested");
 
-  // Visibility API
+  // Visibility
   log("Visibility: " + document.visibilityState);
 
-  // Performance API
+  // Performance
   log("Performance.now: " + performance.now());
 
   // Canvas / WebGL
@@ -181,66 +230,33 @@ async function callAllAPIs() {
   log("Canvas: OK");
   log("WebGL: " + (c.getContext('webgl') ? "OK" : "NO"));
 
-  // Gamepad API
+  // Gamepad
   log("Gamepads: " + navigator.getGamepads().length);
 
-  // WebRTC Audio API
+  // WebRTC audio
   try {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
+    await navigator.mediaDevices.getUserMedia({audio:true});
     log("WebRTC audio: OK");
   } catch { log("WebRTC audio: DENIED"); }
 
-  // Screen API
+  // Screen
   log(`Screen: ${screen.width}x${screen.height}`);
 
-  // Language / Timezone API
+  // Lang / TZ
   log("Lang: " + navigator.language);
   log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-  // Online Status API
+  // Online
   log("Online: " + navigator.onLine);
 
-  // Permissions API
+  // Permissions
   if (navigator.permissions) {
     for (const p of ['camera', 'microphone', 'geolocation', 'notifications']) {
       try {
         const r = await navigator.permissions.query({ name: p });
         log(`Perm ${p}: ${r.state}`);
-      } catch (err) {
-        log(`Permission ${p}: Error`);
-      }
+      } catch {}
     }
-  }
-
-  // Device Memory API (Experimental)
-  if (navigator.deviceMemory) {
-    log("Device Memory: " + navigator.deviceMemory + " GB");
-  }
-
-  // Web Bluetooth API (Experimental)
-  if (navigator.bluetooth) {
-    log("Web Bluetooth: Supported");
-  }
-
-  // Web Share API (Experimental)
-  if (navigator.canShare) {
-    log("Web Share: Supported");
-  }
-
-  // Media Session API (Experimental)
-  if ('mediaSession' in navigator) {
-    log("Media Session: Supported");
-  }
-
-  // File System API (Experimental)
-  if ('showOpenFilePicker' in window) {
-    log("File System Access: Supported");
-  }
-
-  // Notifications Permissions API
-  if ('Notification' in window) {
-    const permission = await Notification.requestPermission();
-    log("Notification Permission: " + permission);
   }
 
   log("=== API FINGERPRINT END ===");
