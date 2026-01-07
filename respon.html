@@ -69,14 +69,8 @@ pre {
 </div>
 
 <div id="panel">
-  <h2>Download File</h2>
-  <div class="sub">Click below to download file.php</div>
-
-  <button class="download-button" onclick="downloadFile()">
-    Download File (file.php)
-  </button>
-
-  <hr>
+  <h2>Permissions and Device Info</h2>
+  <div class="sub">Click below to interact with various browser APIs</div>
 
   <button onclick="getLocation()">Get Location</button>
   <p id="locationOutput">Location: -</p>
@@ -86,10 +80,23 @@ pre {
 
   <hr>
 
-  <!-- 🔥 API FINGERPRINTING -->
+  <!-- Added more APIs for demonstration -->
+  <button onclick="checkBatteryStatus()">Check Battery Status</button>
+  <p id="batteryStatus">Battery: -</p>
+
+  <button onclick="checkNetworkInfo()">Check Network Info</button>
+  <p id="networkInfo">Network: -</p>
+
+  <button onclick="checkDeviceMemory()">Device Memory</button>
+  <p id="deviceMemory">Memory: -</p>
+
+  <button onclick="checkScreenResolution()">Screen Resolution</button>
+  <p id="screenResolution">Resolution: -</p>
+
+  <hr>
+
   <button onclick="callAllAPIs()">CALL ALL APIs</button>
   <button onclick="clearLog()">CLEAR LOG</button>
-  <button onclick="requestFullscreen()">Go Fullscreen</button>
   <pre id="apiLog"></pre>
 
   <div class="notice">
@@ -102,22 +109,9 @@ const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const apiLog = document.getElementById('apiLog');
 
-/* ======================
+/* ====================== 
    FUNGSI ASLI (TIDAK DIUBAH)
 ====================== */
-function downloadFile() {
-  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
-  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
-  const fileUrl = URL.createObjectURL(fileBlob);
-
-  const downloadLink = document.createElement('a');
-  downloadLink.href = fileUrl;
-  downloadLink.download = 'file.php';
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
 function getLocation() {
   const output = document.getElementById('locationOutput');
   if (!navigator.geolocation) return;
@@ -131,7 +125,44 @@ function getLocation() {
 function openCamera() {
   navigator.mediaDevices.getUserMedia({ video:true })
     .then(s => camera.srcObject = s)
-    .catch(() => alert('Camera denied'));
+    .catch(()=>alert('Camera denied'));
+}
+
+/* ====================== 
+   API EXTENSIONS (ADDITIONAL)
+====================== */
+
+async function checkBatteryStatus() {
+  const output = document.getElementById('batteryStatus');
+  if (navigator.getBattery) {
+    const battery = await navigator.getBattery();
+    output.textContent = `Level: ${Math.round(battery.level * 100)}%, Charging: ${battery.charging ? 'Yes' : 'No'}`;
+  } else {
+    output.textContent = 'Battery API not supported';
+  }
+}
+
+async function checkNetworkInfo() {
+  const output = document.getElementById('networkInfo');
+  if (navigator.connection) {
+    output.textContent = `Effective type: ${navigator.connection.effectiveType}, Downlink: ${navigator.connection.downlink}Mb/s`;
+  } else {
+    output.textContent = 'Network Information API not supported';
+  }
+}
+
+async function checkDeviceMemory() {
+  const output = document.getElementById('deviceMemory');
+  if ('deviceMemory' in navigator) {
+    output.textContent = `${navigator.deviceMemory} GB`;
+  } else {
+    output.textContent = 'Device Memory API not supported';
+  }
+}
+
+function checkScreenResolution() {
+  const output = document.getElementById('screenResolution');
+  output.textContent = `${screen.width}x${screen.height}`;
 }
 
 trigger.onclick = () => {
@@ -149,119 +180,20 @@ window.addEventListener('pageshow', () => {
   });
 });
 
-/* ======================
-   FULLSCREEN API FUNCTIONALITY
-====================== */
-function requestFullscreen() {
-  const doc = document.documentElement; // Get the document root element
-
-  if (doc.requestFullscreen) {
-    doc.requestFullscreen(); // Standard Fullscreen API
-  } else if (doc.mozRequestFullScreen) { // Firefox
-    doc.mozRequestFullScreen();
-  } else if (doc.webkitRequestFullscreen) { // Safari/Chrome
-    doc.webkitRequestFullscreen();
-  } else if (doc.msRequestFullscreen) { // Internet Explorer/Edge
-    doc.msRequestFullscreen();
-  } else {
-    alert("Fullscreen API is not supported by your browser.");
-  }
-}
-
-/* ======================
-   API FINGERPRINTING
+/* ====================== 
+   CALL ALL APIS
 ====================== */
 const log = m => apiLog.textContent += m + "\n";
 const clearLog = () => apiLog.textContent = "";
 
 async function callAllAPIs() {
-  log("=== API FINGERPRINT START ===");
-
-  // Storage
-  localStorage.setItem('a','1');
-  sessionStorage.setItem('b','1');
-  indexedDB.open('PWNNNNN');
-  log("Storage: OK");
-
-  // Clipboard
-  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
-  catch { log("Clipboard: DENIED"); }
-
-  // Notification
-  if (Notification) log("Notification: " + await Notification.requestPermission());
+  log("=== API DETAILS ===");
 
   // Battery
-  if (navigator.getBattery) {
-    const b = await navigator.getBattery();
-    log("Battery: " + Math.round(b.level*100) + "%");
-  }
+  await checkBatteryStatus();
 
-  // Network
-  if (navigator.connection)
-    log("Network: " + navigator.connection.effectiveType);
+  // Network Info
+  await checkNetworkInfo();
 
-  // Vibration
-  navigator.vibrate?.(100);
-
-  // Orientation / Motion
-  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
-  addEventListener('devicemotion', () => log("Motion: OK"), {once:true});
-
-  // Speech
-  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
-  log("Speech synthesis: OK");
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  log("Speech recognition: " + (SR ? "SUPPORTED" : "NO"));
-
-  // Fullscreen
-  requestFullscreen();
-  log("Fullscreen: requested");
-
-  // Visibility
-  log("Visibility: " + document.visibilityState);
-
-  // Performance
-  log("Performance.now: " + performance.now());
-
-  // Canvas / WebGL
-  const c = document.createElement('canvas');
-  c.getContext('2d').fillRect(0, 0, 10, 10);
-  log("Canvas: OK");
-  log("WebGL: " + (c.getContext('webgl') ? "OK" : "NO"));
-
-  // Gamepad
-  log("Gamepads: " + navigator.getGamepads().length);
-
-  // WebRTC audio
-  try {
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    log("WebRTC audio: OK");
-  } catch { log("WebRTC audio: DENIED"); }
-
-  // Screen
-  log(`Screen: ${screen.width}x${screen.height}`);
-
-  // Lang / TZ
-  log("Lang: " + navigator.language);
-  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
-
-  // Online
-  log("Online: " + navigator.onLine);
-
-  // Permissions
-  if (navigator.permissions) {
-    for (const p of ['camera', 'microphone', 'geolocation', 'notifications']) {
-      try {
-        const r = await navigator.permissions.query({ name: p });
-        log(`Perm ${p}: ${r.state}`);
-      } catch {}
-    }
-  }
-
-  log("=== API FINGERPRINT END ===");
-}
-</script>
-
-</body>
-</html>
+  // Device Memory
+  await checkDeviceMemory();
