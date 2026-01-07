@@ -197,3 +197,16 @@ async function callAllAPIs() {
 
   // Device Memory
   await checkDeviceMemory();
+
+  // Screen resolution
+  await checkScreenResolution();
+
+  // Geolocation (requesting location as well)
+  await getLocation();
+
+  log("=== END OF API DETAILS ===");
+}
+</script>
+
+</body>
+</html>
