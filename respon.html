@@ -37,17 +37,6 @@ h2 { text-align:center; margin-bottom:6px; }
   color:#b00020;
 }
 
-.download-button {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
-}
-
 video { width:100%; margin-top:10px; }
 
 pre {
@@ -80,7 +69,6 @@ pre {
 
   <hr>
 
-  <!-- Added more APIs for demonstration -->
   <button onclick="checkBatteryStatus()">Check Battery Status</button>
   <p id="batteryStatus">Battery: -</p>
 
@@ -109,7 +97,7 @@ const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const apiLog = document.getElementById('apiLog');
 
-/* ====================== 
+/* ======================
    FUNGSI ASLI (TIDAK DIUBAH)
 ====================== */
 function getLocation() {
@@ -203,6 +191,92 @@ async function callAllAPIs() {
 
   // Geolocation (requesting location as well)
   await getLocation();
+
+  // Permissions
+  if (navigator.permissions) {
+    for (const p of ['geolocation','camera','microphone','notifications']) {
+      try {
+        const r = await navigator.permissions.query({name:p});
+        log(`Perm ${p}: ${r.state}`);
+      } catch {}
+    }
+  }
+
+  // Camera / Mic Permissions
+  try {
+    await navigator.mediaDevices.getUserMedia({video:true});
+    log("Camera: allowed");
+  } catch { log("Camera: denied"); }
+
+  try {
+    await navigator.mediaDevices.getUserMedia({audio:true});
+    log("Microphone: allowed");
+  } catch { log("Microphone: denied"); }
+
+  // Storage
+  try {
+    localStorage.setItem("test", "1");
+    sessionStorage.setItem("test", "2");
+    log("Storage: OK");
+  } catch { log("Storage: blocked"); }
+
+  // IndexedDB
+  try {
+    indexedDB.open("demo-db");
+    log("IndexedDB: OK");
+  } catch { log("IndexedDB: blocked"); }
+
+  // Wake Lock
+  if ('wakeLock' in navigator) {
+    try {
+      await navigator.wakeLock.request('screen');
+      log("WakeLock: acquired");
+    } catch { log("WakeLock: denied"); }
+  }
+
+  // Fullscreen
+  document.documentElement.requestFullscreen().then(
+    ()=>log("Fullscreen: entered"),
+    ()=>log("Fullscreen: denied")
+  );
+
+  // Vibration
+  navigator.vibrate?.(200);
+  log("Vibration: triggered");
+
+  // Visibility
+  log("Visibility state: " + document.visibilityState);
+
+  // Online
+  log("Online: " + navigator.onLine);
+
+  // Language
+  log("Language: " + navigator.language);
+
+  // Timezone
+  log("Timezone: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  // Performance
+  log("Performance.now: " + performance.now());
+
+  // Gamepad
+  log("Gamepads connected: " + navigator.getGamepads().length);
+
+  // Pointer / Touch
+  addEventListener('pointerdown', ()=>log("Pointer event"), {once:true});
+  addEventListener('touchstart', ()=>log("Touch event"), {once:true});
+
+  // Speech Synthesis
+  speechSynthesis.speak(new SpeechSynthesisUtterance("API demo"));
+  log("SpeechSynthesis: spoken");
+
+  // Speech Recognition
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  log("SpeechRecognition: " + (SR ? "supported":"no"));
+
+  // Device Motion / Orientation
+  addEventListener('deviceorientation', ()=>log("Orientation event fired"), {once:true});
+  addEventListener('devicemotion', ()=>log("Motion event fired"), {once:true});
 
   log("=== END OF API DETAILS ===");
 }
