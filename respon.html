@@ -13,7 +13,6 @@ document.getElementById('b').onclick = async () => {
 
   armed = true;
 
-  // 1️⃣ Trusted system UI
   await navigator.share({
     title: 'Test',
     text: 'Chaining test',
@@ -21,19 +20,17 @@ document.getElementById('b').onclick = async () => {
   });
 };
 
-// 🔥 Fires when Share Sheet is dismissed on iOS
+// 🔥 Trigger setelah Share Sheet ditutup
 document.addEventListener('visibilitychange', () => {
   if (!armed || document.visibilityState !== 'visible') return;
   armed = false;
 
-  // 2️⃣ Cross-origin navigation
+  // 1️⃣ navigate first
   location.href = 'https://google.com';
 
-  // 3️⃣ External mail app prompt AFTER navigation
+  // 2️⃣ external protocol AFTER navigation commit
   setTimeout(() => {
-    location.href = 'mailto:test@example.com?subject=Hello&body=Test';
+    location.href = 'tel:1234';
   }, 1200);
 });
 </script>
-
-
