@@ -1,80 +1,33 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body {
-    margin:0;
-    height:100vh;
-    background:#111;
-    color:#fff;
-    overflow:hidden;
-    user-select:none;
-    font-family:sans-serif;
-  }
-
-  #redBox {
-    position:absolute;
-    top:12px;
-    right:20px;
-    width:36px;
-    height:36px;
-    background:red;
-    border-radius:6px;
-  }
-
-  #counter {
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:26px;
-    text-align:center;
-  }
-</style>
-</head>
-
-<body>
-
-<div id="redBox"></div>
-<div id="counter">Tap the red box 3×</div>
-
 <script>
 let clicks = 0;
-const box = document.getElementById("redBox");
-const counter = document.getElementById("counter");
 
 box.onclick = () => {
   clicks++;
-  counter.textContent = "x" + clicks;
 
-  // 1️⃣ Visual trust manipulation
+  // 1️⃣ fake trust
   if (clicks === 1) {
     history.pushState({}, "", "/trusted");
-    counter.textContent = "Nice! Keep tapping…";
   }
 
-  // 2️⃣ External App Invocation (iOS style)
+  // 2️⃣ open App Store
   if (clicks === 2) {
-    counter.textContent = "Opening reward app…";
-
-    setTimeout(() => {
-      // 🔥 CALL APP (if installed)
-      location.href = "twitter://user?screen_name=apple";
-
-      // fallback (optional)
-      setTimeout(() => {
-        location.href = "https://apps.apple.com/";
-      }, 800);
-    }, 80);
+    location.href = "https://apps.apple.com/";
   }
 
-  // 3️⃣ Context confusion after return
+  // 3️⃣ try auto-download (SHOULD FAIL)
   if (clicks === 3) {
-    counter.textContent = "Back from app 🎁";
+    const blob = new Blob(["TEST"], { type:"text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "should-not-download.txt";
+
+    try {
+      a.click();
+      alert("❌ BUG: Auto-download succeeded");
+    } catch {
+      alert("✅ OK: Download blocked");
+    }
   }
 };
 </script>
-
-</body>
-</html>
