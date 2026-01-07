@@ -1,33 +1,51 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#111;color:#0f0;font-family:sans-serif">
+
+<button id="box" style="font-size:24px">Tap</button>
+<pre id="log"></pre>
+
 <script>
+const box = document.getElementById("box");
+const log = m => logEl.textContent += m + "\n";
+const logEl = document.getElementById("log");
+
 let clicks = 0;
 
 box.onclick = () => {
   clicks++;
+  log("Click: " + clicks);
 
   // 1️⃣ fake trust
   if (clicks === 1) {
     history.pushState({}, "", "/trusted");
+    log("pushState done");
   }
 
-  // 2️⃣ open App Store
+  // 2️⃣ attempt auto-download (MUST FAIL)
   if (clicks === 2) {
-    location.href = "https://apps.apple.com/";
+    try {
+      const blob = new Blob(["TEST"], { type:"text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "test.txt";
+      a.click();
+      log("❌ BUG: download triggered");
+    } catch {
+      log("✅ OK: download blocked");
+    }
   }
 
-  // 3️⃣ try auto-download (SHOULD FAIL)
+  // 3️⃣ redirect to App Store
   if (clicks === 3) {
-    const blob = new Blob(["TEST"], { type:"text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "should-not-download.txt";
-
-    try {
-      a.click();
-      alert("❌ BUG: Auto-download succeeded");
-    } catch {
-      alert("✅ OK: Download blocked");
-    }
+    log("Redirecting to App Store…");
+    setTimeout(() => {
+      location.href = "https://apps.apple.com/";
+    }, 300);
   }
 };
 </script>
+
+</body>
+</html>
