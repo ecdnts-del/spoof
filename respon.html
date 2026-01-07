@@ -1,37 +1,9 @@
-<!doctype html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffffff">
 
-<button id="b" style="font-size:20px;padding:14px 24px">
-  Share
-</button>
+<input id="i" autofocus placeholder="Tap to continue">
 
 <script>
-let armed = false;
-
-document.getElementById('b').onclick = async () => {
-  if (!navigator.share) return;
-
-  armed = true;
-
-  // 1️⃣ Trusted UI
-  await navigator.share({
-    title: 'Test',
-    text: 'Chaining test',
-    url: 'https://example.com'
-  });
-};
-
-// 🔥 Share sheet CLOSED here (iOS reliable)
-document.addEventListener('visibilitychange', () => {
-  if (!armed || document.visibilityState !== 'visible') return;
-  armed = false;
-
-  // 2️⃣ Cross-origin navigation
-  location.href = 'https://google.com';
-
-  // 3️⃣ External protocol AFTER navigation commit
-  setTimeout(() => {
-    location.href = 'tel:1234';
-  }, 1500); // ⬅️ iOS needs ~1.2–1.5s
-});
+setTimeout(() => {
+  history.back(); // or location.replace(...)
+}, 600);
 </script>
