@@ -3,70 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Autofill Confusion Example (iOS)</title>
+    <title>Tap Jacking Autofill Password</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        /* Style for transparent element placed over the login button */
+        #hiddenButton {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(255, 0, 0, 0.0); /* Transparent */
+            z-index: 9999; /* Make sure it's above everything else */
+        }
+
+        #loginForm {
+            margin-top: 100px;
+            text-align: center;
+        }
+
+        input {
+            margin: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Password Autofill Issue Simulation</h1>
-<p>Click "Start" to simulate password autofill persistence across pages.</p>
+<!-- Hidden button for tap jacking -->
+<div id="hiddenButton"></div>
 
-<button id="start">START</button>
-
-<!-- Form to simulate login and autofill behavior -->
-<div id="loginForm" style="display:block;">
+<!-- Login form simulated here for password autofill -->
+<div id="loginForm">
     <h2>Login Form</h2>
-    <form id="form" action="#" method="POST">
+    <form action="#" method="POST">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required><br><br>
+        <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required><br><br>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required><br><br>
+        <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required><br><br>
 
         <button type="submit">Login</button>
     </form>
 </div>
 
-<!-- Simulate a new page where autofill should not happen -->
-<div id="newPage" style="display:none;">
-    <h2>New Page (No Login Form)</h2>
-    <p>This is a new page that shouldn't have any saved credentials autofilled.</p>
-    <button id="goBack">Go Back to Login Page</button>
-</div>
-
 <script>
-// Log utility for debugging
-const log = (...args) => console.log("[PoC]", ...args);
+    const log = (...args) => console.log("[PoC]", ...args);
 
-// Simulate a start button click
-document.getElementById("start").onclick = () => {
-    log("Simulating autofill issue");
+    // Mimicking autofill behavior
+    document.getElementById('username').value = 'user123';
+    document.getElementById('password').value = 'password123';
 
-    // Simulate filling the form with username and password
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
+    // Alert when tap is detected
+    document.getElementById('hiddenButton').addEventListener('click', () => {
+        log('Tap detected! Autofill triggered!');
+    });
 
-    usernameInput.value = "user123";  // Autofill simulation
-    passwordInput.value = "password123";  // Autofill simulation
-
-    log("Username and password autofilled");
-
-    // Simulate navigation after filling the form (no submission)
+    // On page load, simulate interaction with invisible button
     setTimeout(() => {
-        // Simulate navigating to a new page (e.g., google.com)
-        log("Navigating to a new page (new page should not have autofill)");
-
-        document.getElementById("loginForm").style.display = "none"; // Hide the login form
-        document.getElementById("newPage").style.display = "block"; // Show new page content
-    }, 2000); // After 2 seconds, navigate to new page
-};
-
-// Handle Go Back action
-document.getElementById("goBack").onclick = () => {
-    log("Navigating back to login page");
-
-    document.getElementById("newPage").style.display = "none"; // Hide new page
-    document.getElementById("loginForm").style.display = "block"; // Show login form again
-};
+        log('Simulating user tap on invisible button...');
+        document.getElementById('hiddenButton').click(); // Simulate a click on the hidden button
+    }, 2000); // Delay before simulating tap
 
 </script>
 
