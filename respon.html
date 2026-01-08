@@ -1,58 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Navigation with Redirect</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-    #qrcode {
-      margin: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome iOS File Picker POC</title>
+<style>
+  body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+  button { font-size: 16px; padding: 10px 20px; }
+</style>
 </head>
 <body>
 
-<h1>QR Code Redirect with Delay</h1>
-<button id="b">Generate QR Code</button>
-<div id="qrcode"></div>
+<h1>Open File Picker in New Tab (Chrome iOS)</h1>
+<button id="openPicker">Open File Picker</button>
 
 <script>
-document.getElementById('b').onclick = () => {
-  const initialURL = 'https://example.com'; // URL for QR code
-  const redirectURL = 'https://google.com'; // Redirect URL after QR is scanned
+document.getElementById('openPicker').onclick = () => {
+  // Must be inside click handler
+  const newTab = window.open('', '_blank');
 
-  // Step 1: Generate QR Code pointing to the initial URL
-  const delay = 300; // Milliseconds to delay before redirecting
-  const qrcodeContainer = document.getElementById('qrcode');
-  
-  qrcodeContainer.innerHTML = ''; // Clear previous QR codes
-  QRCode.toCanvas(initialURL, { width: 200 }, function (error, canvas) {
-    if (error) console.error(error);
-    qrcodeContainer.appendChild(canvas);
-  });
+  // Add content in the new tab
+  newTab.document.write(`
+    <html>
+      <head>
+        <title>Select a File</title>
+      </head>
+      <body style="font-family:sans-serif; text-align:center; padding-top:50px;">
+        <h2>Tap below to select a file</h2>
+        <input type="file" id="fileInput" style="font-size:16px;" />
+        <script>
+          const input = document.getElementById('fileInput');
+          input.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              alert('Selected file: ' + file.name);
+            }
+          });
+        <\/script>
+      </body>
+    </html>
+  `);
 
-  // Step 2: After a short delay, automatically navigate to the redirect URL
-  setTimeout(() => {
-    location.href = redirectURL;
-  }, delay);
-
-  // Optional: Display a message before redirecting (like "Chaining test")
-  console.log("QR Code generated! Scan it to visit: " + initialURL);
+  newTab.document.close();
 };
 </script>
 
