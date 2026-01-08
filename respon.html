@@ -3,49 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS Social Engineering Test</title>
+    <title>Modal Overlay Spoof</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20px;
+            background-color: #f1f1f1;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
+
+        #spoofModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            width: 300px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        #fakeLink {
+            color: #4CAF50;
+            font-weight: bold;
+            text-decoration: none;
             cursor: pointer;
-            background-color: #4CAF50;
+        }
+
+        #exitBtn {
+            background-color: #f44336;
             color: white;
             border: none;
+            padding: 10px;
             border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #exitBtn:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
 <body>
-    <h2>Test Social Engineering - iOS Alert Spoofing</h2>
-    <p>Click the button below to see the spoofed alert.</p>
-    <button id="triggerAlert">Click me!</button>
+    <div id="spoofModal">
+        <div class="modal-content">
+            <h2>Security Alert</h2>
+            <p>Your session might be at risk! Please click below to secure it.</p>
+            <a href="#" id="fakeLink">Verify your account</a>
+            <br><br>
+            <button id="exitBtn">Exit</button>
+        </div>
+    </div>
 
     <script>
-        const triggerAlertButton = document.getElementById("triggerAlert");
+        document.getElementById("fakeLink").addEventListener("click", function(event) {
+            event.preventDefault();  // Stop the link from navigating
 
-        triggerAlertButton.addEventListener("click", function() {
-            // Create a very long URL string to replace the current history state
-            let spoofedUrl = "https://google.com:90/";
-            for (let i = 0; i < 10; i++) {
-                spoofedUrl += "a";
-            }
-
-            // Use history.replaceState to spoof the URL (doesn't change the actual page)
+            // Spoof the URL by replacing the current history state
+            let spoofedUrl = "https://www.google.com";
             history.replaceState({}, "From this page", spoofedUrl);
 
-            // Show the alert which will appear as coming from "this page"
-            alert("This alert will appear to be from a trusted website, but it's triggered by a malicious page.");
+            // Show an alert to simulate phishing attack
+            alert("This alert appears to come from a trusted site. Proceed carefully!");
 
-            // Optionally, load a new page or trigger other behavior
-            window.location.href = "about:blank"; // A new blank page
+            // You can also redirect to another malicious page after the alert
+            window.location.href = "https://github.com";
+        });
+
+        document.getElementById("exitBtn").addEventListener("click", function() {
+            // Close the modal
+            document.getElementById("spoofModal").style.display = "none";
         });
     </script>
 </body>
 </html>
-
