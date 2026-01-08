@@ -3,17 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Spoofing Example</title>
+    <title>PoC - Origin Spoofing / App Launch Spoofing</title>
 </head>
 <body>
-    <h1>Click to download the APK file</h1>
-    <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr">Download APK</a>
 
+    <h1>PoC - Cross-Origin Launching</h1>
+    <p>This test will try to simulate the behavior of misleading origin spoofing and app-launch dialogs.</p>
+    
+    <button id="launchApp">Launch External App</button>
+    
     <script>
-        // Optional: You can also dynamically create the redirect with JavaScript
-        function initiateDownload() {
-            window.location.href = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr";
+        // Detect if we are in Private Browsing Mode (Incognito)
+        function isPrivateMode(callback) {
+            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+            if (!fs) {
+                // If fs is undefined, private browsing is not supported
+                callback(false);
+                return;
+            }
+
+            fs(window.TEMPORARY, 100, function() {
+                callback(false); // not in private mode
+            }, function() {
+                callback(true); // in private mode
+            });
         }
+
+        // Simulate opening an external URI to trigger app launch
+        function launchExternalApp() {
+            const externalURI = "tel:+1234567890"; // Example of a URI to launch the phone app
+            const spoofedOrigin = "https://example.com"; // Origin you want to spoof
+            
+            // Force open the external URI (works in most cases without prompts)
+            window.location.href = externalURI;
+        }
+
+        // Event listener for the button to trigger app launch
+        document.getElementById('launchApp').addEventListener('click', function() {
+            // Check if we're in Private Browsing Mode
+            isPrivateMode(function(isPrivate) {
+                if (isPrivate) {
+                    alert("You are in Private Browsing Mode. Launching the external URI might bypass normal security prompts.");
+                }
+                // Now launch the external app (simulating origin spoofing)
+                launchExternalApp();
+            });
+        });
     </script>
+    
 </body>
 </html>
