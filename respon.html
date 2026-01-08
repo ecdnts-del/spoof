@@ -2,49 +2,44 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iOS Mailto Tapjacking PoC</title>
+<title>FaceTime Boundary PoC</title>
 <style>
 body {
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont;
 }
-#bait {
-  width: 100%;
-  height: 80px;
-  background: #4CAF50;
+.fake-ui {
+  border: 2px solid #007aff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+.call {
+  display: block;
+  font-size: 24px;
   color: white;
-  font-size: 22px;
+  background: #007aff;
+  padding: 16px;
+  border-radius: 10px;
   text-align: center;
-  line-height: 80px;
-  margin-top: 50px;
-}
-iframe {
-  position: absolute;
-  top: 50px;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  opacity: 0.01; /* invisible overlay */
-  border: none;
+  text-decoration: none;
 }
 </style>
 </head>
 
 <body>
 
-<h3>Claim your reward 🎁</h3>
+<h3>Incoming Call</h3>
 
-<div id="bait">Tap here to continue</div>
+<div class="fake-ui">
+  <p>Apple Support</p>
+  <a class="call" href="facetime://test@example.com">
+    Accept Call
+  </a>
+</div>
 
-<iframe sandbox
-srcdoc="
-<a href='mailto:test@example.com?subject=Hello&body=Tapped%20from%20iOS'
-   style='display:block;width:100%;height:100%'></a>
-">
-</iframe>
-
-<p>
-Expected: user taps green button  
-Actual (iOS): Mail app opens without origin context
+<p style="margin-top:40px;font-size:14px;color:#666">
+User must tap explicitly.  
+No origin, no automation, no spoofing.
 </p>
 
 </body>
