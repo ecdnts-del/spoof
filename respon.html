@@ -1,37 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAuthn Dialog Persistence (iOS)</title>
+</head>
+<body>
+
+<h1>WebAuthn Dialog Persistence / UI Race Example (No Fullscreen)</h1>
+<p>Click "Start" to simulate WebAuthn dialog persistence after navigation.</p>
+
 <button id="start">START</button>
 
-<!-- File Input element untuk memilih file -->
-<input type="file" id="fileInput" style="display: none;" />
+<!-- Simulate WebAuthn Dialog (in this case, we'll just use a simple confirmation dialog) -->
+<div id="webAuthnDialog" style="display:none; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 20px; border-radius: 10px; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); z-index: 9999;">
+    <h2>WebAuthn Authentication</h2>
+    <p>Authentication required for the action.</p>
+    <button id="closeDialog">Close</button>
+</div>
 
 <script>
-const log = (...a) => console.log("[PoC]", ...a);
+// Log utility
+const log = (...args) => console.log("[PoC]", ...args);
 
-// Fungsi untuk menangani pemilihan file
+// Simulate WebAuthn dialog triggered by user action (click)
 document.getElementById("start").onclick = () => {
-  log("click isActive:", navigator.userActivation.isActive);
-  
-  // Menyembunyikan input file dan men-trigger event klik
-  document.getElementById("fileInput").click();
+    log("Simulating WebAuthn dialog");
+
+    // Simulating WebAuthn dialog appearance
+    document.getElementById("webAuthnDialog").style.display = "block";
+
+    // Simulate navigating to another page after some time
+    setTimeout(() => {
+        // Simulate navigating to another page (e.g., google.com)
+        log("Navigating to google.com");
+
+        window.location.href = "https://www.google.com"; // Simulate navigation to another page
+    }, 2000); // 2 second delay before navigating
 };
 
-// Menangani perubahan file input
-document.getElementById("fileInput").addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    log("FILE PICKER OPENED:", file.name);
-  } else {
-    log("No file selected.");
-  }
-});
+// Close WebAuthn Dialog
+document.getElementById("closeDialog").onclick = () => {
+    document.getElementById("webAuthnDialog").style.display = "none";
+    log("WebAuthn dialog closed");
+};
 
-// Event listener untuk popstate, yang akan di-trigger saat pengguna menekan tombol back
+// Log state when page navigates
 window.addEventListener("popstate", () => {
-  setTimeout(async () => {
-    log("popstate isActive:", navigator.userActivation.isActive);
-
-    // Redirect ke Google.com setelah popstate untuk mensimulasikan efek dari popstate
-    window.location.href = "https://www.google.com";
-  }, 0);
+    log("Page navigated back. Origin confusion might occur.");
 });
+
 </script>
+</body>
+</html>
