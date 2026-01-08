@@ -3,53 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAuthn Dialog Persistence (iOS)</title>
+    <title>Password Autofill Confusion Example (iOS)</title>
 </head>
 <body>
 
-<h1>WebAuthn Dialog Persistence / UI Race Example (No Fullscreen)</h1>
-<p>Click "Start" to simulate WebAuthn dialog persistence after navigation.</p>
+<h1>Password Autofill Issue Simulation</h1>
+<p>Click "Start" to simulate password autofill persistence across pages.</p>
 
 <button id="start">START</button>
 
-<!-- Simulate WebAuthn Dialog (in this case, we'll just use a simple confirmation dialog) -->
-<div id="webAuthnDialog" style="display:none; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 20px; border-radius: 10px; position: fixed; top: 30%; left: 50%; transform: translateX(-50%); z-index: 9999;">
-    <h2>WebAuthn Authentication</h2>
-    <p>Authentication required for the action.</p>
-    <button id="closeDialog">Close</button>
+<!-- Form to simulate login and autofill behavior -->
+<div id="loginForm" style="display:block;">
+    <h2>Login Form</h2>
+    <form id="form" action="#" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="username" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required><br><br>
+
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<!-- Simulate a new page where autofill should not happen -->
+<div id="newPage" style="display:none;">
+    <h2>New Page (No Login Form)</h2>
+    <p>This is a new page that shouldn't have any saved credentials autofilled.</p>
+    <button id="goBack">Go Back to Login Page</button>
 </div>
 
 <script>
-// Log utility
+// Log utility for debugging
 const log = (...args) => console.log("[PoC]", ...args);
 
-// Simulate WebAuthn dialog triggered by user action (click)
+// Simulate a start button click
 document.getElementById("start").onclick = () => {
-    log("Simulating WebAuthn dialog");
+    log("Simulating autofill issue");
 
-    // Simulating WebAuthn dialog appearance
-    document.getElementById("webAuthnDialog").style.display = "block";
+    // Simulate filling the form with username and password
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
 
-    // Simulate navigating to another page after some time
+    usernameInput.value = "user123";  // Autofill simulation
+    passwordInput.value = "password123";  // Autofill simulation
+
+    log("Username and password autofilled");
+
+    // Simulate navigation after filling the form (no submission)
     setTimeout(() => {
-        // Simulate navigating to another page (e.g., google.com)
-        log("Navigating to google.com");
+        // Simulate navigating to a new page (e.g., google.com)
+        log("Navigating to a new page (new page should not have autofill)");
 
-        window.location.href = "https://www.google.com"; // Simulate navigation to another page
-    }, 2000); // 2 second delay before navigating
+        document.getElementById("loginForm").style.display = "none"; // Hide the login form
+        document.getElementById("newPage").style.display = "block"; // Show new page content
+    }, 2000); // After 2 seconds, navigate to new page
 };
 
-// Close WebAuthn Dialog
-document.getElementById("closeDialog").onclick = () => {
-    document.getElementById("webAuthnDialog").style.display = "none";
-    log("WebAuthn dialog closed");
-};
+// Handle Go Back action
+document.getElementById("goBack").onclick = () => {
+    log("Navigating back to login page");
 
-// Log state when page navigates
-window.addEventListener("popstate", () => {
-    log("Page navigated back. Origin confusion might occur.");
-});
+    document.getElementById("newPage").style.display = "none"; // Hide new page
+    document.getElementById("loginForm").style.display = "block"; // Show login form again
+};
 
 </script>
+
 </body>
 </html>
