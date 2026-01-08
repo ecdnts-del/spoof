@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FaceTime Boundary PoC</title>
+<title>FaceTime Delay Boundary PoC</title>
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont;
@@ -23,6 +23,9 @@ body {
   text-align: center;
   text-decoration: none;
 }
+.hidden {
+  display: none;
+}
 </style>
 </head>
 
@@ -32,15 +35,33 @@ body {
 
 <div class="fake-ui">
   <p>Apple Support</p>
-  <a class="call" href="facetime://test@example.com">
+
+  <button id="start" class="call">
     Accept Call
+  </button>
+
+  <a id="realcall"
+     class="call hidden"
+     href="facetime://test@example.com">
+     Tap again to connect
   </a>
 </div>
 
-<p style="margin-top:40px;font-size:14px;color:#666">
-User must tap explicitly.  
-No origin, no automation, no spoofing.
-</p>
+<p id="status" style="margin-top:20px;color:#666"></p>
+
+<script>
+document.getElementById("start").onclick = () => {
+  document.getElementById("status").textContent =
+    "Connecting… please wait";
+
+  setTimeout(() => {
+    document.getElementById("realcall").classList.remove("hidden");
+    document.getElementById("start").style.display = "none";
+    document.getElementById("status").textContent =
+      "Tap again to start FaceTime";
+  }, 5000);
+};
+</script>
 
 </body>
 </html>
