@@ -11,7 +11,19 @@
     <p>This test will try to simulate the behavior of misleading origin spoofing and app-launch dialogs.</p>
     
     <button id="launchApp">Launch External App</button>
-    
+
+    <br><br>
+    <select id="appSelector">
+        <option value="tel:+1234567890">Phone (tel:)</option>
+        <option value="mailto:someone@example.com">Email (mailto:)</option>
+        <option value="sms:+1234567890">SMS (sms:)</option>
+        <option value="maps:37.7749,-122.4194">Maps (maps:)</option>
+        <option value="whatsapp://send?phone=+1234567890&text=Hello">WhatsApp</option>
+        <option value="skype:echo123?call">Skype</option>
+        <option value="instagram://user?username=yourusername">Instagram</option>
+        <option value="facebook://profile/1234567890">Facebook</option>
+    </select>
+
     <script>
         // Detect if we are in Private Browsing Mode (Incognito)
         function isPrivateMode(callback) {
@@ -30,23 +42,22 @@
         }
 
         // Simulate opening an external URI to trigger app launch
-        function launchExternalApp() {
-            const externalURI = "tel:+1234567890"; // Example of a URI to launch the phone app
-            const spoofedOrigin = "https://example.com"; // Origin you want to spoof
-            
-            // Force open the external URI (works in most cases without prompts)
-            window.location.href = externalURI;
+        function launchExternalApp(uri) {
+            window.location.href = uri;
         }
 
         // Event listener for the button to trigger app launch
         document.getElementById('launchApp').addEventListener('click', function() {
+            // Get the selected app URI from the dropdown
+            const appUri = document.getElementById('appSelector').value;
+            
             // Check if we're in Private Browsing Mode
             isPrivateMode(function(isPrivate) {
                 if (isPrivate) {
                     alert("You are in Private Browsing Mode. Launching the external URI might bypass normal security prompts.");
                 }
                 // Now launch the external app (simulating origin spoofing)
-                launchExternalApp();
+                launchExternalApp(appUri);
             });
         });
     </script>
