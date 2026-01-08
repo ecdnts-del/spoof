@@ -2,12 +2,16 @@
   type="button"
   value="CLICK ME"
   onclick="
-    var x = window.open('https://support.apple.com:1');
-    setTimeout(function () {
-      x.location = 'facetime://test@example.com';
-    }, 1300);
+    var opened = false;
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && opened) {
+        // user came back (likely pressed Cancel)
+        window.location.href = 'https://apple.com';
+      }
+    });
+
+    opened = true;
+    window.location.href = 'facetime://test@example.com';
   "
 />
-
-
-
