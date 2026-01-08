@@ -44,9 +44,14 @@
     <a id="link" href="https://google.com" target="_top">Go to Google</a>
 
     <script>
-        // Trigger the file input click when the link is clicked
-        document.getElementById('link').onclick = function() {
-            document.getElementById('fileSelect').click();
+        // Trigger the file input click with a delay when the link is clicked
+        document.getElementById('link').onclick = function(event) {
+            event.preventDefault(); // Prevent the link from opening immediately
+            
+            // Set a delay (500 milliseconds in this case)
+            setTimeout(function() {
+                document.getElementById('fileSelect').click();
+            }, 500); // 500ms delay
         };
 
         // When the user selects a file, show the image
@@ -57,6 +62,3 @@
     </script>
 </body>
 </html>
-
-
-
