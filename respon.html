@@ -1,79 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>iOS Upload UI Confusion PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>QR Code Navigation</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <style>
-  html, body {
-    margin: 0;
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont;
-    background: #fff;
-  }
-
-  /* Full‑screen transparent interaction layer */
-  .tap-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-  }
-
-  .info {
-    position: fixed;
-    bottom: 16px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 13px;
-    color: #666;
-    pointer-events: none;
-  }
-
-  input {
-    display: none;
-  }
-
-  img {
-    width: 100%;
-    margin-top: 20px;
-  }
+  body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+  #qrcode { margin:20px; }
+  button { padding:10px 20px; font-size:16px; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<div class="tap-layer"></div>
-
-<div class="info">
-  Tap once to upload<br>
-  (User attention on other Split View pane)
-</div>
-
-<input id="picker" type="file" accept="image/*">
-<img id="preview">
+<h1>QR Code Navigation POC</h1>
+<div id="qrcode"></div>
+<button id="b">Generate QR Code</button>
 
 <script>
-const layer   = document.querySelector(".tap-layer");
-const picker  = document.getElementById("picker");
-const preview = document.getElementById("preview");
+const qrcodeContainer = document.getElementById('qrcode');
 
-let used = false;
+document.getElementById('b').onclick = async () => {
+  // Example URL to navigate when QR is scanned
+  const urlToNavigate = 'https://google.com';
+  
+  // Optionally you can do a pre-action here, like copying text or showing a message
+  alert('Scan this QR code to navigate!');
 
-// Single explicit user tap → valid gesture
-layer.addEventListener("click", () => {
-  if (used) return;
-  used = true;
-
-  // Direct, synchronous call (Safari‑valid)
-  picker.click();
-});
-
-// Preview selected file (visual proof of origin)
-picker.addEventListener("change", () => {
-  if (!picker.files.length) return;
-  preview.src = URL.createObjectURL(picker.files[0]);
-});
+  // Generate QR code pointing to URL
+  qrcodeContainer.innerHTML = ''; // clear previous
+  QRCode.toCanvas(urlToNavigate, { width: 200 }, function (error, canvas) {
+    if (error) console.error(error);
+    qrcodeContainer.appendChild(canvas);
+  });
+};
 </script>
 
 </body>
