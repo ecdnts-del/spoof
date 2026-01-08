@@ -1,38 +1,58 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QR Code Navigation</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<style>
-  body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
-  #qrcode { margin:20px; }
-  button { padding:10px 20px; font-size:16px; cursor:pointer; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Navigation with Redirect</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    #qrcode {
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-<h1>QR Code Navigation POC</h1>
-<div id="qrcode"></div>
+<h1>QR Code Redirect with Delay</h1>
 <button id="b">Generate QR Code</button>
+<div id="qrcode"></div>
 
 <script>
-const qrcodeContainer = document.getElementById('qrcode');
+document.getElementById('b').onclick = () => {
+  const initialURL = 'https://example.com'; // URL for QR code
+  const redirectURL = 'https://google.com'; // Redirect URL after QR is scanned
 
-document.getElementById('b').onclick = async () => {
-  // Example URL to navigate when QR is scanned
-  const urlToNavigate = 'https://google.com';
+  // Step 1: Generate QR Code pointing to the initial URL
+  const delay = 300; // Milliseconds to delay before redirecting
+  const qrcodeContainer = document.getElementById('qrcode');
   
-  // Optionally you can do a pre-action here, like copying text or showing a message
-  alert('Scan this QR code to navigate!');
-
-  // Generate QR code pointing to URL
-  qrcodeContainer.innerHTML = ''; // clear previous
-  QRCode.toCanvas(urlToNavigate, { width: 200 }, function (error, canvas) {
+  qrcodeContainer.innerHTML = ''; // Clear previous QR codes
+  QRCode.toCanvas(initialURL, { width: 200 }, function (error, canvas) {
     if (error) console.error(error);
     qrcodeContainer.appendChild(canvas);
   });
+
+  // Step 2: After a short delay, automatically navigate to the redirect URL
+  setTimeout(() => {
+    location.href = redirectURL;
+  }, delay);
+
+  // Optional: Display a message before redirecting (like "Chaining test")
+  console.log("QR Code generated! Scan it to visit: " + initialURL);
 };
 </script>
 
