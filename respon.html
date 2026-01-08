@@ -3,59 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Spoofing PoC on iOS</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20px;
-        }
-        h2 {
-            font-size: 24px;
-        }
-        p {
-            font-size: 18px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>URL Spoofing Example</title>
 </head>
 <body>
-    <h2>URL Spoofing PoC for iOS</h2>
-    <p>This page simulates a URL spoofing behavior. Try to reload the page after clicking the button.</p>
-    
-    <button id="startBtn">Start PoC</button>
+    <h1>Click to download the APK file</h1>
+    <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr">Download APK</a>
 
     <script>
-        // Function to initiate URL spoofing-like behavior
-        function spoofUrl() {
-            const newWindow = window.open('https://www.twitter.com:1234', 'testWindow', 'width=400,height=300');
-            setTimeout(function() {
-                newWindow.document.write('<h1>URL Spoofing...</h1>');
-                // Simulate the 'command + R' reload trigger
-                newWindow.location.reload();  // Reloads the new window (not the main page)
-            }, 2000);
+        // Optional: You can also dynamically create the redirect with JavaScript
+        function initiateDownload() {
+            window.location.href = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr";
         }
-
-        // Button click listener to trigger the PoC
-        document.getElementById('startBtn').addEventListener('click', function() {
-            spoofUrl();
-        });
-
-        // Instructions for iOS users
-        window.onload = function() {
-            alert('Click "Start PoC" then reload (swipe down or press Cmd+R on external keyboard).');
-        };
     </script>
 </body>
 </html>
