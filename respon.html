@@ -23,7 +23,7 @@
 <script>
 function a() {
     // buka apple.com
-    let win = window.open('https://apple.com', 'x');
+    let win = window.open('https://google.com', 'x');
 
     // 5 detik ke google.com
     setTimeout(function () {
@@ -32,7 +32,7 @@ function a() {
         // 5 detik lagi ke example.com
         setTimeout(function () {
             win.location.href = 'https://google.com';
-        }, 900);
+        }, 302);
 
     }, 1);
 }
@@ -44,3 +44,4 @@ function a() {
 
 </body>
 </html>
+
