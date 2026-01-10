@@ -11,7 +11,7 @@ document.getElementById('b').onclick = async () => {
   // Then trigger a phone call (using the "tel:" protocol)
   setTimeout(() => {
     location.href = 'tel:+1234567890';  // Replace with the desired phone number
-  }, 1000); // Slight delay to allow Instagram to load before calling
+  }, 4000); // Slight delay to allow Instagram to load before calling
 
   // You can also add share functionality, though Instagram doesn’t support the Web Share API:
   if (navigator.share) {
@@ -22,4 +22,5 @@ document.getElementById('b').onclick = async () => {
   }
 };
 </script>
+
 
