@@ -1,12 +1,35 @@
-<!DOCTYPE html>
-<html>
-<body>
-  <button onclick="openApp()">Open Instagram App</button>
+<button onclick="openInstagram()">Open Instagram</button>
+<button onclick="callNumber()">Call Number</button>
+<p id="status"></p>
 
-  <script>
-    function openApp() {
-      window.location.href = "instagram://app";
+<script>
+function openInstagram() {
+  const status = document.getElementById("status");
+  status.innerText = "Mencoba membuka Instagram…";
+
+  const start = Date.now();
+  window.location = "instagram://app";
+
+  setTimeout(() => {
+    if (Date.now() - start < 2000) {
+      status.innerText = "Instagram tidak terpasang, dialihkan ke App Store.";
+      window.location = "https://apps.apple.com/app/id389801252";
+    } else {
+      status.innerText = "Instagram berhasil dibuka.";
     }
-  </script>
-</body>
-</html>
+  }, 1500);
+}
+
+function callNumber() {
+  const status = document.getElementById("status");
+  const phoneNumber = "+6281234567890"; // ganti sesuai nomor
+  status.innerText = `Mencoba menelpon ${phoneNumber}…`;
+
+  // buka dialer iOS
+  window.location.href = `tel:${phoneNumber}`;
+
+  setTimeout(() => {
+    status.innerText = `Jika panggilan tidak muncul, pastikan perangkat mendukung panggilan.`;
+  }, 1000);
+}
+</script>
