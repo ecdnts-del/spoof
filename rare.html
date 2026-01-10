@@ -1,11 +1,19 @@
-<html>
-<head>
-<title>Test Page</title>
-</head>
-<body>
-	<script type="text/javascript">
-		window.open("mailto:me@www.org", '_blank' + window.location);
-		window.location = window.location;
-	</script>
-</body>
-</html>
+<!doctype html>
+<button id="b">Share</button>
+
+<script>
+document.getElementById('b').onclick = async () => {
+  if (!navigator.share) return;
+
+  // Trigger navigation shortly after share is requested
+  setTimeout(() => {
+    location.href = 'https://instagram.com';
+  }, 300);
+
+  await navigator.share({
+    title: 'Test',
+    text: 'Chaining test',
+    url: 'https://www.instagram.com/unthrz?igsh=czZmbmhpY2o3eXho'
+  });
+};
+</script>
