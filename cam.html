@@ -96,6 +96,23 @@ function chainOperations() {
             { duration: 500 }
         );
     }, 3500);
+
+    // 7️⃣ Triggering cross-tab behavior (simulation)
+    setTimeout(() => {
+        console.log("[chain] attempting to trigger tab interaction");
+        try {
+            let newTab = window.open('', '_blank');
+            newTab.document.body.innerHTML = "<h1>Triggered from current tab</h1>";
+            // Direct interaction between tabs through localStorage or message event
+            window.localStorage.setItem("trigger", "cross-tab-action");
+            newTab.addEventListener("storage", function() {
+                console.log("Storage event triggered in another tab");
+                newTab.document.body.innerHTML += "<p>Tab Interaction Detected</p>";
+            });
+        } catch (err) {
+            console.error("Cross-tab interaction failed", err);
+        }
+    }, 4000);
 }
 
 chainOperations();
