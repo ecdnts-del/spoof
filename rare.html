@@ -1,57 +1,11 @@
-<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>iOS Form History Test (Negative PoC)</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 30px;
-    }
-    #box {
-      position: absolute;
-      top: 200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 300px;
-      padding: 20px;
-      background: #000;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-    }
-  </style>
+<title>Test Page</title>
 </head>
 <body>
-
-<h2>iOS Form History / Autofill Test</h2>
-<p>
-Double‑tap the input field and observe behavior.
-</p>
-
-<div id="box">
-  <input
-    id="email"
-    type="text"
-    placeholder="Email"
-    autocomplete="email"
-    onmousedown="attemptRead()"
-  >
-</div>
-
-<script>
-function attemptRead() {
-  setTimeout(() => {
-    alert(
-      document.getElementById('email').value === ''
-        ? 'No value accessible (expected on iOS)'
-        : 'Value read: ' + document.getElementById('email').value
-    );
-  }, 1500);
-}
-</script>
-
+	<script type="text/javascript">
+		window.open("mailto:me@www.org", '_blank' + window.location);
+		window.location = window.location;
+	</script>
 </body>
 </html>
