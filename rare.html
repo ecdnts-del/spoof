@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>iOS Combined UX Demo</title>
+  <title>iOS WebAuthn + Password UX Demo</title>
   <style>
     body {
       font-family: sans-serif;
@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h2>Combined WebAuthn + Password Navigation Demo</h2>
+<h2>WebAuthn + Password UX Demo (iOS)</h2>
 
 <div class="login">
   <input type="text" placeholder="Username">
@@ -42,30 +42,21 @@
 </div>
 
 <button id="trigger">Continue</button>
-<div id="panel">Trusted panel</div>
+<div id="panel">Authentication in progress…</div>
 
 <script>
 const trigger = document.getElementById('trigger');
 const panel = document.getElementById('panel');
 const pwd = document.getElementById('pwd');
 
-// Autofocus password (allowed on load)
+// Autofocus password (allowed)
 window.onload = () => {
   pwd.focus();
 };
 
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- * + show panel
- * + trigger WebAuthn
- */
 trigger.onclick = async () => {
-  // change visible path
-  history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 
-  // trigger WebAuthn (user gesture required)
   try {
     await navigator.credentials.get({
       publicKey: {
@@ -77,37 +68,8 @@ trigger.onclick = async () => {
   } catch (e) {
     console.log(e);
   }
-
-  // simulate navigation while password context existed
-  setTimeout(() => {
-    // same-file navigation (could be cross-origin in real test)
-    location.hash = '#next';
-  }, 500);
 };
-
-/*
- * Step 2:
- * Navigation race / delayed redirect after pageshow
- */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        // redirect target (change as needed)
-        location.href = 'https://google.com';
-      }, 5400);
-    });
-  });
-});
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
