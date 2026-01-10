@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Clipboard Origin Desync PoC</title>
+<title>Screen Share Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -47,14 +47,14 @@ button {
 </div>
 
 <div id="panel">
-  <h2>Clipboard Access</h2>
-  <p>Tap the button below to write to clipboard.</p>
+  <h2>Share Screen</h2>
+  <p>Tap the button to start screen sharing.</p>
 
-  <button onclick="writeClipboard()">Write Clipboard</button>
-  <p id="output">Clipboard: -</p>
+  <button onclick="shareScreen()">Share Screen</button>
+  <p id="output">Screen: -</p>
 
   <div class="notice">
-    Demo only — observe origin / UI behavior
+    Demo only — observe origin / picker dialog
   </div>
 </div>
 
@@ -63,12 +63,16 @@ const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const output  = document.getElementById('output');
 
-async function writeClipboard() {
+async function shareScreen() {
   try {
-    await navigator.clipboard.writeText('ORIGIN-DESYNC-TEST');
-    output.textContent = 'Clipboard write OK';
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false
+    });
+    output.textContent = 'Screen sharing started';
+    stream.getTracks().forEach(t => t.stop());
   } catch (e) {
-    output.textContent = 'Clipboard denied';
+    output.textContent = 'Screen share denied';
   }
 }
 
@@ -83,7 +87,7 @@ trigger.onclick = () => {
 
 /*
  * Step 2:
- * Navigation race after user gesture
+ * Navigation race
  */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
