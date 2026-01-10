@@ -2,26 +2,104 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Login Page</title>
+  <title>iOS Combined UX Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      height: 100vh;
+      padding: 20px;
+    }
+    #panel {
+      display: none;
+      padding: 12px;
+      background: #eee;
+      margin-top: 12px;
+    }
+    #trigger {
+      padding: 12px 20px;
+      font-size: 16px;
+      margin-top: 16px;
+    }
+    .login {
+      margin-top: 20px;
+    }
+    input {
+      display: block;
+      margin: 8px 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Login</h2>
 
-  <input type="text" placeholder="Username"><br><br>
-  <input type="password" placeholder="Password" id="pwd"><br><br>
+<h2>Combined WebAuthn + Password Navigation Demo</h2>
 
-  <button onclick="go()">Continue</button>
+<div class="login">
+  <input type="text" placeholder="Username">
+  <input type="password" id="pwd" placeholder="Password">
+</div>
 
-  <script>
-    function go() {
-      // simulate user navigating while password field was active
-      window.location.href = "next.html";
-    }
+<button id="trigger">Continue</button>
+<div id="panel">Trusted panel</div>
 
-    // auto-focus password (allowed)
-    window.onload = () => {
-      document.getElementById("pwd").focus();
-    };
-  </script>
+<script>
+const trigger = document.getElementById('trigger');
+const panel = document.getElementById('panel');
+const pwd = document.getElementById('pwd');
+
+// Autofocus password (allowed on load)
+window.onload = () => {
+  pwd.focus();
+};
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ * + show panel
+ * + trigger WebAuthn
+ */
+trigger.onclick = async () => {
+  // change visible path
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
+  // trigger WebAuthn (user gesture required)
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: "required"
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
+
+  // simulate navigation while password context existed
+  setTimeout(() => {
+    // same-file navigation (could be cross-origin in real test)
+    location.hash = '#next';
+  }, 500);
+};
+
+/*
+ * Step 2:
+ * Navigation race / delayed redirect after pageshow
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // redirect target (change as needed)
+        location.href = 'https://google.com';
+      }, 3400);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
