@@ -76,7 +76,7 @@ const video   = document.getElementById('video');
 let stream;
 
 trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
+  // Just display the panel without changing the history or URL
   panel.style.display = 'block';
 };
 
