@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Camera Flash Tap + Navigation Race PoC</title>
+<title>Instagram Open PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -53,16 +53,16 @@ video {
 </div>
 
 <div id="panel">
-  <h2>Tap to Activate Camera / Flash</h2>
-  <p>Tap the button below to request camera and attempt torch activation.</p>
+  <h2>Tap to Open Instagram</h2>
+  <p>Tap the button below to attempt to open Instagram.</p>
 
-  <button id="tap">Tap</button>
+  <button id="tap">Tap to Open Instagram</button>
   <p id="status">Status: -</p>
 
   <video id="video" autoplay playsinline></video>
 
   <div class="notice">
-    Observe permission UI, crash, or unexpected navigation
+    Observe permission UI, app launch behavior, or unexpected navigation
   </div>
 </div>
 
@@ -80,30 +80,25 @@ trigger.onclick = () => {
   panel.style.display = 'block';
 };
 
-tapBtn.onclick = async () => {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
+tapBtn.onclick = () => {
+  // Try to open the Instagram app using its custom URL scheme
+  const appUrl = "instagram://";
+  const fallbackUrl = "https://www.instagram.com"; // Fallback to the web version
 
-    const track = stream.getVideoTracks()[0];
-    const caps  = track.getCapabilities();
+  // Attempt to open Instagram app
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = appUrl;
 
-    if (caps && caps.torch) {
-      await track.applyConstraints({
-        advanced: [{ torch: true }]
-      });
-      status.textContent = 'Torch requested';
-    } else {
-      status.textContent = 'Torch not supported';
-    }
-  } catch (e) {
-    status.textContent = 'Camera permission denied / error';
-  }
+  document.body.appendChild(iframe);
+
+  // Fallback: If app is not installed, open Instagram website
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+    window.location.href = fallbackUrl;
+  }, 2000); // Wait 2 seconds before redirecting to the web version
 };
 
-/*
- * Navigation race during permission / hardware access
- */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
