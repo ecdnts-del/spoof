@@ -1,75 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>iOS WebAuthn + Password UX Demo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      height: 100vh;
-      padding: 20px;
-    }
-    #panel {
-      display: none;
-      padding: 12px;
-      background: #eee;
-      margin-top: 12px;
-    }
-    #trigger {
-      padding: 12px 20px;
-      font-size: 16px;
-      margin-top: 16px;
-    }
-    .login {
-      margin-top: 20px;
-    }
-    input {
-      display: block;
-      margin: 8px 0;
-      padding: 8px;
-      font-size: 14px;
-    }
-  </style>
-</head>
 <body>
+  <h2>Login</h2>
 
-<h2>WebAuthn + Password UX Demo (iOS)</h2>
+  <input type="text" autocomplete="username" placeholder="Username">
+  <input type="password"
+         autocomplete="current-password"
+         id="pwd"
+         placeholder="Password">
 
-<div class="login">
-  <input type="text" placeholder="Username">
-  <input type="password" id="pwd" placeholder="Password">
-</div>
-
-<button id="trigger">Continue</button>
-<div id="panel">Authentication in progress…</div>
-
-<script>
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
-const pwd = document.getElementById('pwd');
-
-// Autofocus password (allowed)
-window.onload = () => {
-  pwd.focus();
-};
-
-trigger.onclick = async () => {
-  panel.style.display = 'block';
-
-  try {
-    await navigator.credentials.get({
-      publicKey: {
-        challenge: new Uint8Array(32),
-        timeout: 60000,
-        userVerification: "required"
-      }
-    });
-  } catch (e) {
-    console.log(e);
-  }
-};
-</script>
-
+  <script>
+    // Fokus boleh, tapi TIDAK auto-fill
+    window.onload = () => {
+      document.getElementById("pwd").focus();
+    };
+  </script>
 </body>
 </html>
