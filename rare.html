@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;height:100vh;overflow:hidden">
+<head>
+  <meta charset="UTF-8">
+  <title>WebAuthn Demo</title>
+</head>
+<body>
 
-<div id="btn" style="
-  position:absolute;
-  inset:0;
-  background:red;
-"></div>
+<button id="authBtn">Verify to Continue</button>
 
 <script>
-document.getElementById("btn").onclick = () => {
-  // langsung munculkan call prompt
-  window.location = "facetime://+6281234567890";
+document.getElementById("authBtn").onclick = async () => {
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: "required"
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
 };
 </script>
 
