@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Microphone Origin Desync PoC</title>
+<title>Clipboard Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -47,14 +47,14 @@ button {
 </div>
 
 <div id="panel">
-  <h2>Request Microphone</h2>
-  <p>Tap the button below to request Microphone permission.</p>
+  <h2>Clipboard Access</h2>
+  <p>Tap the button below to write to clipboard.</p>
 
-  <button onclick="getMic()">Get Microphone</button>
-  <p id="output">Microphone: -</p>
+  <button onclick="writeClipboard()">Write Clipboard</button>
+  <p id="output">Clipboard: -</p>
 
   <div class="notice">
-    Demo only — observe origin shown in permission dialog
+    Demo only — observe origin / UI behavior
   </div>
 </div>
 
@@ -63,13 +63,12 @@ const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const output  = document.getElementById('output');
 
-async function getMic() {
+async function writeClipboard() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    output.textContent = 'Microphone access granted';
-    stream.getTracks().forEach(t => t.stop());
+    await navigator.clipboard.writeText('ORIGIN-DESYNC-TEST');
+    output.textContent = 'Clipboard write OK';
   } catch (e) {
-    output.textContent = 'Permission denied';
+    output.textContent = 'Clipboard denied';
   }
 }
 
@@ -84,7 +83,7 @@ trigger.onclick = () => {
 
 /*
  * Step 2:
- * Navigation race after permission flow starts
+ * Navigation race after user gesture
  */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
