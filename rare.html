@@ -1,35 +1,25 @@
-<button onclick="openInstagram()">Open Instagram</button>
-<button onclick="callNumber()">Call Number</button>
+<button onclick="openInstagramAndCall()">Buka Instagram & Telepon</button>
 <p id="status"></p>
 
 <script>
-function openInstagram() {
+function openInstagramAndCall() {
   const status = document.getElementById("status");
+  const phoneNumber = "+6281234567890"; // ganti sesuai nomor
+
   status.innerText = "Mencoba membuka Instagram…";
 
   const start = Date.now();
   window.location = "instagram://app";
 
+  // delay sedikit agar iOS sempat trigger Instagram
   setTimeout(() => {
-    if (Date.now() - start < 2000) {
-      status.innerText = "Instagram tidak terpasang, dialihkan ke App Store.";
-      window.location = "https://apps.apple.com/app/id389801252";
-    } else {
-      status.innerText = "Instagram berhasil dibuka.";
-    }
-  }, 1500);
-}
+    status.innerText = `Mencoba menelpon ${phoneNumber}…`;
+    window.location.href = `tel:${phoneNumber}`;
 
-function callNumber() {
-  const status = document.getElementById("status");
-  const phoneNumber = "+6281234567890"; // ganti sesuai nomor
-  status.innerText = `Mencoba menelpon ${phoneNumber}…`;
+    setTimeout(() => {
+      status.innerText = `Jika Instagram tidak terbuka atau panggilan tidak muncul, pastikan aplikasi dan panggilan didukung.`;
+    }, 1000);
 
-  // buka dialer iOS
-  window.location.href = `tel:${phoneNumber}`;
-
-  setTimeout(() => {
-    status.innerText = `Jika panggilan tidak muncul, pastikan perangkat mendukung panggilan.`;
-  }, 1000);
+  }, 1000); // delay 1 detik sebelum tel:
 }
 </script>
