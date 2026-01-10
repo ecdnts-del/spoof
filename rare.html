@@ -1,43 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Download HTML Data</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f4f4f4;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
-</head>
+<html>
 <body>
-  <button onclick="download()">Download</button>
+Tap cookie secepat mungkin 🍪
+<div id="cookie" style="font-size:40px; position:absolute; left:120px; top:120px;">🍪</div>
 
-  <script>
-    function download() {
-      const a = document.createElement('a');
-      a.href = 'data:text/html,https://subdomain.subdomain.subdomain.subdomain.subdomain.subdomain.subdomain.google.com';
-      a.download = 'this secure file “chrome.pdf“ be careful with malicious .ipa';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  </script>
+<script>
+const cookie = document.getElementById("cookie");
+
+cookie.addEventListener("touchstart", e => {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(() => console.log("camera granted"))
+    .catch(err => console.error(err));
+});
+</script>
 </body>
 </html>
