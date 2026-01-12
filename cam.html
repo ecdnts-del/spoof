@@ -4,81 +4,47 @@
 <canvas id="c" width="256" height="256"></canvas>
 <script>
 const gl = c.getContext("webgl");
-if (!gl) {
-  console.log("WebGL not supported");
-  throw 1;
-}
+if (!gl) throw "WebGL not supported";
 
-// ---- setup texture ----
+// ---- create framebuffer + texture ----
 function makeTex() {
   const t = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, t);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    256,
-    256,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    null
-  );
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   return t;
 }
 
 const tex = makeTex();
-
-// ---- framebuffer ----
 const fb = gl.createFramebuffer();
 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-gl.framebufferTexture2D(
-  gl.FRAMEBUFFER,
-  gl.COLOR_ATTACHMENT0,
-  gl.TEXTURE_2D,
-  tex,
-  0
-);
+gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
 
-// ---- draw something ----
-gl.viewport(0, 0, 256, 256);
-gl.clearColor(1, 0, 0, 1);
+// ---- draw initial color ----
+gl.viewport(0,0,256,256);
+gl.clearColor(1,0,0,1);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
-// ---- TRIGGER ----
-// texture is BOTH:
-// 1. render target
-// 2. copyTexImage2D source
-for (let i = 0; i < 1000; i++) {
+// ---- loop stress test: redefine + copyTexImage2D ----
+for (let i=0; i<2000; i++) {
   gl.bindTexture(gl.TEXTURE_2D, tex);
-
-  // This redefines the texture while it is attached
-  gl.copyTexImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    0,
-    0,
-    256,
-    256,
-    0
-  );
-
-  // force command buffer growth
-  gl.clearColor(Math.random(), 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-}
-
-// keep using framebuffer after redefine
-for (let i = 0; i < 1000; i++) {
+  // Tekstur digunakan sebagai sumber dan render target
+  gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 0, 0, 256, 256, 0);
+  // Clear framebuffer random
   gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  gl.clearColor(0, Math.random(), 0, 1);
+  gl.clearColor(Math.random(), Math.random(), Math.random(), 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
-console.log("If ASAN enabled, renderer should crash with UAF.");
+// ---- optional: continuous framebuffer use ----
+setInterval(() => {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.clearColor(Math.random(), Math.random(), Math.random(), 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+}, 10);
+
+console.log("Stress test selesai. Kalau perangkat rentan, browser mungkin crash.");
 </script>
 </body>
 </html>
