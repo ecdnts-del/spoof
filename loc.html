@@ -53,15 +53,22 @@ button {
   <button onclick="getLocation()">Get Location</button>
   <p id="output">Location: -</p>
 
+  <div id="locationLink" style="display:none;">
+    <p>Click the link below to see the location on Google Maps:</p>
+    <a id="mapLink" target="_blank">View on Google Maps</a>
+  </div>
+
   <div class="notice">
     Demo only — observe origin shown in permission dialog
   </div>
 </div>
 
 <script>
-const panel   = document.getElementById('panel');
+const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const output  = document.getElementById('output');
+const output = document.getElementById('output');
+const locationLink = document.getElementById('locationLink');
+const mapLink = document.getElementById('mapLink');
 
 function getLocation() {
   if (!navigator.geolocation) return;
@@ -72,8 +79,17 @@ function getLocation() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      // Output both latitude and longitude
+      // Display latitude and longitude
       output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+
+      // Create Google Maps link
+      const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
+
+      // Show the link to Google Maps
+      mapLink.href = googleMapsUrl;
+      mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
+
+      locationLink.style.display = 'block';
     },
     () => {
       output.textContent = 'Permission denied';
