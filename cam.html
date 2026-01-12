@@ -1,60 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
-<title>iOS FIDO Scheme Case Sensitivity PoC</title>
-
-<!-- Meta refresh vector -->
-<meta http-equiv="refresh" content="9999">
-
+<title>Chrome Windows FIDO Scheme Case Sensitivity PoC</title>
 <style>
-  body { font-family: sans-serif; }
-  a { display: block; margin: 10px 0; }
+body { font-family: Arial, sans-serif; }
+a, button { display:block; margin:10px 0; }
 </style>
 </head>
 
 <body>
-<h2>iOS FIDO / WebAuthn Scheme Handling PoC</h2>
+<h2>Chrome Windows – FIDO / WebAuthn Scheme PoC</h2>
 
 <p>
 Expected behavior:<br>
-- All FIDO / WebAuthn related schemes should be blocked from web context regardless of case.
+Chrome should block all FIDO / WebAuthn related schemes from web pages,
+regardless of casing or navigation method.
 </p>
 
-<h3>1. Anchor tag (case variants)</h3>
+<h3>1. Anchor navigation</h3>
 <a href="fido://">Blocked: fido://</a>
 <a href="FIDO://">TEST: FIDO:// (uppercase)</a>
 <a href="FiDo://">TEST: FiDo:// (mixed case)</a>
 
-<a href="webauthn://">Blocked: webauthn://</a>
-<a href="WEBAUTHN://">TEST: WEBAUTHN://</a>
-
 <h3>2. JavaScript navigation</h3>
 <button onclick="location.href='FIDO://'">
-JS navigation → FIDO://
+JS → FIDO://
 </button>
 
-<button onclick="location.href='WEBAUTHN://'">
-JS navigation → WEBAUTHN://
+<button onclick="location.replace('FiDo://')">
+JS replace → FiDo://
 </button>
 
-<h3>3. Meta refresh injection</h3>
-<button onclick="
-  document.querySelector('meta[http-equiv]').content='0;url=FIDO://';
-">
-Meta refresh → FIDO://
+<h3>3. Window.open()</h3>
+<button onclick="window.open('FIDO://')">
+window.open → FIDO://
 </button>
 
-<h3>4. Iframe injection</h3>
-<button onclick="
-  var i = document.createElement('iframe');
-  i.src = 'FIDO://';
-  document.body.appendChild(i);
-">
-Iframe → FIDO://
+<h3>4. Redirect chain</h3>
+<button onclick="startRedirect()">
+HTTP-style redirect → FIDO://
 </button>
 
-<h3>5. WebAuthn API trigger (control)</h3>
+<h3>5. WebAuthn control test</h3>
 <button onclick="triggerWebAuthn()">navigator.credentials.get()</button>
 
 <pre id="log"></pre>
@@ -62,6 +50,10 @@ Iframe → FIDO://
 <script>
 function log(msg) {
   document.getElementById('log').textContent += msg + "\n";
+}
+
+function startRedirect() {
+  location.href = "data:text/html,<script>location.href='FIDO://'<\/script>";
 }
 
 async function triggerWebAuthn() {
@@ -74,7 +66,7 @@ async function triggerWebAuthn() {
         userVerification: "discouraged"
       }
     });
-    log("WebAuthn prompt triggered");
+    log("WebAuthn prompt shown");
   } catch (e) {
     log("WebAuthn blocked: " + e);
   }
