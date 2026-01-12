@@ -47,7 +47,7 @@ start.onclick = () => {
   history.pushState({}, '', '/maps');
 
   // Step 2: Load victim inside iframe (attacker stays alive)
-  frame.src = 'https://ecdnts-del.github.io/spoof/barspoof.html';
+  frame.src = 'https://ecdnts-del.github.io/spoof/victim.html';
   frame.style.display = 'block';
   document.getElementById('ui').style.display = 'none';
 };
