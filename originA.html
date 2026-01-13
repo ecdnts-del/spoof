@@ -14,12 +14,12 @@
 
     iframe.addEventListener("load", () => {
       // Menyiapkan data palsu untuk cookies
-      document.cookie = "userId=12345; path=/";
-      document.cookie = "authToken=abcdefg12345; path=/";
-      document.cookie = "role=admin; path=/";  // Data palsu yang bisa digunakan di iframe
+      document.cookie = "userId=12345; path=/; SameSite=None; Secure";
+      document.cookie = "authToken=abcdefg12345; path=/; SameSite=None; Secure";
+      document.cookie = "role=admin; path=/; SameSite=None; Secure";  // Data palsu yang bisa digunakan di iframe
 
-      // Kirimkan informasi ini melalui postMessage
-      iframe.contentWindow.postMessage({ message: "Data cookies telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
+      // Kirimkan informasi ini melalui postMessage (kita kirim notifikasi saja)
+      iframe.contentWindow.postMessage({ message: "Cookies dengan SameSite=None dan Secure telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
     });
   </script>
 </body>
