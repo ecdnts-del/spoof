@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page</title>
+  <title>Parent Page - Cookie Spoofing</title>
 </head>
 <body>
-
-  <h1>Origin A - Welcome to the Parent Page</h1>
-  <button onclick="openPopup()">Open Popup</button>
+  <h1>Parent Page (Origin A)</h1>
+  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
 
   <script>
-    function openPopup() {
-      // Membuka pop-up di origin yang salah (seharusnya origin A)
-      const popup = window.open("https://cnfdnfial-ops.github.io/spoof/originB.html", "popup", "width=600,height=400");
-      if (popup) {
-        popup.document.title = "Spoofed Popup - Google"; // Meniru Google
-        popup.document.body.innerHTML = "<h1>Google Login</h1><p>Login with your Google account</p>";
-      }
-    }
+    const iframe = document.getElementById("myiframe");
+
+    iframe.addEventListener("load", () => {
+      // Menyiapkan data palsu untuk cookies (SameSite=None dan Secure)
+      document.cookie = "userId=12345; path=/; SameSite=None; Secure";
+      document.cookie = "authToken=abcdefg12345; path=/; SameSite=None; Secure";
+      document.cookie = "role=admin; path=/; SameSite=None; Secure";  // Data palsu yang bisa digunakan di iframe
+
+      // Kirimkan informasi ini melalui postMessage ke iframe
+      iframe.contentWindow.postMessage({ message: "Cookies dengan SameSite=None dan Secure telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
+    });
   </script>
 </body>
 </html>
