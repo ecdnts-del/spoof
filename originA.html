@@ -1,25 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page - Cookie Spoofing</title>
+  <title>Origin A - Cross-Origin Isolation Failure</title>
 </head>
 <body>
-  <h1>Parent Page (Origin A)</h1>
-  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
+  <h1>Main Page (Trusted Origin)</h1>
+
+  <iframe id="x" src="https://cnfdnfial-ops.github.io/spoof/originB.html"
+    allow="fullscreen"
+    style="width:100%; height:500px; border:1px solid black;">
+  </iframe>
 
   <script>
-    const iframe = document.getElementById("myiframe");
-
-    iframe.addEventListener("load", () => {
-      // Menyiapkan data palsu untuk cookies
-      document.cookie = "userId=12345; path=/; SameSite=None; Secure";
-      document.cookie = "authToken=abcdefg12345; path=/; SameSite=None; Secure";
-      document.cookie = "role=admin; path=/; SameSite=None; Secure";  // Data palsu yang bisa digunakan di iframe
-
-      // Kirimkan informasi ini melalui postMessage (kita kirim notifikasi saja)
-      iframe.contentWindow.postMessage({ message: "Cookies dengan SameSite=None dan Secure telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
+    // Menerima pesan dari iframe dan mencoba memasukkan kontrol fullscreen dari parent
+    window.addEventListener("message", function (e) {
+      if (e.origin !== "https://cnfdnfial-ops.github.io") return;
+      if (e.data === "go-fullscreen") {
+        document.documentElement.requestFullscreen(); // Mencoba masuk fullscreen
+      }
     });
   </script>
 </body>
