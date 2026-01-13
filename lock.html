@@ -3,66 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attacker Screen Sharing PoC</title>
+  <title>Victim - Shared Screen View (Origin B)</title>
   <style>
-    #video {
+    #sharedScreen {
       width: 100%;
-      height: 500px;
-      border: 1px solid black;
-      position: relative;
-    }
-    #overlay {
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      color: red;
-      background-color: rgba(0, 0, 0, 0.5);
-      padding: 10px;
-      font-size: 20px;
-      font-weight: bold;
-      pointer-events: none; /* Jangan ganggu interaksi layar */
+      height: 100%;
+      background-color: black;
     }
   </style>
 </head>
 <body>
-  <h2>Victim, Please Share Your Screen</h2>
-  <button id="startButton">Start Screen Sharing</button>
-  <div style="position: relative;">
-    <video id="video" autoplay></video>
-    <div id="overlay">WARNING: DO NOT TRUST THIS CONTENT!</div>
-  </div>
-
+  <h2>Victim's Shared Screen</h2>
+  <!-- Menggunakan iframe untuk mencoba menampilkan layar yang dibagikan -->
+  <iframe id="screenFrame" src="https://cnfdnfial-ops.github.io/spoof/origina.html" width="100%" height="500px" style="border: none;">
+  </iframe>
+  
   <script>
-    const startButton = document.getElementById('startButton');
-    const videoElement = document.getElementById('video');
-
-    startButton.addEventListener('click', async () => {
-      try {
-        // Minta izin untuk berbagi layar
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            cursor: 'always', // Menampilkan kursor saat berbagi layar
-          }
-        });
-
-        // Tampilkan stream pada elemen video
-        videoElement.srcObject = stream;
-
-        // Tangani penghentian stream
-        stream.getTracks().forEach(track => {
-          track.onended = () => {
-            console.log('Screen sharing stopped.');
-          };
-        });
-
-        // Simulasi overlay penipuan yang tetap muncul di atas konten berbagi layar
-        // Mengganti konten UI untuk menipu korban
-        const overlay = document.getElementById('overlay');
-        overlay.innerHTML = "PLEASE DO NOT ENTER SENSITIVE INFORMATION HERE!";
-        
-      } catch (err) {
-        console.error('Error sharing screen: ', err);
+    // Untuk menampilkan konten berbagi layar di dalam iframe, kita perlu komunikasi antar-origin
+    window.addEventListener('message', (event) => {
+      if (event.origin !== 'https://cnfdnfial-ops.github.io/') {
+        return;
       }
+
+      // Mendapatkan stream dari pesan
+      const stream = event.data;
+      const videoElement = document.createElement('video');
+      videoElement.srcObject = stream;
+      document.body.appendChild(videoElement);
     });
   </script>
 </body>
