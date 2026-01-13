@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page - Transferable Objects</title>
+  <title>Parent Page - Spoofing</title>
 </head>
 <body>
   <h1>Parent Page (Origin A)</h1>
-  <canvas id="mycanvas" width="300" height="300"></canvas>
   <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
 
   <script>
     const iframe = document.getElementById("myiframe");
-    const canvas = document.getElementById("mycanvas");
 
     iframe.addEventListener("load", () => {
-      // Transfer canvas ke OffscreenCanvas
-      const offscreen = canvas.transferControlToOffscreen();
+      // Menyiapkan data sensitif yang akan disuntikkan
+      const sensitiveData = {
+        userId: "12345",  // data palsu
+        authToken: "abcdefg12345",  // data palsu
+        secretMessage: "This is a secret"  // data palsu
+      };
 
-      // Kirim ke iframe sebagai transferable
-      iframe.contentWindow.postMessage({ offscreen }, 'https://cnfdnfial-ops.github.io/spoof/originB.html', [offscreen]);
+      // Melakukan spoofing: Kirimkan data palsu ke iframe
+      iframe.contentWindow.postMessage(sensitiveData, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
     });
   </script>
 </body>
