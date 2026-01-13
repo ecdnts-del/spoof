@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page - Spoofing</title>
+  <title>Parent Page - Cookie Spoofing</title>
 </head>
 <body>
   <h1>Parent Page (Origin A)</h1>
@@ -13,15 +13,13 @@
     const iframe = document.getElementById("myiframe");
 
     iframe.addEventListener("load", () => {
-      // Menyiapkan data sensitif yang akan disuntikkan
-      const sensitiveData = {
-        userId: "12345",  // data palsu
-        authToken: "abcdefg12345",  // data palsu
-        secretMessage: "This is a secret"  // data palsu
-      };
+      // Menyiapkan data palsu untuk cookies
+      document.cookie = "userId=12345; path=/";
+      document.cookie = "authToken=abcdefg12345; path=/";
+      document.cookie = "role=admin; path=/";  // Data palsu yang bisa digunakan di iframe
 
-      // Melakukan spoofing: Kirimkan data palsu ke iframe
-      iframe.contentWindow.postMessage(sensitiveData, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
+      // Kirimkan informasi ini melalui postMessage
+      iframe.contentWindow.postMessage({ message: "Data cookies telah disuntikkan" }, 'https://cnfdnfial-ops.github.io/spoof/originB.html');
     });
   </script>
 </body>
