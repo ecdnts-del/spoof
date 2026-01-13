@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Page - Transferable Objects</title>
+  <title>Parent Page - OffscreenCanvas WebGL</title>
 </head>
 <body>
-  <h1>Parent Page (Origin A)</h1>
-  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width: 600px; height: 400px;"></iframe>
+  <h1>Parent Page</h1>
+  <canvas id="mycanvas" width="300" height="300"></canvas>
+  <iframe id="myiframe" src="https://cnfdnfial-ops.github.io/spoof/originB.html" style="width:400px; height:400px;"></iframe>
 
   <script>
     const iframe = document.getElementById("myiframe");
+    const canvas = document.getElementById("mycanvas");
 
     iframe.addEventListener("load", () => {
-      // Membuat ArrayBuffer dan mengirimkannya ke iframe
-      const buffer = new ArrayBuffer(16); // ArrayBuffer 16 byte
-      const view = new DataView(buffer);
-      view.setUint8(0, 42); // Set data dalam ArrayBuffer
+      // Transfer canvas ke OffscreenCanvas
+      const offscreen = canvas.transferControlToOffscreen();
 
-      // Mengirim buffer sebagai transferable object
-      iframe.contentWindow.postMessage({ buffer }, 'https://cnfdnfial-ops.github.io/spoof/originB.html', [buffer]);
+      // Kirim ke iframe sebagai transferable
+      iframe.contentWindow.postMessage({ offscreen }, 'https://cnfdnfial-ops.github.io/spoof/originB.html', [offscreen]);
     });
   </script>
 </body>
