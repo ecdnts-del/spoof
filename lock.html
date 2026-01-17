@@ -1,20 +1,6 @@
-</script>
-
-<body>
-<h1>Click anywhere</h1>
 <script>
-
-
-  in_then_getter = false;
-  Array.prototype.__defineGetter__('then', function () {
-    if (in_then_getter)
-      return;
-    navigator.usb.requestDevice({filters: [{}]});
-    in_then_getter = true;
-    navigator.usb.getDevices();
-    in_then_getter = false;
-  });
-  navigator.usb.getDevices();
-
+    onblur = () => {
+        window.location.href="tel://123";
+    }    
+    // window.open("adout:blank", "_self");
 </script>
-</body>
