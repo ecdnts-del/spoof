@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Instruction Demo Page</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Instruction Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
@@ -11,49 +11,52 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f2f2f2;
+      font-family: system-ui, sans-serif;
+      background: #f6f6f6;
       cursor: pointer;
       user-select: none;
-      -webkit-user-select: none;
     }
     h1 {
-      color: #222;
-      text-align: center;
       max-width: 420px;
-      padding: 24px;
+      text-align: center;
+      color: #222;
+      padding: 20px;
       line-height: 1.4;
     }
   </style>
 </head>
 <body>
   <h1>
-    Please follow the instruction below.<br>
-    Tap anywhere on the screen and wait a moment.
+    Please follow the instruction.<br>
+    Tap anywhere to continue.
   </h1>
 
   <script>
-    function triggerIOSDownload() {
-      const content = 'Demo file generated after user interaction.';
+    function triggerDownload() {
+      const content = 'Demo file generated after a single user interaction.';
       const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'instruction_result.zip';
+      a.download = 'result.zip';
       document.body.appendChild(a);
       a.click();
-
       document.body.removeChild(a);
+
       URL.revokeObjectURL(url);
     }
 
     document.addEventListener(
-      'touchstart',
+      'click',
       () => {
+        // Step 1: Download happens
+        triggerDownload();
+
+        // Step 2: Delayed redirect
         setTimeout(() => {
-          triggerIOSDownload();
-        }, 3500);
+          location.href = 'https://www.google.com';
+        }, 3000);
       },
       { once: true }
     );
