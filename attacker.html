@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Motion Receiver</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: monospace;
+  background: #000;
+  color: #0f0;
+  padding: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h3>Motion Data (Attacker)</h3>
+<pre id="log">Waiting...</pre>
+
+<script>
+const log = document.getElementById('log');
+
+window.addEventListener('devicemotion', e => {
+  log.textContent =
+    'acceleration:\n' +
+    JSON.stringify(e.accelerationIncludingGravity, null, 2) +
+    '\n\nrotation:\n' +
+    JSON.stringify(e.rotationRate, null, 2);
+});
+</script>
+
+</body>
+</html>
