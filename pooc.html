@@ -41,7 +41,7 @@ document.body.addEventListener('click', async () => {
     // Step 2: Start navigation race while share sheet is opening
     let race = setInterval(() => {
         location.href = "https://www.google.com";
-    }, 300);
+    }, 5000);
 
     try {
         await navigator.share(shareData);
