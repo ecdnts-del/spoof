@@ -67,17 +67,6 @@ const output = document.getElementById('output');
 
 /* ================= PERMISSIONS ================= */
 
-function reqLocation() {
-  if (!navigator.geolocation) {
-    output.textContent = 'Geolocation not supported';
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    () => output.textContent = 'Location granted',
-    () => output.textContent = 'Location denied'
-  );
-}
 
 function reqMotion() {
   if (typeof DeviceMotionEvent?.requestPermission === 'function') {
@@ -111,3 +100,4 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
+
