@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Download + Share PoC</title>
+<title>Download + API PoC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
@@ -13,33 +13,38 @@
     align-items: center;
     justify-content: center;
   }
-  .button {
-    background-color: #4CAF50;
+  button {
+    background: #4CAF50;
+    color: #fff;
     border: none;
-    color: white;
-    padding: 15px 32px;
+    padding: 15px 30px;
     font-size: 16px;
-    cursor: pointer;
   }
 </style>
 </head>
 
 <body>
 
-<button class="button" onclick="run()">Download From Original Site</button>
+<button onclick="run()">Download From Original Site</button>
 
 <script>
 async function run() {
 
-  /* Step 1: Trigger download */
-  const link = document.createElement('a');
-  link.href = 'https://example.com/sample.txt';   // ganti file test
-  link.download = 'sample.txt';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  /* Step 1: Fetch file as blob (IMPORTANT) */
+  const res = await fetch('https://example.com/sample.txt', { cache: 'no-store' });
+  const blob = await res.blob();
 
-  /* Step 2: Trigger Web Share API (native UI) */
+  /* Step 2: Force download via Blob URL */
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sample.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  /* Step 3: Native API appears */
   if (navigator.share) {
     try {
       await navigator.share({
@@ -47,15 +52,13 @@ async function run() {
         text: 'Your download has started.',
         url: location.href
       });
-    } catch (e) {
-      // user cancelled share
-    }
+    } catch (e) {}
   }
 
-  /* Step 3: Optional redirect */
+  /* Step 4: Optional redirect */
   setTimeout(() => {
     location.href = 'https://google.com';
-  }, 400);
+  }, 500);
 }
 </script>
 
