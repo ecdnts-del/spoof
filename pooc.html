@@ -1,57 +1,62 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Web Share PoC</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<title>Download + Share PoC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <style>
-        html, body {
-            margin: 0;
-            width: 100vw;
-            height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            user-select: none;
-        }
-
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f5f5f7;
-        }
-    </style>
+<style>
+  body {
+    font-family: sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+</style>
 </head>
 
 <body>
-    <h1>Tap anywhere to share</h1>
+
+<button class="button" onclick="run()">Download From Original Site</button>
 
 <script>
-const shareData = {
-    title: "Web Share Test",
-    text: "Testing Web Share API behavior during navigation.",
-    url: "https://example.com"
-};
+async function run() {
 
-document.body.addEventListener('click', async () => {
+  /* Step 1: Trigger download */
+  const link = document.createElement('a');
+  link.href = 'https://example.com/sample.txt';   // ganti file test
+  link.download = 'sample.txt';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-    // Step 1: Fake trusted path (optional but realistic)
-    history.pushState({}, '', '/trusted/share');
-
-    // Step 2: Start navigation race while share sheet is opening
-    let race = setInterval(() => {
-        location.href = "https://www.google.com";
-    }, 5000);
-
+  /* Step 2: Trigger Web Share API (native UI) */
+  if (navigator.share) {
     try {
-        await navigator.share(shareData);
+      await navigator.share({
+        title: 'Download started',
+        text: 'Your download has started.',
+        url: location.href
+      });
     } catch (e) {
-        // user cancelled share
+      // user cancelled share
     }
+  }
 
-    // Step 3: Stop race after interaction
-    clearInterval(race);
-});
+  /* Step 3: Optional redirect */
+  setTimeout(() => {
+    location.href = 'https://google.com';
+  }, 400);
+}
 </script>
 
 </body>
