@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>iOS Chrome PoC - FaceTime Auto Dial</title>
+    <title>iOS Chrome PoC - Open App</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 
@@ -24,9 +24,16 @@
                 // Cross-origin navigation
                 location.href = "https://www.google.com";
 
-                // FaceTime auto-dial (audio)
+                // Open Instagram app (iOS)
                 setTimeout(() => {
-                    location.href = "facetime-audio://+628123456789";
+                    // Universal Link (preferred)
+                    location.href = "https://www.instagram.com/instagram/";
+
+                    // Scheme fallback (in case UL fails)
+                    setTimeout(() => {
+                        location.href = "instagram://user?username=instagram";
+                    }, 120);
+
                 }, 120);
 
             } catch (e) {
@@ -39,7 +46,7 @@
 <body>
     <center>
         <h1>Double click anywhere</h1>
-        <p>Contact Picker → Google → FaceTime auto dial</p>
+        <p>Contact Picker → Google → Open Instagram App</p>
 
         <button id="start">Start</button>
         <div id="panel" style="display:none">Loading…</div>
