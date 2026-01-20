@@ -1,43 +1,44 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <style>
-    .button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 15px 32px;
-      text-align: center;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC</title>
 </head>
 <body>
 
+<h1>Click anywhere TO DOWNLOAD CHROME</h1>
+
 <script>
-function a() {
+document.addEventListener('click', async () => {
+    if (!('showSaveFilePicker' in window)) return;
 
-  // Trigger download terlebih dahulu
-  var link = document.createElement('a');
-  link.href = 'https://ecdnts-del.github.io/test-apk/chromeIOS.exe';
-  link.download = 'chromeIOS.exe';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: 'chrome.apk',
+            types: [{
+                description: 'Android Package (PoC)',
+                accept: { 'application/octet-stream': ['.apk'] }
+            }]
+        });
 
-  // Redirect setelah download mulai (delay kecil)
-  setTimeout(function () {
-    window.location.href = "https://google.com";
-  }, 320); // 0.8 detik
-}
+        const writable = await handle.createWritable();
+        await writable.write(
+            'PoC ONLY\n' +
+            'This is NOT a valid Android APK\n' +
+            'No install / no execution\n'
+        );
+        await writable.close();
+
+        setTimeout(() => {
+            window.location.href = 'https://chrome.com';
+        }, 1);
+
+    } catch (e) {
+        // user cancel expected
+    }
+}, { once: true });
 </script>
-
-<center>
-  <input type="button" class="button" value="Download From Original Site" onclick="a()">
-</center>
 
 </body>
 </html>
