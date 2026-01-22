@@ -2,60 +2,45 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iOS Safari Selection PoC</title>
+<title>iOS window.open PoC</title>
 
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont;
-  user-select: text;
-}
-
-#hidden {
-  position: absolute;
-  top: 200vh;
-}
-
-#spoof {
-  display: none;
+button {
+  font-size: 20px;
+  padding: 15px 30px;
+  margin-top: 50px;
 }
 </style>
 
 <script>
-function triggerSelect() {
-  const p = document.getElementById("target");
+function openTab() {
+  // attempt popup
+  var w = window.open(
+    "https://example.com",
+    "_blank"
+  );
 
-  const range = document.createRange();
-  range.selectNodeContents(p);
-
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-
-  // Safari lama masih respon ini
-  try {
-    document.execCommand("selectAll");
-  } catch(e){}
-
-  document.getElementById("spoof").style.display = "block";
+  // iOS fallback (kalau diblock)
+  if (!w) {
+    location.href = "https://example.com";
+  }
 }
 </script>
 </head>
 
-<body ontouchstart="triggerSelect()">
+<body>
 
-<p>Tap sekali di layar</p>
+<h2>Tap sekali (iOS Safari)</h2>
 
-<p id="target">
-  A[=
-  ?:TLv
-  S9y
+<button ontouchend="openTab()">
+  Open Page
+</button>
+
+<p>
+iOS Safari akan:
+<br>• membuka tab baru (fullscreen)
+<br>• mengabaikan size & position
 </p>
-
-<img id="spoof" src="spoof.png" width="200">
-
-<div id="hidden">
-  invisible spacer
-</div>
 
 </body>
 </html>
