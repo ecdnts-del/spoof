@@ -2,7 +2,11 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TEST REAL</title>
+<title>FINAL POC</title>
+<style>
+  body { margin:0; font-family:sans-serif }
+  #content { padding:40px }
+</style>
 </head>
 <body>
 
@@ -11,11 +15,13 @@
   <p>Lorem ipsum dolor sit amet</p>
 </div>
 
-<button onclick="go()">TAP SEKALI</button>
+<button onclick="go()" style="font-size:20px;margin:20px">
+TAP
+</button>
 
 <script>
-function go() {
-  // SELECT ALL (REAL, STABIL)
+async function go() {
+  // 1️⃣ SELECT ALL (STABIL)
   const el = document.getElementById("content");
   const range = document.createRange();
   range.selectNodeContents(el);
@@ -23,20 +29,28 @@ function go() {
   sel.removeAllRanges();
   sel.addRange(range);
 
-  // SAVE FILE PICKER (TXT BUATAN SENDIRI)
+  // 2️⃣ MASUK FULLSCREEN (INI KUNCI EFEK YANG KAMU LIHAT)
+  if (document.documentElement.requestFullscreen) {
+    await document.documentElement.requestFullscreen();
+  }
+
+  // 3️⃣ TRIGGER DOWNLOAD (TXT BUATAN SENDIRI)
   const blob = new Blob(
     ["Ini file txt buatan JS"],
     { type: "text/plain" }
   );
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "test.zip";
+  a.download = "test.txt";
   a.click();
 
-  // REDIRECT (HARUS PALING TERAKHIR)
+  // 4️⃣ KELUAR FULLSCREEN + REDIRECT
   setTimeout(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
     location.href = "https://chrome.com";
-  }, 800);
+  }, 700);
 }
 </script>
 
