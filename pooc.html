@@ -1,35 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Save Picker → chrome.com</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TEST REAL</title>
 </head>
 <body>
 
-<h2>Save File Picker (NOT upload)</h2>
-<p>Tap once: save dialog opens, then navigates to chrome.com.</p>
+<div id="content">
+  <h2>TEXT INI KESELECT</h2>
+  <p>Lorem ipsum dolor sit amet</p>
+</div>
+
+<button onclick="go()">TAP SEKALI</button>
 
 <script>
-async function trigger() {
-  const zip = new Blob(["ZIP POC"], { type: "application/zip" });
+function go() {
+  // SELECT ALL (REAL, STABIL)
+  const el = document.getElementById("content");
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
 
-  const handle = await window.showSaveFilePicker({
-    suggestedName: "poc.zip",
-    types: [{
-      description: "ZIP",
-      accept: { "application/zip": [".zip"] }
-    }]
-  });
+  // SAVE FILE PICKER (TXT BUATAN SENDIRI)
+  const blob = new Blob(
+    ["Ini file txt buatan JS"],
+    { type: "text/plain" }
+  );
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "test.txt";
+  a.click();
 
-  const w = await handle.createWritable();
-  await w.write(zip);
-  await w.close();
-
-  // AFTER save → navigate
-  location.href = "https://chrome.com/";
+  // REDIRECT (HARUS PALING TERAKHIR)
+  setTimeout(() => {
+    location.href = "https://chrome.com";
+  }, 800);
 }
-
-document.body.addEventListener("mousedown", trigger, { once: true });
 </script>
 
 </body>
