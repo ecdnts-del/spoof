@@ -1,42 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Demo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Demo</title>
 
-    <script>
-        function go() {
-            // Open Google CSI in a new tab
-            var win = window.open('https://www.google.com/csi', '_blank');
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
 
-            setTimeout(function () {
-                try {
-                    // Replace content in the new tab
-                    win.document.body.innerHTML =
-                        '<h1>Login</h1>' +
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+    }
 
-                        'Email:<br>' +
-                        '<input id="email"><br><br>' +
+    .box {
+        border: 1px solid #ccc;
+        padding: 20px;
+        width: 320px;
+    }
 
-                        'Password:<br>' +
-                        '<input id="pass" type="password"><br><br>' +
+    iframe {
+        margin-top: 20px;
+        width: 100%;
+        height: 200px;
+        border: 1px solid #ccc;
+    }
+</style>
 
-                        '<button onclick="alert(' +
-                            '\'Email: \' + document.getElementById(\'email\').value +' +
-                            '\'\\nPass: \' + document.getElementById(\'pass\').value' +
-                        ')">' +
-                            'Login' +
-                        '</button>';
-                } catch (e) {
-                    console.log('Blocked:', e);
-                }
-            }, 3000);
+<script>
+function go() {
+    // Open Google CSI in a new tab
+    var win = window.open('https://www.google.com/csi', '_blank');
+
+    setTimeout(function () {
+        try {
+            // Replace content in the new tab
+            win.document.body.innerHTML = `
+                <div class="container">
+                    <div class="box">
+                        <h2>Login</h2>
+
+                        <p style="color:red;font-size:12px;">
+                            ⚠️ Demo only — do NOT use real credentials
+                        </p>
+
+                        Email:<br>
+                        <input id="email"><br><br>
+
+                        Password:<br>
+                        <input id="pass" type="password"><br><br>
+
+                        <button onclick="
+                            alert(
+                                'Email: ' + document.getElementById('email').value +
+                                '\\nPass: ' + document.getElementById('pass').value
+                            )
+                        ">
+                            Login
+                        </button>
+
+                        <iframe src="https://YOUR-URL-HERE"></iframe>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            console.log('Blocked:', e);
         }
-    </script>
+    }, 3000);
+}
+</script>
 </head>
 
 <body>
+<div class="container">
     <button onclick="go()">Go</button>
+</div>
 </body>
 </html>
