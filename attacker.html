@@ -5,25 +5,19 @@
 <title>Attacker Page</title>
 <style>
   body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-  button { padding: 15px 25px; font-size: 16px; }
+  iframe { width: 400px; height: 400px; border: 2px solid black; }
 </style>
 </head>
 <body>
 
 <h2>Attacker Page</h2>
-<p>Buka Victim Page</p>
-<button id="openBtn">Open Victim</button>
+<p>Embedding Victim Page</p>
 
-<script>
-document.getElementById("openBtn").onclick = () => {
-  // Buka Victim di tab baru / window baru
-  window.open(
-    "https://cnfdnfial-ops.github.io/spoof/victim.html",
-    "_blank",
-    "width=400,height=600"
-  );
-};
-</script>
+<iframe 
+  src="victim.html"
+  allow="camera; web-share"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+</iframe>
 
 </body>
 </html>
