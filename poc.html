@@ -2,71 +2,56 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PiP Close on Share</title>
+  <title>PiP + WebShare</title>
   <style>
     body { font-family: sans-serif; text-align: center; margin-top: 40px; }
-    video { width: 300px; border-radius: 12px; background: #000; }
-    button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+    video { width: 300px; background: black; border-radius: 12px; }
+    button { padding: 12px 24px; font-size: 16px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-  <h2>PiP Close When Share</h2>
+<h2>1 Button: PiP + Share</h2>
 
-  <video id="video" autoplay playsinline muted></video>
-  <br>
-  <button id="pipBtn">Enter PiP</button>
-  <button id="shareBtn">Share (Close PiP)</button>
+<video id="video" autoplay playsinline muted></video>
+<br>
+<button id="startBtn">Start PiP + Share</button>
 
-  <script>
-    const video = document.getElementById("video");
+<script>
+const video = document.getElementById("video");
+const button = document.getElementById("startBtn");
 
-    // Start Camera
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-      } catch (err) {
-        alert("Camera error: " + err.message);
-      }
+// Start camera
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+}
+
+button.onclick = async () => {
+  try {
+    // 1️⃣ Masuk PiP
+    if (document.pictureInPictureEnabled) {
+      await video.requestPictureInPicture();
     }
 
-    // Enter PiP
-    document.getElementById("pipBtn").onclick = async () => {
-      try {
-        if (document.pictureInPictureEnabled) {
-          await video.requestPictureInPicture();
-        }
-      } catch (err) {
-        alert("PiP error: " + err.message);
-      }
-    };
+    // 2️⃣ Panggil Web Share
+    if (navigator.share) {
+      await navigator.share({
+        title: "Test Share",
+        text: "Testing PiP + Web Share",
+        url: location.href
+      });
+    } else {
+      alert("Web Share API tidak didukung");
+    }
 
-    // Share + Close PiP
-    document.getElementById("shareBtn").onclick = async () => {
-      try {
-        // Tutup PiP dulu kalau aktif
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        }
+  } catch (err) {
+    console.log("Error:", err);
+  }
+};
 
-        if (navigator.share) {
-          await navigator.share({
-            title: "Test Share",
-            text: "Testing Web Share API",
-            url: location.href
-          });
-        } else {
-          alert("Web Share API not supported");
-        }
-
-      } catch (err) {
-        console.log("Share cancelled or error:", err);
-      }
-    };
-
-    startCamera();
-  </script>
+startCamera();
+</script>
 
 </body>
 </html>
