@@ -26,22 +26,19 @@ btn.onclick = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
 
-    // Post stream ke parent (attacker) jika ada
+    // Jika ada parent (attacker), biarkan melihat video
     if (window.parent !== window) {
-      // Note: you cannot send MediaStream via postMessage, only metadata
-      // But same-origin iframe, attacker can access video.srcObject directly
-      console.log("Camera started in Victim iframe");
+      console.log("Attacker iframe can see this video");
     }
 
-    // Trigger Web Share (only visible to Victim)
+    // Web Share hanya untuk Victim
     if (navigator.share) {
       await navigator.share({
         title: "WebShare + Camera",
-        text: "Testing camera overlay by Web Share API",
+        text: "Camera overlay test",
         url: location.href
       });
     }
-
   } catch (err) {
     console.error("Error:", err);
   }
