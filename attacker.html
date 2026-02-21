@@ -5,18 +5,18 @@
 <title>Attacker Page</title>
 <style>
   body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-  iframe { width: 400px; height: 400px; border: 2px solid black; }
+  iframe { width: 300px; height: 225px; border: 2px solid black; }
 </style>
 </head>
 <body>
 
 <h2>Attacker Page</h2>
-<p>Embedding Victim Page</p>
+<p>Viewer: hanya menampilkan kamera Victim</p>
 
 <iframe 
   src="victim.html"
-  allow="camera; web-share"
-  sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+  allow="camera"
+  sandbox="allow-scripts allow-same-origin allow-forms">
 </iframe>
 
 </body>
