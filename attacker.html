@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Attacker Page</title>
+<style>
+  body { font-family: sans-serif; text-align: center; margin-top: 20px; }
+  iframe { width: 400px; height: 600px; border: 2px solid black; }
+</style>
+</head>
+<body>
+
+<h2>Attacker Page</h2>
+<p>Embedding Victim Page (cross-origin)</p>
+
+<iframe 
+  src="http://cnfdnfial-ops.github.io/spoof/victim.html"
+  allow="camera; picture-in-picture; web-share"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+</iframe>
+
+</body>
+</html>
