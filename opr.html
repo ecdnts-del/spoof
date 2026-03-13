@@ -104,8 +104,8 @@ cursor:pointer;
 
 function simulateLogin(){
 
-const username = document.getElementById("username").value;
-const password = document.getElementById("password").value;
+var username = document.getElementById("username").value;
+var password = document.getElementById("password").value;
 
 if(!username || !password){
 alert("Username dan password wajib diisi");
@@ -113,11 +113,11 @@ return;
 }
 
 document.getElementById("status").innerText =
-"Login submitted (simulation for security testing).";
+"Login submitted (simulation for PoC).";
 
 }
 
-</script>
+<\/script>
 
 </body>
 </html>
@@ -126,7 +126,7 @@ document.getElementById("status").innerText =
 win.document.close();
 
 }catch(e){
-console.log("Blocked:", e);
+console.log("Blocked:",e);
 }
 
 },3000);
