@@ -2,203 +2,163 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WebView Hunter v4</title>
+<title>WebView Impact Tester</title>
 <style>
-body {
-    font-family: monospace;
-    background:#000;
-    color:#0f0;
-    padding:20px;
-}
-button {
-    padding:15px;
-    font-size:16px;
-}
-pre {
-    background:#111;
-    padding:10px;
-    height:420px;
-    overflow:auto;
-}
+body { background:#000; color:#0f0; font-family: monospace; padding:15px;}
+button { padding:15px; font-size:16px;}
+pre { background:#111; height:400px; overflow:auto; padding:10px;}
 </style>
 </head>
 <body>
 
-<h2>🔥 WebView Hunter v4</h2>
-<button onclick="start()">Start Full Audit</button>
+<h2>🔥 WebView Impact Tester</h2>
+<button onclick="start()">Run Test</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
-let score = 0;
-
 const log = (m) => {
     const el = document.getElementById("log");
     el.innerText += "\n" + m;
     el.scrollTop = el.scrollHeight;
 };
 
-function addRisk(points, msg) {
-    score += points;
-    log("⚠️ [" + points + "] " + msg);
-}
+let bridges = [];
 
-// =======================
-// ENV
-// =======================
-function detectEnv() {
-    const ua = navigator.userAgent;
+// =================
+// DETECT
+// =================
+function detect() {
+    log("[*] Detecting...");
 
-    log("[*] UA: " + ua);
-
-    if (ua.includes("wv")) {
-        addRisk(2, "Android WebView detected");
-    }
-
-    if (window.Android) {
-        addRisk(5, "Android JS bridge exposed");
-    }
-
-    if (window.webkit) {
-        addRisk(3, "iOS WebKit bridge present");
-    }
-}
-
-// =======================
-// GLOBAL ENUM
-// =======================
-function scanGlobals() {
-    log("\n[*] Scanning globals...");
+    if (navigator.userAgent.includes("wv"))
+        log("🔥 WebView detected");
 
     Object.getOwnPropertyNames(window).forEach(k => {
         try {
-            const lower = k.toLowerCase();
-
-            if (
-                lower.includes("android") ||
-                lower.includes("bridge") ||
-                lower.includes("native") ||
-                lower.includes("interface")
-            ) {
-                log("🔥 Object: " + k);
-
-                const obj = window[k];
-
-                Object.getOwnPropertyNames(obj).forEach(fn => {
-                    log("   ↳ " + fn);
-
-                    if (
-                        fn.toLowerCase().includes("token") ||
-                        fn.toLowerCase().includes("auth") ||
-                        fn.toLowerCase().includes("user") ||
-                        fn.toLowerCase().includes("file")
-                    ) {
-                        addRisk(5, "Sensitive method: " + fn);
-                    }
-                });
+            if (typeof window[k] === "object") {
+                if (k.match(/android|bridge|native|interface/i)) {
+                    log("🔥 Bridge: " + k);
+                    bridges.push(k);
+                }
             }
         } catch(e){}
     });
 }
 
-// =======================
-// FILE TEST
-// =======================
-function fileTest() {
-    log("\n[*] Testing file:// ...");
+// =================
+// IMPACT TEST
+// =================
+function testImpact() {
+    log("\n[*] Testing bridge impact...");
 
-    const img = new Image();
+    bridges.forEach(name => {
+        try {
+            const obj = window[name];
+            if (!obj) return;
 
-    img.onload = () => addRisk(5, "file:// accessible");
-    img.onerror = () => log("[+] file:// blocked");
+            log("\n🔥 Testing: " + name);
 
-    img.src = "file:///sdcard/test.jpg";
+            Object.getOwnPropertyNames(obj).forEach(fn => {
+                try {
+                    if (typeof obj[fn] === "function") {
+
+                        let start = performance.now();
+
+                        let res;
+                        try {
+                            res = obj[fn]("ping_test");
+                        } catch(e) {
+                            log("   → blocked: " + fn);
+                            return;
+                        }
+
+                        let duration = (performance.now() - start).toFixed(2);
+
+                        log("   → called: " + fn + " (" + duration + "ms)");
+
+                        // ✅ bukti impact (behavior difference)
+                        if (res !== undefined) {
+                            log("   💥 RETURN VALUE DETECTED");
+                            document.body.style.background = "darkred";
+                        }
+
+                    }
+                } catch(e){}
+            });
+
+        } catch(e){}
+    });
 }
 
-// =======================
-// POPUP TEST
-// =======================
-function popupTest() {
-    log("\n[*] Testing popup...");
+// =================
+// POSTMESSAGE REAL FLOW
+// =================
+function testPostMessage() {
+    log("\n[*] Testing postMessage channel...");
 
-    try {
-        const w = window.open("about:blank");
-
-        if (w) {
-            addRisk(2, "Popups allowed");
-            w.close();
-        }
-    } catch(e){}
-}
-
-// =======================
-// INTENT TEST
-// =======================
-function intentTest() {
-    log("\n[*] Testing intent://");
-
-    try {
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = "intent://test#Intent;scheme=https;package=com.google.android.gm;end";
-        document.body.appendChild(iframe);
-
-        addRisk(2, "Intent trigger allowed");
-    } catch(e){}
-}
-
-// =======================
-// POSTMESSAGE
-// =======================
-function messageTest() {
-    log("\n[*] Listening postMessage...");
+    let received = false;
 
     window.addEventListener("message", (e) => {
         if (e.origin !== location.origin) {
-            log("🚨 Cross-origin message: " + e.origin);
+            received = true;
+
+            log("\n🚨 MESSAGE RECEIVED");
+            log("Origin: " + e.origin);
 
             try {
-                const data = JSON.stringify(e.data);
-
-                if (data.includes("token") || data.includes("auth")) {
-                    addRisk(5, "Sensitive data via postMessage");
-                }
-
-                log("Data: " + data.slice(0,200));
+                log("Data size: " + JSON.stringify(e.data).length);
             } catch {}
+
+            document.body.style.background = "darkred";
         }
     });
 
-    window.postMessage({ping:1}, "*");
+    // kirim beberapa payload (legit probing)
+    const payloads = [
+        {ping:1},
+        {type:"init"},
+        {action:"test"},
+        {debug:true}
+    ];
+
+    payloads.forEach(p => {
+        try {
+            window.postMessage(p, "*");
+        } catch(e){}
+    });
+
+    setTimeout(() => {
+        if (!received) log("[+] No response detected");
+    }, 2000);
 }
 
-// =======================
-// FINAL SCORE
-// =======================
-function reportScore() {
-    log("\n======================");
-    log("🔥 FINAL RISK SCORE: " + score);
+// =================
+// SIDE EFFECT DETECTOR
+// =================
+function detectSideEffects() {
+    log("\n[*] Monitoring side effects...");
 
-    if (score >= 10) log("🚨 HIGH RISK - likely reportable");
-    else if (score >= 5) log("⚠️ MEDIUM RISK");
-    else log("[+] LOW RISK");
+    let hidden = document.hidden;
 
-    log("======================");
+    setInterval(() => {
+        if (document.hidden !== hidden) {
+            hidden = document.hidden;
+            log("⚠️ Visibility changed (possible app interaction)");
+        }
+    }, 500);
 }
 
-// =======================
+// =================
 // RUN
-// =======================
+// =================
 function start() {
-    log("[*] Starting audit...\n");
+    log("[*] Starting impact test...\n");
 
-    detectEnv();
-    setTimeout(scanGlobals, 500);
-    setTimeout(fileTest, 1000);
-    setTimeout(popupTest, 1500);
-    setTimeout(intentTest, 2000);
-    setTimeout(messageTest, 2500);
-    setTimeout(reportScore, 4000);
+    detect();
+    setTimeout(testImpact, 1000);
+    setTimeout(testPostMessage, 2500);
+    setTimeout(detectSideEffects, 4000);
 }
 </script>
 
