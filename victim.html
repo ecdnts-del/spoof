@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen + Web Share PoC</title>
+<meta charset="UTF-8">
+<title>Fullscreen + Gmail + Web Share PoC</title>
 <style>
 body {
     font-family: Arial;
@@ -27,7 +28,7 @@ button {
 </head>
 <body>
 
-<button id="fullscreenBtn">Enter Fullscreen & Share</button>
+<button id="fullscreenBtn">Enter Fullscreen & Open Gmail & Share</button>
 
 <script>
 const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
@@ -45,17 +46,29 @@ function report(event) {
 document.getElementById("fullscreenBtn").addEventListener("click", async () => {
     report("fullscreen_button_clicked");
 
-    // masuk fullscreen
+    // 1️⃣ Masuk fullscreen
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
         await elem.requestFullscreen();
     } else if (elem.webkitRequestFullscreen) { 
         await elem.webkitRequestFullscreen();
     }
-
     report("fullscreen_entered");
 
-    // Web Share API (hanya di browser / Android support)
+    // 2️⃣ Trigger Gmail compose (intent safe)
+    try {
+        const gmailIntent = "mailto:test@example.com?subject=PoC&body=Testing%20Gmail%20compose";
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = gmailIntent;
+        document.body.appendChild(iframe);
+        report("gmail_intent_triggered");
+    } catch (e) {
+        report("gmail_intent_error");
+        console.log(e);
+    }
+
+    // 3️⃣ Web Share API
     if (navigator.share) {
         try {
             await navigator.share({
