@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WebView Security Auditor v2</title>
+<title>WebView Hunter v3</title>
 <style>
 body {
     font-family: monospace;
@@ -17,15 +17,15 @@ button {
 pre {
     background:#111;
     padding:10px;
-    height:350px;
+    height:400px;
     overflow:auto;
 }
 </style>
 </head>
 <body>
 
-<h2>WebView Security Auditor v2</h2>
-<button onclick="start()">Start Scan</button>
+<h2>🔥 WebView Hunter v3</h2>
+<button onclick="start()">Start Deep Scan</button>
 
 <pre id="log">Waiting...</pre>
 
@@ -36,28 +36,31 @@ const log = (m) => {
     el.scrollTop = el.scrollHeight;
 };
 
-// 🔍 Detect WebView indicators
-function detectWebView() {
+// =======================
+// 🔍 ENV DETECTION
+// =======================
+function detectEnv() {
     log("[*] Detecting environment...");
 
     const ua = navigator.userAgent;
     log("UA: " + ua);
 
     if (ua.includes("wv")) log("🔥 Android WebView detected");
-    if (ua.includes("Version/") && ua.includes("Chrome")) log("🔥 Possible WebView");
+    if (ua.includes("Version/") && ua.includes("Chrome"))
+        log("🔥 Possible embedded WebView");
 
-    if (window.Android) log("🔥 Android bridge object present");
-    if (window.webkit) log("🔥 iOS WebKit bridge present");
+    if (window.Android) log("🔥 Android bridge FOUND");
+    if (window.webkit) log("🔥 iOS WebKit bridge FOUND");
 }
 
-// 🔍 Find suspicious global objects
-function findInterestingObjects() {
-    log("[*] Scanning window object...");
+// =======================
+// 🔍 GLOBAL ENUM
+// =======================
+function deepEnum() {
+    log("\n[*] Deep scanning window objects...");
 
     Object.getOwnPropertyNames(window).forEach(k => {
         try {
-            if (!k) return;
-
             const lower = k.toLowerCase();
 
             if (
@@ -79,59 +82,99 @@ function findInterestingObjects() {
     });
 }
 
-// 🔍 Safe probing (NO exploit)
-function probeBridges() {
-    log("[*] Probing known bridges...");
+// =======================
+// 🔍 BRIDGE ANALYSIS
+// =======================
+function analyzeBridge() {
+    log("\n[*] Analyzing bridge methods...");
 
-    const candidates = ["Android","Native","Bridge","App","JSInterface"];
+    const names = ["Android","Native","Bridge","App","JSInterface"];
 
-    candidates.forEach(name => {
+    names.forEach(name => {
         try {
-            if (window[name]) {
-                log("🔥 Bridge FOUND: " + name);
+            if (!window[name]) return;
 
-                const obj = window[name];
+            const obj = window[name];
+            log("🔥 Bridge CONFIRMED: " + name);
 
-                Object.getOwnPropertyNames(obj).forEach(fn => {
-                    log("   ↳ method: " + fn);
-                });
+            Object.getOwnPropertyNames(obj).forEach(fn => {
 
-                // safe harmless call test
-                if (typeof obj.toString === "function") {
-                    log("   ↳ toString() works");
+                log("   ↳ " + fn);
+
+                // 🚨 heuristic dangerous names
+                if (
+                    fn.toLowerCase().includes("token") ||
+                    fn.toLowerCase().includes("user") ||
+                    fn.toLowerCase().includes("auth") ||
+                    fn.toLowerCase().includes("file")
+                ) {
+                    log("   ⚠️ POSSIBLE SENSITIVE METHOD: " + fn);
                 }
-            }
+            });
+
         } catch(e){}
     });
 }
 
-// 🔍 Detect risky WebView settings (indirect)
-function detectBehavior() {
-    log("[*] Behavior testing...");
+// =======================
+// 🔍 FILE ACCESS TEST
+// =======================
+function testFileAccess() {
+    log("\n[*] Testing file:// access...");
 
-    // detect popup capability
-    try {
-        const w = window.open("about:blank");
-        if (w) {
-            log("⚠️ window.open allowed (WebView may allow popups)");
-            w.close();
-        }
-    } catch(e){}
-
-    // detect file scheme attempt
     const img = new Image();
-    img.onload = () => log("⚠️ file:// may be accessible");
-    img.onerror = () => log("[+] file:// blocked (good)");
+
+    img.onload = () => log("🚨 file:// ACCESS POSSIBLE");
+    img.onerror = () => log("[+] file:// blocked");
+
     img.src = "file:///sdcard/test.jpg";
 }
 
-// 🔍 postMessage passive listener
-function monitorPostMessage() {
-    log("[*] Listening for postMessage...");
+// =======================
+// 🔍 INTENT TEST
+// =======================
+function testIntent() {
+    log("\n[*] Testing intent://...");
+
+    try {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "intent://test#Intent;scheme=https;package=com.google.android.gm;end";
+        document.body.appendChild(iframe);
+
+        log("⚠️ intent:// triggered");
+    } catch(e) {
+        log("[+] intent blocked");
+    }
+}
+
+// =======================
+// 🔍 POPUP TEST
+// =======================
+function testPopup() {
+    log("\n[*] Testing popup capability...");
+
+    try {
+        const w = window.open("about:blank");
+
+        if (w) {
+            log("⚠️ Popup allowed");
+            w.close();
+        } else {
+            log("[+] Popup blocked");
+        }
+    } catch(e){}
+}
+
+// =======================
+// 🔍 POSTMESSAGE MONITOR
+// =======================
+function monitorMessage() {
+    log("\n[*] Monitoring postMessage...");
 
     window.addEventListener("message", (e) => {
         if (e.origin !== location.origin) {
-            log("🚨 Cross-origin message detected");
+            log("🚨 Cross-origin message");
             log("Origin: " + e.origin);
 
             try {
@@ -140,19 +183,22 @@ function monitorPostMessage() {
         }
     });
 
-    // harmless ping
-    window.postMessage({test:"ping"}, "*");
+    window.postMessage({ping:true}, "*");
 }
 
-// 🚀 Run all
+// =======================
+// 🚀 RUN
+// =======================
 function start() {
-    log("[*] Starting scan...\n");
+    log("[*] Starting deep scan...\n");
 
-    detectWebView();
-    setTimeout(findInterestingObjects, 500);
-    setTimeout(probeBridges, 1000);
-    setTimeout(detectBehavior, 1500);
-    setTimeout(monitorPostMessage, 2000);
+    detectEnv();
+    setTimeout(deepEnum, 500);
+    setTimeout(analyzeBridge, 1000);
+    setTimeout(testFileAccess, 1500);
+    setTimeout(testIntent, 2000);
+    setTimeout(testPopup, 2500);
+    setTimeout(monitorMessage, 3000);
 }
 </script>
 
