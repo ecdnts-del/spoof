@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Gmail WebView Deep Link Auditor</title>
+<title>IG WebView Security Auditor</title>
 <style>
 body {
     background:#000;
@@ -17,15 +17,15 @@ button {
 pre {
     background:#111;
     padding:10px;
-    height:400px;
+    height:420px;
     overflow:auto;
 }
 </style>
 </head>
 <body>
 
-<h2>🔥 Gmail WebView Auditor (Safe VRP PoC)</h2>
-<button onclick="start()">Start Test</button>
+<h2>🔥 Instagram WebView Auditor</h2>
+<button onclick="start()">Start Scan</button>
 
 <pre id="log">Waiting...</pre>
 
@@ -36,122 +36,153 @@ const log = (m) => {
     el.scrollTop = el.scrollHeight;
 };
 
-// ==========================
+// =======================
 // ENV DETECTION
-// ==========================
+// =======================
 function detectEnv() {
     const ua = navigator.userAgent;
     log("[*] UA: " + ua);
 
+    if (ua.includes("Instagram")) log("🔥 Instagram WebView detected");
     if (ua.includes("wv")) log("🔥 Android WebView detected");
-    if (ua.includes("Instagram")) log("🔥 Instagram WebView");
 }
 
-// ==========================
-// GMAIL DEEP LINK TEST
-// ==========================
-function testGmailIntent() {
-    log("\n[*] Testing Gmail deep link...");
+// =======================
+// BRIDGE ENUMERATION
+// =======================
+function enumBridge() {
+    log("\n[*] Scanning bridges...");
 
-    const intent = "mailto:test@example.com?subject=PoC_TEST&body=Hello";
-
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = intent;
-
-    document.body.appendChild(iframe);
-
-    log("⚠️ Gmail intent triggered (mailto)");
-}
-
-// ==========================
-// VISIBILITY CHECK (IMPORTANT)
-// ==========================
-function checkVisibility() {
-    log("\n[*] Monitoring page visibility...");
-
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            log("🚨 App switched (possible external app opened)");
-        } else {
-            log("[+] Returned to page");
-        }
-    });
-}
-
-// ==========================
-// POSTMESSAGE VALIDATION
-// ==========================
-function testPostMessage() {
-    log("\n[*] Testing postMessage...");
-
-    window.addEventListener("message", (e) => {
-        log("📩 Message received");
-        log("Origin: " + e.origin);
-
+    Object.getOwnPropertyNames(window).forEach(k => {
         try {
-            log("Data: " + JSON.stringify(e.data).slice(0,200));
-        } catch {}
+            if (typeof window[k] === "object") {
+                const name = k.toLowerCase();
 
-        // strict detection
-        if (typeof e.data === "object") {
-            if (
-                e.data.token ||
-                e.data.email ||
-                e.data.user
-            ) {
-                log("🔥 REAL DATA LEAK DETECTED");
-                document.body.style.background = "darkred";
-            }
-        }
-    });
+                if (
+                    name.includes("bridge") ||
+                    name.includes("android") ||
+                    name.includes("native") ||
+                    name.includes("iab")
+                ) {
+                    log("🔥 Bridge/Object: " + k);
 
-    window.postMessage({ping:true}, "*");
-}
+                    try {
+                        Object.getOwnPropertyNames(window[k]).forEach(fn => {
+                            log("   ↳ " + fn);
 
-// ==========================
-// BRIDGE ENUM (SAFE)
-// ==========================
-function detectBridge() {
-    log("\n[*] Checking JS bridges...");
-
-    const names = ["Android","Bridge","App","Native"];
-
-    names.forEach(n => {
-        try {
-            if (window[n]) {
-                log("🔥 Bridge found: " + n);
-
-                Object.getOwnPropertyNames(window[n]).forEach(fn => {
-                    log("   ↳ " + fn);
-                });
+                            if (
+                                fn.toLowerCase().includes("token") ||
+                                fn.toLowerCase().includes("user") ||
+                                fn.toLowerCase().includes("auth")
+                            ) {
+                                log("   ⚠️ Sensitive-looking method: " + fn);
+                            }
+                        });
+                    } catch(e){}
+                }
             }
         } catch(e){}
     });
 }
 
-// ==========================
-// USER INTERACTION CHECK
-// ==========================
-function simulateUserFlow() {
-    log("\n[*] Simulating user interaction...");
+// =======================
+// SAFE BRIDGE INTERACTION
+// =======================
+function testBridgeCall() {
+    log("\n[*] Testing bridge interaction...");
 
-    document.body.click();
+    try {
+        if (window.iabjs_unified_bridge && window.iabjs_unified_bridge.postMessage) {
+            log("🔥 iab bridge detected");
+
+            window.iabjs_unified_bridge.postMessage(
+                JSON.stringify({ test: "ping" })
+            );
+
+            log("   ↳ postMessage sent");
+        }
+    } catch(e) {
+        log("[!] bridge call error");
+    }
 }
 
-// ==========================
+// =======================
+// POSTMESSAGE MONITOR
+// =======================
+function monitorMessages() {
+    log("\n[*] Listening postMessage...");
+
+    window.addEventListener("message", (e) => {
+
+        if (e.origin === location.origin) return;
+
+        log("\n📩 MESSAGE RECEIVED");
+        log("Origin: " + e.origin);
+
+        try {
+            const data = JSON.stringify(e.data);
+            log("Data: " + data.slice(0,300));
+
+            // 🔥 strong detection
+            if (
+                data.includes("token") ||
+                data.includes("email") ||
+                data.includes("session") ||
+                data.includes("auth")
+            ) {
+                log("🔥🔥 POSSIBLE SENSITIVE DATA LEAK");
+                document.body.style.background = "darkred";
+            }
+
+        } catch(e){}
+    });
+
+    window.postMessage({probe:true}, "*");
+}
+
+// =======================
+// INTENT TEST (SAFE)
+// =======================
+function testIntent() {
+    log("\n[*] Testing intent behavior...");
+
+    try {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "intent://test#Intent;scheme=https;package=com.google.android.gm;end";
+
+        document.body.appendChild(iframe);
+
+        log("⚠️ Intent triggered");
+    } catch(e){
+        log("[+] Intent blocked");
+    }
+}
+
+// =======================
+// VISIBILITY TRACKING
+// =======================
+function trackVisibility() {
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            log("🚨 App switched (external app opened?)");
+        }
+    });
+}
+
+// =======================
 // RUN
-// ==========================
+// =======================
 function start() {
-    log("[*] Starting Gmail audit...\n");
+    log("[*] Starting Instagram audit...\n");
 
     detectEnv();
-    checkVisibility();
+    trackVisibility();
 
-    setTimeout(detectBridge, 500);
-    setTimeout(testPostMessage, 1000);
-    setTimeout(testGmailIntent, 2000);
-    setTimeout(simulateUserFlow, 2500);
+    setTimeout(enumBridge, 500);
+    setTimeout(testBridgeCall, 1000);
+    setTimeout(monitorMessages, 1500);
+    setTimeout(testIntent, 2000);
 }
 </script>
 
