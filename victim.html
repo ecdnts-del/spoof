@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Content URI Behavior Test</title>
+<title>Advanced content:// Probe</title>
 </head>
 <body>
-<h3>Testing content:// behavior...</h3>
+<h3>Advanced Probe Running...</h3>
 
 <script>
 const CONFIG = {
@@ -26,6 +26,7 @@ function report(data) {
     });
 }
 
+// ========== XHR ==========
 function testXHR(url, label) {
     const start = performance.now();
     const xhr = new XMLHttpRequest();
@@ -36,65 +37,107 @@ function testXHR(url, label) {
     xhr.onloadend = function() {
         report({
             type: "XHR",
-            label: label,
-            url: url,
+            label,
+            url,
             status: xhr.status,
             duration: performance.now() - start,
             size: xhr.response ? xhr.response.size : 0
         });
     };
 
-    xhr.onerror = function(e) {
-        report({
-            type: "XHR_ERROR",
-            label: label,
-            url: url,
-            error: e.toString()
-        });
-    };
+    xhr.onerror = e => report({ type: "XHR_ERROR", label, error: e.toString() });
 
+    try { xhr.send(); }
+    catch(e) { report({ type: "XHR_EXCEPTION", label, error: e.toString() }); }
+}
+
+// ========== FETCH ==========
+async function testFetch(url, label) {
+    const start = performance.now();
     try {
-        xhr.send();
+        await fetch(url, { mode: "no-cors" });
+        report({
+            type: "FETCH",
+            label,
+            duration: performance.now() - start
+        });
     } catch (e) {
         report({
-            type: "XHR_EXCEPTION",
-            label: label,
-            url: url,
+            type: "FETCH_ERROR",
+            label,
             error: e.toString()
         });
     }
 }
 
+// ========== IFRAME ==========
 function testIframe(url, label) {
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
 
-    iframe.onload = () => report({ type: "IFRAME_LOAD", label, url });
-    iframe.onerror = () => report({ type: "IFRAME_ERROR", label, url });
+    let loaded = false;
+
+    iframe.onload = () => {
+        loaded = true;
+        report({ type: "IFRAME_LOAD", label });
+    };
+
+    iframe.onerror = () => report({ type: "IFRAME_ERROR", label });
+
+    setTimeout(() => {
+        if (!loaded) report({ type: "IFRAME_TIMEOUT", label });
+    }, 3000);
 
     iframe.src = url;
     document.body.appendChild(iframe);
 }
 
+// ========== IMAGE ==========
 function testImage(url, label) {
     const img = new Image();
 
-    img.onload = () => report({ type: "IMG_LOAD", label, url });
-    img.onerror = () => report({ type: "IMG_ERROR", label, url });
+    img.onload = () => report({ type: "IMG_LOAD", label });
+    img.onerror = () => report({ type: "IMG_ERROR", label });
 
     img.src = url;
 }
 
-window.onload = () => {
-    // TARGET (content://)
-    testXHR(CONFIG.TARGET, "TARGET");
-    testIframe(CONFIG.TARGET, "TARGET");
-    testImage(CONFIG.TARGET, "TARGET");
+// ========== WINDOW ==========
+function testWindow(url, label) {
+    const start = performance.now();
+    try {
+        const w = window.open(url, "_blank");
+        setTimeout(() => {
+            report({
+                type: "WINDOW",
+                label,
+                opened: !!w,
+                duration: performance.now() - start
+            });
+        }, 1000);
+    } catch (e) {
+        report({
+            type: "WINDOW_ERROR",
+            label,
+            error: e.toString()
+        });
+    }
+}
 
-    // CONTROL (https://)
-    testXHR(CONFIG.CONTROL, "CONTROL");
-    testIframe(CONFIG.CONTROL, "CONTROL");
-    testImage(CONFIG.CONTROL, "CONTROL");
+// ========== RUN ==========
+window.onload = () => {
+    const tests = [
+        [CONFIG.TARGET, "TARGET"],
+        [CONFIG.CONTROL, "CONTROL"]
+    ];
+
+    tests.forEach(([url, label]) => {
+        testXHR(url, label);
+        testFetch(url, label);
+        testIframe(url, label);
+        testImage(url, label);
+        testWindow(url, label);
+    });
 };
 </script>
 
