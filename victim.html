@@ -2,106 +2,86 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Advanced postMessage Hunter</title>
+<title>postMessage Auditor</title>
 <style>
-body { font-family: Arial; text-align:center; margin-top:50px; }
+body { font-family: Arial; text-align:center; margin-top:40px; }
 button { padding:15px 25px; font-size:16px; }
-pre { background:#111; color:#0f0; padding:10px; text-align:left; width:90%; margin:auto; height:300px; overflow:auto;}
+pre { background:#111; color:#0f0; padding:10px; width:95%; height:300px; overflow:auto; margin:auto;}
 </style>
 </head>
 <body>
 
-<h2>postMessage Hunter</h2>
-<button id="start">Start Scan</button>
+<h2>postMessage Auditor (Clean)</h2>
+<button onclick="start()">Start</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
-const TARGET = "https://contacts.google.com/other";
+const TARGETS = [
+    "https://example.com"
+    // tambahin target yang kamu test (NON-GOOGLE)
+];
 
-const log = (msg) => {
+const log = (m) => {
     const el = document.getElementById("log");
-    el.innerText += "\n" + msg;
+    el.innerText += "\n" + m;
     el.scrollTop = el.scrollHeight;
 };
 
-let iframe;
+let frames = [];
 
-// 🔥 Smart message analyzer
-function analyzeMessage(e) {
-    const data = e.data;
+// 🔒 strict detection
+function isSensitive(data) {
+    if (typeof data !== "object") return false;
 
-    // skip noise
-    if (!data || typeof data !== "object") return;
-
-    const suspiciousKeys = [
-        "token", "auth", "cookie", "session",
-        "jwt", "email", "user", "profile"
-    ];
-
-    const found = suspiciousKeys.filter(k => JSON.stringify(data).toLowerCase().includes(k));
-
-    if (found.length > 0) {
-        log("🔥 POSSIBLE SENSITIVE DATA FOUND");
-        log("Keys: " + found.join(", "));
-        document.body.style.background = "darkred";
-    }
+    return (
+        data.token ||
+        data.access_token ||
+        data.sessionId ||
+        data.authToken ||
+        data.jwt
+    );
 }
 
-// listener global
+// 🎯 listener
 window.addEventListener("message", (e) => {
-    log("\n[MSG]");
+    if (e.origin === location.origin) return;
+
+    log("\n🚨 CROSS ORIGIN MESSAGE");
     log("Origin: " + e.origin);
 
     try {
-        log("Data: " + JSON.stringify(e.data).slice(0, 500));
+        log("Data: " + JSON.stringify(e.data).slice(0,300));
     } catch {}
 
-    // 🚨 cross origin detection
-    if (e.origin !== location.origin) {
-        log("🚨 CROSS-ORIGIN MESSAGE");
+    if (isSensitive(e.data)) {
+        log("🔥 CONFIRMED SENSITIVE DATA LEAK");
+        document.body.style.background = "darkred";
     }
-
-    analyzeMessage(e);
 });
 
-// fuzz sender
-function sendFuzzMessages() {
-    const payloads = [
-        {cmd: "getUser"},
-        {type: "auth"},
-        {action: "dump"},
-        {method: "getToken"},
-        {request: "profile"},
-        {debug: true}
-    ];
-
-    payloads.forEach((p, i) => {
+// 🚀 start scan
+function start() {
+    TARGETS.forEach((url, i) => {
         setTimeout(() => {
-            try {
-                iframe.contentWindow.postMessage(p, "*");
-                log("[>] Sent payload: " + JSON.stringify(p));
-            } catch(e) {}
-        }, i * 500);
+            const iframe = document.createElement("iframe");
+            iframe.src = url;
+            iframe.style.display = "none";
+            document.body.appendChild(iframe);
+            frames.push(iframe);
+
+            log("[*] Loaded: " + url);
+
+            // minimal legit probing
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.postMessage({ping:1}, "*");
+                } catch(e){}
+            }, 2000);
+
+        }, i * 2000);
     });
 }
-
-document.getElementById("start").onclick = () => {
-    log("[*] Loading target...");
-
-    iframe = document.createElement("iframe");
-    iframe.src = TARGET;
-    iframe.style.width = "1px";
-    iframe.style.height = "1px";
-    iframe.style.opacity = "0";
-
-    document.body.appendChild(iframe);
-
-    setTimeout(() => {
-        log("[*] Starting fuzz...");
-        sendFuzzMessages();
-    }, 3000);
-};
 </script>
 
 </body>
