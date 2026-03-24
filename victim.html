@@ -2,102 +2,39 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Android WebView Fullscreen + Gmail + Share PoC</title>
+<title>Screenshot PoC</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: #222;
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: Arial, sans-serif;
-}
-button {
-    padding: 20px 40px;
-    font-size: 18px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    background-color: #ff5722;
-    color: #fff;
-}
+body { font-family: Arial; text-align: center; margin-top: 50px; }
+button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
+#capture { width: 80%; margin: 20px auto; padding: 20px; background: #f5f5f5; border: 2px solid #333; }
 </style>
 </head>
 <body>
 
-<button id="actionBtn">Fullscreen + Share + Gmail Compose</button>
+<div id="capture">
+    <h2>Ini konten yang akan di-screenshot</h2>
+    <p>HTML + JS screenshot test</p>
+</div>
+
+<button id="btnShot">Ambil Screenshot</button>
 
 <script>
-const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
-
-function report(event) {
-    const payload = encodeURIComponent(JSON.stringify({
-        time: Date.now(),
-        ua: navigator.userAgent,
-        event
-    }));
-    const img = new Image();
-    img.src = WEBHOOK + "?d=" + payload;
-}
-
-// tombol utama
-document.getElementById("actionBtn").addEventListener("click", async () => {
-    report("button_clicked");
-
-    // 1️⃣ Fullscreen immersive
-    try {
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) {
-            await elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-            await elem.webkitRequestFullscreen();
-        }
-        document.body.style.overflow = "hidden"; // hide scrollbars
-        report("fullscreen_entered");
-    } catch (e) {
-        report("fullscreen_error");
-        console.log(e);
-    }
-
-    // 2️⃣ Trigger Gmail compose safely
-    try {
-        const gmailIntent = "mailto:test@example.com?subject=PoC&body=Testing%20Gmail%20compose";
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = gmailIntent;
-        document.body.appendChild(iframe);
-        report("gmail_intent_triggered");
-    } catch(e) {
-        report("gmail_intent_error");
-        console.log(e);
-    }
-
-    // 3️⃣ Web Share API
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "PoC Fullscreen Share",
-                text: "Testing Web Share API in Fullscreen mode",
-                url: "https://example.com"
-            });
-            report("share_success");
-        } catch(err) {
-            report("share_cancel_or_error");
-            console.log(err);
-        }
-    } else {
-        alert("Web Share API not supported on this device/browser.");
-        report("share_not_supported");
-    }
+document.getElementById("btnShot").addEventListener("click", async () => {
+    const element = document.getElementById("capture");
+    
+    // html2canvas menangkap element
+    const canvas = await html2canvas(element);
+    
+    // hasil screenshot jadi image URL
+    const imgData = canvas.toDataURL("image/png");
+    
+    // download otomatis
+    const link = document.createElement("a");
+    link.href = imgData;
+    link.download = "screenshot.png";
+    link.click();
 });
-
-// log page load
-window.onload = () => {
-    report("page_loaded");
-};
 </script>
 
 </body>
