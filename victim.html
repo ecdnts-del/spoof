@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WebView Security Auditor</title>
+<title>WebView Security Auditor v2</title>
 <style>
 body {
     font-family: monospace;
@@ -17,14 +17,14 @@ button {
 pre {
     background:#111;
     padding:10px;
-    height:300px;
+    height:350px;
     overflow:auto;
 }
 </style>
 </head>
 <body>
 
-<h2>WebView Security Auditor</h2>
+<h2>WebView Security Auditor v2</h2>
 <button onclick="start()">Start Scan</button>
 
 <pre id="log">Waiting...</pre>
@@ -33,67 +33,105 @@ pre {
 const log = (m) => {
     const el = document.getElementById("log");
     el.innerText += "\n" + m;
+    el.scrollTop = el.scrollHeight;
 };
 
-// 🔍 Detect environment
-function detectEnv() {
+// 🔍 Detect WebView indicators
+function detectWebView() {
     log("[*] Detecting environment...");
 
-    log("UserAgent: " + navigator.userAgent);
+    const ua = navigator.userAgent;
+    log("UA: " + ua);
 
-    if (window.Android) log("🔥 Android bridge detected");
-    if (window.webkit) log("🔥 iOS WebKit bridge detected");
+    if (ua.includes("wv")) log("🔥 Android WebView detected");
+    if (ua.includes("Version/") && ua.includes("Chrome")) log("🔥 Possible WebView");
+
+    if (window.Android) log("🔥 Android bridge object present");
+    if (window.webkit) log("🔥 iOS WebKit bridge present");
 }
 
-// 🔍 Enumerate global objects
-function enumerateGlobals() {
-    log("[*] Enumerating window objects...");
+// 🔍 Find suspicious global objects
+function findInterestingObjects() {
+    log("[*] Scanning window object...");
 
-    Object.keys(window).forEach(k => {
+    Object.getOwnPropertyNames(window).forEach(k => {
         try {
-            if (typeof window[k] === "object") {
-                if (k.toLowerCase().includes("bridge") ||
-                    k.toLowerCase().includes("android") ||
-                    k.toLowerCase().includes("native")) {
+            if (!k) return;
 
-                    log("🔥 Suspicious object: " + k);
+            const lower = k.toLowerCase();
 
-                    try {
-                        Object.keys(window[k]).forEach(fn => {
-                            log("   ↳ method: " + fn);
-                        });
-                    } catch(e){}
-                }
+            if (
+                lower.includes("android") ||
+                lower.includes("bridge") ||
+                lower.includes("native") ||
+                lower.includes("interface")
+            ) {
+                log("🔥 Suspicious object: " + k);
+
+                try {
+                    const obj = window[k];
+                    Object.getOwnPropertyNames(obj).forEach(fn => {
+                        log("   ↳ " + fn);
+                    });
+                } catch(e){}
             }
         } catch(e){}
     });
 }
 
-// 🔍 Safe bridge probing
-function probeBridge() {
-    const names = ["Android","Native","Bridge","App"];
+// 🔍 Safe probing (NO exploit)
+function probeBridges() {
+    log("[*] Probing known bridges...");
 
-    names.forEach(name => {
+    const candidates = ["Android","Native","Bridge","App","JSInterface"];
+
+    candidates.forEach(name => {
         try {
             if (window[name]) {
-                log("🔥 Bridge confirmed: " + name);
+                log("🔥 Bridge FOUND: " + name);
 
-                // safe test
-                if (typeof window[name].toString === "function") {
-                    log("   ↳ toString() callable");
+                const obj = window[name];
+
+                Object.getOwnPropertyNames(obj).forEach(fn => {
+                    log("   ↳ method: " + fn);
+                });
+
+                // safe harmless call test
+                if (typeof obj.toString === "function") {
+                    log("   ↳ toString() works");
                 }
             }
         } catch(e){}
     });
 }
 
-// 🔍 postMessage listener test
-function testPostMessage() {
-    log("[*] Testing postMessage channel");
+// 🔍 Detect risky WebView settings (indirect)
+function detectBehavior() {
+    log("[*] Behavior testing...");
+
+    // detect popup capability
+    try {
+        const w = window.open("about:blank");
+        if (w) {
+            log("⚠️ window.open allowed (WebView may allow popups)");
+            w.close();
+        }
+    } catch(e){}
+
+    // detect file scheme attempt
+    const img = new Image();
+    img.onload = () => log("⚠️ file:// may be accessible");
+    img.onerror = () => log("[+] file:// blocked (good)");
+    img.src = "file:///sdcard/test.jpg";
+}
+
+// 🔍 postMessage passive listener
+function monitorPostMessage() {
+    log("[*] Listening for postMessage...");
 
     window.addEventListener("message", (e) => {
         if (e.origin !== location.origin) {
-            log("🚨 Cross-origin message received");
+            log("🚨 Cross-origin message detected");
             log("Origin: " + e.origin);
 
             try {
@@ -102,17 +140,19 @@ function testPostMessage() {
         }
     });
 
-    window.postMessage({ping:true}, "*");
+    // harmless ping
+    window.postMessage({test:"ping"}, "*");
 }
 
 // 🚀 Run all
 function start() {
     log("[*] Starting scan...\n");
 
-    detectEnv();
-    setTimeout(enumerateGlobals, 500);
-    setTimeout(probeBridge, 1000);
-    setTimeout(testPostMessage, 1500);
+    detectWebView();
+    setTimeout(findInterestingObjects, 500);
+    setTimeout(probeBridges, 1000);
+    setTimeout(detectBehavior, 1500);
+    setTimeout(monitorPostMessage, 2000);
 }
 </script>
 
