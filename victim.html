@@ -2,106 +2,117 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>postMessage Pro Auditor</title>
+<title>WebView Security Auditor</title>
 <style>
-body { font-family: Arial; text-align:center; margin-top:30px; background:#000; color:#0f0;}
-button { padding:15px 25px; font-size:16px; }
-pre { background:#111; color:#0f0; padding:10px; width:95%; height:320px; overflow:auto; margin:auto;}
+body {
+    font-family: monospace;
+    background:#000;
+    color:#0f0;
+    padding:20px;
+}
+button {
+    padding:15px;
+    font-size:16px;
+}
+pre {
+    background:#111;
+    padding:10px;
+    height:300px;
+    overflow:auto;
+}
 </style>
 </head>
 <body>
 
-<h2>postMessage Pro Auditor</h2>
+<h2>WebView Security Auditor</h2>
 <button onclick="start()">Start Scan</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
-const TARGETS = [
-    "https://docs.google.com/forms/u/0/"
-    // isi target real (non big-tech)
-];
-
 const log = (m) => {
     const el = document.getElementById("log");
     el.innerText += "\n" + m;
-    el.scrollTop = el.scrollHeight;
 };
 
-function now() {
-    return new Date().toISOString();
+// 🔍 Detect environment
+function detectEnv() {
+    log("[*] Detecting environment...");
+
+    log("UserAgent: " + navigator.userAgent);
+
+    if (window.Android) log("🔥 Android bridge detected");
+    if (window.webkit) log("🔥 iOS WebKit bridge detected");
 }
 
-// 🔒 strict sensitive detection (NO FALSE POSITIVE)
-function isSensitive(data) {
-    if (!data || typeof data !== "object") return false;
+// 🔍 Enumerate global objects
+function enumerateGlobals() {
+    log("[*] Enumerating window objects...");
 
-    const keys = Object.keys(data);
+    Object.keys(window).forEach(k => {
+        try {
+            if (typeof window[k] === "object") {
+                if (k.toLowerCase().includes("bridge") ||
+                    k.toLowerCase().includes("android") ||
+                    k.toLowerCase().includes("native")) {
 
-    return keys.some(k =>
-        ["token","access_token","authToken","sessionId","jwt"].includes(k)
-    );
-}
+                    log("🔥 Suspicious object: " + k);
 
-// 🔍 deep analyzer
-function analyze(e) {
-    log("\n=== MESSAGE ===");
-    log("Time: " + now());
-    log("Origin: " + e.origin);
-
-    try {
-        const preview = JSON.stringify(e.data).slice(0,400);
-        log("Data: " + preview);
-    } catch {}
-
-    if (e.origin !== location.origin) {
-        log("🚨 CROSS-ORIGIN");
-    }
-
-    if (isSensitive(e.data)) {
-        log("🔥 CONFIRMED SENSITIVE DATA LEAK");
-        document.body.style.background = "darkred";
-    }
-}
-
-// 🎯 listener
-window.addEventListener("message", analyze);
-
-// 🚀 payload set (realistic, not random spam)
-const PAYLOADS = [
-    {type:"ping"},
-    {action:"init"},
-    {method:"getUser"},
-    {cmd:"getSession"},
-    {request:"profile"},
-    {debug:true}
-];
-
-// 🚀 scan runner
-function start() {
-    TARGETS.forEach((url, i) => {
-        setTimeout(() => {
-            const iframe = document.createElement("iframe");
-            iframe.src = url;
-            iframe.style.display = "none";
-            document.body.appendChild(iframe);
-
-            log("\n[*] Loaded: " + url);
-
-            // wait load
-            setTimeout(() => {
-                PAYLOADS.forEach((p, j) => {
-                    setTimeout(() => {
-                        try {
-                            iframe.contentWindow.postMessage(p, "*");
-                            log("[>] Sent → " + JSON.stringify(p));
-                        } catch(e){}
-                    }, j * 400);
-                });
-            }, 2500);
-
-        }, i * 3000);
+                    try {
+                        Object.keys(window[k]).forEach(fn => {
+                            log("   ↳ method: " + fn);
+                        });
+                    } catch(e){}
+                }
+            }
+        } catch(e){}
     });
+}
+
+// 🔍 Safe bridge probing
+function probeBridge() {
+    const names = ["Android","Native","Bridge","App"];
+
+    names.forEach(name => {
+        try {
+            if (window[name]) {
+                log("🔥 Bridge confirmed: " + name);
+
+                // safe test
+                if (typeof window[name].toString === "function") {
+                    log("   ↳ toString() callable");
+                }
+            }
+        } catch(e){}
+    });
+}
+
+// 🔍 postMessage listener test
+function testPostMessage() {
+    log("[*] Testing postMessage channel");
+
+    window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) {
+            log("🚨 Cross-origin message received");
+            log("Origin: " + e.origin);
+
+            try {
+                log("Data: " + JSON.stringify(e.data).slice(0,200));
+            } catch {}
+        }
+    });
+
+    window.postMessage({ping:true}, "*");
+}
+
+// 🚀 Run all
+function start() {
+    log("[*] Starting scan...\n");
+
+    detectEnv();
+    setTimeout(enumerateGlobals, 500);
+    setTimeout(probeBridge, 1000);
+    setTimeout(testPostMessage, 1500);
 }
 </script>
 
