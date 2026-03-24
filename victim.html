@@ -2,15 +2,38 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Gmail Intent Deep Link PoC</title>
+<title>Gmail Intent PoC</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    padding-top: 50px;
+}
+button {
+    padding: 15px 25px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
 </head>
 <body>
-<h3>Gmail Intent Test Running...</h3>
+
+<h2>Gmail Intent Test (Manual Trigger)</h2>
+
+<button onclick="runIntent(0)">Test Basic Compose</button>
+<button onclick="runIntent(1)">Test Subject</button>
+<button onclick="runIntent(2)">Test Body</button>
+
+<br><br>
+
+<button onclick="goFullscreen()">Enter Fullscreen</button>
 
 <script>
-const WEBHOOK = "https://webhook.site/cc134afb-98c9-4219-8ed2-5b7fae0eafc0";
+const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
 
-// 🔥 logging reliable
+// 🔥 logging
 function report(data) {
     const payload = encodeURIComponent(JSON.stringify({
         time: Date.now(),
@@ -22,76 +45,67 @@ function report(data) {
     img.src = WEBHOOK + "?d=" + payload;
 }
 
-// 🎯 Gmail intent variations (safe testing)
+// 🎯 Gmail intents
 const intents = [
     {
         name: "basic_compose",
-        uri: "https://mail.google.com/mail/u/0/#sent"
+        uri: "intent://compose?to=test@example.com#Intent;scheme=mailto;package=com.google.android.gm;end"
     },
     {
         name: "with_subject",
-        uri: "https://mail.google.com/mail/u/0/#sent"
+        uri: "intent://compose?to=test@example.com&subject=TEST_SUBJECT#Intent;scheme=mailto;package=com.google.android.gm;end"
     },
     {
         name: "with_body",
-        uri: "https://mail.google.com/mail/u/0/#sent"
+        uri: "intent://compose?to=test@example.com&body=HELLO_TEST#Intent;scheme=mailto;package=com.google.android.gm;end"
     }
 ];
 
-// 🔥 run single test
-function runTest(intentObj, index) {
+// 🔥 trigger intent via user gesture
+function runIntent(index) {
+    const intentObj = intents[index];
+
     report({
-        event: "intent_attempt",
-        name: intentObj.name,
-        index
+        event: "intent_clicked",
+        name: intentObj.name
     });
 
     try {
-        window.location.href = intentObj.uri;
+        // pakai iframe biar tidak redirect halaman utama
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = intentObj.uri;
+        document.body.appendChild(iframe);
+
+        setTimeout(() => {
+            report({
+                event: "intent_iframe_timeout",
+                name: intentObj.name
+            });
+        }, 2000);
+
     } catch (e) {
         report({
             event: "intent_error",
-            name: intentObj.name,
-            index
+            name: intentObj.name
         });
     }
-
-    // fallback timeout detection
-    setTimeout(() => {
-        report({
-            event: "intent_timeout",
-            name: intentObj.name,
-            index
-        });
-    }, 2500);
 }
 
-// 🔥 sequential runner
-function runAll() {
-    let delay = 0;
+// 🔥 fullscreen
+function goFullscreen() {
+    report({ event: "fullscreen_requested" });
 
-    intents.forEach((intentObj, i) => {
-        setTimeout(() => {
-            runTest(intentObj, i);
-        }, delay);
-
-        delay += 4000; // spacing biar tidak ketabrak
-    });
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+    }
 }
 
-// 🔍 detect user interaction
-document.addEventListener("click", () => {
-    report({ event: "user_click_detected" });
-});
-
-// 🔥 auto trigger
+// log page load
 window.onload = () => {
     report({ event: "page_loaded" });
-
-    setTimeout(() => {
-        report({ event: "auto_trigger_start" });
-        runAll();
-    }, 1000);
 };
 </script>
 
