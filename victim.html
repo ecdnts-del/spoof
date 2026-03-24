@@ -2,39 +2,102 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Screenshot PoC</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>Camera + Share PoC</title>
 <style>
-body { font-family: Arial; text-align: center; margin-top: 50px; }
-button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
-#capture { width: 80%; margin: 20px auto; padding: 20px; background: #f5f5f5; border: 2px solid #333; }
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin-top: 40px;
+}
+video, canvas {
+  width: 300px;
+  height: 225px;
+  background: black;
+  border-radius: 12px;
+}
+button {
+  padding: 15px 25px;
+  font-size: 16px;
+  margin-top: 20px;
+}
 </style>
 </head>
 <body>
 
-<div id="capture">
-    <h2>Ini konten yang akan di-screenshot</h2>
-    <p>HTML + JS screenshot test</p>
-</div>
+<h2>Camera Test</h2>
 
-<button id="btnShot">Ambil Screenshot</button>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<br>
+<button id="actionBtn">Start Camera + Capture + Share</button>
 
 <script>
-document.getElementById("btnShot").addEventListener("click", async () => {
-    const element = document.getElementById("capture");
-    
-    // html2canvas menangkap element
-    const canvas = await html2canvas(element);
-    
-    // hasil screenshot jadi image URL
-    const imgData = canvas.toDataURL("image/png");
-    
-    // download otomatis
-    const link = document.createElement("a");
-    link.href = imgData;
-    link.download = "screenshot.png";
-    link.click();
-});
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const btn = document.getElementById("actionBtn");
+
+const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
+
+// logging ringan
+function report(event) {
+  const img = new Image();
+  img.src = WEBHOOK + "?d=" + encodeURIComponent(JSON.stringify({
+    time: Date.now(),
+    event
+  }));
+}
+
+btn.onclick = async () => {
+  try {
+    report("button_clicked");
+
+    // 1️⃣ Request camera (user permission wajib)
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+
+    report("camera_started");
+
+    // 2️⃣ Tunggu video ready (penting biar tidak blank)
+    await new Promise(resolve => {
+      video.onloadedmetadata = () => {
+        video.play();
+        setTimeout(resolve, 1000); // kasih delay biar frame kebaca
+      };
+    });
+
+    // 3️⃣ Capture frame dari video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    const imageData = canvas.toDataURL("image/png");
+    report("screenshot_taken");
+
+    // 4️⃣ Web Share API (lebih stabil pakai text/url)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Camera Capture",
+          text: "Camera capture completed",
+          url: location.href
+        });
+        report("share_success");
+      } catch (e) {
+        report("share_cancel");
+      }
+    } else {
+      report("share_not_supported");
+      alert("Web Share tidak didukung browser ini");
+    }
+
+  } catch (err) {
+    report("error");
+    console.error(err);
+    alert("Camera permission diperlukan");
+  }
+};
 </script>
 
 </body>
