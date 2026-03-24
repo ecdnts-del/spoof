@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WebView Hunter v3</title>
+<title>WebView Hunter v4</title>
 <style>
 body {
     font-family: monospace;
@@ -17,47 +17,58 @@ button {
 pre {
     background:#111;
     padding:10px;
-    height:400px;
+    height:420px;
     overflow:auto;
 }
 </style>
 </head>
 <body>
 
-<h2>🔥 WebView Hunter v3</h2>
-<button onclick="start()">Start Deep Scan</button>
+<h2>🔥 WebView Hunter v4</h2>
+<button onclick="start()">Start Full Audit</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
+let score = 0;
+
 const log = (m) => {
     const el = document.getElementById("log");
     el.innerText += "\n" + m;
     el.scrollTop = el.scrollHeight;
 };
 
-// =======================
-// 🔍 ENV DETECTION
-// =======================
-function detectEnv() {
-    log("[*] Detecting environment...");
-
-    const ua = navigator.userAgent;
-    log("UA: " + ua);
-
-    if (ua.includes("wv")) log("🔥 Android WebView detected");
-    if (ua.includes("Version/") && ua.includes("Chrome"))
-        log("🔥 Possible embedded WebView");
-
-    if (window.Android) log("🔥 Android bridge FOUND");
-    if (window.webkit) log("🔥 iOS WebKit bridge FOUND");
+function addRisk(points, msg) {
+    score += points;
+    log("⚠️ [" + points + "] " + msg);
 }
 
 // =======================
-// 🔍 GLOBAL ENUM
+// ENV
 // =======================
-function deepEnum() {
-    log("\n[*] Deep scanning window objects...");
+function detectEnv() {
+    const ua = navigator.userAgent;
+
+    log("[*] UA: " + ua);
+
+    if (ua.includes("wv")) {
+        addRisk(2, "Android WebView detected");
+    }
+
+    if (window.Android) {
+        addRisk(5, "Android JS bridge exposed");
+    }
+
+    if (window.webkit) {
+        addRisk(3, "iOS WebKit bridge present");
+    }
+}
+
+// =======================
+// GLOBAL ENUM
+// =======================
+function scanGlobals() {
+    log("\n[*] Scanning globals...");
 
     Object.getOwnPropertyNames(window).forEach(k => {
         try {
@@ -69,72 +80,62 @@ function deepEnum() {
                 lower.includes("native") ||
                 lower.includes("interface")
             ) {
-                log("🔥 Suspicious object: " + k);
+                log("🔥 Object: " + k);
 
-                try {
-                    const obj = window[k];
-                    Object.getOwnPropertyNames(obj).forEach(fn => {
-                        log("   ↳ " + fn);
-                    });
-                } catch(e){}
+                const obj = window[k];
+
+                Object.getOwnPropertyNames(obj).forEach(fn => {
+                    log("   ↳ " + fn);
+
+                    if (
+                        fn.toLowerCase().includes("token") ||
+                        fn.toLowerCase().includes("auth") ||
+                        fn.toLowerCase().includes("user") ||
+                        fn.toLowerCase().includes("file")
+                    ) {
+                        addRisk(5, "Sensitive method: " + fn);
+                    }
+                });
             }
         } catch(e){}
     });
 }
 
 // =======================
-// 🔍 BRIDGE ANALYSIS
+// FILE TEST
 // =======================
-function analyzeBridge() {
-    log("\n[*] Analyzing bridge methods...");
-
-    const names = ["Android","Native","Bridge","App","JSInterface"];
-
-    names.forEach(name => {
-        try {
-            if (!window[name]) return;
-
-            const obj = window[name];
-            log("🔥 Bridge CONFIRMED: " + name);
-
-            Object.getOwnPropertyNames(obj).forEach(fn => {
-
-                log("   ↳ " + fn);
-
-                // 🚨 heuristic dangerous names
-                if (
-                    fn.toLowerCase().includes("token") ||
-                    fn.toLowerCase().includes("user") ||
-                    fn.toLowerCase().includes("auth") ||
-                    fn.toLowerCase().includes("file")
-                ) {
-                    log("   ⚠️ POSSIBLE SENSITIVE METHOD: " + fn);
-                }
-            });
-
-        } catch(e){}
-    });
-}
-
-// =======================
-// 🔍 FILE ACCESS TEST
-// =======================
-function testFileAccess() {
-    log("\n[*] Testing file:// access...");
+function fileTest() {
+    log("\n[*] Testing file:// ...");
 
     const img = new Image();
 
-    img.onload = () => log("🚨 file:// ACCESS POSSIBLE");
+    img.onload = () => addRisk(5, "file:// accessible");
     img.onerror = () => log("[+] file:// blocked");
 
     img.src = "file:///sdcard/test.jpg";
 }
 
 // =======================
-// 🔍 INTENT TEST
+// POPUP TEST
 // =======================
-function testIntent() {
-    log("\n[*] Testing intent://...");
+function popupTest() {
+    log("\n[*] Testing popup...");
+
+    try {
+        const w = window.open("about:blank");
+
+        if (w) {
+            addRisk(2, "Popups allowed");
+            w.close();
+        }
+    } catch(e){}
+}
+
+// =======================
+// INTENT TEST
+// =======================
+function intentTest() {
+    log("\n[*] Testing intent://");
 
     try {
         const iframe = document.createElement("iframe");
@@ -142,63 +143,62 @@ function testIntent() {
         iframe.src = "intent://test#Intent;scheme=https;package=com.google.android.gm;end";
         document.body.appendChild(iframe);
 
-        log("⚠️ intent:// triggered");
-    } catch(e) {
-        log("[+] intent blocked");
-    }
-}
-
-// =======================
-// 🔍 POPUP TEST
-// =======================
-function testPopup() {
-    log("\n[*] Testing popup capability...");
-
-    try {
-        const w = window.open("about:blank");
-
-        if (w) {
-            log("⚠️ Popup allowed");
-            w.close();
-        } else {
-            log("[+] Popup blocked");
-        }
+        addRisk(2, "Intent trigger allowed");
     } catch(e){}
 }
 
 // =======================
-// 🔍 POSTMESSAGE MONITOR
+// POSTMESSAGE
 // =======================
-function monitorMessage() {
-    log("\n[*] Monitoring postMessage...");
+function messageTest() {
+    log("\n[*] Listening postMessage...");
 
     window.addEventListener("message", (e) => {
         if (e.origin !== location.origin) {
-            log("🚨 Cross-origin message");
-            log("Origin: " + e.origin);
+            log("🚨 Cross-origin message: " + e.origin);
 
             try {
-                log("Data: " + JSON.stringify(e.data).slice(0,200));
+                const data = JSON.stringify(e.data);
+
+                if (data.includes("token") || data.includes("auth")) {
+                    addRisk(5, "Sensitive data via postMessage");
+                }
+
+                log("Data: " + data.slice(0,200));
             } catch {}
         }
     });
 
-    window.postMessage({ping:true}, "*");
+    window.postMessage({ping:1}, "*");
 }
 
 // =======================
-// 🚀 RUN
+// FINAL SCORE
+// =======================
+function reportScore() {
+    log("\n======================");
+    log("🔥 FINAL RISK SCORE: " + score);
+
+    if (score >= 10) log("🚨 HIGH RISK - likely reportable");
+    else if (score >= 5) log("⚠️ MEDIUM RISK");
+    else log("[+] LOW RISK");
+
+    log("======================");
+}
+
+// =======================
+// RUN
 // =======================
 function start() {
-    log("[*] Starting deep scan...\n");
+    log("[*] Starting audit...\n");
 
     detectEnv();
-    setTimeout(deepEnum, 500);
-    setTimeout(analyzeBridge, 1000);
-    setTimeout(testFileAccess, 1500);
-    setTimeout(testIntent, 2000);
-    setTimeout(testPopup, 2500);
-    setTimeout(monitorMessage, 3000);
+    setTimeout(scanGlobals, 500);
+    setTimeout(fileTest, 1000);
+    setTimeout(popupTest, 1500);
+    setTimeout(intentTest, 2000);
+    setTimeout(messageTest, 2500);
+    setTimeout(reportScore, 4000);
 }
 </script>
 
