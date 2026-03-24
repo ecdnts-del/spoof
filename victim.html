@@ -2,24 +2,24 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>postMessage Auditor</title>
+<title>postMessage Pro Auditor</title>
 <style>
-body { font-family: Arial; text-align:center; margin-top:40px; }
+body { font-family: Arial; text-align:center; margin-top:30px; background:#000; color:#0f0;}
 button { padding:15px 25px; font-size:16px; }
-pre { background:#111; color:#0f0; padding:10px; width:95%; height:300px; overflow:auto; margin:auto;}
+pre { background:#111; color:#0f0; padding:10px; width:95%; height:320px; overflow:auto; margin:auto;}
 </style>
 </head>
 <body>
 
-<h2>postMessage Auditor (Clean)</h2>
-<button onclick="start()">Start</button>
+<h2>postMessage Pro Auditor</h2>
+<button onclick="start()">Start Scan</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
 const TARGETS = [
-    "https://example.com"
-    // tambahin target yang kamu test (NON-GOOGLE)
+    "https://contacts.google.com/other"
+    // isi target real (non big-tech)
 ];
 
 const log = (m) => {
@@ -28,39 +28,56 @@ const log = (m) => {
     el.scrollTop = el.scrollHeight;
 };
 
-let frames = [];
+function now() {
+    return new Date().toISOString();
+}
 
-// 🔒 strict detection
+// 🔒 strict sensitive detection (NO FALSE POSITIVE)
 function isSensitive(data) {
-    if (typeof data !== "object") return false;
+    if (!data || typeof data !== "object") return false;
 
-    return (
-        data.token ||
-        data.access_token ||
-        data.sessionId ||
-        data.authToken ||
-        data.jwt
+    const keys = Object.keys(data);
+
+    return keys.some(k =>
+        ["token","access_token","authToken","sessionId","jwt"].includes(k)
     );
 }
 
-// 🎯 listener
-window.addEventListener("message", (e) => {
-    if (e.origin === location.origin) return;
-
-    log("\n🚨 CROSS ORIGIN MESSAGE");
+// 🔍 deep analyzer
+function analyze(e) {
+    log("\n=== MESSAGE ===");
+    log("Time: " + now());
     log("Origin: " + e.origin);
 
     try {
-        log("Data: " + JSON.stringify(e.data).slice(0,300));
+        const preview = JSON.stringify(e.data).slice(0,400);
+        log("Data: " + preview);
     } catch {}
+
+    if (e.origin !== location.origin) {
+        log("🚨 CROSS-ORIGIN");
+    }
 
     if (isSensitive(e.data)) {
         log("🔥 CONFIRMED SENSITIVE DATA LEAK");
         document.body.style.background = "darkred";
     }
-});
+}
 
-// 🚀 start scan
+// 🎯 listener
+window.addEventListener("message", analyze);
+
+// 🚀 payload set (realistic, not random spam)
+const PAYLOADS = [
+    {type:"ping"},
+    {action:"init"},
+    {method:"getUser"},
+    {cmd:"getSession"},
+    {request:"profile"},
+    {debug:true}
+];
+
+// 🚀 scan runner
 function start() {
     TARGETS.forEach((url, i) => {
         setTimeout(() => {
@@ -68,18 +85,22 @@ function start() {
             iframe.src = url;
             iframe.style.display = "none";
             document.body.appendChild(iframe);
-            frames.push(iframe);
 
-            log("[*] Loaded: " + url);
+            log("\n[*] Loaded: " + url);
 
-            // minimal legit probing
+            // wait load
             setTimeout(() => {
-                try {
-                    iframe.contentWindow.postMessage({ping:1}, "*");
-                } catch(e){}
-            }, 2000);
+                PAYLOADS.forEach((p, j) => {
+                    setTimeout(() => {
+                        try {
+                            iframe.contentWindow.postMessage(p, "*");
+                            log("[>] Sent → " + JSON.stringify(p));
+                        } catch(e){}
+                    }, j * 400);
+                });
+            }, 2500);
 
-        }, i * 2000);
+        }, i * 3000);
     });
 }
 </script>
