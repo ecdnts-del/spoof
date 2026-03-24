@@ -2,48 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Screenshot → Redirect</title>
-
+<title>Screenshot → Google</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<style>
-body {
-  font-family: Arial;
-  text-align: center;
-  margin-top: 50px;
-}
-button {
-  padding: 15px 25px;
-  font-size: 16px;
-}
-</style>
 </head>
 <body>
 
-<h2>Screenshot Page</h2>
-<button id="btn">Take Screenshot</button>
+<button id="btn">Start</button>
 
 <script>
 document.getElementById("btn").onclick = async () => {
-  try {
-    // 1️⃣ Screenshot seluruh halaman
-    const canvas = await html2canvas(document.body);
-    const imgData = canvas.toDataURL("image/png");
 
-    // 2️⃣ Auto download hasil screenshot
-    const link = document.createElement("a");
-    link.href = imgData;
-    link.download = "screenshot.png";
-    link.click();
+  // 1️⃣ Screenshot
+  const canvas = await html2canvas(document.body);
+  const imgData = canvas.toDataURL("image/png");
 
-    // 3️⃣ Redirect ke Google
-    setTimeout(() => {
-      window.location.href = "https://www.google.com";
-    }, 1000);
+  // 2️⃣ Simpan di memory (sessionStorage)
+  sessionStorage.setItem("ss", imgData);
 
-  } catch (e) {
-    console.error(e);
-  }
+  // 3️⃣ Redirect ke Google
+  window.location.href = "https://www.google.com";
 };
 </script>
 
