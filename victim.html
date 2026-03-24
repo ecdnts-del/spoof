@@ -2,21 +2,37 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>WebView Impact Tester</title>
+<title>WebView Hunter ULTRA</title>
 <style>
-body { background:#000; color:#0f0; font-family: monospace; padding:15px;}
-button { padding:15px; font-size:16px;}
-pre { background:#111; height:400px; overflow:auto; padding:10px;}
+body {
+    font-family: monospace;
+    background:#000;
+    color:#0f0;
+    padding:15px;
+}
+button {
+    padding:15px;
+    font-size:16px;
+}
+pre {
+    background:#111;
+    padding:10px;
+    height:420px;
+    overflow:auto;
+}
 </style>
 </head>
 <body>
 
-<h2>🔥 WebView Impact Tester</h2>
-<button onclick="start()">Run Test</button>
+<h2>🔥 WebView Hunter ULTRA</h2>
+<button onclick="start()">Start Deep Audit</button>
 
 <pre id="log">Waiting...</pre>
 
 <script>
+// =============================
+// LOGGER
+// =============================
 const log = (m) => {
     const el = document.getElementById("log");
     el.innerText += "\n" + m;
@@ -24,33 +40,78 @@ const log = (m) => {
 };
 
 let bridges = [];
+let risk = 0;
 
-// =================
-// DETECT
-// =================
-function detect() {
-    log("[*] Detecting...");
+// =============================
+// ENV DETECTION
+// =============================
+function detectEnv() {
+    log("[*] Detecting environment...\n");
 
-    if (navigator.userAgent.includes("wv"))
-        log("🔥 WebView detected");
+    const ua = navigator.userAgent;
+    log("UA: " + ua);
+
+    if (ua.includes("wv")) {
+        log("🔥 Android WebView detected");
+        risk += 3;
+    }
+
+    if (window.Android) {
+        log("🔥 Android bridge object present");
+        risk += 2;
+    }
+
+    if (window.webkit) {
+        log("🔥 iOS bridge detected");
+    }
+}
+
+// =============================
+// GLOBAL ENUMERATION
+// =============================
+function enumGlobals() {
+    log("\n[*] Enumerating globals...");
 
     Object.getOwnPropertyNames(window).forEach(k => {
         try {
-            if (typeof window[k] === "object") {
-                if (k.match(/android|bridge|native|interface/i)) {
-                    log("🔥 Bridge: " + k);
+            const val = window[k];
+            if (typeof val === "object") {
+
+                const name = k.toLowerCase();
+
+                if (
+                    name.includes("android") ||
+                    name.includes("bridge") ||
+                    name.includes("native") ||
+                    name.includes("interface")
+                ) {
+                    log("🔥 Object: " + k);
                     bridges.push(k);
+                    risk += 1;
+
+                    try {
+                        Object.getOwnPropertyNames(val).forEach(fn => {
+                            log("   ↳ " + fn);
+
+                            if (
+                                fn.match(/token|auth|user|file|session/i)
+                            ) {
+                                log("   ⚠️ Sensitive-like method: " + fn);
+                                risk += 1;
+                            }
+                        });
+                    } catch(e){}
                 }
             }
         } catch(e){}
     });
 }
 
-// =================
-// IMPACT TEST
-// =================
-function testImpact() {
-    log("\n[*] Testing bridge impact...");
+// =============================
+// BRIDGE PROBE (SAFE)
+// =============================
+function probeBridges() {
+    log("\n[*] Probing bridge methods (safe)...");
 
     bridges.forEach(name => {
         try {
@@ -64,22 +125,22 @@ function testImpact() {
                     if (typeof obj[fn] === "function") {
 
                         let start = performance.now();
-
                         let res;
+
                         try {
-                            res = obj[fn]("ping_test");
+                            res = obj[fn]("audit_test");
                         } catch(e) {
                             log("   → blocked: " + fn);
                             return;
                         }
 
-                        let duration = (performance.now() - start).toFixed(2);
+                        let t = (performance.now() - start).toFixed(2);
 
-                        log("   → called: " + fn + " (" + duration + "ms)");
+                        log("   → called: " + fn + " (" + t + "ms)");
 
-                        // ✅ bukti impact (behavior difference)
                         if (res !== undefined) {
-                            log("   💥 RETURN VALUE DETECTED");
+                            log("   💥 RETURN DETECTED");
+                            risk += 3;
                             document.body.style.background = "darkred";
                         }
 
@@ -91,74 +152,165 @@ function testImpact() {
     });
 }
 
-// =================
-// POSTMESSAGE REAL FLOW
-// =================
-function testPostMessage() {
-    log("\n[*] Testing postMessage channel...");
+// =============================
+// POSTMESSAGE FUZZ (SAFE)
+// =============================
+function postMessageFuzz() {
+    log("\n[*] postMessage fuzzing...");
 
-    let received = false;
+    let responses = 0;
 
     window.addEventListener("message", (e) => {
         if (e.origin !== location.origin) {
-            received = true;
+
+            responses++;
 
             log("\n🚨 MESSAGE RECEIVED");
             log("Origin: " + e.origin);
 
             try {
-                log("Data size: " + JSON.stringify(e.data).length);
+                let size = JSON.stringify(e.data).length;
+                log("Data size: " + size);
             } catch {}
 
             document.body.style.background = "darkred";
+            risk += 3;
         }
     });
 
-    // kirim beberapa payload (legit probing)
     const payloads = [
         {ping:1},
         {type:"init"},
-        {action:"test"},
-        {debug:true}
+        {action:"debug"},
+        {cmd:"get"},
+        {test:"hello"},
+        {probe:true}
     ];
 
     payloads.forEach(p => {
         try {
             window.postMessage(p, "*");
+            log("   → sent: " + JSON.stringify(p));
         } catch(e){}
     });
 
     setTimeout(() => {
-        if (!received) log("[+] No response detected");
-    }, 2000);
+        if (!responses) log("[+] No response");
+    }, 2500);
 }
 
-// =================
-// SIDE EFFECT DETECTOR
-// =================
-function detectSideEffects() {
+// =============================
+// FILE ACCESS TEST
+// =============================
+function fileTest() {
+    log("\n[*] Testing file://");
+
+    const img = new Image();
+
+    img.onload = () => {
+        log("🚨 file:// access allowed");
+        risk += 2;
+    };
+
+    img.onerror = () => {
+        log("[+] file:// blocked");
+    };
+
+    img.src = "file:///sdcard/test.jpg";
+}
+
+// =============================
+// INTENT TEST
+// =============================
+function intentTest() {
+    log("\n[*] Testing intent://");
+
+    try {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "intent://scan#Intent;scheme=https;package=com.google.android.gm;end";
+        document.body.appendChild(iframe);
+
+        log("⚠️ intent triggered");
+        risk += 1;
+
+    } catch(e) {
+        log("[+] intent blocked");
+    }
+}
+
+// =============================
+// POPUP TEST
+// =============================
+function popupTest() {
+    log("\n[*] Testing popup");
+
+    try {
+        const w = window.open("about:blank");
+
+        if (w) {
+            log("⚠️ popup allowed");
+            risk += 1;
+            w.close();
+        } else {
+            log("[+] popup blocked");
+        }
+    } catch(e){}
+}
+
+// =============================
+// SIDE EFFECT MONITOR
+// =============================
+function monitorSideEffects() {
     log("\n[*] Monitoring side effects...");
 
     let hidden = document.hidden;
+    let focus = document.hasFocus();
 
     setInterval(() => {
         if (document.hidden !== hidden) {
             hidden = document.hidden;
-            log("⚠️ Visibility changed (possible app interaction)");
+            log("⚠️ Visibility changed");
+            risk += 1;
+        }
+
+        if (document.hasFocus() !== focus) {
+            focus = document.hasFocus();
+            log("⚠️ Focus changed");
+            risk += 1;
         }
     }, 500);
 }
 
-// =================
-// RUN
-// =================
-function start() {
-    log("[*] Starting impact test...\n");
+// =============================
+// FINAL SCORE
+// =============================
+function finalScore() {
+    log("\n======================");
+    log("FINAL RISK SCORE: " + risk);
 
-    detect();
-    setTimeout(testImpact, 1000);
-    setTimeout(testPostMessage, 2500);
-    setTimeout(detectSideEffects, 4000);
+    if (risk >= 10) log("🔥 HIGH RISK - INVESTIGATE");
+    else if (risk >= 5) log("⚠️ MEDIUM RISK");
+    else log("[+] LOW");
+
+    log("======================");
+}
+
+// =============================
+// RUN
+// =============================
+function start() {
+    log("[*] Starting ULTRA scan...\n");
+
+    detectEnv();
+    setTimeout(enumGlobals, 500);
+    setTimeout(probeBridges, 1200);
+    setTimeout(fileTest, 2000);
+    setTimeout(intentTest, 2500);
+    setTimeout(popupTest, 3000);
+    setTimeout(postMessageFuzz, 3500);
+    setTimeout(monitorSideEffects, 5000);
+    setTimeout(finalScore, 8000);
 }
 </script>
 
