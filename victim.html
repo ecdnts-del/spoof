@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>IG WebView Security Auditor</title>
+<title>IG WebView Data Leak Hunter</title>
 <style>
 body {
     background:#000;
@@ -17,15 +17,15 @@ button {
 pre {
     background:#111;
     padding:10px;
-    height:420px;
+    height:450px;
     overflow:auto;
 }
 </style>
 </head>
 <body>
 
-<h2>🔥 Instagram WebView Auditor</h2>
-<button onclick="start()">Start Scan</button>
+<h2>🔥 IG WebView Data Leak Hunter</h2>
+<button onclick="start()">Start Deep Scan</button>
 
 <pre id="log">Waiting...</pre>
 
@@ -36,22 +36,24 @@ const log = (m) => {
     el.scrollTop = el.scrollHeight;
 };
 
-// =======================
+// =========================
 // ENV DETECTION
-// =======================
+// =========================
 function detectEnv() {
     const ua = navigator.userAgent;
     log("[*] UA: " + ua);
 
-    if (ua.includes("Instagram")) log("🔥 Instagram WebView detected");
-    if (ua.includes("wv")) log("🔥 Android WebView detected");
+    if (ua.includes("Instagram")) log("🔥 Instagram WebView");
+    if (ua.includes("wv")) log("🔥 Android WebView");
 }
 
-// =======================
+// =========================
 // BRIDGE ENUMERATION
-// =======================
+// =========================
+let bridges = [];
+
 function enumBridge() {
-    log("\n[*] Scanning bridges...");
+    log("\n[*] Enumerating bridges...");
 
     Object.getOwnPropertyNames(window).forEach(k => {
         try {
@@ -61,22 +63,15 @@ function enumBridge() {
                 if (
                     name.includes("bridge") ||
                     name.includes("android") ||
-                    name.includes("native") ||
-                    name.includes("iab")
+                    name.includes("iab") ||
+                    name.includes("native")
                 ) {
-                    log("🔥 Bridge/Object: " + k);
+                    log("🔥 Found: " + k);
+                    bridges.push(k);
 
                     try {
                         Object.getOwnPropertyNames(window[k]).forEach(fn => {
                             log("   ↳ " + fn);
-
-                            if (
-                                fn.toLowerCase().includes("token") ||
-                                fn.toLowerCase().includes("user") ||
-                                fn.toLowerCase().includes("auth")
-                            ) {
-                                log("   ⚠️ Sensitive-looking method: " + fn);
-                            }
                         });
                     } catch(e){}
                 }
@@ -85,32 +80,48 @@ function enumBridge() {
     });
 }
 
-// =======================
-// SAFE BRIDGE INTERACTION
-// =======================
-function testBridgeCall() {
-    log("\n[*] Testing bridge interaction...");
+// =========================
+// SAFE PROBING PAYLOADS
+// =========================
+const payloads = [
+    {type:"ping"},
+    {action:"test"},
+    {cmd:"getInfo"},
+    {cmd:"getVersion"},
+    {request:"profile"},
+    {debug:true}
+];
 
-    try {
-        if (window.iabjs_unified_bridge && window.iabjs_unified_bridge.postMessage) {
-            log("🔥 iab bridge detected");
+// =========================
+// BRIDGE PROBE
+// =========================
+function probeBridge() {
+    log("\n[*] Probing bridges...");
 
-            window.iabjs_unified_bridge.postMessage(
-                JSON.stringify({ test: "ping" })
-            );
+    bridges.forEach(name => {
+        try {
+            const obj = window[name];
 
-            log("   ↳ postMessage sent");
-        }
-    } catch(e) {
-        log("[!] bridge call error");
-    }
+            if (obj.postMessage) {
+                log("🔥 Testing " + name + ".postMessage");
+
+                payloads.forEach(p => {
+                    try {
+                        obj.postMessage(JSON.stringify(p));
+                        log("   ↳ sent: " + JSON.stringify(p));
+                    } catch(e){}
+                });
+            }
+
+        } catch(e){}
+    });
 }
 
-// =======================
-// POSTMESSAGE MONITOR
-// =======================
+// =========================
+// MESSAGE MONITOR
+// =========================
 function monitorMessages() {
-    log("\n[*] Listening postMessage...");
+    log("\n[*] Listening messages...");
 
     window.addEventListener("message", (e) => {
 
@@ -120,17 +131,14 @@ function monitorMessages() {
         log("Origin: " + e.origin);
 
         try {
-            const data = JSON.stringify(e.data);
-            log("Data: " + data.slice(0,300));
+            const dataStr = JSON.stringify(e.data);
+            log("Data: " + dataStr.slice(0,300));
 
-            // 🔥 strong detection
+            // 🔥 strict leak detection
             if (
-                data.includes("token") ||
-                data.includes("email") ||
-                data.includes("session") ||
-                data.includes("auth")
+                dataStr.match(/token|auth|session|email|user/i)
             ) {
-                log("🔥🔥 POSSIBLE SENSITIVE DATA LEAK");
+                log("🔥🔥 REAL DATA LEAK SIGNAL");
                 document.body.style.background = "darkred";
             }
 
@@ -140,49 +148,49 @@ function monitorMessages() {
     window.postMessage({probe:true}, "*");
 }
 
-// =======================
-// INTENT TEST (SAFE)
-// =======================
-function testIntent() {
-    log("\n[*] Testing intent behavior...");
-
-    try {
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = "intent://test#Intent;scheme=https;package=com.google.android.gm;end";
-
-        document.body.appendChild(iframe);
-
-        log("⚠️ Intent triggered");
-    } catch(e){
-        log("[+] Intent blocked");
-    }
-}
-
-// =======================
-// VISIBILITY TRACKING
-// =======================
-function trackVisibility() {
+// =========================
+// VISIBILITY (APP SWITCH)
+// =========================
+function monitorVisibility() {
     document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-            log("🚨 App switched (external app opened?)");
+            log("🚨 App switched");
         }
     });
 }
 
-// =======================
+// =========================
+// TIMING ANALYSIS
+// =========================
+function timingCheck() {
+    log("\n[*] Timing analysis started");
+
+    const start = performance.now();
+
+    setTimeout(() => {
+        const delta = performance.now() - start;
+
+        if (delta > 2000) {
+            log("⚠️ Possible blocking / native interaction delay");
+        } else {
+            log("[+] Normal timing");
+        }
+    }, 2000);
+}
+
+// =========================
 // RUN
-// =======================
+// =========================
 function start() {
-    log("[*] Starting Instagram audit...\n");
+    log("[*] Starting deep scan...\n");
 
     detectEnv();
-    trackVisibility();
+    monitorVisibility();
 
     setTimeout(enumBridge, 500);
-    setTimeout(testBridgeCall, 1000);
-    setTimeout(monitorMessages, 1500);
-    setTimeout(testIntent, 2000);
+    setTimeout(monitorMessages, 1000);
+    setTimeout(probeBridge, 1500);
+    setTimeout(timingCheck, 2000);
 }
 </script>
 
