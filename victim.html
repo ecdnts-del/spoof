@@ -1,8 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Type-Confusion Style PoC (Deterministic)</title>
+<title>V8 Signal PoC - Strong Deterministic</title>
 
-<h3>Signal: inconsistent element interpretation (no exploit)</h3>
+<h3>V8 Signal Test (No Exploit)</h3>
 <pre id="log"></pre>
 
 <script>
@@ -11,94 +11,95 @@ const log = m => {
   console.log(m);
 };
 
-// helpers (observe bit patterns, not for exploitation)
+// convert float → bits
 function f2i(f) {
   const buf = new ArrayBuffer(8);
   new Float64Array(buf)[0] = f;
   return new BigUint64Array(buf)[0];
 }
-function i2f(i) {
-  const buf = new ArrayBuffer(8);
-  new BigUint64Array(buf)[0] = i;
-  return new Float64Array(buf)[0];
-}
 
-// target kept simple
+// target function
 function vuln(a, i) {
   return a[i] + 1.1;
 }
 
-// warmup to get stable optimized path
+// warmup JIT
 function warmup() {
-  const a = Array.from({length: 64}, (_, i) => i + 0.5); // doubles
-  for (let k = 0; k < 120000; k++) {
-    vuln(a, k & 63);
+  let arr = new Array(64);
+  for (let i = 0; i < 64; i++) arr[i] = i + 0.5;
+
+  for (let i = 0; i < 150000; i++) {
+    vuln(arr, i & 63);
   }
-  return a;
+  return arr;
 }
 
-// deterministic shape change (no randomness)
-function shapeFlip(a) {
-  // create holes + shrink
-  for (let i = 0; i < 8; i++) delete a[i];
-  a.length = 16;
+// stronger deterministic confusion attempt
+function trigger(arr) {
 
-  // force object element
-  a[2] = {x: 1};
+  // keep double elements first
+  for (let i = 0; i < 32; i++) arr[i] = i + 0.5;
 
-  // side-effectful getter (deterministic)
-  Object.defineProperty(a, 3, {
+  // stabilize inline cache
+  for (let i = 0; i < 20000; i++) vuln(arr, i & 31);
+
+  // introduce type change AFTER optimization
+  arr[1] = {};     // object into double array
+  arr[2] = 13.37;
+
+  // hole creation
+  delete arr[5];
+  delete arr[6];
+
+  // side-effect getter (critical)
+  Object.defineProperty(arr, 4, {
     get() {
-      // controlled growth, no randomness
-      a.push(13.37);
-      a.push(14.47);
+      arr.length = 1;   // shrink mid-access
       return 1.1;
     }
   });
 
-  return a;
+  return arr;
 }
 
-// observation buffer (separate, just for stable readings)
-const buf = new ArrayBuffer(0x1000);
-const f64 = new Float64Array(buf);
-for (let i = 0; i < f64.length; i++) f64[i] = i + 0.5;
+// check anomalies
+function check(arr) {
+  for (let i = 0; i < 10; i++) {
+    let v = arr[i];
 
-function checkSignals(tag, a) {
-  // read a few fixed indices only (deterministic)
-  const idxs = [0,1,2,3,4,5,10,12];
-  for (const i of idxs) {
-    const v = a[i];
     if (typeof v === "number") {
-      const bits = f2i(v).toString(16);
-      // look for non-canonical double patterns (heuristic signal)
-      if (!Number.isFinite(v) || (bits.startsWith("7ff") && !Number.isNaN(v))) {
-        log(`[${tag}] suspicious number @${i} = ${v} bits=0x${bits}`);
+      let bits = f2i(v);
+      let hex = bits.toString(16);
+
+      // detect weird float patterns
+      if (hex.startsWith("7ff") && !Number.isNaN(v)) {
+        log(`[!!!] INVALID FLOAT @${i} = ${v} bits=0x${hex}`);
+      } else {
+        log(`[OK] number @${i} = ${v}`);
       }
-    } else if (typeof v === "object") {
-      log(`[${tag}] object seen @${i}`);
+
     } else {
-      log(`[${tag}] type=${typeof v} @${i}`);
+      log(`[INFO] type=${typeof v} @${i}`);
     }
   }
 }
 
+// main
 function run() {
   log("[*] warmup");
-  const base = warmup();
+  let base = warmup();
 
-  log("[*] prepare copy");
-  const a = base.slice();
+  log("[*] trigger");
+  let arr = base.slice();
+  trigger(arr);
 
-  log("[*] flip shape deterministically");
-  shapeFlip(a);
+  log("[*] invoke optimized path");
+  for (let i = 0; i < 50; i++) {
+    vuln(arr, i & 7);
+  }
 
-  log("[*] trigger optimized path");
-  // fixed sequence (no random)
-  for (let i = 0; i < 32; i++) vuln(a, i & 15);
-
-  log("[*] observe signals");
-  checkSignals("post-trigger", a);
+  log("[*] checking...");
+  check(arr);
 
   log("[*] done");
 }
