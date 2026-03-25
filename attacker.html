@@ -1,11 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>NaN Oracle FINAL (Working)</title>
+<title>GC Observer</title>
 
-<h2>NaN Oracle – FINAL (Hybrid)</h2>
+<h2>GC Side-Channel Detector</h2>
 <pre id="log"></pre>
 
-<iframe src="https://ecdnts-del.github.io/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
+<iframe src="spoof/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
 const log = m => {
@@ -13,37 +13,34 @@ const log = m => {
   console.log(m)
 }
 
-// ===== HYBRID MEASURE =====
+// ===== MEASURE LATENCY =====
 function measure() {
   const t0 = performance.now()
 
+  // allocation ringan tapi sensitif ke GC
   let arr = []
   for (let i = 0; i < 5000; i++) {
-    arr.push([NaN])
-  }
-
-  // force allocation + GC interaction
-  let junk = []
-  for (let i = 0; i < 2000; i++) {
-    junk.push(new Array(20))
+    arr.push([i])
   }
 
   return performance.now() - t0
 }
 
-// ===== SAMPLING =====
+// ===== TRACK =====
 let history = []
 
 setInterval(() => {
   const t = measure()
   history.push(t)
+
   if (history.length > 30) history.shift()
 
   const avg = history.reduce((a,b)=>a+b,0)/history.length
 
   let state = "LOW"
-  if (avg > 4) state = "HIGH (external pressure detected)"
+  if (avg > 5) state = "HIGH (GC / pressure detected)"
 
   log(`t=${t.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`)
+
 }, 100)
 </script>
