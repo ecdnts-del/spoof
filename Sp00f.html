@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 SNAP Leak Detector</title>
+<title>V8 Cross Memory Probe</title>
 
 <pre id="log"></pre>
 <script>
@@ -13,27 +13,44 @@ function vuln(a,i){ return a[i] + 1.1; }
 
 // ===== WARMUP =====
 function warmup(){
-  let arr = Array.from({length:40}, (_,i)=>i+0.5);
-  for(let i=0;i<80000;i++) vuln(arr, i%40);
+  let arr = Array.from({length:30}, (_,i)=>i+0.5);
+  for(let i=0;i<70000;i++) vuln(arr, i%30);
   return arr;
+}
+
+// ===== VICTIM MEMORY =====
+let victim = new ArrayBuffer(0x200);
+let victimF64 = new Float64Array(victim);
+
+// isi pattern unik
+for(let i=0;i<victimF64.length;i++){
+  victimF64[i] = 1337.1337 + i;
+}
+
+// ===== OBSERVER MEMORY =====
+let buf = new ArrayBuffer(0x4000);
+let f64 = new Float64Array(buf);
+
+// baseline
+for(let i=0;i<f64.length;i++){
+  f64[i] = 9999 + i;
 }
 
 // ===== MUTATION =====
 function mutate(arr){
   delete arr[0];
   delete arr[1];
-  delete arr[2];
 
   arr.length = 10;
-  arr[70] = 13.37;
+  arr[50] = 13.37;
 
   arr[2] = {x:1};
 
   let c = 0;
   Object.defineProperty(arr,3,{
     get(){
-      if(c++ < 3){
-        arr.push(99.99 + c);
+      if(c++ < 2){
+        arr.push(88.88 + c);
       }
       return 1.1;
     }
@@ -44,53 +61,32 @@ function mutate(arr){
 
 // ===== PROXY =====
 function breakAssumption(a){
-  let flip = 0;
   return new Proxy(a,{
     get(t,p){
-      if(p==="length" && (flip++ % 2 === 0)){
-        t.push(77.77);
+      if(p==="length"){
+        t[40] = 77.77;
       }
       return Reflect.get(t,p);
     }
   });
 }
 
-// ===== TYPED ARRAY =====
-let buf = new ArrayBuffer(0x2000);
-let f64 = new Float64Array(buf);
-
-// baseline kuat
-for(let i=0;i<f64.length;i++){
-  f64[i] = 1000 + i;
-}
-
-// ===== SNAP CHECK =====
-function snapCheck(arr){
-
-  // 🔥 OOB check
-  for(let i=0;i<50;i++){
-    let v = arr[arr.length + i];
-
-    if(v !== undefined){
-      log("[SNAP OOB] idx="+(arr.length+i)+" val="+v);
-      return true;
-    }
-
-    if(typeof v === "number" && Math.abs(v) > 1e12){
-      log("[SNAP PTR] "+v);
-      return true;
-    }
-  }
-
-  // 🔥 typed array corruption
-  for(let i=0;i<100;i++){
+// ===== SCAN =====
+function scan(){
+  for(let i=0;i<200;i++){
     let v = f64[i];
-    if(v !== 1000 + i){
-      log("[SNAP CORRUPTION] idx="+i+" val="+v);
-      return true;
+
+    // kalau beda dari baseline
+    if(v !== 9999 + i){
+      log("[MEM DIFF] idx="+i+" val="+v);
+
+      // kalau mirip victim pattern
+      if(Math.abs(v - 1337.1337) < 200){
+        log("[🔥 CROSS-MEMORY SIGNAL] "+v);
+        return true;
+      }
     }
   }
-
   return false;
 }
 
@@ -99,28 +95,24 @@ function run(){
   log("[*] warmup");
   let base = warmup();
 
-  log("[*] fuzz start");
+  log("[*] probing...");
 
-  for(let i=0;i<20000;i++){
+  for(let i=0;i<30000;i++){
     let arr = [...base];
     arr = mutate(arr);
     arr = breakAssumption(arr);
 
-    let r = vuln(arr,10);
+    vuln(arr,5);
 
-    if(Number.isNaN(r)){
-      log("[NaN] iteration "+i);
-    }
-
-    if(snapCheck(arr)){
-      log("[🔥 SNAP TRIGGERED]");
+    if(scan()){
+      log("[!!! STRONG SIGNAL DETECTED !!!]");
       return;
     }
 
-    if(i % 1000 === 0) log("iter "+i);
+    if(i % 2000 === 0) log("iter "+i);
   }
 
-  log("[*] done (no anomaly)");
+  log("[*] done (no cross-memory)");
 }
 
 run();
