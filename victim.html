@@ -1,24 +1,49 @@
 <!doctype html>
 <meta charset="utf-8">
+<title>GC Storm (Strong)</title>
 
 <script>
-let mode = 0
+// ===== CONFIG =====
+const CHUNK_SIZE = 10000
+const OBJECT_SIZE = 50
 
-setInterval(() => {
-  mode ^= 1
-}, 2000)
+let pool = []
+let toggle = 0
 
+// ===== HEAVY ALLOCATION =====
+function allocBurst(multiplier) {
+  for (let i = 0; i < CHUNK_SIZE * multiplier; i++) {
+    // kombinasi object + array → lebih mahal
+    pool.push({
+      a: new Array(OBJECT_SIZE).fill(i),
+      b: { x: i, y: i+1, z: i+2 }
+    })
+  }
+}
+
+// ===== GC CHURN =====
+function churn() {
+  // buang sebagian → trigger GC
+  pool = pool.slice(pool.length / 2)
+}
+
+// ===== LOOP =====
 setInterval(() => {
-  if (mode === 0) {
-    // idle
-    return
+  toggle ^= 1
+
+  if (toggle === 0) {
+    // LOW pressure
+    allocBurst(1)
+    churn()
+  } else {
+    // HIGH pressure (brutal)
+    for (let k = 0; k < 5; k++) {
+      allocBurst(3)
+    }
+    churn()
   }
 
-  // heavy pressure
-  let junk = []
-  for (let i = 0; i < 50000; i++) {
-    junk.push(new Array(50))
-  }
-
-}, 50)
+}, 100)
 </script>
+
+<body>GC Storm Running...</body>
