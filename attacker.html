@@ -1,12 +1,14 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>NaN Budget Oracle – FINAL PoC</title>
+<title>NaN Oracle – GC Side-Channel</title>
 
-<h2>NaN Budget Oracle (Reliable Demo)</h2>
+<h2>NaN Oracle – GC Detection</h2>
 <pre id="log"></pre>
 
-<!-- SAME ORIGIN IFRAME -->
-<iframe src="/victim.html" style="width:0;height:0;border:0"></iframe>
+<!-- coba juga dengan sandbox -->
+<iframe src="/victim.html"></iframe>
+<!-- test tambahan -->
+<!-- <iframe src="/victim.html" sandbox="allow-scripts"></iframe> -->
 
 <script>
 // ===== CORE =====
@@ -38,12 +40,22 @@ function sampleDelta() {
   return b - a;
 }
 
-// ===== DECODER =====
-function decodeSymbol(d) {
-  if (d < 3) return '00';
-  if (d < 7) return '01';
-  if (d < 12) return '10';
-  return '11';
+// ===== SIGNAL ANALYSIS =====
+let history = [];
+
+function analyze() {
+  const d = sampleDelta();
+  history.push(d);
+  if (history.length > 50) history.shift();
+
+  const avg = history.reduce((a,b)=>a+b,0)/history.length;
+
+  let state;
+  if (avg < 3) state = "LOW PRESSURE";
+  else if (avg < 8) state = "MEDIUM";
+  else state = "HIGH PRESSURE (GC likely)";
+
+  log(`delta=${d.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`);
 }
 
 // ===== LOG =====
@@ -52,44 +64,6 @@ function log(msg) {
   console.log(msg);
 }
 
-// ===== RECEIVER =====
-let buffer = '';
-let started = false;
-
-function startReceiver() {
-  if (started) return;
-  started = true;
-
-  log("[+] SIGNAL LOCKED — RECEIVING");
-
-  setInterval(() => {
-    const d = sampleDelta();
-    const sym = decodeSymbol(d);
-
-    buffer += sym;
-
-    if (buffer.length >= 8) {
-      const byte = buffer.slice(0, 8);
-      buffer = buffer.slice(8);
-
-      const char = String.fromCharCode(parseInt(byte, 2));
-      log("BYTE " + byte + " -> " + char);
-    }
-  }, 100);
-}
-
-// ===== AUTO-DETECT SIGNAL =====
-setInterval(() => {
-  let hits = 0;
-
-  for (let i = 0; i < 20; i++) {
-    if (sampleDelta() > 3) hits++;
-  }
-
-  log("[dbg] signal hits: " + hits);
-
-  if (hits > 5) {
-    startReceiver();
-  }
-}, 1000);
+// ===== LOOP =====
+setInterval(analyze, 100);
 </script>
