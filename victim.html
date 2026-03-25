@@ -1,35 +1,208 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Hybrid Signal Generator FINAL</title>
+<title>V8 Multi-Strategy Invariant Fuzzer</title>
+
+<pre id="log"></pre>
 
 <script>
-let mode = 0
 
-// toggle tiap 2 detik
-setInterval(() => {
-  mode ^= 1
-}, 2000)
-
-function burn(ms) {
-  const end = performance.now() + ms
-  while (performance.now() < end) {}
+const log=m=>{
+ document.getElementById("log").textContent+=m+"\n"
+ console.log(m)
 }
 
-function gcStorm() {
-  let tmp = []
-  for (let i = 0; i < 80; i++) {
-    tmp.push(new Uint8Array(1024 * 1024)) // 1MB
-  }
+// =======================
+// TARGET FUNCTION
+// =======================
+
+function vuln(a,i){
+ return a[i]+1.1
 }
 
-setInterval(() => {
-  if (mode === 0) {
-    // LOW SIGNAL
-    burn(5)
-  } else {
-    // 💣 HIGH SIGNAL (super heavy)
-    for (let i = 0; i < 10; i++) burn(25)
-    for (let i = 0; i < 10; i++) gcStorm()
+// =======================
+// ARRAY FACTORIES
+// =======================
+
+function packed(){
+ let a=[]
+ for(let i=0;i<100;i++) a.push(i+0.5)
+ return a
+}
+
+function holey(){
+ let a=new Array(100)
+ for(let i=0;i<100;i+=2) a[i]=i+0.5
+ return a
+}
+
+function objects(){
+ let a=[]
+ for(let i=0;i<100;i++) a.push({v:i})
+ return a
+}
+
+// =======================
+// TRAIN JIT
+// =======================
+
+function train(){
+ let a=packed()
+
+ for(let i=0;i<30000;i++){
+  vuln(a,i%50)
+ }
+
+ return a
+}
+
+// =======================
+// RANDOM MUTATIONS
+// =======================
+
+function mutate(a){
+
+ let r=Math.floor(Math.random()*6)
+
+ if(r===0){
+  delete a[10]
+ }
+
+ if(r===1){
+  a.length=20
+ }
+
+ if(r===2){
+  a[200]=13.37
+ }
+
+ if(r===3){
+  a[5]={x:1}
+ }
+
+ if(r===4){
+  Object.defineProperty(a,3,{
+   get(){
+    a.push(99.9)
+    return 1.1
+   }
+  })
+ }
+
+ if(r===5){
+  a=new Proxy(a,{
+   get(t,p){
+    if(p==="length"){
+     t.push(13.37)
+    }
+    return Reflect.get(t,p)
+   }
+  })
+ }
+
+ return a
+}
+
+// =======================
+// TYPED ARRAY CHECK
+// =======================
+
+let buf=new ArrayBuffer(0x200)
+let f64=new Float64Array(buf)
+
+function checkTyped(){
+
+ for(let i=0;i<f64.length;i++){
+
+  let v=f64[i]
+
+  if(!Number.isFinite(v)){
+   log("FLOAT anomaly "+v)
+   return true
   }
-}, 50)
+
+  if(Math.abs(v)>1e12){
+   log("pointer-like "+v)
+   return true
+  }
+ }
+
+ return false
+}
+
+// =======================
+// ARRAY CHECK
+// =======================
+
+function checkArray(a){
+
+ for(let i=0;i<a.length+20;i++){
+
+  let v=a[i]
+
+  if(typeof v!=="number" && typeof v!=="object" && v!==undefined){
+   log("TYPE BREAK "+i+" "+v)
+   return true
+  }
+
+  if(typeof v==="number" && Math.abs(v)>1e12){
+   log("HUGE NUMBER "+v)
+   return true
+  }
+ }
+
+ return false
+}
+
+// =======================
+// GC PRESSURE
+// =======================
+
+function gc(){
+ let t=[]
+ for(let i=0;i<30;i++)
+  t.push(new ArrayBuffer(1024*1024))
+}
+
+// =======================
+// MAIN
+// =======================
+
+function run(){
+
+ log("[*] training")
+
+ let base=train()
+
+ log("[*] fuzzing")
+
+ for(let i=0;i<10000;i++){
+
+  let shapes=[packed(),holey(),objects()]
+  let arr=mutate(shapes[Math.floor(Math.random()*3)])
+
+  vuln(arr,5)
+
+  f64[i%f64.length]=i+0.5
+
+  if(i%20===0) gc()
+
+  if(checkArray(arr)){
+   log("⚠ array invariant anomaly")
+   return
+  }
+
+  if(checkTyped()){
+   log("⚠ typed array anomaly")
+   return
+  }
+
+  if(i%500===0)
+   log("iter "+i)
+ }
+
+ log("[*] no anomaly detected")
+}
+
+run()
+
 </script>
