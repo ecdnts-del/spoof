@@ -1,33 +1,32 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>GC Storm FINAL MAX</title>
+<title>CPU Storm</title>
 
 <script>
-let pool = []
-let toggle = 0
+let mode = 0
 
-// toggle tiap 2 detik → bikin pattern jelas
 setInterval(() => {
-  toggle ^= 1
+  mode ^= 1
 }, 2000)
 
-setInterval(() => {
-  if (toggle === 0) {
-    // LOW
-    for (let i = 0; i < 30; i++) {
-      pool.push(new Uint8Array(2 * 1024 * 1024)) // 2MB
-    }
-  } else {
-    // HIGH (BRUTAL)
-    for (let i = 0; i < 120; i++) {
-      pool.push(new Uint8Array(8 * 1024 * 1024)) // 8MB
-    }
+function burn(ms) {
+  const end = performance.now() + ms
+  while (performance.now() < end) {}
+}
+
+function heavyWork() {
+  for (let i = 0; i < 10; i++) {
+    burn(20)
   }
+}
 
-  // paksa GC
-  pool = pool.slice(-40)
-
-}, 80)
+setInterval(() => {
+  if (mode === 0) {
+    // LOW
+    burn(10)
+  } else {
+    // HIGH (brutal)
+    heavyWork()
+  }
+}, 50)
 </script>
-
-<body>GC Storm Running...</body>
