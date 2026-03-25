@@ -1,50 +1,33 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>GC Storm MAX</title>
+<title>GC Storm FINAL MAX</title>
 
 <script>
-let mode = 0
 let pool = []
+let toggle = 0
 
+// toggle tiap 2 detik → bikin pattern jelas
 setInterval(() => {
-  mode ^= 1
+  toggle ^= 1
 }, 2000)
 
-function heavy() {
-  // TypedArray pressure (langsung makan memory besar)
-  for (let i = 0; i < 50; i++) {
-    pool.push(new Uint8Array(1024 * 1024)) // 1MB
-  }
-
-  // Object graph kompleks
-  for (let i = 0; i < 10000; i++) {
-    pool.push({
-      a: new Array(20).fill(i),
-      b: {x:i,y:i+1,z:i+2},
-      c: () => i
-    })
-  }
-
-  // Fragmentation
-  for (let i = 0; i < 5000; i++) {
-    pool.push(new Array(i % 50 + 1))
-  }
-}
-
-function churn() {
-  // buang random → GC chaos
-  pool = pool.slice(Math.random() * pool.length / 2)
-}
-
 setInterval(() => {
-  if (mode === 0) {
+  if (toggle === 0) {
     // LOW
-    heavy()
-    churn()
+    for (let i = 0; i < 30; i++) {
+      pool.push(new Uint8Array(2 * 1024 * 1024)) // 2MB
+    }
   } else {
-    // HIGH (burst)
-    for (let i = 0; i < 3; i++) heavy()
-    churn()
+    // HIGH (BRUTAL)
+    for (let i = 0; i < 120; i++) {
+      pool.push(new Uint8Array(8 * 1024 * 1024)) // 8MB
+    }
   }
-}, 100)
+
+  // paksa GC
+  pool = pool.slice(-40)
+
+}, 80)
 </script>
+
+<body>GC Storm Running...</body>
