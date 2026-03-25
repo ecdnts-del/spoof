@@ -1,45 +1,33 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Sender</title>
+<title>Victim (Pressure Source)</title>
 
 <script>
-function burn(level) {
-  for (let i = 0; i < level; i++) {
-    for (let j = 0; j < 60; j++);
-  }
-}
+// ===== MODE SWITCH =====
+let mode = 0;
 
-function sendSymbol(sym) {
-  switch (sym) {
-    case '00': burn(5); break;
-    case '01': burn(25); break;
-    case '10': burn(60); break;
-    case '11': burn(120); break;
-  }
-}
-
-function encode(str) {
-  return str.split('')
-    .map(c => c.charCodeAt(0).toString(2).padStart(8,'0'))
-    .join('');
-}
-
-const msg = "NAN_ORACLE_WORKS";
-const bits = encode(msg);
-
-let i = 0;
-
-// kirim terus (burst biar kuat)
+// toggle tiap 2 detik
 setInterval(() => {
-  for (let k = 0; k < 5; k++) {
-    const sym = bits.slice(i, i+2);
-    if (sym.length < 2) return;
+  mode = (mode + 1) % 2;
+}, 2000);
 
-    sendSymbol(sym);
+// ===== PRESSURE GENERATOR =====
+let junk = [];
+
+setInterval(() => {
+  if (mode === 0) {
+    // LOW pressure
+    for (let i = 0; i < 100; i++) {
+      junk.push([i]);
+    }
+  } else {
+    // HIGH pressure (GC heavy)
+    for (let i = 0; i < 5000; i++) {
+      junk.push(new Array(100));
+    }
+    junk = junk.slice(-1000);
   }
-
-  i += 2;
-  if (i >= bits.length) i = 0;
-
-}, 100);
+}, 50);
 </script>
+
+<body>Victim running (GC pressure toggling)</body>
