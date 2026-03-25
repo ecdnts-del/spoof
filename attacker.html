@@ -1,10 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Scheduler Oracle FINAL</title>
+<title>Hybrid Oracle FINAL</title>
 
-<h2>Scheduler Contention Oracle</h2>
+<h2>Hybrid Side-Channel (Stable)</h2>
 <pre id="log"></pre>
 
+<!-- IMPORTANT: same-origin path -->
 <iframe src="/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
@@ -13,40 +14,50 @@ const log = m => {
   console.log(m)
 }
 
-// ===== HIGH RESOLUTION TASK =====
+// ===== HYBRID PROBE =====
 function probe() {
   const t0 = performance.now()
 
+  // CPU pressure
   let x = 0
-  for (let i = 0; i < 5e6; i++) {
-    x += i
-  }
+  for (let i = 0; i < 5e6; i++) x += i
+
+  // GC-sensitive allocation
+  let arr = []
+  for (let i = 0; i < 15000; i++) arr.push([i])
 
   return performance.now() - t0
 }
 
-// ===== SAMPLING =====
-function measure() {
-  let sum = 0
-  for (let i = 0; i < 3; i++) sum += probe()
-  return sum / 3
+// ===== CALIBRATION =====
+let baseline = 0
+
+function calibrate() {
+  let samples = []
+  for (let i = 0; i < 12; i++) {
+    samples.push(probe())
+  }
+
+  baseline = samples.reduce((a,b)=>a+b,0) / samples.length
+  log("Baseline = " + baseline.toFixed(2))
 }
 
-let history = []
+// tunggu sedikit biar iframe stabil
+setTimeout(() => {
+  calibrate()
 
-setInterval(() => {
-  const t = measure()
-  history.push(t)
+  // ===== DETECTOR =====
+  setInterval(() => {
+    const t = probe()
+    const delta = t - baseline
 
-  if (history.length > 20) history.shift()
+    let state = "IDLE"
+    if (delta > 6) state = "BUSY 🔥"
+    if (delta > 14) state = "HEAVY 💣"
 
-  const avg = history.reduce((a,b)=>a+b,0)/history.length
+    log(`t=${t.toFixed(2)} Δ=${delta.toFixed(2)} => ${state}`)
 
-  let state = "IDLE"
-  if (t > avg * 1.5) state = "BUSY 🔥"
-  if (t > avg * 2.5) state = "HEAVY LOAD 💣"
+  }, 120)
 
-  log(`t=${t.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`)
-
-}, 150)
+}, 1000)
 </script>
