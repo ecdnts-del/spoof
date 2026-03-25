@@ -1,33 +1,39 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Victim (Pressure Source)</title>
+<title>Victim – Strong Pressure</title>
 
 <script>
-// ===== MODE SWITCH =====
+// toggle state tiap 2 detik
 let mode = 0;
+setInterval(()=>{ mode ^= 1; }, 2000);
 
-// toggle tiap 2 detik
-setInterval(() => {
-  mode = (mode + 1) % 2;
-}, 2000);
+// generator tekanan (kombinasi alloc + loop budget)
+function heavyBurst(level) {
+  // loop budget drain
+  for (let k = 0; k < level; k++) {
+    for (let j = 0; j < 80; j++);
+  }
 
-// ===== PRESSURE GENERATOR =====
-let junk = [];
+  // memory pressure + GC churn
+  let junk = [];
+  const N = level * 400;
+  for (let i = 0; i < N; i++) {
+    junk.push(new Array(50));
+  }
+  // trim → paksa churn
+  junk = junk.slice(-2000);
+}
 
+// burst terus
 setInterval(() => {
   if (mode === 0) {
-    // LOW pressure
-    for (let i = 0; i < 100; i++) {
-      junk.push([i]);
-    }
+    // LOW
+    for (let r = 0; r < 2; r++) heavyBurst(5);
   } else {
-    // HIGH pressure (GC heavy)
-    for (let i = 0; i < 5000; i++) {
-      junk.push(new Array(100));
-    }
-    junk = junk.slice(-1000);
+    // HIGH
+    for (let r = 0; r < 6; r++) heavyBurst(20);
   }
-}, 50);
+}, 80);
 </script>
 
-<body>Victim running (GC pressure toggling)</body>
+<body>Victim: toggling pressure…</body>
