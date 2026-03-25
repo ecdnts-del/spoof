@@ -1,198 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>IG WebView Data Leak Hunter</title>
-<style>
-body {
-    background:#000;
-    color:#0f0;
-    font-family: monospace;
-    padding:20px;
-}
-button {
-    padding:15px;
-    font-size:16px;
-}
-pre {
-    background:#111;
-    padding:10px;
-    height:450px;
-    overflow:auto;
-}
-</style>
-</head>
-<body>
-
-<h2>🔥 IG WebView Data Leak Hunter</h2>
-<button onclick="start()">Start Deep Scan</button>
-
-<pre id="log">Waiting...</pre>
+<!doctype html>
+<meta charset="utf-8">
+<title>Sender</title>
 
 <script>
-const log = (m) => {
-    const el = document.getElementById("log");
-    el.innerText += "\n" + m;
-    el.scrollTop = el.scrollHeight;
-};
-
-// =========================
-// ENV DETECTION
-// =========================
-function detectEnv() {
-    const ua = navigator.userAgent;
-    log("[*] UA: " + ua);
-
-    if (ua.includes("Instagram")) log("🔥 Instagram WebView");
-    if (ua.includes("wv")) log("🔥 Android WebView");
+function burn(level) {
+  for (let i = 0; i < level; i++) {
+    for (let j = 0; j < 60; j++);
+  }
 }
 
-// =========================
-// BRIDGE ENUMERATION
-// =========================
-let bridges = [];
-
-function enumBridge() {
-    log("\n[*] Enumerating bridges...");
-
-    Object.getOwnPropertyNames(window).forEach(k => {
-        try {
-            if (typeof window[k] === "object") {
-                const name = k.toLowerCase();
-
-                if (
-                    name.includes("bridge") ||
-                    name.includes("android") ||
-                    name.includes("iab") ||
-                    name.includes("native")
-                ) {
-                    log("🔥 Found: " + k);
-                    bridges.push(k);
-
-                    try {
-                        Object.getOwnPropertyNames(window[k]).forEach(fn => {
-                            log("   ↳ " + fn);
-                        });
-                    } catch(e){}
-                }
-            }
-        } catch(e){}
-    });
+function sendSymbol(sym) {
+  switch (sym) {
+    case '00': burn(5); break;
+    case '01': burn(25); break;
+    case '10': burn(60); break;
+    case '11': burn(120); break;
+  }
 }
 
-// =========================
-// SAFE PROBING PAYLOADS
-// =========================
-const payloads = [
-    {type:"ping"},
-    {action:"test"},
-    {cmd:"getInfo"},
-    {cmd:"getVersion"},
-    {request:"profile"},
-    {debug:true}
-];
-
-// =========================
-// BRIDGE PROBE
-// =========================
-function probeBridge() {
-    log("\n[*] Probing bridges...");
-
-    bridges.forEach(name => {
-        try {
-            const obj = window[name];
-
-            if (obj.postMessage) {
-                log("🔥 Testing " + name + ".postMessage");
-
-                payloads.forEach(p => {
-                    try {
-                        obj.postMessage(JSON.stringify(p));
-                        log("   ↳ sent: " + JSON.stringify(p));
-                    } catch(e){}
-                });
-            }
-
-        } catch(e){}
-    });
+function encode(str) {
+  return str.split('')
+    .map(c => c.charCodeAt(0).toString(2).padStart(8,'0'))
+    .join('');
 }
 
-// =========================
-// MESSAGE MONITOR
-// =========================
-function monitorMessages() {
-    log("\n[*] Listening messages...");
+const msg = "NAN_ORACLE_WORKS";
+const bits = encode(msg);
 
-    window.addEventListener("message", (e) => {
+let i = 0;
 
-        if (e.origin === location.origin) return;
+// kirim terus (burst biar kuat)
+setInterval(() => {
+  for (let k = 0; k < 5; k++) {
+    const sym = bits.slice(i, i+2);
+    if (sym.length < 2) return;
 
-        log("\n📩 MESSAGE RECEIVED");
-        log("Origin: " + e.origin);
+    sendSymbol(sym);
+  }
 
-        try {
-            const dataStr = JSON.stringify(e.data);
-            log("Data: " + dataStr.slice(0,300));
+  i += 2;
+  if (i >= bits.length) i = 0;
 
-            // 🔥 strict leak detection
-            if (
-                dataStr.match(/token|auth|session|email|user/i)
-            ) {
-                log("🔥🔥 REAL DATA LEAK SIGNAL");
-                document.body.style.background = "darkred";
-            }
-
-        } catch(e){}
-    });
-
-    window.postMessage({probe:true}, "*");
-}
-
-// =========================
-// VISIBILITY (APP SWITCH)
-// =========================
-function monitorVisibility() {
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            log("🚨 App switched");
-        }
-    });
-}
-
-// =========================
-// TIMING ANALYSIS
-// =========================
-function timingCheck() {
-    log("\n[*] Timing analysis started");
-
-    const start = performance.now();
-
-    setTimeout(() => {
-        const delta = performance.now() - start;
-
-        if (delta > 2000) {
-            log("⚠️ Possible blocking / native interaction delay");
-        } else {
-            log("[+] Normal timing");
-        }
-    }, 2000);
-}
-
-// =========================
-// RUN
-// =========================
-function start() {
-    log("[*] Starting deep scan...\n");
-
-    detectEnv();
-    monitorVisibility();
-
-    setTimeout(enumBridge, 500);
-    setTimeout(monitorMessages, 1000);
-    setTimeout(probeBridge, 1500);
-    setTimeout(timingCheck, 2000);
-}
+}, 100);
 </script>
-
-</body>
-</html>
