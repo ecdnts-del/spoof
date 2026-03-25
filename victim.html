@@ -1,49 +1,50 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>GC Storm (Strong)</title>
+<title>GC Storm MAX</title>
 
 <script>
-// ===== CONFIG =====
-const CHUNK_SIZE = 10000
-const OBJECT_SIZE = 50
-
+let mode = 0
 let pool = []
-let toggle = 0
 
-// ===== HEAVY ALLOCATION =====
-function allocBurst(multiplier) {
-  for (let i = 0; i < CHUNK_SIZE * multiplier; i++) {
-    // kombinasi object + array → lebih mahal
+setInterval(() => {
+  mode ^= 1
+}, 2000)
+
+function heavy() {
+  // TypedArray pressure (langsung makan memory besar)
+  for (let i = 0; i < 50; i++) {
+    pool.push(new Uint8Array(1024 * 1024)) // 1MB
+  }
+
+  // Object graph kompleks
+  for (let i = 0; i < 10000; i++) {
     pool.push({
-      a: new Array(OBJECT_SIZE).fill(i),
-      b: { x: i, y: i+1, z: i+2 }
+      a: new Array(20).fill(i),
+      b: {x:i,y:i+1,z:i+2},
+      c: () => i
     })
   }
+
+  // Fragmentation
+  for (let i = 0; i < 5000; i++) {
+    pool.push(new Array(i % 50 + 1))
+  }
 }
 
-// ===== GC CHURN =====
 function churn() {
-  // buang sebagian → trigger GC
-  pool = pool.slice(pool.length / 2)
+  // buang random → GC chaos
+  pool = pool.slice(Math.random() * pool.length / 2)
 }
 
-// ===== LOOP =====
 setInterval(() => {
-  toggle ^= 1
-
-  if (toggle === 0) {
-    // LOW pressure
-    allocBurst(1)
+  if (mode === 0) {
+    // LOW
+    heavy()
     churn()
   } else {
-    // HIGH pressure (brutal)
-    for (let k = 0; k < 5; k++) {
-      allocBurst(3)
-    }
+    // HIGH (burst)
+    for (let i = 0; i < 3; i++) heavy()
     churn()
   }
-
 }, 100)
 </script>
-
-<body>GC Storm Running...</body>
