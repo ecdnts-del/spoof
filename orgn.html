@@ -1,24 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>PoC Test</title>
-</head>
-<body>
-  <h2>Testing Fetch Request</h2>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script>
-    fetch("https://mail.google.com/mail/u/0/")
-      .then(function(response) {
-        return response.text();
-      })
-      .then(function(data) {
-        document.body.innerText = data;
-      })
-      .catch(function(error) {
-        document.body.innerText = "Error: " + error;
-      });
-  </script>
+<style>
+    h1 {
+        margin: 1em;
+    }
 
-</body>
-</html>
+    a {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    input {
+        display: none;
+    }
+
+    img {
+        width: 100%;
+    }
+</style>
+
+<h1>Tap to upload photo to Google</h1>
+
+<!-- [poc-with-system-dialog]: -->
+<input id="fileSelect" type="file" accept="image/*" />
+
+<!-- [poc-with-camera]: -->
+<!-- <input id="fileSelect" type="file" accept="*/*" /> -->
+
+<img id="img">
+<a id="link" href="https://google.com" target="_blank"></a>
+
+<script>
+    link.onclick = () => {
+        fileSelect.click();
+    }
+
+    fileSelect.onchange = (event) => {
+        img.src = URL.createObjectURL(fileSelect.files[0]);
+    }
+</script>
