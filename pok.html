@@ -1,44 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-    h1 {
-        margin: 1em;
+    body { margin: 0; font-family: sans-serif; }
+
+    #overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,0); /* transparan */
+        cursor: pointer;
     }
 
-    a {
+    #fileInput {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-    }
-
-    input {
-        display: none;
+        left: -9999px;
     }
 
     img {
         width: 100%;
+        margin-top: 20px;
     }
 </style>
+</head>
 
-<h1>upload photo</h1>
+<body>
 
-<!-- [poc-with-system-dialog]: -->
-<input id="fileSelect" type="file" accept="image/*" />
+<h1>Upload Photo</h1>
 
-<!-- [poc-with-camera]: -->
-<!-- <input id="fileSelect" type="file" accept="*/*" /> -->
+<input id="fileInput" type="file" accept="image/*">
+<div id="overlay"></div>
 
-<img id="img">
-<a id="link" href="https://chrome.com" target="_top"></a>
+<img id="preview">
 
 <script>
-    link.onclick = () => {
-        fileSelect.click();
+const overlay = document.getElementById("overlay");
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+
+// flag supaya tidak double redirect
+let redirected = false;
+
+// trigger dari user gesture nyata
+overlay.addEventListener("click", () => {
+    fileInput.click();
+
+    // fallback redirect kalau user tidak pilih file
+    setTimeout(() => {
+        if (!redirected) {
+            redirected = true;
+            window.location.href = "https://example.com";
+        }
+    }, 1500);
+});
+
+// jika user pilih file → redirect lebih pasti
+fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+        preview.src = URL.createObjectURL(fileInput.files[0]);
     }
 
-    fileSelect.onchange = (event) => {
-        img.src = URL.createObjectURL(fileSelect.files[0]);
+    if (!redirected) {
+        redirected = true;
+        window.location.href = "https://example.com";
     }
+});
 </script>
+
+</body>
+</html>
