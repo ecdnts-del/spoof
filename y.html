@@ -28,7 +28,7 @@ button {
 
 <body>
 
-<button id="start">Start Demo</button>
+<button id="start">Start Demo href</button>
 
 <script>
 const TARGET = "https://google.com";
@@ -96,7 +96,7 @@ function delayedRedirect() {
 
   setTimeout(() => {
     logEvent("redirecting", {target: TARGET});
-    location.replace(TARGET);
+location.href = TARGET;
   }, 5000);
 }
 
