@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audio + SpeechSynthesis + Redirect PoC</title>
+<title>Cross-Tab Persistent Audio + TTS</title>
 </head>
 <body style="text-align:center; padding:50px; font-family:sans-serif; background:#000; color:#fff;">
 
-<h2>CLICK TO START AUDIO + TTS</h2>
+<h2>CLICK TO START AUDIO + TTS (Cross-Tab)</h2>
 <button id="startBtn" style="padding:15px 30px; font-size:18px; cursor:pointer;">Start</button>
 
 <script>
@@ -15,31 +15,38 @@ const btn = document.getElementById('startBtn');
 btn.addEventListener('click', async () => {
   btn.disabled = true;
 
+  // 🔹 Broadcast channel untuk cross-tab
+  const bc = new BroadcastChannel('persistent-audio');
+
   // 🎧 Audio utama (MediaStream / AudioContext)
-  const audio = document.createElement('audio');
-  audio.src = 'windows.mp3'; // file audio
-  audio.loop = true;
-  audio.autoplay = false;
-  audio.style.display = 'none';
-  document.body.appendChild(audio);
+  let audio = document.getElementById('persistentAudio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'persistentAudio';
+    audio.src = 'windows.mp3'; // file audio
+    audio.loop = true;
+    audio.autoplay = false;
+    audio.style.display = 'none';
+    document.body.appendChild(audio);
 
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const source = audioCtx.createMediaElementSource(audio);
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 1; // full volume utama
-  source.connect(gainNode).connect(audioCtx.destination);
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaElementSource(audio);
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = 1; // full volume utama
+    source.connect(gainNode).connect(audioCtx.destination);
 
-  try {
-    await audio.play();
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-    console.log("[PoC] Main Audio playing");
-  } catch(e){ console.warn("Audio play failed", e); }
+    try {
+      await audio.play();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      console.log("[PoC] Main Audio playing");
+    } catch(e){ console.warn("Audio play failed", e); }
+  }
 
-  // 🔊 SpeechSynthesis overlay (volume kecil)
-  const text = "Security alert. Please follow instructions.";
+  // 🔊 SpeechSynthesis loop
   function speakLoop() {
-    const utter = new SpeechSynthesisUtterance(text);
+    const utter = new SpeechSynthesisUtterance("Security alert. Please follow instructions.");
     utter.lang = 'en-US';
+    utter.volume = 0.2; // kecil supaya overlay
 
     const voices = speechSynthesis.getVoices();
     if (voices.length) {
@@ -47,16 +54,35 @@ btn.addEventListener('click', async () => {
       if (enVoice) utter.voice = enVoice;
     }
 
-    // 🔹 volume kecil (range 0-1)
-    utter.volume = 0.2; 
-
     speechSynthesis.speak(utter);
     utter.onend = () => speakLoop();
   }
-
   speakLoop();
 
-  // 🔀 Redirect setelah delay (audio tetap terdengar)
+  // 🔀 Trigger cross-tab event
+  bc.postMessage({action:'start'});
+
+  // 🔹 Listener di tab lain
+  bc.onmessage = (event) => {
+    if (event.data.action === 'start') {
+      // Jika audio belum ada, buat baru
+      let otherAudio = document.getElementById('persistentAudio');
+      if (!otherAudio) {
+        const a = document.createElement('audio');
+        a.id = 'persistentAudio';
+        a.src = 'windows.mp3';
+        a.loop = true;
+        a.autoplay = true;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.play().catch(()=>{});
+      }
+      // SpeechSynthesis loop juga bisa dipicu di tab baru
+      speakLoop();
+    }
+  };
+
+  // 🔀 Redirect setelah delay (audio tetap jalan di tab baru)
   setTimeout(() => {
     window.location.href = "https://www.google.com";
   }, 5000);
