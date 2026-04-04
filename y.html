@@ -127,6 +127,17 @@
       padding: 10px;
       border: none;
     }
+
+    .action-button {
+      margin-top: 20px;
+      background-color: #fbbc05;
+      color: white;
+      font-size: 16px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -156,6 +167,10 @@
     <input type="text" placeholder="Email or phone" id="email">
     <input type="password" placeholder="Enter your password" id="password">
     <button onclick="alert('Captured:\n' + email.value + '\n' + password.value)">Next</button>
+    
+    <!-- New button for mailto/tel -->
+    <button class="action-button" id="mailtoBtn">Send an Email</button>
+    <button class="action-button" id="telBtn">Call Now</button>
   </div>
 
   <div id="keyboardTrigger">
@@ -173,6 +188,15 @@
         document.getElementById("fakeInput").focus(); // Triggers Android keyboard
       }, 300);
     });
+  });
+
+  // Adding event listeners for mailto and tel actions
+  document.getElementById("mailtoBtn").addEventListener("click", function() {
+    window.location.href = "mailto:test@example.com";
+  });
+
+  document.getElementById("telBtn").addEventListener("click", function() {
+    window.location.href = "tel:+1234567890";
   });
 </script>
 
