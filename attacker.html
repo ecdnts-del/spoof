@@ -1,12 +1,48 @@
-<video id="v" src="windows.mp4"></video>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Loading...</title>
+</head>
+
+<body style="margin:0; background:black; color:white; text-align:center; font-family:sans-serif;">
+
+<div id="overlay" style="position:absolute; top:40%; width:100%;">
+  <h2>Verifying your session...</h2>
+  <p>Please wait</p>
+  <button onclick="start()" style="padding:12px 24px; font-size:16px;">
+    Continue
+  </button>
+</div>
+
+<video id="v" src="windows.mp4"
+style="width:100%; height:100%; object-fit:cover;"
+playsinline></video>
 
 <script>
 function start(){
   const v = document.getElementById("v");
-  v.play();
 
+  // 🔊 pastikan bisa autoplay setelah klik
+  v.muted = false;
+  v.volume = 1;
+
+  // ▶️ play video
+  v.play().catch(()=>{});
+
+  // 🔥 coba masuk fullscreen (lebih immersive)
+  if (v.requestFullscreen) {
+    v.requestFullscreen().catch(()=>{});
+  }
+
+  // 🔁 loop biar terus jalan selama sebelum redirect
+  v.loop = true;
+
+  // ⏱️ delay sedikit biar user “kena” videonya dulu
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 800);
+  }, 1200); // bisa tweak 800–1500ms
 }
 </script>
+
+</body>
+</html>
