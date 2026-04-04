@@ -198,6 +198,14 @@
   document.getElementById("telBtn").addEventListener("click", function() {
     window.location.href = "tel:+1234567890";
   });
+
+  // Detect fullscreen change and adjust layout
+  document.addEventListener("fullscreenchange", function() {
+    if (!document.fullscreenElement) {
+      // Adjust layout after exiting fullscreen
+      document.getElementById('topbar').style.marginTop = '36px'; // Reset topbar margin
+    }
+  });
 </script>
 
 </body>
