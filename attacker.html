@@ -1,54 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Security Check</title>
-</head>
-<body style="text-align:center; margin-top:100px; font-family:sans-serif;">
-
-<h2>Security Verification Required</h2>
-<p>Click below to continue</p>
-
-<input onclick="start()" type="button" value="Click here"
-style="padding:10px 20px; font-size:16px;" />
+<video id="v" src="windows.mp4"></video>
 
 <script>
 function start(){
+  const v = document.getElementById("v");
+  v.play();
 
-  // 🎤 Trigger mic APIs (akan munculin permission)
-  try {
-    var recognition = new webkitSpeechRecognition();
-    recognition.start();
-  } catch(e){}
-
-  try {
-    navigator.webkitGetUserMedia(
-      {audio: true},
-      function(){},
-      function(){}
-    );
-  } catch(e){}
-
-  // 🔊 Speech synthesis (audio spoof)
-  const msg = new SpeechSynthesisUtterance(
-    "Google security alert. Suspicious activity detected. Please follow the instructions on this page."
-  );
-
-  const voices = speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
-  }
-
-  speechSynthesis.speak(msg);
-
-  // 🔁 Optional loop biar makin kuat
-  msg.onend = () => speechSynthesis.speak(msg);
-
-  // 🔀 Fast redirect ke site legit
   setTimeout(() => {
     window.location.href = "https://www.google.com";
   }, 800);
 }
 </script>
-
-</body>
-</html>
