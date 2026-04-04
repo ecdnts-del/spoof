@@ -3,36 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PiP + SpeechSynthesis + Redirect PoC</title>
+<title>Iframe Video + PiP + SpeechSynthesis + Redirect</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background:#000; color:#fff; }
+  button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
+  iframe { width: 100%; max-width: 600px; height: 340px; border: none; margin-top: 20px; }
+</style>
 </head>
 <body>
 
-<h2>CLICK TO START</h2>
+<h2>CLICK TO START VIDEO</h2>
 <button id="startBtn">Start</button>
 
-<!-- Video PiP muted -->
-<video id="v" src="windows.mp4" loop muted style="width:0; height:0;"></video>
+<!-- iframe video source -->
+<iframe id="videoFrame" src="windows.html" allow="autoplay; fullscreen" allowfullscreen></iframe>
 
 <script>
 const btn = document.getElementById('startBtn');
-const video = document.getElementById('v');
+const iframe = document.getElementById('videoFrame');
 let speaking = false;
 
 btn.addEventListener('click', async () => {
   btn.disabled = true;
 
-  // 🎬 Play video muted
-  try { await video.play(); } catch(e){ console.warn("Video play failed", e); }
-
-  // 🖼️ Request PiP (muted)
-  try {
-    if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
-      await video.requestPictureInPicture();
-    }
-  } catch(e){ console.warn("PiP failed", e); }
-
   // 🔊 SpeechSynthesis loop
-  const text = "This is a security alert message from video.";
+  const text = "Security alert. Suspicious activity detected. Please follow instructions.";
   function speakLoop() {
     if (speaking) return;
     speaking = true;
@@ -55,10 +50,10 @@ btn.addEventListener('click', async () => {
 
   speakLoop();
 
-  // 🔀 Redirect setelah delay (user sempat dengar audio)
+  // 🔀 Redirect setelah delay
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 5000); // delay 5 detik
+  }, 2000);
 });
 </script>
 
