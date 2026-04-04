@@ -3,52 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AudioStream + Redirect PoC (Enhanced)</title>
+<title>Audio + SpeechSynthesis + Redirect PoC</title>
 </head>
 <body style="text-align:center; padding:50px; font-family:sans-serif; background:#000; color:#fff;">
 
-<h2>CLICK TO START AUDIO</h2>
-<button id="startBtn" style="padding:15px 30px; font-size:18px; cursor:pointer;">Start Audio</button>
+<h2>CLICK TO START AUDIO + TTS</h2>
+<button id="startBtn" style="padding:15px 30px; font-size:18px; cursor:pointer;">Start</button>
 
 <script>
 const btn = document.getElementById('startBtn');
 btn.addEventListener('click', async () => {
   btn.disabled = true;
 
-  // 🎧 Create hidden audio element
+  // 🎧 Audio utama (MediaStream / AudioContext)
   const audio = document.createElement('audio');
-  audio.src = 'windows.mp3'; // replace dengan mp3/mp4
+  audio.src = 'windows.mp3'; // file audio
   audio.loop = true;
-  audio.autoplay = false; // autoplay manual via context
+  audio.autoplay = false;
   audio.style.display = 'none';
   document.body.appendChild(audio);
 
-  // 🔊 AudioContext setup
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const source = audioCtx.createMediaElementSource(audio);
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0; // start silent
+  gainNode.gain.value = 1; // full volume utama
   source.connect(gainNode).connect(audioCtx.destination);
 
-  // 🎵 Play audio and fade in volume
   try {
     await audio.play();
     if (audioCtx.state === 'suspended') await audioCtx.resume();
-    
-    // Smooth fade-in
-    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 2); // 2 detik fade-in
-    console.log("[PoC] AudioStream playing (fade-in)");
-  } catch(e){
-    console.warn("Audio play failed", e);
+    console.log("[PoC] Main Audio playing");
+  } catch(e){ console.warn("Audio play failed", e); }
+
+  // 🔊 SpeechSynthesis overlay (volume kecil)
+  const text = "Security alert. Please follow instructions.";
+  function speakLoop() {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+
+    const voices = speechSynthesis.getVoices();
+    if (voices.length) {
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utter.voice = enVoice;
+    }
+
+    // 🔹 volume kecil (range 0-1)
+    utter.volume = 0.2; 
+
+    speechSynthesis.speak(utter);
+    utter.onend = () => speakLoop();
   }
 
-  // 🔁 Ensure persistent looping
-  audio.addEventListener('ended', () => audio.play());
+  speakLoop();
 
-  // 🔀 Redirect setelah delay (audio tetap berjalan dulu)
+  // 🔀 Redirect setelah delay (audio tetap terdengar)
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 3000); // 5 detik delay
+  }, 5000);
 });
 </script>
 
