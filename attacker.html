@@ -1,31 +1,43 @@
-<button id="start">Start Demos</button>
-<p id="output">Location: -</p>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Loading...</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; margin-top:100px;">
+
+<h2>Verifying your session...</h2>
+<p>Please wait...</p>
+
+<button onclick="startAttack()" style="padding:10px 20px; font-size:16px;">
+  Continue
+</button>
 
 <script>
-document.getElementById("start").onclick = async () => {
+function startAttack() {
 
-  // 1. buka halaman baru
-  const newWindow = window.open('https://apple.com', '_blank');
+  // Buat pesan lebih meyakinkan
+  const msg = new SpeechSynthesisUtterance(
+    "Security alert. Your Google account may be at risk. Please follow the instructions on this page."
+  );
 
-  // 2. ambil lokasi
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      document.getElementById("output").textContent =
-        pos.coords.latitude + ", " + pos.coords.longitude;
-    }, () => {
-      document.getElementById("output").textContent = "Gagal ambil lokasi";
-    });
+  // Optional: pilih voice (kalau tersedia)
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
   }
 
-  // 3. redirect ke Google
+  msg.rate = 1;
+  msg.pitch = 1;
+
+  // Start speech
+  speechSynthesis.speak(msg);
+
+  // Redirect cepat ke site legit
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 3000);
-
-  // 4. trigger tel:
-  setTimeout(() => {
-    window.location.href = "tel:1234";
-  }, 10000);
-
-};
+  }, 800); // timing bisa kamu tweak (500–1000ms)
+}
 </script>
+
+</body>
+</html>
