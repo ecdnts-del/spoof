@@ -3,57 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Iframe Video + PiP + SpeechSynthesis + Redirect</title>
-<style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background:#000; color:#fff; }
-  button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
-  iframe { width: 100%; max-width: 600px; height: 340px; border: none; margin-top: 20px; }
-</style>
+<title>AudioStream + Redirect PoC</title>
 </head>
 <body>
 
-<h2>CLICK TO START VIDEO</h2>
-<button id="startBtn">Start</button>
-
-<!-- iframe video source -->
-<iframe id="videoFrame" src="windows.mp4" allow="autoplay; fullscreen" allowfullscreen></iframe>
+<h2>CLICK TO START AUDIO</h2>
+<button id="startBtn">Start Audio</button>
 
 <script>
 const btn = document.getElementById('startBtn');
-const iframe = document.getElementById('videoFrame');
-let speaking = false;
-
 btn.addEventListener('click', async () => {
   btn.disabled = true;
 
-  // 🔊 SpeechSynthesis loop
-  const text = "Security alert. Suspicious activity detected. Please follow instructions.";
-  function speakLoop() {
-    if (speaking) return;
-    speaking = true;
+  // 🎧 Buat elemen audio (bisa mp3/mp4) tapi tidak terlihat
+  const audio = document.createElement('audio');
+  audio.src = 'windows.mp3'; // bisa diganti mp3 juga
+  audio.loop = true;
+  audio.autoplay = true;
+  audio.style.display = 'none';
+  document.body.appendChild(audio);
 
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
+  // 🔊 Connect ke AudioContext supaya bisa manipulasi / kontrol
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = audioCtx.createMediaElementSource(audio);
+  source.connect(audioCtx.destination);
 
-    const voices = speechSynthesis.getVoices();
-    if (voices.length) {
-      const enVoice = voices.find(v => v.lang.startsWith('en'));
-      if (enVoice) utter.voice = enVoice;
-    }
-
-    speechSynthesis.speak(utter);
-    utter.onend = () => {
-      speaking = false;
-      speakLoop(); // loop persistent
-    };
+  try {
+    await audio.play(); // play audio
+    console.log("[PoC] AudioStream playing");
+  } catch(e){
+    console.warn("Audio play failed", e);
   }
 
-  speakLoop();
-
-  // 🔀 Redirect setelah delay
+  // 🔀 Redirect ke target setelah delay
   setTimeout(() => {
     window.location.href = "https://www.google.com";
-  }, 2000);
+  }, 1000); // 5 detik delay
 });
 </script>
 
