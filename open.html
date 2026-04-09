@@ -1,2 +1,91 @@
-<script> function test01() { pop = window.open('https:/www.google.com', '_t1'); pop.document.write('<script>document.write(document.location.toString().replace("<","&lt;")+"<br>")</scr'+'ipt>'); } </script>
-<input type="button" onclick="test01()" value="Run">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FS Access Persistence Test</title>
+<style>
+body { font-family: Arial; padding: 30px; background:#f5f5f5;}
+button { padding:10px; margin:5px; }
+#log { background:#111; color:#0f0; padding:10px; height:200px; overflow:auto;}
+</style>
+</head>
+<body>
+
+<h2>🧪 File Handle Persistence Test</h2>
+
+<button onclick="pickFile()">1. Pick File</button>
+<button onclick="saveHandle()">2. Save Handle</button>
+<button onclick="loadHandle()">3. Load Handle</button>
+<button onclick="startMonitor()">4. Start Monitor</button>
+
+<div id="log"></div>
+
+<script>
+let fileHandle;
+
+function log(msg){
+  document.getElementById("log").innerHTML += msg+"<br>";
+}
+
+// STEP 1
+async function pickFile(){
+  fileHandle = await window.showSaveFilePicker({
+    suggestedName: "test.txt"
+  });
+  log("✅ File selected");
+}
+
+// STEP 2 - store handle
+async function saveHandle(){
+  const db = await openDB();
+  const tx = db.transaction("store", "readwrite");
+  tx.objectStore("store").put(fileHandle, "handle");
+  await tx.complete;
+  log("💾 Handle saved to IndexedDB");
+}
+
+// STEP 3 - reload simulation
+async function loadHandle(){
+  const db = await openDB();
+  const tx = db.transaction("store", "readonly");
+  fileHandle = await tx.objectStore("store").get("handle");
+
+  if(fileHandle){
+    log("♻️ Handle restored WITHOUT picker");
+  } else {
+    log("❌ No handle found");
+  }
+}
+
+// STEP 4 - monitor
+function startMonitor(){
+  setInterval(async ()=>{
+    try{
+      if(!fileHandle) return;
+
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+
+      log("📡 Read: " + text);
+
+    }catch(e){
+      log("🚫 Access blocked: " + e.message);
+    }
+  }, 1000);
+}
+
+// IndexedDB helper
+function openDB(){
+  return new Promise((res, rej)=>{
+    const req = indexedDB.open("fs-db",1);
+    req.onupgradeneeded = ()=>{
+      req.result.createObjectStore("store");
+    };
+    req.onsuccess = ()=>res(req.result);
+    req.onerror = ()=>rej();
+  });
+}
+</script>
+
+</body>
+</html>
