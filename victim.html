@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Add to Calendar</title>
+  <title>All in One</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,18 +22,21 @@
       width: 320px;
     }
 
-    a.button {
-      display: block;
-      margin: 10px 0;
-      padding: 12px;
+    button {
+      padding: 15px;
+      width: 100%;
+      border: none;
       border-radius: 8px;
-      text-decoration: none;
+      background: #007bff;
       color: white;
       font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
     }
 
-    .primary { background: #007bff; }
-    .secondary { background: #28a745; }
+    button:hover {
+      background: #0056b3;
+    }
 
     .note {
       font-size: 12px;
@@ -44,30 +47,43 @@
 </head>
 <body>
 
-  <div class="card">
-    <h2>Tambah ke Kalender 📅</h2>
+<div class="card">
+  <h2>Tambah ke Kalender 📅</h2>
 
-    <!-- OPEN GOOGLE CALENDAR (NO LOCALHOST) -->
-    <a class="button primary"
-       href="https://calendar.google.com/calendar/r?cid=your_calendar_id"
-       target="_blank"
-       rel="noopener noreferrer">
-      Open Google Calendar
-    </a>
+  <button onclick="runAll()">
+    Jalankan Semua 🚀
+  </button>
 
-    <!-- DIRECT ICS DOWNLOAD (WAJIB NON-LOCALHOST LINK) -->
-    <a class="button secondary"
-       href="https://calendar.googleusercontent.com/calendar/ical/your_calendar_id/public/basic.ics"
-       download="calendar.ics"
-       target="_blank"
-       rel="noopener noreferrer">
-      Download .ICS File
-    </a>
-
-    <div class="note">
-      Jika tidak langsung terbuka, import file .ics ke aplikasi Kalender
-    </div>
+  <div class="note">
+    Open Calendar + Download ICS + Kirim Email sekaligus
   </div>
+</div>
+
+<script>
+function runAll() {
+
+  // 1. Open Google Calendar
+  window.open(
+    "https://calendar.google.com/calendar/r?cid=your_calendar_id",
+    "_blank"
+  );
+
+  // 2. Download ICS file
+  const link = document.createElement("a");
+  link.href = "https://calendar.googleusercontent.com/calendar/ical/your_calendar_id/public/basic.ics";
+  link.download = "calendar.ics";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // 3. Open email (mailto)
+  setTimeout(() => {
+    window.location.href =
+      "mailto:example@email.com?subject=Undangan%20Kalender&body=Ini%20link%20kalender%20kamu";
+  }, 800);
+
+}
+</script>
 
 </body>
 </html>
