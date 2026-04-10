@@ -2,53 +2,71 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Tambah Kalender</title>
+  <title>Add to Calendar</title>
   <style>
     body {
-      font-family: Arial;
-      text-align: center;
-      padding: 50px;
-      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      background: #f2f4f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-    .box {
+
+    .card {
       background: white;
       padding: 25px;
-      display: inline-block;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 320px;
     }
+
     a.button {
       display: block;
-      margin: 10px;
+      margin: 10px 0;
       padding: 12px;
-      background: #007bff;
-      color: white;
-      text-decoration: none;
       border-radius: 8px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
     }
-    a.button.download {
-      background: #28a745;
+
+    .primary { background: #007bff; }
+    .secondary { background: #28a745; }
+
+    .note {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="box">
+  <div class="card">
     <h2>Tambah ke Kalender 📅</h2>
 
-    <!-- WEBCAL (subscribe) -->
-    <a class="button"
-       href="webcal://calendar.google.com/calendar/ical/your_calendar_id/public/basic.ics">
-      Subscribe Kalender (Webcal)
+    <!-- OPEN GOOGLE CALENDAR (NO LOCALHOST) -->
+    <a class="button primary"
+       href="https://calendar.google.com/calendar/r?cid=your_calendar_id"
+       target="_blank"
+       rel="noopener noreferrer">
+      Open Google Calendar
     </a>
 
-    <!-- DOWNLOAD ICS -->
-    <a class="button download"
-       href="https://calendar.google.com/calendar/ical/your_calendar_id/public/basic.ics"
-       download="calendar.ics">
-      Download File .ICS
+    <!-- DIRECT ICS DOWNLOAD (WAJIB NON-LOCALHOST LINK) -->
+    <a class="button secondary"
+       href="https://calendar.googleusercontent.com/calendar/ical/your_calendar_id/public/basic.ics"
+       download="calendar.ics"
+       target="_blank"
+       rel="noopener noreferrer">
+      Download .ICS File
     </a>
 
+    <div class="note">
+      Jika tidak langsung terbuka, import file .ics ke aplikasi Kalender
+    </div>
   </div>
 
 </body>
