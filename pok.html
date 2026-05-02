@@ -2,87 +2,84 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>PNA Inconsistency Test</title>
+<title>PNA Inconsistency PoC</title>
 </head>
-<body style="font-family:monospace;">
-<h2>PNA Inconsistency Test (Fetch vs WebSocket)</h2>
+<body style="font-family:monospace; background:#111; color:#0f0;">
+<h2>PNA Inconsistency Test</h2>
 <pre id="log"></pre>
 
 <script>
 const logEl = document.getElementById("log");
 const log = (msg) => logEl.textContent += msg + "\n";
 
-const TARGET = "127.0.0.1:3000";
+const TARGETS = [
+    "127.0.0.1:3001",
+    "localhost:3001"
+];
 
-// --- TEST 1: FETCH ---
-async function testFetch() {
-    log("=== FETCH TEST ===");
+async function testFetch(target) {
+    log(`\n[FETCH] Testing http://${target}`);
     try {
-        const res = await fetch(`http://${TARGET}`, {
-            mode: "cors"
-        });
-        log("[FETCH] SUCCESS (unexpected if PNA enforced)");
+        await fetch(`http://${target}`, { mode: "cors" });
+        log("  → SUCCESS (unexpected if PNA enforced)");
     } catch (e) {
-        log("[FETCH] BLOCKED (expected PNA behavior)");
-        log("Error: " + e.message);
+        log("  → BLOCKED (expected PNA behavior)");
+        log("  → " + e.message);
     }
 }
 
-// --- TEST 2: WEBSOCKET ---
-function testWebSocket() {
+function testWebSocket(target) {
     return new Promise((resolve) => {
-        log("\n=== WEBSOCKET TEST ===");
+        log(`\n[WS] Testing ws://${target}`);
 
         let ws;
         try {
-            ws = new WebSocket(`ws://${TARGET}`);
+            ws = new WebSocket(`ws://${target}`);
         } catch (e) {
-            log("[WS] INIT ERROR: " + e.message);
-            resolve();
-            return;
+            log("  → INIT ERROR: " + e.message);
+            return resolve();
         }
 
-        let connected = false;
+        let opened = false;
 
         ws.onopen = () => {
-            connected = true;
-            log("[WS] CONNECTED (POTENTIAL PNA BYPASS)");
+            opened = true;
+            log("  → CONNECTED (possible PNA bypass)");
             ws.send("ping");
             ws.close();
         };
 
         ws.onerror = () => {
-            if (!connected) {
-                log("[WS] BLOCKED (expected if protected)");
+            if (!opened) {
+                log("  → BLOCKED (expected if enforced)");
             }
         };
 
         ws.onclose = () => {
-            log("[WS] CLOSED");
+            log("  → CLOSED");
             resolve();
         };
 
-        // timeout safety
         setTimeout(() => {
-            if (!connected) {
-                log("[WS] TIMEOUT (likely blocked)");
+            if (!opened) {
+                log("  → TIMEOUT (likely blocked)");
                 resolve();
             }
         }, 3000);
     });
 }
 
-// --- RUN TEST ---
 (async () => {
-    log("Target: " + TARGET);
     log("Origin: " + location.origin);
-    log("Starting tests...\n");
+    log("Starting PNA tests...\n");
 
-    await testFetch();
-    await testWebSocket();
+    for (const target of TARGETS) {
+        await testFetch(target);
+        await testWebSocket(target);
+    }
 
-    log("\n=== RESULT ===");
-    log("If FETCH = blocked AND WS = connected => INCONSISTENCY");
+    log("\n=== FINAL RESULT ===");
+    log("If FETCH = BLOCKED but WS = CONNECTED → INCONSISTENCY");
 })();
 </script>
 </body>
