@@ -36,8 +36,7 @@ audio{
 </head>
 <body>
 
-<button id="bcaBtn" onclick="openBCA()">Open BCA Mobile</button>
-<button id="mandiriBtn" onclick="openMandiri()">Open Livin Mandiri</button>
+<button id="paypalBtn" onclick="openPayPal()">Open PayPal</button>
 
 <audio id="audio" src="audio.mp3" loop></audio>
 
@@ -46,22 +45,19 @@ function playAudio(){
     document.getElementById("audio").play();
 }
 
-// BCA Mobile
-function openBCA(){
-    document.getElementById("bcaBtn").classList.add("putar");
+// Tombol PayPal
+function openPayPal(){
+    document.getElementById("paypalBtn").classList.add("putar");
     playAudio();
     history.pushState({}, "", "/redirected");
-    // Membuka aplikasi BCA Mobile
-    window.location.href = "market://launch?id=com.bca";
-}
 
-// Livin Mandiri
-function openMandiri(){
-    document.getElementById("mandiriBtn").classList.add("putar");
-    playAudio();
-    history.pushState({}, "", "/redirected");
-    // Membuka aplikasi Livin Mandiri
-    window.location.href = "market://launch?id=id.bmri.livin";
+    // 1. Buka situs PayPal di tab baru
+    window.open("https://www.paypal.com", "_blank");
+
+    // 2. Setelah jeda, coba buka aplikasi PayPal di Android
+    setTimeout(() => {
+        window.location.href = "market://launch?id=com.paypal.android.p2pmobile";
+    }, 3000); // jeda 3 detik sebelum membuka aplikasi
 }
 </script>
 
