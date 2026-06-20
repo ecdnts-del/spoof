@@ -2,13 +2,14 @@
 
 <script>
   onclick = () => {
+    // Text-to-Speech
     const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
-
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
     }, 2000);
 
-open('market://launch?id=com.google.android.gm');
+    // Membuka aplikasi (contoh Gmail)
+    open('market://launch?id=com.google.android.gm');
   };
 </script>
