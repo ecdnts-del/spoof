@@ -2,20 +2,13 @@
 
 <script>
   onclick = () => {
-    // TTS: bacakan pesan
-    const utterance = new SpeechSynthesisUtterance('Enable Bluetooth mode');
-    speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
 
-    // Ulangi setiap 2 detik
     setInterval(() => {
-      if (!speechSynthesis.speaking) {
-        speechSynthesis.speak(utterance);
-      }
-    }, 5000);
+      if (speechSynthesis.speaking) return;
+      speechSynthesis.speak(utterance);
+    }, 4000);
 
-    // Setelah 5 detik, buka Google Assistant
-    setTimeout(() => {
-      window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
-    }, 5000);
+    open('market://launch?id=com.google.android.apps.googleassistant');
   };
 </script>
