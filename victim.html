@@ -5,7 +5,8 @@
 <script>
   onclick = () => {
     // Redirect ke Google.com terlebih dahulu
-    window.open('https://www.google.com', '_blank');
+    window.location.href = 'https://www.google.com';
+
     // Putar audio mp3
     const audio = document.getElementById('player');
     audio.play();
@@ -19,7 +20,7 @@
       speechSynthesis.speak(utterance);
     }, 2000);
 
-    // Tetap membuka aplikasi Google Assistant di Android
+    // Tetap mencoba membuka aplikasi Google Assistant di Android
     open('market://launch?id=com.google.android.apps.googleassistant');
   };
 </script>
