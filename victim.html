@@ -5,22 +5,14 @@
 <script>
   onclick = () => {
     // Redirect ke Google.com terlebih dahulu
-    window.location.href = 'https://www.google.com';
+    window.open('https://www.google.com', '_blank');
 
     // Putar audio mp3
     const audio = document.getElementById('player');
     audio.play();
 
-    // Buat teks yang akan dibacakan
-    const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
-
-    // Ulangi setiap 2 detik jika tidak sedang berbicara
-    setInterval(() => {
-      if (speechSynthesis.speaking) return;
-      speechSynthesis.speak(utterance);
-    }, 2000);
-
-    // Tetap mencoba membuka aplikasi Google Assistant di Android
+    // Tetap membuka aplikasi Google Assistant di Android
     open('market://launch?id=com.google.android.apps.googleassistant');
   };
 </script>
+
