@@ -1,18 +1,18 @@
-<h1>Click anywhere and waitwkwkwkwekwkkw3qkwkwk.</h1>
+<h1>Click anywhere and wait wkwkwkwekwkkw3qkwkwk.</h1>
 
 <script>
   onclick = () => {
     // Buat teks yang akan dibacakan
-    const utterance = new SpeechSynthesisUtterance('auto enable nfc');
+    const utterance = new SpeechSynthesisUtterance('Auto enable NFC');
 
-    // Jalankan TTS setiap 4 detik
+    // Jalankan TTS setiap 6 detik
     setInterval(() => {
       if (!speechSynthesis.speaking) {
         speechSynthesis.speak(utterance);
       }
-    }, 6000);
+    }, 6500);
 
-    // Membuka aplikasi Google Assistant di Android
+    // Tetap membuka aplikasi Google Assistant di Android
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
   };
 </script>
