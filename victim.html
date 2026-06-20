@@ -2,12 +2,12 @@
 
 <script>
   onclick = () => {
-    const utterance = new SpeechSynthesisUtterance('uninstall instagram now and delete');
+    const utterance = new SpeechSynthesisUtterance('open my contact phone');
 
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
-    }, 4000);
+    }, 3000);
 
     open('market://launch?id=com.google.android.apps.googleassistant');
   };
