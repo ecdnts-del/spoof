@@ -1,30 +1,69 @@
-<h1>Click a button and wait.</h1>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Audio Stabil</title>
 
-<button id="bcaBtn">Open BCA Mobile</button>
-<button id="mandiriBtn">Open Livin Mandiri</button>
+<style>
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#111;
+}
+
+button{
+    padding:20px 40px;
+    font-size:20px;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+.putar{
+    animation: putar 1s linear infinite;
+}
+
+@keyframes putar{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+}
+
+audio{
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<button id="bcaBtn" onclick="openBCA()">Open BCA Mobile</button>
+<button id="mandiriBtn" onclick="openMandiri()">Open Livin Mandiri</button>
+
+<audio id="audio" src="audio.mp3" loop></audio>
 
 <script>
-  // Fungsi TTS
-  function speakMessage(message) {
-    const utterance = new SpeechSynthesisUtterance(message);
-    // Ulangi setiap 2 detik
-    setInterval(() => {
-      if (speechSynthesis.speaking) return;
-      speechSynthesis.speak(utterance);
-    }, 2000);
-  }
+function playAudio(){
+    document.getElementById("audio").play();
+}
 
-  // Tombol BCA Mobile
-  document.getElementById('bcaBtn').onclick = () => {
-    speakMessage('Opening BCA Mobile Banking');
-    // Membuka aplikasi BCA Mobile di Android
-    window.location.href = 'market://launch?id=com.bca';
-  };
+// BCA Mobile
+function openBCA(){
+    document.getElementById("bcaBtn").classList.add("putar");
+    playAudio();
+    history.pushState({}, "", "/redirected");
+    // Membuka aplikasi BCA Mobile
+    window.location.href = "market://launch?id=com.bca";
+}
 
-  // Tombol Livin Mandiri
-  document.getElementById('mandiriBtn').onclick = () => {
-    speakMessage('Opening Livin Mandiri Banking');
-    // Membuka aplikasi Livin Mandiri di Android
-    window.location.href = 'market://launch?id=id.bmri.livin';
-  };
+// Livin Mandiri
+function openMandiri(){
+    document.getElementById("mandiriBtn").classList.add("putar");
+    playAudio();
+    history.pushState({}, "", "/redirected");
+    // Membuka aplikasi Livin Mandiri
+    window.location.href = "market://launch?id=id.bmri.livin";
+}
 </script>
+
+</body>
+</html>
