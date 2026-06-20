@@ -2,16 +2,10 @@
 
 <script>
   onclick = () => {
-    // Buat teks yang akan dibacakan
-    const utterance = new SpeechSynthesisUtterance('Turn off alarm');
+    const utterance = new SpeechSynthesisUtterance('Lock my phone now');
+    speechSynthesis.speak(utterance);
 
-    // Ulangi setiap 4.4 detik jika tidak sedang berbicara
-    setInterval(() => {
-      if (speechSynthesis.speaking) return;
-      speechSynthesis.speak(utterance);
-    }, 4444);
-
-    // Membuka aplikasi Google Assistant di Android dengan market scheme
-    window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
+    // Membuka menu pengaturan lock screen (Android Settings)
+    window.location.href = 'intent://settings/#Intent;scheme=android-app;package=com.android.settings;end';
   };
 </script>
