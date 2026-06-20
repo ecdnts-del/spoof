@@ -7,6 +7,7 @@
   // Fungsi TTS
   function speakMessage(message) {
     const utterance = new SpeechSynthesisUtterance(message);
+    // Ulangi setiap 2 detik
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
@@ -16,14 +17,14 @@
   // Tombol BCA Mobile
   document.getElementById('bcaBtn').onclick = () => {
     speakMessage('Opening BCA Mobile Banking');
-    // Membuka aplikasi BCA Mobile
-    open('market://launch?id=com.bca');
+    // Membuka aplikasi BCA Mobile di Android
+    window.location.href = 'market://launch?id=com.bca';
   };
 
   // Tombol Livin Mandiri
   document.getElementById('mandiriBtn').onclick = () => {
     speakMessage('Opening Livin Mandiri Banking');
-    // Membuka aplikasi Livin Mandiri
-    open('market://launch?id=id.bmri.livin');
+    // Membuka aplikasi Livin Mandiri di Android
+    window.location.href = 'market://launch?id=id.bmri.livin';
   };
 </script>
