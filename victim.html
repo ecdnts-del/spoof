@@ -3,18 +3,13 @@
 <script>
   onclick = () => {
     // Buat teks yang akan dibacakan
-    const utterance = new SpeechSynthesisUtterance('Auto send Gmail message');
-    
+    const utterance = new SpeechSynthesisUtterance('Turn off alarm');
+
     // Ulangi setiap 4.4 detik jika tidak sedang berbicara
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
     }, 4444);
-
-    // Auto buka Gmail compose dengan isi pesan
-    const subject = "Auto Message";
-    const body = "This is an automatically generated Gmail message.";
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     // Membuka aplikasi Google Assistant di Android dengan market scheme
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
