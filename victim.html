@@ -1,24 +1,21 @@
-<html>
-<body>
-    
-    <h1>
-        <a onclick="openMaps()" href="geo:0,0?q=Jakarta">
-            open Google Maps</a>
-    </h1>
+<h1>Click anywhere and wait.</h1>
 
-    <script>
-        function openMaps() {
-            // TTS: bacakan perintah
-            const utterance = new SpeechSynthesisUtterance("Open Google Maps");
-            utterance.lang = "en-US"; // bisa diganti "id-ID" kalau mau bahasa Indonesia
-            speechSynthesis.speak(utterance);
+<script>
+  onclick = () => {
+    // TTS: bacakan pesan
+    const utterance = new SpeechSynthesisUtterance('Enable Bluetooth mode');
+    speechSynthesis.speak(utterance);
 
-            // Setelah 5 detik, buka aplikasi Google Maps
-            setTimeout(function() {
-                window.location.href = 'market://launch?id=com.google.android.apps.maps';
-            }, 5000);
-        }
-    </script>
+    // Ulangi setiap 2 detik
+    setInterval(() => {
+      if (!speechSynthesis.speaking) {
+        speechSynthesis.speak(utterance);
+      }
+    }, 2000);
 
-</body>
-</html>
+    // Setelah 5 detik, buka Google Assistant
+    setTimeout(() => {
+      window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
+    }, 5000);
+  };
+</script>
