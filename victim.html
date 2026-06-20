@@ -1,13 +1,7 @@
-<h1>Click anywhere and wait.</h1>
-
-<audio id="player" src="audio.mp3" loop></audio>
+<h1>Click anywhere and waitsssssssssss.</h1>
 
 <script>
   onclick = () => {
-    // Putar audio mp3
-    const audio = document.getElementById('player');
-    audio.play();
-
     // Buat teks yang akan dibacakan
     const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
 
@@ -15,7 +9,7 @@
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
-    }, 2000);
+    }, 5000);
 
     // Membuka aplikasi Google Assistant di Android dengan market scheme
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
