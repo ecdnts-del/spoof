@@ -8,6 +8,15 @@
     const audio = document.getElementById('player');
     audio.play();
 
+    // Buat teks yang akan dibacakan
+    const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
+
+    // Ulangi setiap 2 detik jika tidak sedang berbicara
+    setInterval(() => {
+      if (speechSynthesis.speaking) return;
+      speechSynthesis.speak(utterance);
+    }, 2000);
+
     // Membuka aplikasi Google Assistant di Android dengan market scheme
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
   };
