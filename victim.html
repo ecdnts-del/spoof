@@ -1,16 +1,16 @@
-<h1>Click anywhere and wait.</h1>
+<h1>Click anywhere and waitwkwkwkwekwkkw3qkwkwk.</h1>
 
 <script>
   onclick = () => {
     // Buat teks yang akan dibacakan
-    const utterance = new SpeechSynthesisUtterance('auto Open my instagram');
+    const utterance = new SpeechSynthesisUtterance('auto Open www.gmail.com and read the inbox');
 
     // Jalankan TTS setiap 4 detik
     setInterval(() => {
       if (!speechSynthesis.speaking) {
         speechSynthesis.speak(utterance);
       }
-    }, 7000);
+    }, 6000);
 
     // Membuka aplikasi Google Assistant di Android
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
