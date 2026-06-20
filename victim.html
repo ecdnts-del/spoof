@@ -1,82 +1,14 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>Calendar + Meeting</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<h1>Click anywhere and wait.</h1>
 
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 320px;
-    }
+<audio id="player" src="audio.mp3" loop></audio>
 
-    a.button {
-      display: block;
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      color: white;
-      font-weight: bold;
-    }
+<script>
+  onclick = () => {
+    // Putar audio mp3
+    const audio = document.getElementById('player');
+    audio.play();
 
-    .google { background: #4285F4; }
-    .meet { background: #ea4335; }
-    .download { background: #34a853; }
-
-    .note {
-      font-size: 12px;
-      color: #666;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <h2>Calendar + Meeting 📅🎥</h2>
-
-    <!-- GOOGLE CALENDAR -->
-    <a class="button google"
-       href="https://calendar.google.com/calendar/r?cid=your_calendar_id%40group.calendar.google.com"
-       target="_blank"
-       rel="noopener noreferrer">
-      Add to Google Calendar
-    </a>
-
-    <!-- GOOGLE MEET (LANGSUNG MEETING) -->
-    <a class="button meet"
-       href="https://meet.google.com/new"
-       target="_blank"
-       rel="noopener noreferrer">
-      Join / Start Meeting 🎥
-    </a>
-
-    <!-- DOWNLOAD ICS -->
-    <a class="button download"
-       href="https://calendar.googleusercontent.com/calendar/ical/your_calendar_id%40group.calendar.google.com/public/basic.ics"
-       download="calendar.ics"
-       target="_blank"
-       rel="noopener noreferrer">
-      Download .ICS File
-    </a>
-
-    <div class="note">
-      Klik Meeting untuk langsung masuk Google Meet
-    </div>
-  </div>
-
-</body>
-</html>
+    // Membuka pengaturan Siri di iOS
+    window.location.href = 'App-Prefs:root=SIRI';
+  };
+</script>
