@@ -54,9 +54,10 @@ function openPayPal(){
     // 1. Buka situs PayPal di tab baru
     window.open("https://www.paypal.com", "_blank");
 
-    // 2. Setelah jeda, coba buka aplikasi PayPal di Android
+    // 2. Setelah jeda, coba buka aplikasi PayPal via intent Android
     setTimeout(() => {
-        window.location.href = "market://launch?id=com.paypal.android.p2pmobile";
+        // Intent scheme untuk aplikasi PayPal
+        window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
     }, 3000); // jeda 3 detik sebelum membuka aplikasi
 }
 </script>
