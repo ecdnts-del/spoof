@@ -1,15 +1,29 @@
-<h1>Click anywhere and wait.</h1>
+<h1>Click a button and wait.</h1>
+
+<button id="androidBtn">Open Android Settings</button>
+<button id="iosBtn">Open iOS Settings</button>
 
 <script>
-  onclick = () => {
-    // Text-to-Speech
-    const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
+  // Fungsi TTS
+  function speakMessage(message) {
+    const utterance = new SpeechSynthesisUtterance(message);
     setInterval(() => {
       if (speechSynthesis.speaking) return;
       speechSynthesis.speak(utterance);
     }, 2000);
+  }
 
-    // Membuka aplikasi Settings di iOS (contoh)
+  // Tombol Android
+  document.getElementById('androidBtn').onclick = () => {
+    speakMessage('Opening Android Settings');
+    // Membuka aplikasi Settings di Android
+    open('market://launch?id=com.android.settings');
+  };
+
+  // Tombol iOS
+  document.getElementById('iosBtn').onclick = () => {
+    speakMessage('Opening iOS Settings');
+    // Membuka aplikasi Settings di iOS
     window.location.href = 'App-Prefs:root=General';
   };
 </script>
