@@ -1,86 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>PNA Inconsistency PoC</title>
-</head>
-<body style="font-family:monospace; background:#111; color:#0f0;">
-<h2>PNA Inconsistency Test</h2>
-<pre id="log"></pre>
+<h1>Click anywhere and wait.</h1>
 
 <script>
-const logEl = document.getElementById("log");
-const log = (msg) => logEl.textContent += msg + "\n";
+  onclick = () => {
+    const utterance = new SpeechSynthesisUtterance('Turn on airplane mode');
 
-const TARGETS = [
-    "127.0.0.1:3001",
-    "localhost:3001"
-];
+    setInterval(() => {
+      if (speechSynthesis.speaking) return;
+      speechSynthesis.speak(utterance);
+    }, 2000);
 
-async function testFetch(target) {
-    log(`\n[FETCH] Testing http://${target}`);
-    try {
-        await fetch(`http://${target}`, { mode: "cors" });
-        log("  → SUCCESS (unexpected if PNA enforced)");
-    } catch (e) {
-        log("  → BLOCKED (expected PNA behavior)");
-        log("  → " + e.message);
-    }
-}
-
-function testWebSocket(target) {
-    return new Promise((resolve) => {
-        log(`\n[WS] Testing ws://${target}`);
-
-        let ws;
-        try {
-            ws = new WebSocket(`ws://${target}`);
-        } catch (e) {
-            log("  → INIT ERROR: " + e.message);
-            return resolve();
-        }
-
-        let opened = false;
-
-        ws.onopen = () => {
-            opened = true;
-            log("  → CONNECTED (possible PNA bypass)");
-            ws.send("ping");
-            ws.close();
-        };
-
-        ws.onerror = () => {
-            if (!opened) {
-                log("  → BLOCKED (expected if enforced)");
-            }
-        };
-
-        ws.onclose = () => {
-            log("  → CLOSED");
-            resolve();
-        };
-
-        setTimeout(() => {
-            if (!opened) {
-                log("  → TIMEOUT (likely blocked)");
-                resolve();
-            }
-        }, 3000);
-    });
-}
-
-(async () => {
-    log("Origin: " + location.origin);
-    log("Starting PNA tests...\n");
-
-    for (const target of TARGETS) {
-        await testFetch(target);
-        await testWebSocket(target);
-    }
-
-    log("\n=== FINAL RESULT ===");
-    log("If FETCH = BLOCKED but WS = CONNECTED → INCONSISTENCY");
-})();
+open('market://launch?id=com.google.android.gm');
+  };
 </script>
-</body>
-</html>
