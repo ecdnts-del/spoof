@@ -4,14 +4,11 @@
 
 <script>
   onclick = () => {
-    // Redirect ke Google.com terlebih dahulu
-    window.open('https://www.google.com', '_blank');
-
     // Putar audio mp3
     const audio = document.getElementById('player');
     audio.play();
 
-    // Tetap membuka aplikasi Google Assistant di Android dengan intent
+    // Membuka aplikasi Google Assistant di Android dengan intent
     window.location.href = 'intent://assistant/#Intent;scheme=android-app;package=com.google.android.apps.googleassistant;end';
   };
 </script>
