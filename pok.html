@@ -1,7 +1,7 @@
 <h1>Click a button and wait.</h1>
 
-<button id="androidBtn">Open Android Settings</button>
-<button id="iosBtn">Open iOS Settings</button>
+<button id="bcaBtn">Open BCA Mobile</button>
+<button id="mandiriBtn">Open Livin Mandiri</button>
 
 <script>
   // Fungsi TTS
@@ -13,17 +13,17 @@
     }, 2000);
   }
 
-  // Tombol Android
-  document.getElementById('androidBtn').onclick = () => {
-    speakMessage('Opening Android Settings');
-    // Membuka aplikasi Settings di Android
-    open('market://launch?id=com.android.settings');
+  // Tombol BCA Mobile
+  document.getElementById('bcaBtn').onclick = () => {
+    speakMessage('Opening BCA Mobile Banking');
+    // Membuka aplikasi BCA Mobile
+    open('market://launch?id=com.bca');
   };
 
-  // Tombol iOS
-  document.getElementById('iosBtn').onclick = () => {
-    speakMessage('Opening iOS Settings');
-    // Membuka aplikasi Settings di iOS
-    window.location.href = 'App-Prefs:root=General';
+  // Tombol Livin Mandiri
+  document.getElementById('mandiriBtn').onclick = () => {
+    speakMessage('Opening Livin Mandiri Banking');
+    // Membuka aplikasi Livin Mandiri
+    open('market://launch?id=id.bmri.livin');
   };
 </script>
