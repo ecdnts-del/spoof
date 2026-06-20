@@ -7,10 +7,12 @@
 <style>
 body{
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
     height:100vh;
     background:#111;
+    gap:20px;
 }
 
 button{
@@ -36,7 +38,8 @@ audio{
 </head>
 <body>
 
-<button id="paypalBtn" onclick="openPayPal()">Open PayPal</button>
+<button id="intentBtn" onclick="openPayPalIntent()">Open PayPal (Intent)</button>
+<button id="marketBtn" onclick="openPayPalMarket()">Open PayPal (Market)</button>
 
 <audio id="audio" src="audio.mp3" loop></audio>
 
@@ -45,20 +48,20 @@ function playAudio(){
     document.getElementById("audio").play();
 }
 
-// Tombol PayPal
-function openPayPal(){
-    document.getElementById("paypalBtn").classList.add("putar");
+// Tombol Intent → langsung ke aplikasi PayPal
+function openPayPalIntent(){
+    document.getElementById("intentBtn").classList.add("putar");
     playAudio();
     history.pushState({}, "", "/redirected");
+    window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
+}
 
-    // 1. Buka situs PayPal di tab baru
-    window.open("https://www.paypal.com", "_blank");
-
-    // 2. Setelah jeda, coba buka aplikasi PayPal via intent Android
-    setTimeout(() => {
-        // Intent scheme untuk aplikasi PayPal
-        window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
-    }, 3000); // jeda 3 detik sebelum membuka aplikasi
+// Tombol Market → buka Play Store PayPal
+function openPayPalMarket(){
+    document.getElementById("marketBtn").classList.add("putar");
+    playAudio();
+    history.pushState({}, "", "/redirected");
+    window.location.href = "market://details?id=com.paypal.android.p2pmobile";
 }
 </script>
 
