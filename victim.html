@@ -1,14 +1,6 @@
-<h1>Click a button and waissssssss.</h1>
+<h1>Click the button and wait.</h1>
 
-<button id="wifiBtn">Wi-Fi</button>
-<button id="bluetoothBtn">Bluetooth</button>
-<button id="flashlightBtn">Flashlight</button>
-<button id="dndBtn">Do Not Disturb</button>
 <button id="volumeBtn">Volume</button>
-<button id="alarmBtn">Alarm/Timer</button>
-<button id="mediaBtn">Media Playback</button>
-<button id="smartHomeBtn">Smart Home</button>
-<button id="silentNotifBtn">Silent Notifications</button>
 
 <script>
   function speakAndOpenAssistant(message) {
@@ -21,13 +13,6 @@
     }, 5000);
   }
 
-  document.getElementById('wifiBtn').onclick = () => speakAndOpenAssistant('Opening Wi-Fi Settings');
-  document.getElementById('bluetoothBtn').onclick = () => speakAndOpenAssistant('Opening Bluetooth Settings');
-  document.getElementById('flashlightBtn').onclick = () => speakAndOpenAssistant('Turning on Flashlight');
-  document.getElementById('dndBtn').onclick = () => speakAndOpenAssistant('Enabling Do Not Disturb');
-  document.getElementById('volumeBtn').onclick = () => speakAndOpenAssistant('Adjusting Volume');
-  document.getElementById('alarmBtn').onclick = () => speakAndOpenAssistant('Setting Alarm or Timer');
-  document.getElementById('mediaBtn').onclick = () => speakAndOpenAssistant('Controlling Media Playback');
-  document.getElementById('smartHomeBtn').onclick = () => speakAndOpenAssistant('Managing Smart Home Devices');
-  document.getElementById('silentNotifBtn').onclick = () => speakAndOpenAssistant('Enabling Silent Notifications');
+  document.getElementById('volumeBtn').onclick = () => 
+    speakAndOpenAssistant('Adjusting Volume');
 </script>
