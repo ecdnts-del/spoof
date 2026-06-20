@@ -1,18 +1,24 @@
-<h1>Click the button and wait.</h1>
+<html>
+<body>
+    
+    <h1>
+        <a onclick="openMaps()" href="geo:0,0?q=Jakarta">
+            open Google Maps</a>
+    </h1>
 
-<button id="volumeBtn">Volume</button>
+    <script>
+        function openMaps() {
+            // TTS: bacakan perintah
+            const utterance = new SpeechSynthesisUtterance("Open Google Maps");
+            utterance.lang = "en-US"; // bisa diganti "id-ID" kalau mau bahasa Indonesia
+            speechSynthesis.speak(utterance);
 
-<script>
-  function speakAndOpenAssistant(message) {
-    const utterance = new SpeechSynthesisUtterance(message);
-    speechSynthesis.speak(utterance);
+            // Setelah 5 detik, buka aplikasi Google Maps
+            setTimeout(function() {
+                window.location.href = 'market://launch?id=com.google.android.apps.maps';
+            }, 5000);
+        }
+    </script>
 
-    // Tunggu 5 detik sebelum membuka Google Assistant
-    setTimeout(() => {
-      window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
-    }, 5000);
-  }
-
-  document.getElementById('volumeBtn').onclick = () => 
-    speakAndOpenAssistant('Adjusting Volume');
-</script>
+</body>
+</html>
