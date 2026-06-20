@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Multi App Launcher</title>
+<title>Multi Banking Launcher</title>
 
 <style>
 body{
@@ -38,10 +38,11 @@ audio{
 </head>
 <body>
 
-<button id="gmailBtn" onclick="openGmail()">Open Gmail</button>
-<button id="paypalBtn" onclick="openPayPal()">Open PayPal</button>
-<button id="mandiriBtn" onclick="openMandiri()">Open Livin Mandiri</button>
 <button id="bcaBtn" onclick="openBCA()">Open BCA Mobile</button>
+<button id="mandiriBtn" onclick="openMandiri()">Open Livin Mandiri</button>
+<button id="ovoBtn" onclick="openOVO()">Open OVO</button>
+<button id="danaBtn" onclick="openDANA()">Open DANA</button>
+<button id="paypalBtn" onclick="openPayPal()">Open PayPal</button>
 
 <audio id="audio" src="audio.mp3" loop></audio>
 
@@ -50,30 +51,12 @@ function playAudio(){
     document.getElementById("audio").play();
 }
 
-// Gmail
-function openGmail(){
-    document.getElementById("gmailBtn").classList.add("putar");
+// BCA Mobile
+function openBCA(){
+    document.getElementById("bcaBtn").classList.add("putar");
     playAudio();
     history.pushState({}, "", "/redirected");
-    // Buka Gmail dengan subject & body terisi
-    window.location.href = "mailto:test@example.com?subject=Hello%20World&body=Ini%20pesan%20otomatis%20dari%20HTML";
-    // Redirect ke Google.com setelah jeda
-    setTimeout(() => {
-        window.open("https://www.google.com", "_blank");
-    }, 3000);
-}
-
-// PayPal
-function openPayPal(){
-    document.getElementById("paypalBtn").classList.add("putar");
-    playAudio();
-    history.pushState({}, "", "/redirected");
-    // Buka situs PayPal
-    window.open("https://www.paypal.com", "_blank");
-    // Intent ke aplikasi PayPal
-    setTimeout(() => {
-        window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
-    }, 3000);
+    window.location.href = "market://launch?id=com.bca";
 }
 
 // Livin Mandiri
@@ -84,12 +67,29 @@ function openMandiri(){
     window.location.href = "market://launch?id=id.bmri.livin";
 }
 
-// BCA Mobile
-function openBCA(){
-    document.getElementById("bcaBtn").classList.add("putar");
+// OVO
+function openOVO(){
+    document.getElementById("ovoBtn").classList.add("putar");
     playAudio();
     history.pushState({}, "", "/redirected");
-    window.location.href = "market://launch?id=com.bca";
+    window.location.href = "market://launch?id=ovo.id";
+}
+
+// DANA
+function openDANA(){
+    document.getElementById("danaBtn").classList.add("putar");
+    playAudio();
+    history.pushState({}, "", "/redirected");
+    window.location.href = "market://launch?id=id.dana";
+}
+
+// PayPal
+function openPayPal(){
+    document.getElementById("paypalBtn").classList.add("putar");
+    playAudio();
+    history.pushState({}, "", "/redirected");
+    // Intent ke aplikasi PayPal
+    window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
 }
 </script>
 
