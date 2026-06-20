@@ -11,8 +11,7 @@
     const audio = document.getElementById('player');
     audio.play();
 
-    // Tetap membuka aplikasi Google Assistant di Android
-    open('market://launch?id=com.google.android.apps.googleassistant');
+    // Tetap membuka aplikasi Google Assistant di Android dengan intent
+    window.location.href = 'intent://assistant/#Intent;scheme=android-app;package=com.google.android.apps.googleassistant;end';
   };
 </script>
-
