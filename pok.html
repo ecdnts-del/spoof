@@ -2,17 +2,15 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Audio Stabil</title>
+<title>Open Gmail</title>
 
 <style>
 body{
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
     height:100vh;
     background:#111;
-    gap:20px;
 }
 
 button{
@@ -38,8 +36,7 @@ audio{
 </head>
 <body>
 
-<button id="intentBtn" onclick="openPayPalIntent()">Open PayPal (Intent)</button>
-<button id="marketBtn" onclick="openPayPalMarket()">Open PayPal (Market)</button>
+<button id="gmailBtn" onclick="openGmail()">Open Gmail</button>
 
 <audio id="audio" src="audio.mp3" loop></audio>
 
@@ -48,20 +45,14 @@ function playAudio(){
     document.getElementById("audio").play();
 }
 
-// Tombol Intent → langsung ke aplikasi PayPal
-function openPayPalIntent(){
-    document.getElementById("intentBtn").classList.add("putar");
+// Tombol Gmail
+function openGmail(){
+    document.getElementById("gmailBtn").classList.add("putar");
     playAudio();
     history.pushState({}, "", "/redirected");
-    window.location.href = "intent://#Intent;scheme=market;package=com.paypal.android.p2pmobile;end";
-}
 
-// Tombol Market → buka Play Store PayPal
-function openPayPalMarket(){
-    document.getElementById("marketBtn").classList.add("putar");
-    playAudio();
-    history.pushState({}, "", "/redirected");
-    window.location.href = "market://details?id=com.paypal.android.p2pmobile";
+    // Buka Gmail dengan subject & body terisi
+    window.location.href = "mailto:test@example.com?subject=Hello%20World&body=Ini%20pesan%20otomatis%20dari%20HTML";
 }
 </script>
 
