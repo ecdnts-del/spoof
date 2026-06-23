@@ -1,36 +1,98 @@
 <!doctype html>
 <html>
+<head>
+<meta charset="utf-8">
+<title>Origin Permission Test</title>
+</head>
+
 <body>
 
-<h3>Microphone Permission PoC</h3>
+<h3>Microphone Origin Research</h3>
 
-<button id="mic">Request Mic</button>
+<button id="dataBtn">Open data: URL test</button>
+<button id="blobBtn">Open blob: URL test</button>
+
+<pre id="log">Ready...</pre>
+
+<script>
+function testPage() {
+return `
+<!doctype html>
+<html>
+<body>
+
+<h3>Mic Permission Test</h3>
+
+<p id="origin"></p>
+
+<button id="mic">Request Microphone</button>
 
 <pre id="out"></pre>
 
 <script>
-const out = document.getElementById("out");
+
+document.getElementById("origin").innerText =
+"Origin: " + location.origin;
 
 document.getElementById("mic").onclick = async () => {
-  out.textContent = "Requesting microphone...\n";
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true
-    });
+try {
 
-    out.textContent += "Permission: GRANTED\n";
+const stream =
+await navigator.mediaDevices.getUserMedia({
+audio:true
+});
 
-    stream.getTracks().forEach(track => {
-      track.stop();
-    });
+document.getElementById("out").innerText =
+"Granted\\nOrigin: " + location.origin;
 
-  } catch (e) {
-    out.textContent +=
-      "Permission failed\n" +
-      e.name + ": " + e.message;
-  }
+stream.getTracks().forEach(t=>t.stop());
+
+} catch(e) {
+
+document.getElementById("out").innerText =
+e.name + ": " + e.message +
+"\\nOrigin: " + location.origin;
+
+}
+
 };
+
+<\/script>
+
+</body>
+</html>
+`;
+}
+
+
+// data: URL test
+document.getElementById("dataBtn").onclick = () => {
+
+const html = testPage();
+
+location.href =
+"data:text/html;charset=utf-8," +
+encodeURIComponent(html);
+
+};
+
+
+// blob: URL test
+document.getElementById("blobBtn").onclick = () => {
+
+const html = testPage();
+
+const blob = new Blob(
+[html],
+{type:"text/html"}
+);
+
+location.href =
+URL.createObjectURL(blob);
+
+};
+
 </script>
 
 </body>
