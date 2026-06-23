@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Browser API Test</title>
+<title>Permission Origin Full Test</title>
 
 <style>
 body {
-    font-family: sans-serif;
+    font-family:sans-serif;
     padding:20px;
 }
 
 button {
     display:block;
-    width:250px;
-    margin:8px 0;
+    margin:10px 0;
     padding:12px;
+    width:260px;
 }
 
 pre {
@@ -30,14 +30,16 @@ pre {
 
 <body>
 
-<h2>Firefox API Permission Test</h2>
+<h2>Browser Permission Origin Test</h2>
+
+<button id="trigger">PushState /trusted</button>
 
 <button id="origin">Check Origin</button>
+<button id="geo">Geolocation</button>
 <button id="mic">Microphone</button>
 <button id="camera">Camera</button>
-<button id="geo">Geolocation</button>
 <button id="notify">Notification</button>
-<button id="clip">Clipboard</button>
+<button id="clipboard">Clipboard</button>
 
 <pre id="out">Ready...</pre>
 
@@ -46,22 +48,78 @@ pre {
 
 const out = document.getElementById("out");
 
-function log(data){
+function show(data){
     out.textContent =
     JSON.stringify(data,null,2);
 }
 
 
+function state(){
+    return {
+        href: location.href,
+        origin: location.origin,
+        protocol: location.protocol,
+        secureContext: window.isSecureContext,
+        time: Date.now()
+    };
+}
+
+
+// PushState
+
+document.getElementById("trigger").onclick = ()=>{
+
+history.pushState({}, "", "/trusted");
+
+show({
+    api:"pushState",
+    status:"done",
+    ...state()
+});
+
+};
+
+
 // Origin
 
-document.getElementById("origin").onclick = () => {
+document.getElementById("origin").onclick = ()=>{
 
-log({
-    origin: location.origin,
-    href: location.href,
-    protocol: location.protocol,
-    secureContext: window.isSecureContext
+show({
+    api:"origin",
+    ...state()
 });
+
+};
+
+
+// Geolocation
+
+document.getElementById("geo").onclick = ()=>{
+
+navigator.geolocation.getCurrentPosition(
+
+pos=>{
+
+show({
+    api:"geolocation",
+    status:"granted",
+    ...state()
+});
+
+},
+
+err=>{
+
+show({
+    api:"geolocation",
+    status:"failed",
+    error:err.message,
+    ...state()
+});
+
+}
+
+);
 
 };
 
@@ -78,10 +136,10 @@ await navigator.mediaDevices.getUserMedia({
 });
 
 
-log({
+show({
     api:"microphone",
     status:"granted",
-    origin:location.origin
+    ...state()
 });
 
 
@@ -90,12 +148,12 @@ stream.getTracks().forEach(t=>t.stop());
 
 }catch(e){
 
-log({
+show({
     api:"microphone",
     status:"failed",
     error:e.name,
     message:e.message,
-    origin:location.origin
+    ...state()
 });
 
 }
@@ -115,10 +173,10 @@ await navigator.mediaDevices.getUserMedia({
 });
 
 
-log({
+show({
     api:"camera",
     status:"granted",
-    origin:location.origin
+    ...state()
 });
 
 
@@ -127,47 +185,15 @@ stream.getTracks().forEach(t=>t.stop());
 
 }catch(e){
 
-log({
+show({
     api:"camera",
     status:"failed",
     error:e.name,
     message:e.message,
-    origin:location.origin
+    ...state()
 });
 
 }
-
-};
-
-
-// Geolocation
-
-document.getElementById("geo").onclick = ()=>{
-
-navigator.geolocation.getCurrentPosition(
-
-pos=>{
-
-log({
-    api:"geolocation",
-    status:"granted",
-    origin:location.origin
-});
-
-},
-
-err=>{
-
-log({
-    api:"geolocation",
-    status:"failed",
-    error:err.message,
-    origin:location.origin
-});
-
-}
-
-);
 
 };
 
@@ -178,22 +204,24 @@ document.getElementById("notify").onclick = async()=>{
 
 try{
 
-let r =
+const result =
 await Notification.requestPermission();
 
 
-log({
+show({
     api:"notification",
-    result:r,
-    origin:location.origin
+    status:result,
+    ...state()
 });
 
 
 }catch(e){
 
-log({
+show({
     api:"notification",
-    error:e.message
+    status:"failed",
+    error:e.message,
+    ...state()
 });
 
 }
@@ -203,27 +231,27 @@ log({
 
 // Clipboard
 
-document.getElementById("clip").onclick = async()=>{
+document.getElementById("clipboard").onclick = async()=>{
 
 try{
 
 await navigator.clipboard.readText();
 
 
-log({
+show({
     api:"clipboard",
     status:"granted",
-    origin:location.origin
+    ...state()
 });
 
 
 }catch(e){
 
-log({
+show({
     api:"clipboard",
     status:"failed",
     error:e.message,
-    origin:location.origin
+    ...state()
 });
 
 }
