@@ -3,130 +3,230 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Browser API Security Check</title>
+<title>Browser API Test</title>
+
 <style>
 body {
-  font-family: sans-serif;
-  padding: 20px;
+    font-family: sans-serif;
+    padding:20px;
 }
+
+button {
+    display:block;
+    width:250px;
+    margin:8px 0;
+    padding:12px;
+}
+
 pre {
-  background:#111;
-  color:#0f0;
-  padding:15px;
-  white-space:pre-wrap;
+    background:#111;
+    color:#0f0;
+    padding:15px;
+    white-space:pre-wrap;
 }
 </style>
+
 </head>
 
 <body>
 
-<h2>Browser API / Origin Check</h2>
+<h2>Firefox API Permission Test</h2>
 
-<button id="run">Run Check</button>
+<button id="origin">Check Origin</button>
+<button id="mic">Microphone</button>
+<button id="camera">Camera</button>
+<button id="geo">Geolocation</button>
+<button id="notify">Notification</button>
+<button id="clip">Clipboard</button>
 
-<pre id="out">Waiting...</pre>
+<pre id="out">Ready...</pre>
+
 
 <script>
 
 const out = document.getElementById("out");
 
-function result(name, value) {
-    return name + ": " + value;
+function log(data){
+    out.textContent =
+    JSON.stringify(data,null,2);
 }
 
 
-document.getElementById("run").onclick = async () => {
+// Origin
 
-let r = [];
+document.getElementById("origin").onclick = () => {
 
-r.push(result("Origin", location.origin));
-r.push(result("Href", location.href));
-r.push(result("Protocol", location.protocol));
-r.push(result("Secure Context", window.isSecureContext));
-
-r.push("\n=== APIs ===");
-
-r.push(result(
-"MediaDevices",
-!!navigator.mediaDevices
-));
-
-r.push(result(
-"getUserMedia",
-!!navigator.mediaDevices?.getUserMedia
-));
-
-r.push(result(
-"Permissions API",
-!!navigator.permissions
-));
-
-r.push(result(
-"Notification API",
-"Notification" in window
-));
-
-r.push(result(
-"Geolocation",
-"geolocation" in navigator
-));
-
-r.push(result(
-"Clipboard",
-!!navigator.clipboard
-));
-
-r.push(result(
-"Bluetooth",
-!!navigator.bluetooth
-));
-
-r.push(result(
-"USB",
-!!navigator.usb
-));
-
-r.push(result(
-"Camera/Mic context",
-window.isSecureContext
-));
-
-
-if (navigator.permissions) {
-
-r.push("\n=== Permission States ===");
-
-for (const name of [
-    "camera",
-    "microphone",
-    "geolocation",
-    "notifications"
-]) {
-
-try {
-
-let p = await navigator.permissions.query({
-    name:name
+log({
+    origin: location.origin,
+    href: location.href,
+    protocol: location.protocol,
+    secureContext: window.isSecureContext
 });
 
-r.push(
-name + ": " + p.state
+};
+
+
+// Microphone
+
+document.getElementById("mic").onclick = async()=>{
+
+try{
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+    audio:true
+});
+
+
+log({
+    api:"microphone",
+    status:"granted",
+    origin:location.origin
+});
+
+
+stream.getTracks().forEach(t=>t.stop());
+
+
+}catch(e){
+
+log({
+    api:"microphone",
+    status:"failed",
+    error:e.name,
+    message:e.message,
+    origin:location.origin
+});
+
+}
+
+};
+
+
+// Camera
+
+document.getElementById("camera").onclick = async()=>{
+
+try{
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+    video:true
+});
+
+
+log({
+    api:"camera",
+    status:"granted",
+    origin:location.origin
+});
+
+
+stream.getTracks().forEach(t=>t.stop());
+
+
+}catch(e){
+
+log({
+    api:"camera",
+    status:"failed",
+    error:e.name,
+    message:e.message,
+    origin:location.origin
+});
+
+}
+
+};
+
+
+// Geolocation
+
+document.getElementById("geo").onclick = ()=>{
+
+navigator.geolocation.getCurrentPosition(
+
+pos=>{
+
+log({
+    api:"geolocation",
+    status:"granted",
+    origin:location.origin
+});
+
+},
+
+err=>{
+
+log({
+    api:"geolocation",
+    status:"failed",
+    error:err.message,
+    origin:location.origin
+});
+
+}
+
 );
 
-} catch(e) {
+};
 
-r.push(
-name + ": unsupported"
-);
+
+// Notification
+
+document.getElementById("notify").onclick = async()=>{
+
+try{
+
+let r =
+await Notification.requestPermission();
+
+
+log({
+    api:"notification",
+    result:r,
+    origin:location.origin
+});
+
+
+}catch(e){
+
+log({
+    api:"notification",
+    error:e.message
+});
 
 }
 
-}
+};
+
+
+// Clipboard
+
+document.getElementById("clip").onclick = async()=>{
+
+try{
+
+await navigator.clipboard.readText();
+
+
+log({
+    api:"clipboard",
+    status:"granted",
+    origin:location.origin
+});
+
+
+}catch(e){
+
+log({
+    api:"clipboard",
+    status:"failed",
+    error:e.message,
+    origin:location.origin
+});
 
 }
-
-
-out.textContent = r.join("\n");
 
 };
 
