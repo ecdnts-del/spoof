@@ -2,94 +2,116 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Permission Test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Microphone Origin Debug</title>
+<style>
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+pre {
+    background: #111;
+    color: #0f0;
+    padding: 15px;
+    white-space: pre-wrap;
+}
+button {
+    padding: 12px;
+    font-size: 16px;
+}
+</style>
 </head>
 
 <body>
 
-<h3>Microphone Origin Research</h3>
-
-<button id="dataBtn">Open data: URL test</button>
-<button id="blobBtn">Open blob: URL test</button>
-
-<pre id="log">Ready...</pre>
-
-<script>
-function testPage() {
-return `
-<!doctype html>
-<html>
-<body>
-
-<h3>Mic Permission Test</h3>
-
-<p id="origin"></p>
+<h2>Firefox Microphone Origin Debug</h2>
 
 <button id="mic">Request Microphone</button>
 
-<pre id="out"></pre>
+<pre id="log">Loading...</pre>
 
 <script>
 
-document.getElementById("origin").innerText =
-"Origin: " + location.origin;
+const log = document.getElementById("log");
+
+function show(info) {
+    log.textContent = JSON.stringify(info, null, 2);
+}
+
+
+async function debug() {
+
+let permission = "unknown";
+
+try {
+    if (navigator.permissions) {
+        const p = await navigator.permissions.query({
+            name: "microphone"
+        });
+
+        permission = p.state;
+    }
+} catch(e) {}
+
+show({
+    origin: location.origin,
+    href: location.href,
+    protocol: location.protocol,
+    secureContext: window.isSecureContext,
+    microphoneAPI:
+        !!navigator.mediaDevices,
+    permissionState:
+        permission
+});
+
+}
+
+
+debug();
+
 
 document.getElementById("mic").onclick = async () => {
+
+show({
+    status: "requesting",
+    origin: location.origin,
+    href: location.href
+});
+
 
 try {
 
 const stream =
 await navigator.mediaDevices.getUserMedia({
-audio:true
+    audio:true
 });
 
-document.getElementById("out").innerText =
-"Granted\\nOrigin: " + location.origin;
 
-stream.getTracks().forEach(t=>t.stop());
+show({
+    status:"granted",
+    origin:location.origin,
+    href:location.href
+});
+
+
+stream.getTracks().forEach(t=>{
+    t.stop();
+});
+
 
 } catch(e) {
 
-document.getElementById("out").innerText =
-e.name + ": " + e.message +
-"\\nOrigin: " + location.origin;
+
+show({
+    status:"failed",
+    errorName:e.name,
+    errorMessage:e.message,
+    origin:location.origin,
+    href:location.href
+});
+
 
 }
-
-};
-
-<\/script>
-
-</body>
-</html>
-`;
-}
-
-
-// data: URL test
-document.getElementById("dataBtn").onclick = () => {
-
-const html = testPage();
-
-location.href =
-"data:text/html;charset=utf-8," +
-encodeURIComponent(html);
-
-};
-
-
-// blob: URL test
-document.getElementById("blobBtn").onclick = () => {
-
-const html = testPage();
-
-const blob = new Blob(
-[html],
-{type:"text/html"}
-);
-
-location.href =
-URL.createObjectURL(blob);
 
 };
 
