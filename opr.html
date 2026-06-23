@@ -1,49 +1,132 @@
 <!doctype html>
 <html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Browser API Security Check</title>
+<style>
+body {
+  font-family: sans-serif;
+  padding: 20px;
+}
+pre {
+  background:#111;
+  color:#0f0;
+  padding:15px;
+  white-space:pre-wrap;
+}
+</style>
+</head>
+
 <body>
 
-<h2>Mic Test</h2>
+<h2>Browser API / Origin Check</h2>
 
-<button id="go">Enable Microphone</button>
+<button id="run">Run Check</button>
 
-<pre id="out"></pre>
+<pre id="out">Waiting...</pre>
 
 <script>
 
 const out = document.getElementById("out");
 
-document.getElementById("go").onclick = async () => {
+function result(name, value) {
+    return name + ": " + value;
+}
 
-out.textContent =
-"Origin: " + location.origin +
-"\nSecure: " + window.isSecureContext +
-"\nRequesting...";
 
+document.getElementById("run").onclick = async () => {
+
+let r = [];
+
+r.push(result("Origin", location.origin));
+r.push(result("Href", location.href));
+r.push(result("Protocol", location.protocol));
+r.push(result("Secure Context", window.isSecureContext));
+
+r.push("\n=== APIs ===");
+
+r.push(result(
+"MediaDevices",
+!!navigator.mediaDevices
+));
+
+r.push(result(
+"getUserMedia",
+!!navigator.mediaDevices?.getUserMedia
+));
+
+r.push(result(
+"Permissions API",
+!!navigator.permissions
+));
+
+r.push(result(
+"Notification API",
+"Notification" in window
+));
+
+r.push(result(
+"Geolocation",
+"geolocation" in navigator
+));
+
+r.push(result(
+"Clipboard",
+!!navigator.clipboard
+));
+
+r.push(result(
+"Bluetooth",
+!!navigator.bluetooth
+));
+
+r.push(result(
+"USB",
+!!navigator.usb
+));
+
+r.push(result(
+"Camera/Mic context",
+window.isSecureContext
+));
+
+
+if (navigator.permissions) {
+
+r.push("\n=== Permission States ===");
+
+for (const name of [
+    "camera",
+    "microphone",
+    "geolocation",
+    "notifications"
+]) {
 
 try {
 
-const stream =
-await navigator.mediaDevices.getUserMedia({
-    audio: true
+let p = await navigator.permissions.query({
+    name:name
 });
 
+r.push(
+name + ": " + p.state
+);
 
-out.textContent +=
-"\n\nSUCCESS";
-    
-stream.getTracks().forEach(t=>t.stop());
+} catch(e) {
 
-
-} catch(err) {
-
-
-out.textContent +=
-"\n\nFAILED" +
-"\nName: " + err.name +
-"\nMessage: " + err.message;
-
+r.push(
+name + ": unsupported"
+);
 
 }
+
+}
+
+}
+
+
+out.textContent = r.join("\n");
 
 };
 
