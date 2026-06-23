@@ -1,114 +1,46 @@
 <!doctype html>
 <html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Microphone Origin Debug</title>
-<style>
-body {
-    font-family: sans-serif;
-    padding: 20px;
-}
-pre {
-    background: #111;
-    color: #0f0;
-    padding: 15px;
-    white-space: pre-wrap;
-}
-button {
-    padding: 12px;
-    font-size: 16px;
-}
-</style>
-</head>
-
 <body>
 
-<h2>Firefox Microphone Origin Debug</h2>
+<h2>Mic Test</h2>
 
-<button id="mic">Request Microphone</button>
+<button id="go">Enable Microphone</button>
 
-<pre id="log">Loading...</pre>
+<pre id="out"></pre>
 
 <script>
 
-const log = document.getElementById("log");
+const out = document.getElementById("out");
 
-function show(info) {
-    log.textContent = JSON.stringify(info, null, 2);
-}
+document.getElementById("go").onclick = async () => {
 
-
-async function debug() {
-
-let permission = "unknown";
-
-try {
-    if (navigator.permissions) {
-        const p = await navigator.permissions.query({
-            name: "microphone"
-        });
-
-        permission = p.state;
-    }
-} catch(e) {}
-
-show({
-    origin: location.origin,
-    href: location.href,
-    protocol: location.protocol,
-    secureContext: window.isSecureContext,
-    microphoneAPI:
-        !!navigator.mediaDevices,
-    permissionState:
-        permission
-});
-
-}
-
-
-debug();
-
-
-document.getElementById("mic").onclick = async () => {
-
-show({
-    status: "requesting",
-    origin: location.origin,
-    href: location.href
-});
+out.textContent =
+"Origin: " + location.origin +
+"\nSecure: " + window.isSecureContext +
+"\nRequesting...";
 
 
 try {
 
 const stream =
 await navigator.mediaDevices.getUserMedia({
-    audio:true
+    audio: true
 });
 
 
-show({
-    status:"granted",
-    origin:location.origin,
-    href:location.href
-});
+out.textContent +=
+"\n\nSUCCESS";
+    
+stream.getTracks().forEach(t=>t.stop());
 
 
-stream.getTracks().forEach(t=>{
-    t.stop();
-});
+} catch(err) {
 
 
-} catch(e) {
-
-
-show({
-    status:"failed",
-    errorName:e.name,
-    errorMessage:e.message,
-    origin:location.origin,
-    href:location.href
-});
+out.textContent +=
+"\n\nFAILED" +
+"\nName: " + err.name +
+"\nMessage: " + err.message;
 
 
 }
