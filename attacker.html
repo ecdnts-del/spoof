@@ -1,14 +1,65 @@
-<h1>Click anywhere and wait.</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Window History Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #log { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Demo Window History</h2>
+  <button onclick="checkHistory()">Cek History Tab Ini</button>
+  <button onclick="goBack()">Kembali</button>
+  <button onclick="goForward()">Maju</button>
+  <button onclick="goToPage()">Pergi ke Halaman Awal</button>
+  <button onclick="pushState()">Tambah State Baru</button>
+  <button onclick="replaceState()">Ganti State</button>
 
-<audio id="player" src="audio.mp3" loop></audio>
+  <div id="log"><strong>Log Navigasi:</strong><br></div>
 
-<script>
-  onclick = () => {
-    // Putar audio mp3
-    const audio = document.getElementById('player');
-    audio.play();
+  <script>
+    function log(message) {
+      const logDiv = document.getElementById("log");
+      logDiv.innerHTML += message + "<br>";
+    }
 
-    // Membuka aplikasi Android (contoh Google Assistant)
-    open('market://launch?id=com.google.android.apps.googleassistant');
-  };
-</script>
+    function checkHistory() {
+      log("Jumlah halaman di history tab ini: " + window.history.length);
+    }
+
+    function goBack() {
+      log("Navigasi: kembali ke halaman sebelumnya");
+      window.history.back();
+    }
+
+    function goForward() {
+      log("Navigasi: maju ke halaman berikutnya");
+      window.history.forward();
+    }
+
+    function goToPage() {
+      log("Navigasi: lompat mundur 1 halaman");
+      window.history.go(-1);
+    }
+
+    function pushState() {
+      const state = { page: "extra" };
+      window.history.pushState(state, "Extra Page", "?extra");
+      log("Push state baru: " + JSON.stringify(state));
+    }
+
+    function replaceState() {
+      const state = { page: "replaced" };
+      window.history.replaceState(state, "Replaced Page", "?replaced");
+      log("Replace state: " + JSON.stringify(state));
+    }
+
+    // Event listener untuk deteksi perubahan state
+    window.onpopstate = function(event) {
+      log("Popstate event: " + JSON.stringify(event.state));
+    };
+  </script>
+</body>
+</html>
