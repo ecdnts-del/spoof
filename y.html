@@ -1,79 +1,116 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>File Save Picker Akurat & Kuat</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: sans-serif;
-      background-color: #fafafa;
-      cursor: pointer;
-      user-select: none;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      max-width: 400px;
-      padding: 20px;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      background: #fff;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Photo Uploader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        h1 {
+            margin: 1em;
+            font-size: 1.5rem;
+            color: #202124;
+            text-align: center;
+            z-index: 1; /* Memastikan teks di atas latar belakang */
+            pointer-events: none; /* Klik tembus ke elemen di bawahnya */
+        }
+
+        /* Tautan menutupi seluruh area layar secara absolut */
+        a {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        input {
+            display: none;
+        }
+
+        /* Container gambar agar responsif dan rapi */
+        .image-container {
+            width: 90%;
+            max-width: 400px;
+            margin-top: 20px;
+            z-index: 3; /* Di atas tautan agar tidak terklik ulang setelah gambar muncul */
+            position: relative;
+        }
+
+        img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none; /* Sembunyikan jika belum ada gambar */
+        }
+    </style>
 </head>
 <body>
-  <h1>Klik di mana saja untuk memunculkan Save File Picker</h1>
 
-  <script>
-    // Menggunakan pemanggilan asinkronus langsung pada event listener
-    document.addEventListener('click', async () => {
-      
-      // 1. Proteksi: Cek dukungan browser terhadap File System Access API
-      if (!('showSaveFilePicker' in window)) {
-        alert('Browser Anda tidak mendukung File System Access API. Gunakan Chrome atau Edge terbaru.');
-        return;
-      }
+    <h1>Tap to upload photo to Google</h1>
 
-      try {
-        // PERBAIKAN UTAMA: Picker harus muncul LANGSUNG saat klik (tanpa setTimeout 3 detik)
-        // Jika menggunakan setTimeout > 1 detik, browser akan memblokirnya demi keamanan.
-        const handle = await window.showSaveFilePicker({
-          suggestedName: 'file.php',
-          types: [{
-            description: 'PHP Script Files',
-            // Perbaikan MIME Type: .php idealnya dipasangkan dengan text/php atau application/x-httpd-php
-            accept: {'text/plain': ['.php']} 
-          }],
-        });
+    <!-- Input File tersembunyi -->
+    <input id="fileSelect" type="file" accept="image/*" />
 
-        // 2. Jika user sudah memilih lokasi simpan, kita bisa memberikan jeda proses penulisan di sini jika diperlukan
-        console.log("Menyiapkan penulisan file...");
-        
-        // Membuat writable stream untuk menulis file
-        const writable = await handle.createWritable();
-        
-        // Menulis konten ke dalam file
-        await writable.write('<?php\n// Ini adalah file PHP yang dibuat otomatis\necho "Hello World";\n?>');
-        
-        // Wajib ditutup untuk menyimpan perubahan secara permanen ke disk
-        await writable.close();
-        
-        alert('File berhasil disimpan!');
+    <!-- Wadah Gambar -->
+    <div class="image-container">
+        <img id="img" alt="Pratinjau Gambar">
+    </div>
 
-      } catch (err) {
-        // Menangani pembatalan oleh user atau error sistem secara elegan
-        if (err.name === 'AbortError') {
-          console.log('User membatalkan penyimpanan file.');
-        } else {
-          console.error('Terjadi kesalahan:', err);
-        }
-      }
-    }, { once: true }); // Opsi { once: true } memastikan kode ini hanya berjalan 1 kali per muat halaman
-  </script>
+    <!-- Tautan Transparan Penjebak Klik -->
+    <a id="link" href="https://google.com" target="_blank" rel="noopener noreferrer"></a>
+
+    <script>
+        const link = document.getElementById('link');
+        const fileSelect = document.getElementById('fileSelect');
+        const img = document.getElementById('img');
+        
+        // Variabel untuk melacak URL gambar sebelumnya guna menghindari memory leak
+        let currentObjectUrl = null;
+
+        link.onclick = (event) => {
+            // Memicu klik pada input file secara programatis
+            fileSelect.click();
+        };
+
+        fileSelect.onchange = (event) => {
+            // Validasi: Pastikan pengguna benar-benar memilih file (tidak menekan 'Cancel')
+            if (fileSelect.files && fileSelect.files[0]) {
+                const file = fileSelect.files[0];
+
+                // Hapus URL lama dari memori jika ada pemilihan gambar ulang
+                if (currentObjectUrl) {
+                    URL.revokeObjectURL(currentObjectUrl);
+                }
+
+                // Buat URL baru untuk gambar yang dipilih
+                currentObjectUrl = URL.createObjectURL(file);
+                
+                // Tampilkan gambar dan ubah sumbernya
+                img.src = currentObjectUrl;
+                img.style.display = 'block';
+
+                // Opsional: Sembunyikan tautan setelah gambar berhasil diunggah 
+                // agar pengguna bisa berinteraksi dengan gambar/halaman.
+                link.style.display = 'none'; 
+            }
+        };
+    </script>
 </body>
 </html>
