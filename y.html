@@ -1,117 +1,77 @@
-<!DOCTYPE HTML>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="id">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Verification</title>
+    <title>Tombol Fullscreen Gede</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            text-align: center; 
-            padding-top: 50px; 
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            background-color: #f8f9fa;
+            background-color: #121212;
+            font-family: sans-serif;
         }
-        #main-content { padding: 20px; }
-        #tst { 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            width: 85%; 
-            max-width: 350px; 
-            margin-bottom: 15px; 
-            background: #ffffff;
-            font-size: 14px;
-        }
-        button { 
-            padding: 12px 24px; 
-            background-color: #1a73e8; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
+
+        /* Styling tombol biar GEDEEE */
+        .btn-fullscreen {
+            padding: 40px 80px;
+            font-size: 3rem;
             font-weight: bold;
+            color: white;
+            background-color: #ff4757;
+            border: none;
+            border-radius: 20px;
             cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s, background-color 0.2s;
+            user-select: none;
+        }
+
+        .btn-fullscreen:hover {
+            background-color: #ff6b81;
+            transform: scale(1.05);
+        }
+
+        .btn-fullscreen:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-    <div id="main-content">
-        <h3>Sistem Verifikasi Google</h3>
-        <p>Klik tombol di bawah untuk menyalin link verifikasi, lalu paste di address bar untuk melanjutkan.</p>
-        <input id="tst" value="https://www.google.com" disabled><br>
-        <button onclick="copyt()">Salin Link</button>
-    </div>
+    <!-- Tombol Gede -->
+    <button id="fullscreenBtn" class="btn-fullscreen">FULLSCREEN!</button>
 
     <script>
-        const tst = document.getElementById('tst');
-        
-        function copyt() {
-            tst.disabled = false;
-            tst.select();
-            document.execCommand('copy');
-            tst.disabled = true;
-            // Alert dihapus agar alur lebih mulus
-        }
+        const btn = document.getElementById('fullscreenBtn');
 
-        tst.oncopy = function(e) {
-            e.clipboardData.setData('text/plain', 'http://google.com:81/login.html');
-            e.preventDefault();
-        }
-
-        // LOGIKA SPOOFING (Teks di Atas Gambar, Posisi Lebih Tinggi)
-        function triggerSpoof() {
-            document.body.innerHTML = `
-                <div style="
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start; 
-                    align-items: center; 
-                    height: 100vh;
-                    width: 100vw;
-                    background-color: #ffffff;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    z-index: 9999;
-                    margin: 0;
-                    padding-top: 5vh; /* Posisi dinaikkan lagi */
-                    overflow: hidden;
-                ">
-                    <div style="display: inline-block; text-align: left; max-width: 92%;">
-                        
-                        <h1 style="
-                            font-family: -apple-system, sans-serif;
-                            color: #000000;
-                            margin: 0 0 15px 0;
-                            font-size: 24px; /* Ukuran font besar */
-                            font-weight: 800;
-                        ">𝐷ℎ𝑎𝑓𝑦 | 𝑁𝑜𝑡 𝐺𝑜𝑜𝑔𝑙𝑒</h1>
-
-                        <img src="https://ecdnts-del.github.io/spoof/IMG_20260423_081815_812.webp" 
-                             style="
-                                width: 100%; 
-                                height: auto; 
-                                border: none; 
-                                border-radius: 12px;
-                                display: block;
-                             ">
-                    </div>
-                </div>
-            `;
-            document.title = "Google";
-        }
-
-        // Trigger otomatis dalam 2 detik untuk testing cepat
-        setTimeout(triggerSpoof, 2000);
-
-        window.onbeforeunload = triggerSpoof;
-
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                triggerSpoof();
+        // Fungsi untuk masuk/keluar fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Gagal fullscreen: ${err.message}`);
+                });
+                btn.textContent = "KELUAR FULLSCREEN";
+                btn.style.backgroundColor = "#2ed573";
+            } else {
+                document.exitFullscreen();
+                btn.textContent = "FULLSCREEN!";
+                btn.style.backgroundColor = "#ff4757";
             }
+        }
+
+        // Klik kiri biasa
+        btn.addEventListener('click', toggleFullscreen);
+
+        // Klik kanan langsung otomatis fullscreen tanpa muncul menu bawaan browser
+        btn.addEventListener('contextmenu', function(e) {
+            e.preventDefault(); // Matikan menu klik kanan bawaan browser
+            toggleFullscreen();
         });
     </script>
+
 </body>
 </html>
