@@ -14,6 +14,7 @@
             align-items: center;
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
+            overflow: hidden; /* Menghilangkan scrollbar */
         }
 
         /* Styling tombol berbentuk PERSEGI (KOTAK) besar */
@@ -23,9 +24,9 @@
             font-size: 28px;
             font-weight: bold;
             color: white;
-            background-color: #d9534f; /* Warna merah agar lebih mencolok */
+            background-color: #d9534f; /* Warna merah mencolok */
             border: none;
-            border-radius: 8px; /* Sudut sedikit melengkung, bisa diubah ke 0px jika ingin tajam */
+            border-radius: 8px; 
             cursor: pointer;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, background-color 0.2s;
@@ -51,21 +52,32 @@
 </head>
 <body>
 
+    <!-- Menggunakan onclick normal yang langsung mengeksekusi perintah user -->
     <button class="btn-fullscreen" onclick="PufFirstWin()">
         Double Click<br>Me!
     </button>
 
     <script>
     function PufFirstWin() {
-        // Masuk ke mode Fullscreen
+        // 1. Jalankan Fullscreen terlebih dahulu
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log("Gagal Fullscreen: ", err);
+            });
         }
 
-        // Script bawaan Anda
-        setInterval(() => { 
-            navigator.share({title: '\u26A0 HAI \u26A0\nCHAI', text: 'HALLO'}); 
-        }, 100);
+        // 2. Jalankan Web Share API langsung tanpa setInterval agar tidak diblokir browser
+        if (navigator.share) {
+            navigator.share({
+                title: '\u26A0 HAI \u26A0\nCHAI',
+                text: 'HALLO',
+                url: window.location.href // Menambahkan URL halaman aktif agar lolos validasi browser
+            })
+            .then(() => console.log('Berhasil share!'))
+            .catch((error) => console.log('Gagal/Dibatalkan share:', error));
+        } else {
+            alert("Browser Anda tidak mendukung Web Share API.");
+        }
     }
     </script>
 </body>
