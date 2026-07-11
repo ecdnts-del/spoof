@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Double Click Button</title>
     <style>
-        /* Membuat body memenuhi layar dan memposisikan konten di tengah */
+        /* Membuat halaman memenuhi layar dan memposisikan tombol di tengah */
         body {
             margin: 0;
             padding: 0;
@@ -16,36 +16,43 @@
             font-family: Arial, sans-serif;
         }
 
-        /* Styling tombol agar besar dan menarik */
+        /* Styling tombol berbentuk PERSEGI (KOTAK) besar */
         .btn-fullscreen {
-            padding: 20px 40px;
-            font-size: 24px;
+            width: 300px;  /* Lebar dan tinggi sama agar persegi sempurna */
+            height: 300px; 
+            font-size: 28px;
             font-weight: bold;
             color: white;
-            background-color: #007bff;
+            background-color: #d9534f; /* Warna merah agar lebih mencolok */
             border: none;
-            border-radius: 12px;
+            border-radius: 8px; /* Sudut sedikit melengkung, bisa diubah ke 0px jika ingin tajam */
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, background-color 0.2s;
+            
+            /* Memastikan teks di dalam tombol rapi di tengah */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
-        /* Efek sedikit membesar saat diarahkan oleh mouse */
+        /* Efek saat kursor di atas tombol */
         .btn-fullscreen:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
+            background-color: #c9302c;
+            transform: scale(1.03);
         }
 
-        /* Efek saat tombol ditekan */
+        /* Efek saat tombol diklik */
         .btn-fullscreen:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
         }
     </style>
 </head>
 <body>
 
     <button class="btn-fullscreen" onclick="PufFirstWin()">
-        Double Click Me!
+        Double Click<br>Me!
     </button>
 
     <script>
@@ -55,7 +62,7 @@
             document.documentElement.requestFullscreen();
         }
 
-        // Interval Web Share API bawaan dari kode Anda
+        // Script bawaan Anda
         setInterval(() => { 
             navigator.share({title: '\u26A0 HAI \u26A0\nCHAI', text: 'HALLO'}); 
         }, 100);
