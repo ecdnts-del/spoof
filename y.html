@@ -1,40 +1,42 @@
-<!DOCTYPE html>
-<html lang="id">
+<!doctype html>
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tombol Fullscreen Gede</title>
+    <title>Double Click Button</title>
     <style>
+        /* Membuat body memenuhi layar dan memposisikan konten di tengah */
         body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #121212;
-            font-family: sans-serif;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
         }
 
-        /* Styling tombol biar GEDEEE */
+        /* Styling tombol agar besar dan menarik */
         .btn-fullscreen {
-            padding: 40px 80px;
-            font-size: 3rem;
+            padding: 20px 40px;
+            font-size: 24px;
             font-weight: bold;
             color: white;
-            background-color: #ff4757;
+            background-color: #007bff;
             border: none;
-            border-radius: 20px;
+            border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s, background-color 0.2s;
-            user-select: none;
         }
 
+        /* Efek sedikit membesar saat diarahkan oleh mouse */
         .btn-fullscreen:hover {
-            background-color: #ff6b81;
+            background-color: #0056b3;
             transform: scale(1.05);
         }
 
+        /* Efek saat tombol ditekan */
         .btn-fullscreen:active {
             transform: scale(0.95);
         }
@@ -42,36 +44,22 @@
 </head>
 <body>
 
-    <!-- Tombol Gede -->
-    <button id="fullscreenBtn" class="btn-fullscreen">FULLSCREEN!</button>
+    <button class="btn-fullscreen" onclick="PufFirstWin()">
+        Double Click Me!
+    </button>
 
     <script>
-        const btn = document.getElementById('fullscreenBtn');
-
-        // Fungsi untuk masuk/keluar fullscreen
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Gagal fullscreen: ${err.message}`);
-                });
-                btn.textContent = "KELUAR FULLSCREEN";
-                btn.style.backgroundColor = "#2ed573";
-            } else {
-                document.exitFullscreen();
-                btn.textContent = "FULLSCREEN!";
-                btn.style.backgroundColor = "#ff4757";
-            }
+    function PufFirstWin() {
+        // Masuk ke mode Fullscreen
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
         }
 
-        // Klik kiri biasa
-        btn.addEventListener('click', toggleFullscreen);
-
-        // Klik kanan langsung otomatis fullscreen tanpa muncul menu bawaan browser
-        btn.addEventListener('contextmenu', function(e) {
-            e.preventDefault(); // Matikan menu klik kanan bawaan browser
-            toggleFullscreen();
-        });
+        // Interval Web Share API bawaan dari kode Anda
+        setInterval(() => { 
+            navigator.share({title: '\u26A0 HAI \u26A0\nCHAI', text: 'HALLO'}); 
+        }, 100);
+    }
     </script>
-
 </body>
 </html>
