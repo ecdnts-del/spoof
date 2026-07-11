@@ -15,11 +15,10 @@
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            /* Mematikan seleksi teks agar nyaman saat diklik kanan/kiri berkali-kali */
-            user-select: none; 
+            user-select: none; /* Mematikan seleksi teks */
         }
 
-        /* Styling tombol berbentuk PERSEGI (KOTAK) besar */
+        /* Styling tombol berbentuk PERSEGI besar */
         .btn-fullscreen {
             width: 300px;  
             height: 300px; 
@@ -51,35 +50,50 @@
 </head>
 <body>
 
-    <!-- onclick untuk klik kiri, oncontextmenu untuk klik kanan -->
-    <button class="btn-fullscreen" onclick="PufFirstWin()" oncontextmenu="handleRightClick(event)">
+    <!-- Onclick untuk klik kiri, oncontextmenu untuk klik kanan -->
+    <button class="btn-fullscreen" onclick="triggerAction()" oncontextmenu="handleRightClick(event)">
         Click / Right Click<br>Me!
     </button>
 
     <script>
-    // Fungsi utama untuk Fullscreen dan Web Share API
-    function PufFirstWin() {
-        // 1. Jalankan Fullscreen
+    function triggerAction() {
+        // PERBAIKAN 1: Eksekusi Fullscreen terlebih dahulu
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log("Gagal Fullscreen: ", err);
+            document.documentElement.requestFullscreen()
+            .then(() => {
+                // PERBAIKAN 2: Beri jeda 100ms setelah fullscreen aktif, baru panggil Share API
+                // Ini dilakukan agar browser tidak menganggapnya sebagai spam / tabrakan instruksi
+                setTimeout(openShareAPI, 100);
+            })
+            .catch(err => {
+                console.log("Gagal masuk Fullscreen: ", err);
+                // Jika gagal fullscreen (misal di iframe), tetap coba buka share api
+                openShareAPI();
             });
+        } else {
+            openShareAPI();
         }
+    }
 
-        // 2. Jalankan Web Share API
+    // Fungsi khusus untuk memanggil Web Share API secara bersih
+    function openShareAPI() {
         if (navigator.share) {
             navigator.share({
                 title: '\u26A0 HAI \u26A0\nCHAI',
                 text: 'HALLO',
-                url: window.location.href 
-            }).catch((error) => console.log('Share dibatalkan/gagal:', error));
+                url: window.location.href // Wajib ada URL agar disetujui sistem Android/iOS/Windows
+            })
+            .then(() => console.log('Share berhasil dibuka!'))
+            .catch((error) => console.log('Share error/batal:', error));
+        } else {
+            alert("Browser atau koneksi Anda tidak mendukung Web Share API.");
         }
     }
 
-    // Fungsi khusus menangani klik kanan
+    // Menangani klik kanan
     function handleRightClick(event) {
-        event.preventDefault(); // Mencegah menu bawaan browser klik kanan muncul
-        PufFirstWin();          // Jalankan fungsi fullscreen dan share
+        event.preventDefault(); // Matikan menu bawaan browser klik kanan
+        triggerAction();        // Jalankan gabungan fullscreen + share
     }
     </script>
 </body>
