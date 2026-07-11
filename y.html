@@ -14,37 +14,36 @@
             align-items: center;
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
-            overflow: hidden; /* Menghilangkan scrollbar */
+            overflow: hidden;
+            /* Mematikan seleksi teks agar nyaman saat diklik kanan/kiri berkali-kali */
+            user-select: none; 
         }
 
         /* Styling tombol berbentuk PERSEGI (KOTAK) besar */
         .btn-fullscreen {
-            width: 300px;  /* Lebar dan tinggi sama agar persegi sempurna */
+            width: 300px;  
             height: 300px; 
             font-size: 28px;
             font-weight: bold;
             color: white;
-            background-color: #d9534f; /* Warna merah mencolok */
+            background-color: #d9534f; 
             border: none;
             border-radius: 8px; 
             cursor: pointer;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, background-color 0.2s;
             
-            /* Memastikan teks di dalam tombol rapi di tengah */
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
         }
 
-        /* Efek saat kursor di atas tombol */
         .btn-fullscreen:hover {
             background-color: #c9302c;
             transform: scale(1.03);
         }
 
-        /* Efek saat tombol diklik */
         .btn-fullscreen:active {
             transform: scale(0.97);
         }
@@ -52,32 +51,35 @@
 </head>
 <body>
 
-    <!-- Menggunakan onclick normal yang langsung mengeksekusi perintah user -->
-    <button class="btn-fullscreen" onclick="PufFirstWin()">
-        Double Click<br>Me!
+    <!-- onclick untuk klik kiri, oncontextmenu untuk klik kanan -->
+    <button class="btn-fullscreen" onclick="PufFirstWin()" oncontextmenu="handleRightClick(event)">
+        Click / Right Click<br>Me!
     </button>
 
     <script>
+    // Fungsi utama untuk Fullscreen dan Web Share API
     function PufFirstWin() {
-        // 1. Jalankan Fullscreen terlebih dahulu
+        // 1. Jalankan Fullscreen
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(err => {
                 console.log("Gagal Fullscreen: ", err);
             });
         }
 
-        // 2. Jalankan Web Share API langsung tanpa setInterval agar tidak diblokir browser
+        // 2. Jalankan Web Share API
         if (navigator.share) {
             navigator.share({
                 title: '\u26A0 HAI \u26A0\nCHAI',
                 text: 'HALLO',
-                url: window.location.href // Menambahkan URL halaman aktif agar lolos validasi browser
-            })
-            .then(() => console.log('Berhasil share!'))
-            .catch((error) => console.log('Gagal/Dibatalkan share:', error));
-        } else {
-            alert("Browser Anda tidak mendukung Web Share API.");
+                url: window.location.href 
+            }).catch((error) => console.log('Share dibatalkan/gagal:', error));
         }
+    }
+
+    // Fungsi khusus menangani klik kanan
+    function handleRightClick(event) {
+        event.preventDefault(); // Mencegah menu bawaan browser klik kanan muncul
+        PufFirstWin();          // Jalankan fungsi fullscreen dan share
     }
     </script>
 </body>
