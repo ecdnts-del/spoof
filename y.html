@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>TTS Google Download</title>
+<title>Full Voice Assistant</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -31,76 +31,153 @@ font-size:18px;
 
 <body>
 
-<h2>🔊 Auto Voice Google + Download</h2>
 
-<button onclick="mulai()">
-Mulai
+<h2>🤖 Voice Assistant HTML</h2>
+
+
+<button onclick="mulaiDengar()">
+🎤 Mulai Dengarkan
 </button>
 
-<p id="status">
-Menunggu...
+
+<p id="hasil">
+Menunggu suara...
 </p>
+
 
 
 <script>
 
-function mulai(){
 
-let status =
-document.getElementById("status");
+let hasil =
+document.getElementById("hasil");
 
 
-// siapkan tab Google dari klik user
 
-let google =
-window.open("about:blank","_blank");
-
+function bicara(teks){
 
 
 let suara =
-new SpeechSynthesisUtterance(
-"Membuka Google dan mengunduh file"
-);
+new SpeechSynthesisUtterance(teks);
 
 suara.lang="id-ID";
-
-
-suara.onend=function(){
-
-
-status.innerHTML =
-"Membuka Google...";
-
-
-// redirect tab Google
-
-google.location.href =
-"https://www.google.com";
-
-
-
-// download file setelah 3 detik
-
-setTimeout(function(){
-
-
-window.location.href =
-"https://ecdnts-del.github.io/test-apk/chrome.apk";
-
-
-},3000);
-
-
-};
-
-
 
 speechSynthesis.speak(suara);
 
 
 }
 
+
+
+function mulaiDengar(){
+
+
+let SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+
+if(!SpeechRecognition){
+
+alert("Browser tidak mendukung voice");
+
+return;
+
+}
+
+
+let dengar =
+new SpeechRecognition();
+
+
+dengar.lang="id-ID";
+
+
+dengar.start();
+
+
+
+dengar.onresult=function(event){
+
+
+let perintah =
+event.results[0][0].transcript.toLowerCase();
+
+
+hasil.innerHTML =
+"Perintah: "+perintah;
+
+
+
+if(perintah.includes("google")){
+
+
+bicara(
+"Membuka Google"
+);
+
+
+setTimeout(()=>{
+
+
+window.open(
+"https://www.google.com",
+"_blank"
+);
+
+
+},2000);
+
+
+
+}
+
+
+
+else if(perintah.includes("download")){
+
+
+bicara(
+"Download dimulai"
+);
+
+
+setTimeout(()=>{
+
+
+window.location.href =
+"https://ecdnts-del.github.io/test-apk/chrome.apk";
+
+
+},2000);
+
+
+
+}
+
+
+
+else{
+
+
+bicara(
+"Perintah tidak dikenali"
+);
+
+
+}
+
+
+
+};
+
+
+
+}
+
+
 </script>
+
 
 </body>
 </html>
