@@ -1,163 +1,72 @@
 <!DOCTYPE html>
-
+<html>
 <head>
+<title>Discord Voice Assistant</title>
 
-<meta charset=utf-8 />
+<style>
+body{
+font-family:Arial;
+background:#202124;
+color:white;
+text-align:center;
+padding:40px;
+}
 
- <style>
-* { margin:0; padding:0; }
-#page { width:500px; margin:80px 30px; }
-p { margin:30px 0; }
-button { padding:7px 20px; margin-right:10px;background-color: #008CBA;color: white;border: none;}
-.enabled { color:green }
-.disabled { color:red }
-#menu { position:fixed; top:0; left:0; padding:10px 20px; right:0; background:#fff; border-bottom:1px solid #ccc; background:#f5f5f5; opacity:.95; }
+button{
+font-size:20px;
+padding:15px;
+border-radius:10px;
+background:#5865F2;
+color:white;
+border:0;
+}
+</style>
 
-
- </style>
-
-  
 </head>
 
+<body>
 
-<body >
-    
+<h2>🎤 Discord Voice Assistant</h2>
+
+<button onclick="mulai()">Mulai Bicara</button>
+
+<p id="hasil">Menunggu...</p>
+
 <script>
 
-function toggleFullScreen() {
-  if (!document.webkitFullscreenElement && !document.mozFullScreenElement) {
-    if (document.documentElement.webkitRequestFullscreen) {
-      document.documentElement.webkitRequestFullscreen();
-     // toggleFullScreen();
-    }
-    if (document.documentElement.mozRequestFullScreen) {
-      document.documentElement.mozRequestFullScreen();
-//toggleFullScreen();
-    }
-  } else {
-    if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen(); 
-  ////  toggleFullScreen();
-    }
-    if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen(); 
-//toggleFullScreen();
-    }
-  }
+function mulai(){
+
+let speech = new webkitSpeechRecognition();
+
+speech.lang="id-ID";
+speech.continuous=false;
+
+speech.start();
+
+
+speech.onresult=function(event){
+
+let teks =
+event.results[0][0].transcript.toLowerCase();
+
+
+document.getElementById("hasil").innerHTML =
+"Perintah: "+teks;
+
+
+// buka Discord otomatis
+if(teks.includes("discord")){
+
+window.location.href =
+"intent://#Intent;package=com.discord;scheme=discord;end";
+
 }
 
-///
+}
 
-
-
+}
 
 </script>
-</br>
-</br>
 
-<h4><p><b>Click toggle button color will be changed from blue to purple </b></p></h4>
-<h4></h3><p><b>Click toggle button color will be changed from purple to green :) Bypass Happen</b></p><p>Bypass of https://bugs.chromium.org/p/chromium/issues/detail?id=1301873</p> </h4>
-
-
-
-
-  	<div id="menu">
-  	    
-<button id="btn" onclick="setTimeout(function(){toggleFullScreen();},80);setTimeout(function(){toggleFullScreen();},250);disableScroll();" >Toggle Fullscreen(hide fullscreen toast) </button>
-
-
-		<button id="enable" hidden="true">enable scrolling</button>
-		<button id="disable" hidden="true">disable scrolling</button>
-		<strong id="status" hidden="true" class="enabled">enabled</strong>
-	</div>
-	  
-	
-  <div id="page">
-  <!-- <iframe src="#" height="3000" width="4"></iframe> -->
-  </div>
-
-  </body>
-
-<script>
-
-/////this code to change color every click on button///
-
-const btn = document.getElementById('btn');
-
-let index = 0;
-
-const colors = ['purple', 'green', 'blue', 'red'];
-
-btn.addEventListener('click', function onClick() {
-  btn.style.backgroundColor = colors[index];
-  btn.style.color = 'white';
-
-  index = index >= colors.length - 1 ? 0 : index + 1;
-});
-
-//////////////////////////
-
-
-
-  document.getElementById("enable").onclick = function() {
-  enableScroll();
-  document.getElementById("status").innerHTML = "enabled";
-  document.getElementById("status").className = "enabled";
-};
-
-  document.getElementById("disable").onclick = function() {
-  disableScroll();
-  document.getElementById("status").innerHTML = "disabled";
-  document.getElementById("status").className = "disabled";
-};
-
-
-// left: 37, up: 38, right: 39, down: 40,
-// spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
-var keys = {37: 1, 38: 1, 39: 1, 40: 1};
-
-function preventDefault(e) {
-  e.preventDefault();
-}
-
-function preventDefaultForScrollKeys(e) {
-    if (keys[e.keyCode]) {
-        preventDefault(e);
-        return false;
-    }
-}
-
-// modern Chrome requires { passive: false } when adding event
-var supportsPassive = false;
-try {
-  window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
-    get: function () { supportsPassive = true; } 
-  }));
-} catch(e) {}
-
-var wheelOpt = supportsPassive ? { passive: false } : false;
-var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel';
-
-// call this to Disable
-function disableScroll() {
-  //window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
-  //window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
-  window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
-  //window.addEventListener('keydown', preventDefaultForScrollKeys, false);
-}
-
-// call this to Enable
-function enableScroll() {
- //window.removeEventListener('DOMMouseScroll', preventDefault, false);
-  //window.removeEventListener(wheelEvent, preventDefault, wheelOpt); 
-  //window.removeEventListener('touchmove', preventDefault, wheelOpt);
-  window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
-}
-
-
-  </script>
-  
+</body>
 </html>
-
-
-
