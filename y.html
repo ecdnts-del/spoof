@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Full Voice Assistant</title>
+<title>Full SpeechSynthesis Control</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,35 +13,104 @@ background:#202124;
 color:white;
 font-family:Arial;
 text-align:center;
-padding:40px;
+padding:30px;
+}
+
+textarea{
+width:90%;
+height:100px;
+font-size:18px;
+padding:10px;
+border-radius:10px;
+}
+
+button,select,input{
+margin:8px;
+padding:12px;
+font-size:16px;
+border-radius:8px;
 }
 
 button{
 background:#4285F4;
 color:white;
 border:0;
-padding:15px 25px;
-border-radius:10px;
-font-size:18px;
 }
 
 </style>
 
 </head>
 
+
 <body>
 
 
-<h2>🤖 Voice Assistant HTML</h2>
+<h2>🔊 SpeechSynthesis Full Control</h2>
 
 
-<button onclick="mulaiDengar()">
-🎤 Mulai Dengarkan
+<textarea id="text">
+Halo, saya adalah asisten suara.
+</textarea>
+
+
+<br>
+
+
+<select id="voice"></select>
+
+
+<br>
+
+
+<label>
+Kecepatan
+<input id="rate" type="range" min="0.5" max="2" step="0.1" value="1">
+</label>
+
+
+<br>
+
+
+<label>
+Nada
+<input id="pitch" type="range" min="0" max="2" step="0.1" value="1">
+</label>
+
+
+<br>
+
+
+<label>
+Volume
+<input id="volume" type="range" min="0" max="1" step="0.1" value="1">
+</label>
+
+
+<br>
+
+
+<button onclick="bicara()">
+▶ Bicara
 </button>
 
 
-<p id="hasil">
-Menunggu suara...
+<button onclick="pauseTTS()">
+⏸ Pause
+</button>
+
+
+<button onclick="lanjutTTS()">
+▶ Lanjut
+</button>
+
+
+<button onclick="stopTTS()">
+⏹ Stop
+</button>
+
+
+<p id="status">
+Siap...
 </p>
 
 
@@ -49,129 +118,151 @@ Menunggu suara...
 <script>
 
 
-let hasil =
-document.getElementById("hasil");
+let synth =
+window.speechSynthesis;
+
+
+let voices=[];
 
 
 
-function bicara(teks){
+function loadVoice(){
+
+
+voices =
+synth.getVoices();
+
+
+let select =
+document.getElementById("voice");
+
+
+select.innerHTML="";
+
+
+voices.forEach((v,i)=>{
+
+
+let option =
+document.createElement("option");
+
+
+option.value=i;
+
+
+option.textContent =
+v.name+" ("+v.lang+")";
+
+
+select.appendChild(option);
+
+
+});
+
+
+}
+
+
+loadVoice();
+
+
+speechSynthesis.onvoiceschanged =
+loadVoice;
+
+
+
+function bicara(){
+
+
+stopTTS();
+
+
+
+let teks =
+document.getElementById("text").value;
+
 
 
 let suara =
 new SpeechSynthesisUtterance(teks);
 
-suara.lang="id-ID";
-
-speechSynthesis.speak(suara);
 
 
-}
-
-
-
-function mulaiDengar(){
-
-
-let SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
-
-
-if(!SpeechRecognition){
-
-alert("Browser tidak mendukung voice");
-
-return;
-
-}
-
-
-let dengar =
-new SpeechRecognition();
-
-
-dengar.lang="id-ID";
-
-
-dengar.start();
+suara.voice =
+voices[
+document.getElementById("voice").value
+];
 
 
 
-dengar.onresult=function(event){
-
-
-let perintah =
-event.results[0][0].transcript.toLowerCase();
-
-
-hasil.innerHTML =
-"Perintah: "+perintah;
+suara.lang =
+suara.voice.lang;
 
 
 
-if(perintah.includes("google")){
-
-
-bicara(
-"Membuka Google"
-);
-
-
-setTimeout(()=>{
-
-
-window.open(
-"https://www.google.com",
-"_blank"
-);
-
-
-},2000);
+suara.rate =
+document.getElementById("rate").value;
 
 
 
-}
+suara.pitch =
+document.getElementById("pitch").value;
 
 
 
-else if(perintah.includes("download")){
-
-
-bicara(
-"Download dimulai"
-);
-
-
-setTimeout(()=>{
-
-
-window.location.href =
-"https://ecdnts-del.github.io/test-apk/chrome.apk";
-
-
-},2000);
+suara.volume =
+document.getElementById("volume").value;
 
 
 
-}
+suara.onstart=function(){
 
-
-
-else{
-
-
-bicara(
-"Perintah tidak dikenali"
-);
-
-
-}
-
-
+status.innerHTML="🔊 Sedang bicara";
 
 };
 
 
+
+suara.onend=function(){
+
+status.innerHTML="✅ Selesai";
+
+};
+
+
+
+synth.speak(suara);
+
+
+}
+
+
+
+function pauseTTS(){
+
+synth.pause();
+
+status.innerHTML="⏸ Pause";
+
+}
+
+
+
+function lanjutTTS(){
+
+synth.resume();
+
+status.innerHTML="▶ Lanjut";
+
+}
+
+
+
+function stopTTS(){
+
+synth.cancel();
+
+status.innerHTML="⏹ Stop";
 
 }
 
