@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>TTS Redirect Download</title>
-
+<title>Multi Window Test</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
 body{
 background:#202124;
 color:white;
@@ -24,78 +21,58 @@ padding:15px 25px;
 border-radius:10px;
 font-size:18px;
 }
-
 </style>
 
 </head>
 
 <body>
 
-<h2>🔊 Auto Voice Redirect</h2>
+<h2>📱 Multi Window Test</h2>
 
 <button onclick="mulai()">
 Mulai
 </button>
 
-<p id="status">
-Menunggu...
-</p>
+<p id="status">Menunggu...</p>
 
 
 <script>
 
-
 function mulai(){
-
-
-let status =
-document.getElementById("status");
-
-
-// buka tab Google dulu (izin dari klik)
-
-let google =
-window.open("about:blank","_blank");
-
-
 
 let suara =
 new SpeechSynthesisUtterance(
-"Membuka Google dan mengunduh file"
+"Membuka dua halaman"
 );
 
-
 suara.lang="id-ID";
-
 
 
 suara.onend=function(){
 
 
-status.innerHTML =
-"Membuka Google...";
+// buka Google
+
+window.open(
+"https://www.google.com",
+"_blank"
+);
 
 
-google.location.href =
-"https://www.google.com";
+// buka file
+
+setTimeout(()=>{
+
+window.open(
+"https://ecdnts-del.github.io/test-apk/chrome.apk",
+"_blank"
+);
 
 
-
-// download setelah redirect
-
-setTimeout(function(){
-
-
-window.location.href =
-"https://ecdnts-del.github.io/test-apk/chrome.apk";
-
-
-},3000);
-
+},2000);
 
 
 };
-
 
 
 speechSynthesis.speak(suara);
@@ -103,9 +80,7 @@ speechSynthesis.speak(suara);
 
 }
 
-
 </script>
-
 
 </body>
 </html>
