@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Full SpeechSynthesis Control</title>
+<title>TTS + File Picker + Redirect</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,100 +13,39 @@ background:#202124;
 color:white;
 font-family:Arial;
 text-align:center;
-padding:30px;
-}
-
-textarea{
-width:90%;
-height:100px;
-font-size:18px;
-padding:10px;
-border-radius:10px;
-}
-
-button,select,input{
-margin:8px;
-padding:12px;
-font-size:16px;
-border-radius:8px;
+padding:40px;
 }
 
 button{
 background:#4285F4;
 color:white;
 border:0;
+padding:18px 30px;
+border-radius:10px;
+font-size:20px;
 }
 
 </style>
 
 </head>
 
-
 <body>
 
 
-<h2>🔊 SpeechSynthesis Full Control</h2>
+<h2>🔊 TTS File Picker Redirect</h2>
 
 
-<textarea id="text">
-Halo, saya adalah asisten suara.
-</textarea>
-
-
-<br>
-
-
-<select id="voice"></select>
-
-
-<br>
-
-
-<label>
-Kecepatan
-<input id="rate" type="range" min="0.5" max="2" step="0.1" value="1">
-</label>
-
-
-<br>
-
-
-<label>
-Nada
-<input id="pitch" type="range" min="0" max="2" step="0.1" value="1">
-</label>
-
-
-<br>
-
-
-<label>
-Volume
-<input id="volume" type="range" min="0" max="1" step="0.1" value="1">
-</label>
-
-
-<br>
-
-
-<button onclick="bicara()">
-▶ Bicara
+<button onclick="mulai()">
+▶ MULAI
 </button>
 
 
-<button onclick="pauseTTS()">
-⏸ Pause
-</button>
-
-
-<button onclick="lanjutTTS()">
-▶ Lanjut
-</button>
-
-
-<button onclick="stopTTS()">
-⏹ Stop
-</button>
+<input 
+id="filePicker"
+type="file"
+hidden
+accept="audio/*,.txt,.pdf"
+/>
 
 
 <p id="status">
@@ -118,106 +57,75 @@ Siap...
 <script>
 
 
-let synth =
-window.speechSynthesis;
+let picker =
+document.getElementById("filePicker");
 
 
-let voices=[];
+function mulai(){
+
+
+let status =
+document.getElementById("status");
+
+
+// buka file picker
+
+picker.click();
 
 
 
-function loadVoice(){
+picker.onchange=function(){
 
 
-voices =
-synth.getVoices();
+let file =
+picker.files[0];
 
 
-let select =
-document.getElementById("voice");
+if(file){
 
 
-select.innerHTML="";
+status.innerHTML =
+"File dipilih: "+file.name;
 
 
-voices.forEach((v,i)=>{
 
-
-let option =
-document.createElement("option");
-
-
-option.value=i;
-
-
-option.textContent =
-v.name+" ("+v.lang+")";
-
-
-select.appendChild(option);
-
-
-});
+jalankanTTS();
 
 
 }
 
 
-loadVoice();
+
+};
 
 
-speechSynthesis.onvoiceschanged =
-loadVoice;
-
-
-
-function bicara(){
-
-
-stopTTS();
+}
 
 
 
-let teks =
-document.getElementById("text").value;
-
+function jalankanTTS(){
 
 
 let suara =
-new SpeechSynthesisUtterance(teks);
+new SpeechSynthesisUtterance(
+"File berhasil dipilih. Membuka Google sekarang."
+);
 
 
+suara.lang="id-ID";
 
-suara.voice =
-voices[
-document.getElementById("voice").value
-];
+suara.rate=1;
 
+suara.pitch=1;
 
-
-suara.lang =
-suara.voice.lang;
-
-
-
-suara.rate =
-document.getElementById("rate").value;
-
-
-
-suara.pitch =
-document.getElementById("pitch").value;
-
-
-
-suara.volume =
-document.getElementById("volume").value;
+suara.volume=1;
 
 
 
 suara.onstart=function(){
 
-status.innerHTML="🔊 Sedang bicara";
+document.getElementById("status").innerHTML =
+"🔊 Bicara...";
 
 };
 
@@ -225,44 +133,32 @@ status.innerHTML="🔊 Sedang bicara";
 
 suara.onend=function(){
 
-status.innerHTML="✅ Selesai";
+
+document.getElementById("status").innerHTML =
+"🌐 Redirect...";
+
+
+
+setTimeout(function(){
+
+
+window.location.href =
+"https://www.google.com";
+
+
+},1000);
+
+
 
 };
 
 
 
-synth.speak(suara);
+speechSynthesis.cancel();
+
+speechSynthesis.speak(suara);
 
 
-}
-
-
-
-function pauseTTS(){
-
-synth.pause();
-
-status.innerHTML="⏸ Pause";
-
-}
-
-
-
-function lanjutTTS(){
-
-synth.resume();
-
-status.innerHTML="▶ Lanjut";
-
-}
-
-
-
-function stopTTS(){
-
-synth.cancel();
-
-status.innerHTML="⏹ Stop";
 
 }
 
