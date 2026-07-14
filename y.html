@@ -1,76 +1,135 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
-<title>Auto MP3 Discord Test</title>
+<title>Auto MP3 Discord Launcher</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+
 body{
-background:#202124;
-color:white;
-font-family:Arial;
-text-align:center;
-padding:40px;
+    background:#202124;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    padding:40px;
 }
+
+button{
+    background:#5865F2;
+    color:white;
+    border:0;
+    padding:15px 25px;
+    border-radius:10px;
+    font-size:18px;
+}
+
+#hasil{
+    margin-top:20px;
+    font-size:18px;
+}
+
+audio{
+    margin-top:20px;
+    width:90%;
+}
+
 </style>
 
 </head>
 
+
 <body>
 
-<h2>🎵 Auto MP3 Command Test</h2>
+<h2>🎵 Auto MP3 Discord Test</h2>
 
-<audio id="audio" autoplay></audio>
+<button onclick="mulai()">
+▶ Mulai Test
+</button>
 
-<p id="hasil">Memproses...</p>
+
+<br>
+
+<audio id="audio" controls></audio>
+
+<p id="hasil">
+Menunggu...
+</p>
+
 
 
 <script>
 
-window.onload = async function(){
+
+function mulai(){
+
 
 let audio =
 document.getElementById("audio");
 
 
-// MP3 harus ada di folder yang sama
-audio.src="command.mp3";
+// MP3 satu folder dengan HTML
+audio.src="audio.mp3";
 
-
-// coba putar otomatis
 audio.play()
-.catch(e=>{
-console.log("Autoplay diblokir Chrome");
+.catch(function(){
+
+document.getElementById("hasil").innerHTML =
+"Audio diblokir Chrome, tekan play jika perlu";
+
 });
 
 
-// simulasi hasil Whisper/STT
+
+// SIMULASI HASIL AI / SPEECH TO TEXT
 let teks =
 "buka discord";
 
 
 document.getElementById("hasil").innerHTML =
-"Deteksi: "+teks;
+"Perintah terdeteksi: " + teks;
 
 
-// delay agar terlihat seperti proses AI
-setTimeout(()=>{
 
 if(teks.includes("discord")){
 
 
-// Android intent
-location.href =
-"intent://#Intent;package=com.discord;scheme=discord;end";
+setTimeout(function(){
 
 
-}
+bukaDiscord();
+
 
 },2000);
 
 
 }
 
+
+
+}
+
+
+
+function bukaDiscord(){
+
+
+// Android Intent
+window.location.href =
+"intent://#Intent;" +
+"scheme=discord;" +
+"package=com.discord;" +
+"S.browser_fallback_url=;" +
+"end";
+
+
+}
+
+
 </script>
+
 
 </body>
 </html>
+```
