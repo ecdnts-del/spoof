@@ -2,7 +2,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Auto MP3 Discord Launcher</title>
+
+<title>Auto App Launcher Android</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -21,37 +22,30 @@ button{
     color:white;
     border:0;
     padding:15px 25px;
+    margin:10px;
     border-radius:10px;
     font-size:18px;
-}
-
-#hasil{
-    margin-top:20px;
-    font-size:18px;
-}
-
-audio{
-    margin-top:20px;
-    width:90%;
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-<h2>🎵 Auto MP3 Discord Test</h2>
 
-<button onclick="mulai()">
-▶ Mulai Test
+<h2>📱 Auto Android App Launcher</h2>
+
+
+<button onclick="bukaDiscord()">
+Buka Discord
 </button>
 
 
-<br>
+<button onclick="bukaGmail()">
+Buka Gmail
+</button>
 
-<audio id="audio" controls></audio>
 
 <p id="hasil">
 Menunggu...
@@ -62,69 +56,36 @@ Menunggu...
 <script>
 
 
-function mulai(){
-
-
-let audio =
-document.getElementById("audio");
-
-
-// MP3 satu folder dengan HTML
-audio.src="audio.mp3";
-
-audio.play()
-.catch(function(){
-
-document.getElementById("hasil").innerHTML =
-"Audio diblokir Chrome, tekan play jika perlu";
-
-});
-
-
-
-// SIMULASI HASIL AI / SPEECH TO TEXT
-let teks =
-"buka discord";
-
-
-document.getElementById("hasil").innerHTML =
-"Perintah terdeteksi: " + teks;
-
-
-
-if(teks.includes("discord")){
-
-
-setTimeout(function(){
-
-
-bukaDiscord();
-
-
-},2000);
-
-
-}
-
-
-
-}
-
-
-
 function bukaDiscord(){
 
+document.getElementById("hasil").innerHTML =
+"Membuka Discord...";
 
-// Android Intent
+
 window.location.href =
 "intent://#Intent;" +
 "scheme=discord;" +
 "package=com.discord;" +
-"S.browser_fallback_url=;" +
 "end";
 
+}
+
+
+
+function bukaGmail(){
+
+document.getElementById("hasil").innerHTML =
+"Membuka Gmail...";
+
+
+window.location.href =
+"intent://#Intent;" +
+"scheme=mailto;" +
+"package=com.google.android.gm;" +
+"end";
 
 }
+
 
 
 </script>
