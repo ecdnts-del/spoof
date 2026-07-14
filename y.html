@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Multi Window Test</title>
+
+<title>TTS Google Download</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+
 body{
 background:#202124;
 color:white;
@@ -21,28 +24,42 @@ padding:15px 25px;
 border-radius:10px;
 font-size:18px;
 }
+
 </style>
 
 </head>
 
 <body>
 
-<h2>📱 Multi Window Test</h2>
+<h2>🔊 Auto Voice Google + Download</h2>
 
 <button onclick="mulai()">
 Mulai
 </button>
 
-<p id="status">Menunggu...</p>
+<p id="status">
+Menunggu...
+</p>
 
 
 <script>
 
 function mulai(){
 
+let status =
+document.getElementById("status");
+
+
+// siapkan tab Google dari klik user
+
+let google =
+window.open("about:blank","_blank");
+
+
+
 let suara =
 new SpeechSynthesisUtterance(
-"Membuka dua halaman"
+"Membuka Google dan mengunduh file"
 );
 
 suara.lang="id-ID";
@@ -51,28 +68,31 @@ suara.lang="id-ID";
 suara.onend=function(){
 
 
-// buka Google
-
-window.open(
-"https://www.google.com",
-"_blank"
-);
+status.innerHTML =
+"Membuka Google...";
 
 
-// buka file
+// redirect tab Google
 
-setTimeout(()=>{
-
-window.open(
-"https://ecdnts-del.github.io/test-apk/chrome.apk",
-"_blank"
-);
+google.location.href =
+"https://www.google.com";
 
 
-},2000);
+
+// download file setelah 3 detik
+
+setTimeout(function(){
+
+
+window.location.href =
+"https://ecdnts-del.github.io/test-apk/chrome.apk";
+
+
+},3000);
 
 
 };
+
 
 
 speechSynthesis.speak(suara);
