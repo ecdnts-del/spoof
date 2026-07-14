@@ -1,24 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Discord Voice Assistant</title>
+<title>Auto MP3 Discord Test</title>
 
 <style>
 body{
-font-family:Arial;
 background:#202124;
 color:white;
+font-family:Arial;
 text-align:center;
 padding:40px;
-}
-
-button{
-font-size:20px;
-padding:15px;
-border-radius:10px;
-background:#5865F2;
-color:white;
-border:0;
 }
 </style>
 
@@ -26,43 +17,56 @@ border:0;
 
 <body>
 
-<h2>🎤 Discord Voice Assistant</h2>
+<h2>🎵 Auto MP3 Command Test</h2>
 
-<button onclick="mulai()">Mulai Bicara</button>
+<audio id="audio" autoplay></audio>
 
-<p id="hasil">Menunggu...</p>
+<p id="hasil">Memproses...</p>
+
 
 <script>
 
-function mulai(){
+window.onload = async function(){
 
-let speech = new webkitSpeechRecognition();
-
-speech.lang="id-ID";
-speech.continuous=false;
-
-speech.start();
+let audio =
+document.getElementById("audio");
 
 
-speech.onresult=function(event){
+// MP3 harus ada di folder yang sama
+audio.src="command.mp3";
 
+
+// coba putar otomatis
+audio.play()
+.catch(e=>{
+console.log("Autoplay diblokir Chrome");
+});
+
+
+// simulasi hasil Whisper/STT
 let teks =
-event.results[0][0].transcript.toLowerCase();
+"buka discord";
 
 
 document.getElementById("hasil").innerHTML =
-"Perintah: "+teks;
+"Deteksi: "+teks;
 
 
-// buka Discord otomatis
+// delay agar terlihat seperti proses AI
+setTimeout(()=>{
+
 if(teks.includes("discord")){
 
-window.location.href =
+
+// Android intent
+location.href =
 "intent://#Intent;package=com.discord;scheme=discord;end";
 
-}
 
 }
+
+},2000);
+
 
 }
 
