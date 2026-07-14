@@ -3,7 +3,7 @@
 <html>
 <head>
 
-<title>Auto App Launcher Android</title>
+<title>TTS Open URL Android</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -18,7 +18,7 @@ body{
 }
 
 button{
-    background:#5865F2;
+    background:#4285F4;
     color:white;
     border:0;
     padding:15px 25px;
@@ -34,16 +34,11 @@ button{
 <body>
 
 
-<h2>📱 Auto Android App Launcher</h2>
+<h2>🔊 TTS URL Launcher</h2>
 
 
-<button onclick="bukaDiscord()">
-Buka Discord
-</button>
-
-
-<button onclick="bukaGmail()">
-Buka Gmail
+<button onclick="jalankan()">
+Mulai
 </button>
 
 
@@ -56,36 +51,43 @@ Menunggu...
 <script>
 
 
-function bukaDiscord(){
+function jalankan(){
+
+
+let pesan =
+"Membuka website sekarang";
+
 
 document.getElementById("hasil").innerHTML =
-"Membuka Discord...";
+pesan;
 
 
-window.location.href =
-"intent://#Intent;" +
-"scheme=discord;" +
-"package=com.discord;" +
-"end";
+// TTS Android Chrome
 
-}
+let suara =
+new SpeechSynthesisUtterance(pesan);
 
+suara.lang="id-ID";
 
 
-function bukaGmail(){
 
-document.getElementById("hasil").innerHTML =
-"Membuka Gmail...";
+suara.onend=function(){
 
+// buka URL setelah suara selesai
 
 window.location.href =
-"intent://#Intent;" +
-"scheme=mailto;" +
-"package=com.google.android.gm;" +
-"end";
+"https://www.google.com";
+
+
+};
+
+
+
+speechSynthesis.speak(suara);
+
+
 
 }
-
 
 
 </script>
