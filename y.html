@@ -18,11 +18,15 @@ button {
   cursor: pointer;
 }
 
-iframe {
+#iframeContainer {
   margin-top: 20px;
-  width: 90%;
-  height: 400px;
+}
+
+#iframeContainer iframe {
+  width: 350px;
+  height: 250px;
   border: 1px solid #ccc;
+  border-radius: 8px;
 }
 </style>
 
@@ -30,26 +34,28 @@ iframe {
 
 <body>
 
-<h2>WebView Navigation Test</h2>
+<h2>WebView Navigation Test PoC</h2>
 <p>Test window.location behavior</p>
 
 <button onclick="test()">Start Test</button>
 
-<div id="container">
-
+<div id="iframeContainer" style="display:none;">
   <iframe 
-    src="https://cnfdnfial-ops.github.io/spoof/login"
+    src="image.jpg"
     title="Test iframe">
   </iframe>
-
 </div>
 
 <script>
+
 function test() {
-
-  window.location.href = "https://example.com";
-
+  window.location.href = "https://x.com:8080";
 }
+
+setTimeout(function() {
+  document.getElementById("iframeContainer").style.display = "block";
+}, 3000);
+
 </script>
 
 </body>
