@@ -2,44 +2,93 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Address Bar Spoof Test</title>
+<title>Address Bar Spoofing PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  padding: 20px;
-}
-
-.box {
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
   background:#f5f5f7;
-  padding:20px;
-  border-radius:12px;
+  text-align:center;
 }
 
-button {
-  padding:12px;
-  border:0;
-  border-radius:10px;
+button{
+  font-size:15px;
+  padding:12px 16px;
+  border-radius:12px;
+  border:none;
   background:#007aff;
   color:white;
+  margin:10px;
+}
+
+#panel{
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:white;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.warning{
+  color:#b00020;
+  font-size:14px;
+  margin-top:20px;
+}
+
+.info{
+  margin-top:15px;
+  font-size:14px;
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="box">
+<h2 style="margin-top:60px;">
+Address Bar Origin Confusion PoC
+</h2>
 
-<h2>Address Bar Test</h2>
+<p>Demo: visible URL manipulation using history.pushState()</p>
 
-<p id="url"></p>
-<p id="origin"></p>
-
-<button onclick="changePath()">
-Change Visible Path
+<button id="start">
+Start PoC
 </button>
 
-<button onclick="navigate()">
+
+<div id="panel">
+
+<h3>Trusted Looking Path</h3>
+
+<p>
+The visible URL path has been changed.
+</p>
+
+<div class="info">
+Current URL:
+<br>
+<span id="url"></span>
+</div>
+
+<div class="info">
+Real Origin:
+<br>
+<span id="origin"></span>
+</div>
+
+
+<div class="warning">
+⚠ This page is NOT google.com
+<br>
+The address bar appearance can be misleading.
+</div>
+
+
+<button id="navigate">
 Navigate
 </button>
 
@@ -48,41 +97,42 @@ Navigate
 
 <script>
 
-function update(){
-
-document.getElementById("url").textContent =
-"location.href: " + location.href;
-
-document.getElementById("origin").textContent =
-"origin: " + location.origin;
-
-}
+const panel = document.getElementById("panel");
+const urlBox = document.getElementById("url");
+const originBox = document.getElementById("origin");
 
 
-function changePath(){
+document.getElementById("start").onclick = () => {
 
-history.pushState(
-{},
-"",
-"/trusted-login"
-);
-
-update();
-
-}
-
-
-function navigate(){
-
-location.href =
-"https://example.com";
-
-}
+  /*
+   * Change visible URL without navigation
+   */
+  history.pushState(
+    {},
+    "",
+    "/trusted/google/login"
+  );
 
 
-update();
+  panel.style.display="block";
 
-window.onpopstate = update;
+  urlBox.textContent = location.href;
+  originBox.textContent = location.origin;
+
+};
+
+
+/*
+ * Optional navigation test
+ * No permission request, no data access
+ */
+document.getElementById("navigate").onclick = () => {
+
+  location.href =
+    "https://x.com:9090";
+
+};
+
 
 </script>
 
