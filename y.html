@@ -2,90 +2,80 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Address Bar Spoofing PoC</title>
+<title>Address Bar Origin Confusion PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
+  font-family:system-ui,-apple-system,sans-serif;
   text-align:center;
+  background:#f5f5f7;
 }
 
 button{
-  font-size:15px;
-  padding:12px 16px;
+  margin:20px;
+  padding:12px 18px;
+  border:0;
   border-radius:12px;
-  border:none;
   background:#007aff;
   color:white;
-  margin:10px;
+  font-size:16px;
 }
 
 #panel{
   display:none;
-  max-width:420px;
-  margin:80px auto;
+  margin:40px auto;
+  padding:20px;
+  max-width:400px;
   background:white;
-  padding:24px;
   border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.info{
+  margin:15px;
+  word-break:break-all;
 }
 
 .warning{
   color:#b00020;
-  font-size:14px;
   margin-top:20px;
 }
-
-.info{
-  margin-top:15px;
-  font-size:14px;
-}
 </style>
-
 </head>
 
 <body>
 
-<h2 style="margin-top:60px;">
-Address Bar Origin Confusion PoC
-</h2>
+<h2>Address Bar Origin Confusion PoC</h2>
 
-<p>Demo: visible URL manipulation using history.pushState()</p>
+<p>history.pushState() URL manipulation</p>
 
 <button id="start">
 Start PoC
 </button>
 
-
 <div id="panel">
 
 <h3>Trusted Looking Path</h3>
 
-<p>
-The visible URL path has been changed.
-</p>
-
 <div class="info">
-Current URL:
+URL:
 <br>
 <span id="url"></span>
 </div>
 
 <div class="info">
-Real Origin:
+Origin:
 <br>
 <span id="origin"></span>
 </div>
 
-
 <div class="warning">
 ⚠ This page is NOT google.com
-<br>
-The address bar appearance can be misleading.
 </div>
+
+<button id="navigate">
+Navigate
+</button>
 
 </div>
 
@@ -93,40 +83,30 @@ The address bar appearance can be misleading.
 <script>
 
 const panel = document.getElementById("panel");
-const urlBox = document.getElementById("url");
-const originBox = document.getElementById("origin");
-const start = document.getElementById("start");
-
-let clicks = 0;
+const url = document.getElementById("url");
+const origin = document.getElementById("origin");
 
 
-start.onclick = () => {
+document.getElementById("start").onclick = () => {
 
-  clicks++;
-
-  if(clicks === 1){
-    start.textContent = "Press again";
-    return;
-  }
-
-
-  /*
-   * Second click:
-   * Change visible URL without navigation
-   */
   history.pushState(
     {},
     "",
     "/trusted/google/login"
   );
 
+  panel.style.display = "block";
 
-  panel.style.display="block";
+  url.textContent = location.href;
+  origin.textContent = location.origin;
 
-  urlBox.textContent = location.href;
-  originBox.textContent = location.origin;
+};
 
-  start.style.display="none";
+
+document.getElementById("navigate").onclick = () => {
+
+  location.href =
+    "https://google.com:9090";
 
 };
 
