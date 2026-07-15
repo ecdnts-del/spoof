@@ -14,29 +14,29 @@ body{
 }
 
 button{
-  font-size:16px;
-  padding:12px 18px;
+  font-size:15px;
+  padding:12px 16px;
   border-radius:12px;
   border:none;
-  background:#000;
+  background:#007aff;
   color:white;
-  margin-top:80px;
+  margin:10px;
 }
 
-#result{
+#panel{
   display:none;
-  margin:40px auto;
   max-width:420px;
+  margin:80px auto;
   background:white;
-  padding:25px;
+  padding:24px;
   border-radius:16px;
   box-shadow:0 20px 60px rgba(0,0,0,.2);
 }
 
 .warning{
   color:#b00020;
-  font-size:18px;
-  font-weight:bold;
+  font-size:14px;
+  margin-top:20px;
 }
 
 .info{
@@ -49,21 +49,27 @@ button{
 
 <body>
 
+<h2 style="margin-top:60px;">
+Address Bar Origin Confusion PoC
+</h2>
+
+<p>Demo: visible URL manipulation using history.pushState()</p>
+
 <button id="start">
-Start
+Start PoC
 </button>
 
 
-<div id="result">
+<div id="panel">
 
-<h2>NOT X</h2>
+<h3>Trusted Looking Path</h3>
 
-<div class="warning">
-This is NOT x.com
-</div>
+<p>
+The visible URL path has been changed.
+</p>
 
 <div class="info">
-Visible URL:
+Current URL:
 <br>
 <span id="url"></span>
 </div>
@@ -74,33 +80,53 @@ Real Origin:
 <span id="origin"></span>
 </div>
 
+
+<div class="warning">
+⚠ This page is NOT google.com
+<br>
+The address bar appearance can be misleading.
+</div>
+
 </div>
 
 
 <script>
 
-const result = document.getElementById("result");
-const url = document.getElementById("url");
-const origin = document.getElementById("origin");
+const panel = document.getElementById("panel");
+const urlBox = document.getElementById("url");
+const originBox = document.getElementById("origin");
+const start = document.getElementById("start");
+
+let clicks = 0;
 
 
-document.getElementById("start").onclick = () => {
+start.onclick = () => {
+
+  clicks++;
+
+  if(clicks === 1){
+    start.textContent = "Press again";
+    return;
+  }
+
 
   /*
-   * Change visible path only
-   * Origin remains unchanged
+   * Second click:
+   * Change visible URL without navigation
    */
   history.pushState(
     {},
     "",
-    "/x/login"
+    "/trusted/google/login"
   );
 
 
-  result.style.display="block";
+  panel.style.display="block";
 
-  url.textContent = location.href;
-  origin.textContent = location.origin;
+  urlBox.textContent = location.href;
+  originBox.textContent = location.origin;
+
+  start.style.display="none";
 
 };
 
