@@ -1,67 +1,142 @@
 <!doctype html>
 <html>
 <head>
+
 <meta charset="utf-8">
-<title>Address Bar Race Test</title>
+<title>Navigation Race Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+
+body{
+    font-family:system-ui;
+    padding:40px;
+}
+
+button{
+    padding:12px 20px;
+    font-size:16px;
+}
+
+#box{
+    margin-top:20px;
+    padding:15px;
+    background:#eee;
+    border-radius:10px;
+    white-space:pre-wrap;
+}
+
+</style>
+
 </head>
+
 
 <body>
 
+
+<h2>Navigation Timing Test</h2>
+
+
 <button id="start">
-Start Test
+Start
 </button>
 
-<p id="status">
+
+<div id="box">
 Idle
-</p>
+</div>
+
 
 
 <script>
-
-const status =
-document.getElementById("status");
 
 
 const TARGET =
 "https://example:9090/";
 
 
-const DELAY = 300;
+
+const DELAY =
+300;
 
 
 
-function info(msg){
+const box =
+document.getElementById("box");
 
-status.innerHTML = msg;
 
 
-console.log(
-msg,
-{
-    url: location.href,
-    origin: location.origin,
-    time: performance.now()
-});
+let counter = 0;
+
+
+
+function report(event, extra={}){
+
+
+counter++;
+
+
+const data = {
+
+id:counter,
+
+event,
+
+time:
+performance.now().toFixed(2),
+
+url:
+location.href,
+
+origin:
+location.origin,
+
+state:
+history.length,
+
+visibility:
+document.visibilityState,
+
+...extra
+
+};
+
+
+
+console.log(data);
+
+
+
+box.textContent =
+JSON.stringify(
+data,
+null,
+2
+);
+
 
 }
 
 
 
 
-document.getElementById("start")
-.onclick = ()=>{
+function startTest(){
 
 
-info(
-"Before pushState"
+
+report(
+"start"
 );
 
 
 
+/*
+Change URL bar inside same origin
+*/
+
 history.pushState(
 {
-test:"address-race"
+test:true
 },
 "",
 "/trusted"
@@ -69,19 +144,22 @@ test:"address-race"
 
 
 
-info(
-"After pushState<br>"+
-location.href
+report(
+"after pushState"
 );
 
 
 
 
+/*
+Navigation delay
+*/
+
 setTimeout(()=>{
 
 
-info(
-"Navigate start"
+report(
+"before navigation"
 );
 
 
@@ -95,7 +173,18 @@ TARGET;
 
 
 
-};
+}
+
+
+
+
+
+document
+.getElementById("start")
+.onclick =
+startTest;
+
+
 
 
 
@@ -103,9 +192,20 @@ window.addEventListener(
 "pageshow",
 ()=>{
 
-console.log(
-"pageshow",
-location.href
+report(
+"pageshow"
+);
+
+});
+
+
+
+window.addEventListener(
+"pagehide",
+()=>{
+
+report(
+"pagehide"
 );
 
 });
@@ -116,15 +216,40 @@ window.addEventListener(
 "beforeunload",
 ()=>{
 
-console.log(
-"beforeunload",
-location.href
+report(
+"beforeunload"
 );
 
 });
+
+
+
+window.addEventListener(
+"popstate",
+()=>{
+
+report(
+"popstate"
+);
+
+});
+
+
+
+document.addEventListener(
+"visibilitychange",
+()=>{
+
+report(
+"visibilitychange"
+);
+
+});
+
 
 
 </script>
+
 
 </body>
 </html>
