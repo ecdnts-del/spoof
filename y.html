@@ -1,80 +1,139 @@
 <!doctype html>
 <html>
 <head>
+
 <meta charset="utf-8">
 <title>Window Navigation Timing Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+
+body{
+    font-family:system-ui;
+    padding:40px;
+}
+
+button{
+    padding:12px 20px;
+    font-size:16px;
+}
+
+pre{
+    margin-top:20px;
+    background:#eee;
+    padding:15px;
+    border-radius:10px;
+    white-space:pre-wrap;
+}
+
+</style>
+
 </head>
 
+
 <body>
+
+
+<h2>Window Navigation Timing Test</h2>
+
 
 <button onclick="start()">
 Start Test
 </button>
 
-<pre id="log"></pre>
+
+<pre id="log">
+Idle
+</pre>
+
 
 
 <script>
 
-let child;
+
+let child = null;
 let count = 0;
 
+
 const TARGET =
-"https://example.com:9090";
+"https://google.com:9090/#https://google.com:9090";
 
 
-function log(msg){
 
-document.getElementById("log").textContent +=
-(
-++count +
+function log(message){
+
+
+count++;
+
+
+const data =
+count +
 " - " +
-msg +
-"\n"
+message +
+"\n";
+
+
+
+document
+.getElementById("log")
+.textContent += data;
+
+
+
+console.log(
+message,
+{
+url: location.href,
+origin: location.origin,
+time: performance.now()
+}
 );
 
-console.log(msg);
 
 }
+
 
 
 
 function start(){
 
 
+
 log(
-"opening child window"
+"Opening child window"
 );
 
 
 
 child =
 window.open(
-"about:blank",
-"test",
+TARGET,
+"testWindow",
 "width=500,height=500"
 );
 
 
 
-setTimeout(()=>{
+if(!child){
+
+log(
+"Popup blocked"
+);
+
+return;
+
+}
+
 
 
 log(
-"navigate child"
+"Child opened"
 );
 
 
-child.location.href =
-TARGET;
 
 
-
-},100);
-
-
-
+const timer =
 setInterval(()=>{
 
 
@@ -82,31 +141,53 @@ try{
 
 
 log(
-"child url readable: "+
+"Child URL: "+
 child.location.href
 );
 
 
 }
+
 catch(e){
 
 
 log(
-"cross origin blocked"
+"Cross-origin access blocked"
 );
 
 
+
 }
+
 
 
 },20);
 
 
 
+
+setTimeout(()=>{
+
+
+clearInterval(timer);
+
+
+log(
+"Test finished"
+);
+
+
+
+},5000);
+
+
+
 }
 
 
+
 </script>
+
 
 </body>
 </html>
