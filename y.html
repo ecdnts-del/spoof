@@ -2,141 +2,95 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Race Test</title>
+<title>Origin Race Timing Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
-<style>
-body {
-    font-family: system-ui;
-    text-align:center;
-    padding-top:80px;
-}
-
-button {
-    padding:15px 25px;
-    font-size:16px;
-    border-radius:10px;
-}
-
-#status {
-    margin-top:30px;
-    font-size:14px;
-}
-</style>
-
 </head>
 
 <body>
-
 
 <button id="start">
 Start Test
 </button>
 
-
-<div id="status">
+<p id="status">
 Idle
-</div>
-
+</p>
 
 
 <script>
-
 
 const status =
 document.getElementById("status");
 
 
 const TARGET =
-"https://example.com:9090";
+"http://google.com:9090/";
 
 
 const DELAY =
-80;
+300;
 
 
 
-function show(text){
+function info(msg){
 
-status.innerHTML = text;
-
-}
-
-
-
-function snapshot(name){
+status.innerHTML = msg;
 
 console.log(
-name,
+msg,
 {
-    url:location.href,
-    origin:location.origin,
-    time:performance.now(),
-    visibility:document.visibilityState
-});
+url:location.href,
+origin:location.origin,
+time:performance.now()
+}
+);
 
 }
-
 
 
 
 function requestGeo(){
 
 
-snapshot(
-"before_geolocation"
+if(!navigator.geolocation){
+
+info(
+"Geolocation unavailable"
 );
+
+return;
+
+}
 
 
 
 navigator.geolocation.getCurrentPosition(
 
+pos=>{
 
-(pos)=>{
-
-
-snapshot(
-"geolocation_success"
-);
-
-
-
-show(
-"Location received<br>"+
+info(
+"Geolocation success<br>"+
 pos.coords.latitude+
 "<br>"+
 pos.coords.longitude
 );
 
-
-
 },
 
 
-(err)=>{
+err=>{
 
-
-snapshot(
-"geolocation_error"
-);
-
-
-
-show(
-"Geolocation error:<br>"+
+info(
+"Geolocation error: "+
 err.message
 );
 
-
-
 }
-
 
 );
 
 
 }
-
 
 
 
@@ -145,80 +99,43 @@ document.getElementById("start")
 .onclick = ()=>{
 
 
-show(
-"Preparing..."
+info(
+"Start"
 );
 
 
 
-snapshot(
-"before_pushState"
-);
-
-
+/*
+History state change
+*/
 
 history.pushState(
-{
-test:"origin-race"
-},
+{},
 "",
 "/trusted"
 );
 
 
 
-snapshot(
-"after_pushState"
+info(
+"After pushState"
 );
-
-
-
-show(
-"URL changed:<br>"+
-location.href+
-"<br>Waiting..."
-);
-
-
-
-requestAnimationFrame(()=>{
-
-
-requestAnimationFrame(()=>{
-
-
-setTimeout(()=>{
-
-
-snapshot(
-"permission_race_point"
-);
-
-
-
-requestGeo();
 
 
 
 /*
-navigation race
+Permission request timing
 */
 
 setTimeout(()=>{
 
 
-snapshot(
-"navigation_start"
+info(
+"Request permission"
 );
 
 
-
-location.href =
-TARGET;
-
-
-
-},80);
+requestGeo();
 
 
 
@@ -226,54 +143,31 @@ TARGET;
 
 
 
-});
+
+/*
+Navigation timing test
+*/
+
+setTimeout(()=>{
 
 
-});
+info(
+"Navigate"
+);
+
+
+window.location.href =
+TARGET;
+
+
+
+},DELAY + 100);
+
 
 
 };
 
-
-
-
-window.addEventListener(
-"pageshow",
-()=>{
-
-snapshot(
-"pageshow"
-);
-
-});
-
-
-
-window.addEventListener(
-"beforeunload",
-()=>{
-
-snapshot(
-"beforeunload"
-);
-
-});
-
-
-
-window.addEventListener(
-"pagehide",
-()=>{
-
-snapshot(
-"pagehide"
-);
-
-});
-
-
 </script>
-
 
 </body>
 </html>
