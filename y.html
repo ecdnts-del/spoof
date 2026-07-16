@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Race Timing Test</title>
+<title>Address Bar Race Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 
@@ -24,11 +24,10 @@ document.getElementById("status");
 
 
 const TARGET =
-"http://google.com:9090/";
+"https://your-test-domain.example:9090/";
 
 
-const DELAY =
-300;
+const DELAY = 300;
 
 
 
@@ -36,59 +35,14 @@ function info(msg){
 
 status.innerHTML = msg;
 
+
 console.log(
 msg,
 {
-url:location.href,
-origin:location.origin,
-time:performance.now()
-}
-);
-
-}
-
-
-
-function requestGeo(){
-
-
-if(!navigator.geolocation){
-
-info(
-"Geolocation unavailable"
-);
-
-return;
-
-}
-
-
-
-navigator.geolocation.getCurrentPosition(
-
-pos=>{
-
-info(
-"Geolocation success<br>"+
-pos.coords.latitude+
-"<br>"+
-pos.coords.longitude
-);
-
-},
-
-
-err=>{
-
-info(
-"Geolocation error: "+
-err.message
-);
-
-}
-
-);
-
+    url: location.href,
+    origin: location.origin,
+    time: performance.now()
+});
 
 }
 
@@ -100,17 +54,15 @@ document.getElementById("start")
 
 
 info(
-"Start"
+"Before pushState"
 );
 
 
 
-/*
-History state change
-*/
-
 history.pushState(
-{},
+{
+test:"address-race"
+},
 "",
 "/trusted"
 );
@@ -118,54 +70,59 @@ history.pushState(
 
 
 info(
-"After pushState"
+"After pushState<br>"+
+location.href
 );
 
 
 
-/*
-Permission request timing
-*/
 
 setTimeout(()=>{
 
 
 info(
-"Request permission"
+"Navigate start"
 );
 
 
-requestGeo();
 
-
-
-},DELAY);
-
-
-
-
-/*
-Navigation timing test
-*/
-
-setTimeout(()=>{
-
-
-info(
-"Navigate"
-);
-
-
-window.location.href =
+location.href =
 TARGET;
 
 
 
-},DELAY + 100);
+}, DELAY);
 
 
 
 };
+
+
+
+window.addEventListener(
+"pageshow",
+()=>{
+
+console.log(
+"pageshow",
+location.href
+);
+
+});
+
+
+
+window.addEventListener(
+"beforeunload",
+()=>{
+
+console.log(
+"beforeunload",
+location.href
+);
+
+});
+
 
 </script>
 
