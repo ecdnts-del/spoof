@@ -2,56 +2,89 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Permission API Test</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Origin Permission Test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 
 <body>
 
 <button id="start">
-Start PoC
+Prepare Test
 </button>
 
-<hr>
+<button onclick="requestGeo()">
+Test Geolocation
+</button>
 
-<button onclick="geo()">Geolocation</button>
-<button onclick="camera()">Camera</button>
-<button onclick="mic()">Microphone</button>
-<button onclick="motion()">Motion</button>
-<button onclick="orientation()">Orientation</button>
+<button onclick="requestMedia()">
+Test Camera/Mic
+</button>
 
-<p id="url"></p>
-<p id="result">Result:</p>
+<p id="state"></p>
+<p id="result"></p>
 
 
 <script>
 
-const result = document.getElementById("result");
+const state =
+document.getElementById("state");
+
+const result =
+document.getElementById("result");
 
 
-function show(msg){
-    result.innerHTML = msg;
+let prepared = false;
+
+
+
+function print(msg){
+
+result.innerHTML = msg;
+
+}
+
+
+
+function snapshot(label){
+
+state.innerHTML +=
+"<br><br>"+label+
+"<br>URL: "+location.href+
+"<br>Origin: "+location.origin;
+
 }
 
 
 
 /*
-START
+STEP 1
+Change history state
 */
 
-document.getElementById("start").onclick = ()=>{
-
-    history.pushState(
-        {},
-        "",
-        "/trusted"
-    );
+document.getElementById("start")
+.onclick = ()=>{
 
 
-    document.getElementById("url").innerHTML =
-        "URL: " + location.href;
+snapshot("Before pushState");
+
+
+history.pushState(
+{
+test:true
+},
+"",
+"/trusted"
+);
+
+
+snapshot("After pushState");
+
+
+prepared=true;
+
 
 };
+
 
 
 
@@ -60,109 +93,119 @@ document.getElementById("start").onclick = ()=>{
 GEOLOCATION
 */
 
-function geo(){
-
-    if(!navigator.geolocation){
-
-        show("Geolocation unavailable");
-        return;
-
-    }
+function requestGeo(){
 
 
-    navigator.geolocation.getCurrentPosition(
+if(!prepared){
 
-        pos=>{
-
-            show(
-                "Geo OK<br>"+
-                pos.coords.latitude+
-                "<br>"+
-                pos.coords.longitude
-            );
-
-        },
-
-        err=>{
-
-            show(
-                "Geo error: "+
-                err.message
-            );
-
-        }
-
-    );
+print("Run Prepare Test first");
+return;
 
 }
 
 
 
-/*
-CAMERA
-*/
-
-async function camera(){
-
-try{
-
-
-let stream =
-await navigator.mediaDevices.getUserMedia({
-
-video:true
-
-});
-
-
-show("Camera OK");
-
-
-stream.getTracks()
-.forEach(t=>t.stop());
-
-
-}catch(e){
-
-show(
-"Camera error: "+e.message
+snapshot(
+"Before geolocation request"
 );
 
-}
+
+
+navigator.geolocation.getCurrentPosition(
+
+
+(pos)=>{
+
+
+snapshot(
+"Geolocation success"
+);
+
+
+print(
+pos.coords.latitude+
+"<br>"+
+pos.coords.longitude
+);
+
+
+},
+
+
+(err)=>{
+
+
+print(
+"Geo error: "+err.message
+);
 
 
 }
+
+
+);
+
+
+}
+
 
 
 
 /*
-MIC
+CAMERA + MIC
 */
 
-async function mic(){
+async function requestMedia(){
+
+
+if(!prepared){
+
+print("Run Prepare Test first");
+return;
+
+}
+
+
+
+snapshot(
+"Before media request"
+);
+
+
 
 try{
 
 
-let stream =
+const stream =
 await navigator.mediaDevices.getUserMedia({
+
+video:true,
 
 audio:true
 
 });
 
 
-show("Microphone OK");
+snapshot(
+"Media success"
+);
+
+
+print(
+"Camera + Mic granted"
+);
 
 
 stream.getTracks()
 .forEach(t=>t.stop());
 
 
-}catch(e){
+}
 
-show(
-"Mic error: "+e.message
+catch(e){
+
+print(
+"Media error: "+e.message
 );
 
 }
@@ -173,108 +216,13 @@ show(
 
 
 /*
-MOTION
+RACE WINDOW TEST
+
+ubah nilai delay untuk eksperimen
 */
 
-function motion(){
+const DELAY = 80;
 
-
-if(
-typeof DeviceMotionEvent === "undefined"
-){
-
-show(
-"Motion unavailable"
-);
-
-return;
-
-}
-
-
-let count=0;
-
-
-window.addEventListener(
-"devicemotion",
-(e)=>{
-
-
-count++;
-
-
-if(count===1){
-
-show(
-"Motion detected"
-);
-
-}
-
-
-},
-{
-once:true
-});
-
-
-}
-
-
-
-
-/*
-ORIENTATION
-*/
-
-function orientation(){
-
-
-if(
-typeof DeviceOrientationEvent === "undefined"
-){
-
-show(
-"Orientation unavailable"
-);
-
-return;
-
-}
-
-
-
-window.addEventListener(
-
-"deviceorientation",
-
-(e)=>{
-
-
-show(
-"Orientation detected<br>"+
-"alpha: "+e.alpha+
-"<br>beta: "+e.beta+
-"<br>gamma: "+e.gamma
-);
-
-
-},
-
-{
-once:true
-}
-
-);
-
-
-}
-
-
-
-/*
-OPTIONAL NAVIGATION RACE
-*/
 
 window.addEventListener(
 "pageshow",
@@ -290,12 +238,16 @@ requestAnimationFrame(()=>{
 setTimeout(()=>{
 
 
-// aktifkan jika ingin test race
+snapshot(
+"Race point reached"
+);
 
-// location.href="https://google.com:9090";
+
+// aktifkan hanya untuk reproduksi navigasi
+location.href="https://example.com";
 
 
-},80);
+}, DELAY);
 
 
 });
