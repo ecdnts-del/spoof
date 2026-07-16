@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="utf-8">
-<title>Window Navigation Timing Test</title>
+<title>Window Navigation + Geolocation Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
@@ -16,6 +16,7 @@ body{
 button{
     padding:12px 20px;
     font-size:16px;
+    margin:5px;
 }
 
 pre{
@@ -34,11 +35,16 @@ pre{
 <body>
 
 
-<h2>Window Navigation Timing Test</h2>
+<h2>Navigation + Geolocation Test</h2>
 
 
 <button onclick="start()">
-Start Test
+Start Window Test
+</button>
+
+
+<button onclick="getLocation()">
+Request Location
 </button>
 
 
@@ -60,34 +66,43 @@ const TARGET =
 
 
 
-function log(message){
+function log(message, extra={}){
 
 
 count++;
 
 
-const data =
-count +
-" - " +
-message +
-"\n";
+const data = {
+
+id:count,
+
+message,
+
+time:
+performance.now().toFixed(3),
+
+url:
+location.href,
+
+origin:
+location.origin,
+
+...extra
+
+};
 
 
 
 document
 .getElementById("log")
-.textContent += data;
+.textContent +=
+JSON.stringify(data,null,2)
++
+"\n\n";
 
 
 
-console.log(
-message,
-{
-url: location.href,
-origin: location.origin,
-time: performance.now()
-}
-);
+console.log(data);
 
 
 }
@@ -96,7 +111,6 @@ time: performance.now()
 
 
 function start(){
-
 
 
 log(
@@ -132,7 +146,6 @@ log(
 
 
 
-
 const timer =
 setInterval(()=>{
 
@@ -141,8 +154,10 @@ try{
 
 
 log(
-"Child URL: "+
-child.location.href
+"Child URL readable",
+{
+childURL:child.location.href
+}
 );
 
 
@@ -152,16 +167,15 @@ catch(e){
 
 
 log(
-"Cross-origin access blocked"
+"Child became cross origin"
 );
-
 
 
 }
 
 
 
-},20);
+},50);
 
 
 
@@ -173,7 +187,7 @@ clearInterval(timer);
 
 
 log(
-"Test finished"
+"Window monitoring finished"
 );
 
 
@@ -183,6 +197,133 @@ log(
 
 
 }
+
+
+
+
+
+
+function getLocation(){
+
+
+
+if(!navigator.geolocation){
+
+
+log(
+"Geolocation unavailable"
+);
+
+
+return;
+
+
+}
+
+
+
+log(
+"Geolocation request started"
+);
+
+
+
+navigator.geolocation.getCurrentPosition(
+
+
+(position)=>{
+
+
+log(
+"Geolocation success",
+{
+
+latitude:
+position.coords.latitude,
+
+longitude:
+position.coords.longitude,
+
+accuracy:
+position.coords.accuracy
+
+}
+
+);
+
+
+
+},
+
+
+
+(error)=>{
+
+
+log(
+"Geolocation error",
+{
+
+code:error.code,
+
+message:error.message
+
+}
+
+);
+
+
+}
+
+
+
+);
+
+
+
+}
+
+
+
+
+
+
+window.addEventListener(
+"pageshow",
+()=>{
+
+log(
+"pageshow"
+);
+
+});
+
+
+
+window.addEventListener(
+"pagehide",
+()=>{
+
+log(
+"pagehide"
+);
+
+});
+
+
+
+document.addEventListener(
+"visibilitychange",
+()=>{
+
+log(
+"visibilitychange",
+{
+state:document.visibilityState
+}
+);
+
+});
 
 
 
