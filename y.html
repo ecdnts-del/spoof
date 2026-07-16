@@ -1,255 +1,112 @@
 <!doctype html>
 <html>
 <head>
-
 <meta charset="utf-8">
-<title>Navigation Race Test</title>
+<title>Window Navigation Timing Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
-<style>
-
-body{
-    font-family:system-ui;
-    padding:40px;
-}
-
-button{
-    padding:12px 20px;
-    font-size:16px;
-}
-
-#box{
-    margin-top:20px;
-    padding:15px;
-    background:#eee;
-    border-radius:10px;
-    white-space:pre-wrap;
-}
-
-</style>
-
 </head>
-
 
 <body>
 
-
-<h2>Navigation Timing Test</h2>
-
-
-<button id="start">
-Start
+<button onclick="start()">
+Start Test
 </button>
 
-
-<div id="box">
-Idle
-</div>
-
+<pre id="log"></pre>
 
 
 <script>
 
+let child;
+let count = 0;
 
 const TARGET =
-"https://example:9090/";
+"https://your-second-test-domain.example/";
 
 
+function log(msg){
 
-const DELAY =
-300;
-
-
-
-const box =
-document.getElementById("box");
-
-
-
-let counter = 0;
-
-
-
-function report(event, extra={}){
-
-
-counter++;
-
-
-const data = {
-
-id:counter,
-
-event,
-
-time:
-performance.now().toFixed(2),
-
-url:
-location.href,
-
-origin:
-location.origin,
-
-state:
-history.length,
-
-visibility:
-document.visibilityState,
-
-...extra
-
-};
-
-
-
-console.log(data);
-
-
-
-box.textContent =
-JSON.stringify(
-data,
-null,
-2
+document.getElementById("log").textContent +=
+(
+++count +
+" - " +
+msg +
+"\n"
 );
 
+console.log(msg);
 
 }
 
 
 
-
-function startTest(){
-
+function start(){
 
 
-report(
-"start"
+log(
+"opening child window"
 );
 
 
 
-/*
-Change URL bar inside same origin
-*/
-
-history.pushState(
-{
-test:true
-},
-"",
-"/trusted"
+child =
+window.open(
+"about:blank",
+"test",
+"width=500,height=500"
 );
 
 
-
-report(
-"after pushState"
-);
-
-
-
-
-/*
-Navigation delay
-*/
 
 setTimeout(()=>{
 
 
-report(
-"before navigation"
+log(
+"navigate child"
 );
 
 
-
-location.href =
+child.location.href =
 TARGET;
 
 
 
-}, DELAY);
+},100);
+
+
+
+setInterval(()=>{
+
+
+try{
+
+
+log(
+"child url readable: "+
+child.location.href
+);
+
+
+}
+catch(e){
+
+
+log(
+"cross origin blocked"
+);
+
+
+}
+
+
+},20);
 
 
 
 }
 
 
-
-
-
-document
-.getElementById("start")
-.onclick =
-startTest;
-
-
-
-
-
-window.addEventListener(
-"pageshow",
-()=>{
-
-report(
-"pageshow"
-);
-
-});
-
-
-
-window.addEventListener(
-"pagehide",
-()=>{
-
-report(
-"pagehide"
-);
-
-});
-
-
-
-window.addEventListener(
-"beforeunload",
-()=>{
-
-report(
-"beforeunload"
-);
-
-});
-
-
-
-window.addEventListener(
-"popstate",
-()=>{
-
-report(
-"popstate"
-);
-
-});
-
-
-
-document.addEventListener(
-"visibilitychange",
-()=>{
-
-report(
-"visibilitychange"
-);
-
-});
-
-
-
 </script>
-
 
 </body>
 </html>
