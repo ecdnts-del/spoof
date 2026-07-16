@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Permission Origin Test</title>
+<title>Permission API Test</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -29,14 +29,14 @@ Start PoC
 const result = document.getElementById("result");
 
 
-function show(x){
-    result.innerHTML = x;
+function show(msg){
+    result.innerHTML = msg;
 }
 
 
+
 /*
- STEP 1
- same origin state change
+START
 */
 
 document.getElementById("start").onclick = ()=>{
@@ -47,27 +47,37 @@ document.getElementById("start").onclick = ()=>{
         "/trusted"
     );
 
+
     document.getElementById("url").innerHTML =
-        location.href;
+        "URL: " + location.href;
 
 };
 
 
 
+
 /*
- GEOLOCATION
+GEOLOCATION
 */
 
 function geo(){
+
+    if(!navigator.geolocation){
+
+        show("Geolocation unavailable");
+        return;
+
+    }
+
 
     navigator.geolocation.getCurrentPosition(
 
         pos=>{
 
             show(
-                "Geo OK<br>" +
-                pos.coords.latitude +
-                "<br>" +
+                "Geo OK<br>"+
+                pos.coords.latitude+
+                "<br>"+
                 pos.coords.longitude
             );
 
@@ -76,7 +86,7 @@ function geo(){
         err=>{
 
             show(
-                "Geo error: " +
+                "Geo error: "+
                 err.message
             );
 
@@ -89,172 +99,210 @@ function geo(){
 
 
 /*
- CAMERA
+CAMERA
 */
 
 async function camera(){
 
-    try{
-
-        let stream =
-        await navigator.mediaDevices.getUserMedia({
-            video:true
-        });
+try{
 
 
-        show("Camera OK");
+let stream =
+await navigator.mediaDevices.getUserMedia({
+
+video:true
+
+});
 
 
-        stream.getTracks()
-        .forEach(t=>t.stop());
+show("Camera OK");
 
 
-    }catch(e){
+stream.getTracks()
+.forEach(t=>t.stop());
 
-        show(
-            "Camera error: " + e.message
-        );
 
-    }
+}catch(e){
+
+show(
+"Camera error: "+e.message
+);
+
+}
+
 
 }
 
 
 
 /*
- MICROPHONE
+MIC
 */
 
 async function mic(){
 
-    try{
-
-        let stream =
-        await navigator.mediaDevices.getUserMedia({
-            audio:true
-        });
+try{
 
 
-        show("Mic OK");
+let stream =
+await navigator.mediaDevices.getUserMedia({
+
+audio:true
+
+});
 
 
-        stream.getTracks()
-        .forEach(t=>t.stop());
+show("Microphone OK");
 
 
-    }catch(e){
+stream.getTracks()
+.forEach(t=>t.stop());
 
-        show(
-            "Mic error: " + e.message
-        );
 
-    }
+}catch(e){
+
+show(
+"Mic error: "+e.message
+);
+
+}
+
 
 }
 
 
 
 /*
- MOTION
+MOTION
 */
 
-async function motion(){
-
-    try{
-
-        if(DeviceMotionEvent.requestPermission){
-
-            let r =
-            await DeviceMotionEvent.requestPermission();
-
-            show(
-                "Motion: " + r
-            );
-
-        }else{
-
-            show(
-                "Motion unavailable"
-            );
-
-        }
+function motion(){
 
 
-    }catch(e){
+if(
+typeof DeviceMotionEvent === "undefined"
+){
 
-        show(
-            "Motion error: " + e.message
-        );
+show(
+"Motion unavailable"
+);
 
-    }
+return;
+
+}
+
+
+let count=0;
+
+
+window.addEventListener(
+"devicemotion",
+(e)=>{
+
+
+count++;
+
+
+if(count===1){
+
+show(
+"Motion detected"
+);
+
+}
+
+
+},
+{
+once:true
+});
+
 
 }
 
 
 
+
 /*
- ORIENTATION
+ORIENTATION
 */
 
-async function orientation(){
-
-    try{
-
-        if(DeviceOrientationEvent.requestPermission){
-
-            let r =
-            await DeviceOrientationEvent.requestPermission();
-
-            show(
-                "Orientation: " + r
-            );
-
-        }else{
-
-            show(
-                "Orientation unavailable"
-            );
-
-        }
+function orientation(){
 
 
-    }catch(e){
+if(
+typeof DeviceOrientationEvent === "undefined"
+){
 
-        show(
-            "Orientation error: " + e.message
-        );
+show(
+"Orientation unavailable"
+);
 
-    }
+return;
+
+}
+
+
+
+window.addEventListener(
+
+"deviceorientation",
+
+(e)=>{
+
+
+show(
+"Orientation detected<br>"+
+"alpha: "+e.alpha+
+"<br>beta: "+e.beta+
+"<br>gamma: "+e.gamma
+);
+
+
+},
+
+{
+once:true
+}
+
+);
+
 
 }
 
 
 
 /*
- OPTIONAL RACE TEST
+OPTIONAL NAVIGATION RACE
 */
 
 window.addEventListener(
 "pageshow",
 ()=>{
 
-    requestAnimationFrame(()=>{
 
-        requestAnimationFrame(()=>{
-
-            setTimeout(()=>{
-
-                // aktifkan jika ingin test race
-
-                  location.href =
-                 "https://google.com:9090";
+requestAnimationFrame(()=>{
 
 
-            },80);
+requestAnimationFrame(()=>{
 
-        });
 
-    });
+setTimeout(()=>{
+
+
+// aktifkan jika ingin test race
+
+// location.href="https://google.com:9090";
+
+
+},80);
+
+
+});
+
+
+});
+
 
 });
 
