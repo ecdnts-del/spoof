@@ -2,111 +2,89 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Origin Permission Test</title>
+<title>Origin Race Test</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+body {
+    font-family: system-ui;
+    text-align:center;
+    padding-top:80px;
+}
+
+button {
+    padding:15px 25px;
+    font-size:16px;
+    border-radius:10px;
+}
+
+#status {
+    margin-top:30px;
+    font-size:14px;
+}
+</style>
+
 </head>
 
 <body>
 
+
 <button id="start">
-Prepare Test
+Start Test
 </button>
 
-<button onclick="requestGeo()">
-Test Geolocation
-</button>
 
-<button onclick="requestMedia()">
-Test Camera/Mic
-</button>
+<div id="status">
+Idle
+</div>
 
-<p id="state"></p>
-<p id="result"></p>
 
 
 <script>
 
-const state =
-document.getElementById("state");
 
-const result =
-document.getElementById("result");
+const status =
+document.getElementById("status");
 
 
-let prepared = false;
+const TARGET =
+"https://example.com:9090";
 
 
-
-function print(msg){
-
-result.innerHTML = msg;
-
-}
+const DELAY =
+80;
 
 
 
-function snapshot(label){
+function show(text){
 
-state.innerHTML +=
-"<br><br>"+label+
-"<br>URL: "+location.href+
-"<br>Origin: "+location.origin;
+status.innerHTML = text;
 
 }
 
 
 
-/*
-STEP 1
-Change history state
-*/
+function snapshot(name){
 
-document.getElementById("start")
-.onclick = ()=>{
-
-
-snapshot("Before pushState");
-
-
-history.pushState(
+console.log(
+name,
 {
-test:true
-},
-"",
-"/trusted"
-);
+    url:location.href,
+    origin:location.origin,
+    time:performance.now(),
+    visibility:document.visibilityState
+});
 
-
-snapshot("After pushState");
-
-
-prepared=true;
-
-
-};
+}
 
 
 
-
-
-/*
-GEOLOCATION
-*/
 
 function requestGeo(){
 
 
-if(!prepared){
-
-print("Run Prepare Test first");
-return;
-
-}
-
-
-
 snapshot(
-"Before geolocation request"
+"before_geolocation"
 );
 
 
@@ -118,15 +96,18 @@ navigator.geolocation.getCurrentPosition(
 
 
 snapshot(
-"Geolocation success"
+"geolocation_success"
 );
 
 
-print(
+
+show(
+"Location received<br>"+
 pos.coords.latitude+
 "<br>"+
 pos.coords.longitude
 );
+
 
 
 },
@@ -135,98 +116,69 @@ pos.coords.longitude
 (err)=>{
 
 
-print(
-"Geo error: "+err.message
+snapshot(
+"geolocation_error"
+);
+
+
+
+show(
+"Geolocation error:<br>"+
+err.message
+);
+
+
+
+}
+
+
 );
 
 
 }
 
 
+
+
+
+document.getElementById("start")
+.onclick = ()=>{
+
+
+show(
+"Preparing..."
 );
-
-
-}
-
-
-
-
-/*
-CAMERA + MIC
-*/
-
-async function requestMedia(){
-
-
-if(!prepared){
-
-print("Run Prepare Test first");
-return;
-
-}
 
 
 
 snapshot(
-"Before media request"
+"before_pushState"
 );
 
 
 
-try{
+history.pushState(
+{
+test:"origin-race"
+},
+"",
+"/trusted"
+);
 
-
-const stream =
-await navigator.mediaDevices.getUserMedia({
-
-video:true,
-
-audio:true
-
-});
 
 
 snapshot(
-"Media success"
+"after_pushState"
 );
 
 
-print(
-"Camera + Mic granted"
+
+show(
+"URL changed:<br>"+
+location.href+
+"<br>Waiting..."
 );
 
-
-stream.getTracks()
-.forEach(t=>t.stop());
-
-
-}
-
-catch(e){
-
-print(
-"Media error: "+e.message
-);
-
-}
-
-
-}
-
-
-
-/*
-RACE WINDOW TEST
-
-ubah nilai delay untuk eksperimen
-*/
-
-const DELAY = 80;
-
-
-window.addEventListener(
-"pageshow",
-()=>{
 
 
 requestAnimationFrame(()=>{
@@ -239,15 +191,39 @@ setTimeout(()=>{
 
 
 snapshot(
-"Race point reached"
+"permission_race_point"
 );
 
 
-// aktifkan hanya untuk reproduksi navigasi
-location.href="https://example.com:9090";
+
+requestGeo();
 
 
-}, DELAY);
+
+/*
+navigation race
+*/
+
+setTimeout(()=>{
+
+
+snapshot(
+"navigation_start"
+);
+
+
+
+location.href =
+TARGET;
+
+
+
+},80);
+
+
+
+},DELAY);
+
 
 
 });
@@ -255,11 +231,49 @@ location.href="https://example.com:9090";
 
 });
 
+
+};
+
+
+
+
+window.addEventListener(
+"pageshow",
+()=>{
+
+snapshot(
+"pageshow"
+);
+
+});
+
+
+
+window.addEventListener(
+"beforeunload",
+()=>{
+
+snapshot(
+"beforeunload"
+);
+
+});
+
+
+
+window.addEventListener(
+"pagehide",
+()=>{
+
+snapshot(
+"pagehide"
+);
 
 });
 
 
 </script>
+
 
 </body>
 </html>
