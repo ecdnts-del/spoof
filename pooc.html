@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Fullscreen + WebAuthn + Mailto Test</title>
+<title>Fullscreen + Picture in Picture UI Test</title>
 
 <style>
 html,body {
@@ -14,17 +13,14 @@ html,body {
     background:#111;
     color:white;
     font-family:Arial;
-}
-
-body {
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
 button {
-    padding:20px 40px;
-    font-size:20px;
+    padding:20px;
+    font-size:18px;
     border-radius:10px;
 }
 </style>
@@ -33,47 +29,73 @@ button {
 
 <body>
 
-<button id="btn">Start Test</button>
+<button id="start">Start Test</button>
+
+<video id="video" muted playsinline width="320">
+    <source src="test.mp4" type="video/mp4">
+</video>
+
 
 <script>
 
-document.getElementById("btn").onclick = async () => {
+const btn = document.getElementById("start");
+const video = document.getElementById("video");
 
-    // 1. Fullscreen
+
+btn.onclick = async () => {
+
+    /*
+      Step 1:
+      Request fullscreen
+    */
     try {
         await document.documentElement.requestFullscreen();
         console.log("Fullscreen requested");
     } catch(e) {
-        console.log("Fullscreen error", e);
+        console.log(e);
     }
 
 
-    // 2. WebAuthn prompt
+    /*
+      Step 2:
+      Start video
+    */
     try {
+        await video.play();
+    } catch(e){}
 
-        await navigator.credentials.get({
-            publicKey: {
-                challenge: new Uint8Array(32),
-                timeout: 60000,
-                userVerification: "preferred"
+
+    /*
+      Step 3:
+      Immediately request Picture-in-Picture
+      while fullscreen transition notification
+      may still be pending
+    */
+    setTimeout(async()=>{
+
+        try {
+
+            if(document.pictureInPictureEnabled){
+
+                await video.requestPictureInPicture();
+
+                console.log(
+                "Picture in Picture opened"
+                );
+
             }
-        });
 
-    } catch(e) {
+        } catch(e){
 
-        console.log("WebAuthn cancelled/error", e);
+            console.log(
+            "PiP failed:",
+            e
+            );
 
-    }
+        }
 
 
-    // 3. Mailto dialog
-    setTimeout(() => {
-
-        window.location.href =
-        "mailto:test@example.com?subject=Test&body=Fullscreen%20test";
-
-    }, 500);
-
+    },100);
 
 };
 
