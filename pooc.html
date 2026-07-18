@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fullscreen + Share + Mailto + Print</title>
+
+<title>Fullscreen + Share + Mail Test</title>
 
 <style>
 html, body {
     margin: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
     background: #111;
+    color: white;
     font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
 body {
@@ -22,63 +24,75 @@ body {
 }
 
 button {
-    padding: 16px 32px;
-    font-size: 18px;
-    cursor: pointer;
+    padding: 20px 40px;
+    font-size: 20px;
+    border-radius: 12px;
     border: none;
-    border-radius: 10px;
 }
 </style>
+
 </head>
 
 <body>
 
-<button id="btn">Mulai</button>
+<button id="btn">Mulai Test</button>
 
 <script>
-document.getElementById("btn").addEventListener("click", async () => {
 
-    // Fullscreen
+const btn = document.getElementById("btn");
+
+btn.onclick = async () => {
+
+    /*
+     * 1. Request Fullscreen
+     */
     try {
-        if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen();
-        }
+        await document.documentElement.requestFullscreen();
+        console.log("Fullscreen requested");
     } catch(e) {
-        console.log("Fullscreen gagal");
+        console.log("Fullscreen error:", e);
     }
 
 
-    // Share
+    /*
+     * 2. Share Dialog
+     */
     if (navigator.share) {
+
         try {
+
             await navigator.share({
-                title: "Fullscreen + Share",
-                text: "Pesan dari website",
-                url: window.location.href
+                title: "Fullscreen Test",
+                text: "Testing browser UI behavior",
+                url: location.href
             });
+
+            console.log("Share completed");
+
         } catch(e) {
-            console.log("Share dibatalkan");
+
+            console.log("Share cancelled");
+
         }
+
     }
 
 
-    // Print dialog
-    try {
-        window.print();
-    } catch(e) {
-        console.log("Print gagal");
-    }
+    /*
+     * 3. Mail Intent
+     */
+    setTimeout(() => {
+
+        window.location.href =
+        "mailto:test@example.com?subject=Fullscreen%20Test&body=Testing";
+
+    }, 500);
 
 
-    // Mailto
-    window.location.href =
-    "mailto:contoh@email.com?subject=Pesan%20Website&body=Halo,%20ini%20pesan%20otomatis";
+    btn.style.display = "none";
 
+};
 
-    // Hilangkan tombol
-    document.getElementById("btn").style.display = "none";
-
-});
 </script>
 
 </body>
