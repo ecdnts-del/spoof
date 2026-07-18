@@ -1,120 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-<title>Fullscreen + Picture in Picture UI Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fullscreen + PiP Test</title>
+
 <style>
-body {
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
     background:#111;
     color:white;
     font-family:Arial;
-    text-align:center;
-    padding-top:50px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-button {
-    padding:15px 25px;
-    margin:10px;
-    font-size:18px;
+button{
+    padding:20px 40px;
+    font-size:20px;
+    border-radius:10px;
+    border:0;
 }
 </style>
+
 </head>
 
 <body>
 
-<h2>Fullscreen + Picture in Picture Test</h2>
-
-<video id="video" width="320" muted autoplay>
-</video>
-
-<br>
-
-<button id="fs">
-Enter Fullscreen
+<button id="start">
+START TEST
 </button>
 
-<button id="pip">
-Open Picture in Picture
-</button>
 
-<pre id="log"></pre>
+<video id="video" muted autoplay playsinline></video>
 
 
 <script>
 
+const btn=document.getElementById("start");
 const video=document.getElementById("video");
-const log=document.getElementById("log");
 
 
-function add(t){
-    log.textContent += t+"\n";
-}
-
-
-// create test video
+// buat sumber video dummy
 const canvas=document.createElement("canvas");
-canvas.width=320;
-canvas.height=240;
+canvas.width=640;
+canvas.height=360;
 
 const ctx=canvas.getContext("2d");
 
-setInterval(()=>{
-    ctx.fillStyle="#222";
-    ctx.fillRect(0,0,320,240);
 
-    ctx.fillStyle="red";
-    ctx.font="30px Arial";
+setInterval(()=>{
+
+    ctx.fillStyle="#000";
+    ctx.fillRect(0,0,640,360);
+
+    ctx.fillStyle="#00ff00";
+    ctx.font="40px Arial";
     ctx.fillText(
         "Fullscreen + PiP",
-        30,
-        120
+        120,
+        180
     );
+
 },100);
+
 
 
 video.srcObject =
 canvas.captureStream(30);
 
 
-document.getElementById("fs")
-.onclick=async()=>{
+
+btn.onclick = async()=>{
+
+
+    // 1. fullscreen
 
     try{
 
         await document.documentElement.requestFullscreen();
 
-        add(
-        "Fullscreen requested: "+
-        !!document.fullscreenElement
+        console.log(
+            "Fullscreen active"
         );
 
     }catch(e){
 
-        add("Fullscreen error "+e);
+        console.log(
+            "Fullscreen failed",
+            e
+        );
 
     }
 
-};
 
 
-
-document.getElementById("pip")
-.onclick=async()=>{
+    // 2. play video
 
     try{
 
-        await video.requestPictureInPicture();
+        await video.play();
 
-        add(
-        "PiP opened"
-        );
+    }catch(e){}
+
+
+
+    // 3. Picture in Picture
+
+    try{
+
+        if(
+        document.pictureInPictureEnabled
+        ){
+
+            await video.requestPictureInPicture();
+
+            console.log(
+            "PiP active"
+            );
+
+        }
 
     }catch(e){
 
-        add(
-        "PiP error "+e
+        console.log(
+            "PiP failed",
+            e
         );
 
     }
+
+
+
+    btn.style.display="none";
+
 
 };
 
@@ -124,8 +147,8 @@ document.addEventListener(
 "fullscreenchange",
 ()=>{
 
-add(
-"Fullscreen state: "+
+console.log(
+"Fullscreen:",
 !!document.fullscreenElement
 );
 
@@ -137,14 +160,14 @@ document.addEventListener(
 "enterpictureinpicture",
 ()=>{
 
-add(
-"PiP state active"
+console.log(
+"Picture in Picture entered"
 );
 
 });
 
-
 </script>
+
 
 </body>
 </html>
