@@ -1,103 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fullscreen + Picture in Picture UI Test</title>
-
 <style>
-html,body {
-    margin:0;
-    width:100%;
-    height:100%;
+body {
     background:#111;
     color:white;
     font-family:Arial;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    text-align:center;
+    padding-top:50px;
 }
 
 button {
-    padding:20px;
+    padding:15px 25px;
+    margin:10px;
     font-size:18px;
-    border-radius:10px;
 }
 </style>
-
 </head>
 
 <body>
 
-<button id="start">Start Test</button>
+<h2>Fullscreen + Picture in Picture Test</h2>
 
-<video id="video" muted playsinline width="320">
-    <source src="test.mp4" type="video/mp4">
+<video id="video" width="320" muted autoplay>
 </video>
+
+<br>
+
+<button id="fs">
+Enter Fullscreen
+</button>
+
+<button id="pip">
+Open Picture in Picture
+</button>
+
+<pre id="log"></pre>
 
 
 <script>
 
-const btn = document.getElementById("start");
-const video = document.getElementById("video");
+const video=document.getElementById("video");
+const log=document.getElementById("log");
 
 
-btn.onclick = async () => {
+function add(t){
+    log.textContent += t+"\n";
+}
 
-    /*
-      Step 1:
-      Request fullscreen
-    */
-    try {
+
+// create test video
+const canvas=document.createElement("canvas");
+canvas.width=320;
+canvas.height=240;
+
+const ctx=canvas.getContext("2d");
+
+setInterval(()=>{
+    ctx.fillStyle="#222";
+    ctx.fillRect(0,0,320,240);
+
+    ctx.fillStyle="red";
+    ctx.font="30px Arial";
+    ctx.fillText(
+        "Fullscreen + PiP",
+        30,
+        120
+    );
+},100);
+
+
+video.srcObject =
+canvas.captureStream(30);
+
+
+document.getElementById("fs")
+.onclick=async()=>{
+
+    try{
+
         await document.documentElement.requestFullscreen();
-        console.log("Fullscreen requested");
-    } catch(e) {
-        console.log(e);
+
+        add(
+        "Fullscreen requested: "+
+        !!document.fullscreenElement
+        );
+
+    }catch(e){
+
+        add("Fullscreen error "+e);
+
     }
 
-
-    /*
-      Step 2:
-      Start video
-    */
-    try {
-        await video.play();
-    } catch(e){}
+};
 
 
-    /*
-      Step 3:
-      Immediately request Picture-in-Picture
-      while fullscreen transition notification
-      may still be pending
-    */
-    setTimeout(async()=>{
 
-        try {
+document.getElementById("pip")
+.onclick=async()=>{
 
-            if(document.pictureInPictureEnabled){
+    try{
 
-                await video.requestPictureInPicture();
+        await video.requestPictureInPicture();
 
-                console.log(
-                "Picture in Picture opened"
-                );
+        add(
+        "PiP opened"
+        );
 
-            }
+    }catch(e){
 
-        } catch(e){
+        add(
+        "PiP error "+e
+        );
 
-            console.log(
-            "PiP failed:",
-            e
-            );
-
-        }
-
-
-    },100);
+    }
 
 };
+
+
+
+document.addEventListener(
+"fullscreenchange",
+()=>{
+
+add(
+"Fullscreen state: "+
+!!document.fullscreenElement
+);
+
+});
+
+
+
+document.addEventListener(
+"enterpictureinpicture",
+()=>{
+
+add(
+"PiP state active"
+);
+
+});
+
 
 </script>
 
