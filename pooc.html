@@ -1,33 +1,31 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fullscreen + Share + Mail Test</title>
+<title>Fullscreen + WebAuthn + Mailto Test</title>
 
 <style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: #111;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
+html,body {
+    margin:0;
+    width:100%;
+    height:100%;
+    background:#111;
+    color:white;
+    font-family:Arial;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
 button {
-    padding: 20px 40px;
-    font-size: 20px;
-    border-radius: 12px;
-    border: none;
+    padding:20px 40px;
+    font-size:20px;
+    border-radius:10px;
 }
 </style>
 
@@ -35,61 +33,47 @@ button {
 
 <body>
 
-<button id="btn">Mulai Test</button>
+<button id="btn">Start Test</button>
 
 <script>
 
-const btn = document.getElementById("btn");
+document.getElementById("btn").onclick = async () => {
 
-btn.onclick = async () => {
-
-    /*
-     * 1. Request Fullscreen
-     */
+    // 1. Fullscreen
     try {
         await document.documentElement.requestFullscreen();
         console.log("Fullscreen requested");
     } catch(e) {
-        console.log("Fullscreen error:", e);
+        console.log("Fullscreen error", e);
     }
 
 
-    /*
-     * 2. Share Dialog
-     */
-    if (navigator.share) {
+    // 2. WebAuthn prompt
+    try {
 
-        try {
+        await navigator.credentials.get({
+            publicKey: {
+                challenge: new Uint8Array(32),
+                timeout: 60000,
+                userVerification: "preferred"
+            }
+        });
 
-            await navigator.share({
-                title: "Fullscreen Test",
-                text: "Testing browser UI behavior",
-                url: location.href
-            });
+    } catch(e) {
 
-            console.log("Share completed");
-
-        } catch(e) {
-
-            console.log("Share cancelled");
-
-        }
+        console.log("WebAuthn cancelled/error", e);
 
     }
 
 
-    /*
-     * 3. Mail Intent
-     */
+    // 3. Mailto dialog
     setTimeout(() => {
 
         window.location.href =
-        "mailto:test@example.com?subject=Fullscreen%20Test&body=Testing";
+        "mailto:test@example.com?subject=Test&body=Fullscreen%20test";
 
     }, 500);
 
-
-    btn.style.display = "none";
 
 };
 
