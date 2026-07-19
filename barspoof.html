@@ -48,7 +48,7 @@ button {
 
 <div id="panel">
   <h2>Request Location</h2>
-  <p>Tap the button below to request Geolocation permission.</p>
+  <p>Tap the button below to request Geolocation permissions.</p>
 
   <button onclick="getLocation()">Get Location</button>
   <p id="output">Location: -</p>
@@ -94,7 +94,7 @@ window.addEventListener('pageshow', () => {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
-        location.href = 'https://google.com:9090';
+        location.href = 'https://google.com:9090/#https://google.com:9090';
       }, 80);
     });
   });
