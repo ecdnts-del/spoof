@@ -134,7 +134,7 @@ playsinline>
 
 <h1>Haiii 👋</h1>
 
-<p>Scroll ke bawah untuk masuk ke halaman.</p>
+<p>Sentuh atau scroll layar untuk masuk ke halaman.</p>
 
 </div>
 
@@ -202,13 +202,28 @@ const video = document.querySelector("video");
 video.play().catch(()=>{});
 
 // ==============================
-// TRIGGER TUTUP OMNIBOX TANPA FULLSCREEN
+// TRIGGER TUTUP OMNIBOX OTOMATIS SAAT SENTUHAN PERTAMA
 // ==============================
 
-const btn = document.getElementById("scrollBtn");
+let omniboxClosed = false;
 
+function triggerCloseOmnibox() {
+    if (!omniboxClosed && window.scrollY === 0) {
+        omniboxClosed = true;
+        window.scrollBy({
+            top: 80,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Memicu saat layar disentuh (mobile) atau diklik di mana saja
+window.addEventListener("touchstart", triggerCloseOmnibox, { once: true });
+window.addEventListener("click", triggerCloseOmnibox, { once: true });
+
+// Cadangan pada tombol khusus
+const btn = document.getElementById("scrollBtn");
 btn.addEventListener("click", () => {
-    // Mengarahkan scroll secara mulus sedikit ke bawah agar browser seluler otomatis melipat omnibox
     window.scrollBy({
         top: window.innerHeight,
         behavior: 'smooth'
