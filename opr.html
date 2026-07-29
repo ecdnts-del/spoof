@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<title>Video Escapes Content Area</title>
+<title>Lock Scroll Up</title>
 
 <style>
 *{
@@ -15,97 +15,75 @@
 
 html,body{
     width:100%;
-    min-height:100%;
     background:#000;
     overflow-x:hidden;
-}
-
-/* Video keluar dari semua area konten */
-.video-full{
-    position:fixed;
-    inset:0;
-
-    width:100vw;
-    height:100vh;
-
-    width:100dvw;
-    height:100dvh;
-
-    object-fit:cover;
-    object-position:center;
-
-    z-index:-1;
-    background:#000;
-}
-
-/* Area pertama setinggi layar */
-.hero{
-    height:100vh;
-    height:100dvh;
-}
-
-/* Supaya halaman bisa di-scroll */
-.scroll-area{
-    min-height:300vh;
-    background:linear-gradient(
-        transparent 0%,
-        transparent 35%,
-        rgba(0,0,0,.4) 50%,
-        #fff 70%,
-        #fff 100%
-    );
-}
-
-.content{
-    margin-top:120vh;
-    padding:60px;
-    background:#fff;
-    color:#111;
     font-family:Arial,sans-serif;
 }
 
-.content h1{
-    margin-bottom:20px;
+/* Video fullscreen */
+.video-full{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    object-fit:cover;
+    z-index:-1;
 }
 
-.content p{
-    line-height:1.8;
-    margin-bottom:18px;
+/* Halaman pertama */
+.hero{
+    height:100vh;
+}
+
+/* Konten */
+.content{
+    min-height:300vh;
+    background:#fff;
+    color:#111;
+    padding:60px;
 }
 </style>
-
 </head>
+
 <body>
 
-<video
-class="video-full"
-autoplay
-muted
-loop
-playsinline>
-
-<source src="Code_-_Insiders_mSfUtYR5tL.mp4" type="video/mp4">
-
+<video class="video-full" autoplay muted loop playsinline>
+    <source src="Code_-_Insiders_mSfUtYR5tL.mp4" type="video/mp4">
 </video>
 
 <section class="hero"></section>
 
-<section class="scroll-area">
+<section class="content">
+    <h1>Scroll ke bawah</h1>
+    <p>Setelah mulai scroll ke bawah, halaman tidak bisa kembali ke atas.</p>
 
-<div class="content">
-<h1>Konten Setelah Scroll</h1>
-
-<p>Video tetap fullscreen karena menggunakan <code>position: fixed</code>.</p>
-
-<p>Saat halaman di-scroll ke bawah, video tetap berada di belakang dan konten bergerak di atasnya.</p>
-
-<p>Terus scroll untuk melihat efek "video escapes content area".</p>
-
-<div style="height:1500px;"></div>
-
-</div>
-
+    <div style="height:2500px"></div>
 </section>
+
+<script>
+let locked = false;
+let lockPosition = 0;
+
+window.addEventListener("scroll", () => {
+
+    if (!locked && window.scrollY > 0) {
+        locked = true;
+        lockPosition = window.scrollY;
+    }
+
+    if (locked && window.scrollY < lockPosition) {
+        window.scrollTo({
+            top: lockPosition,
+            behavior: "instant"
+        });
+    }
+
+    if (window.scrollY > lockPosition) {
+        lockPosition = window.scrollY;
+    }
+
+});
+</script>
 
 </body>
 </html>
