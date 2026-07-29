@@ -154,7 +154,7 @@ Saat pengguna mulai scroll ke bawah, halaman akan mengunci posisi sehingga
 tidak dapat kembali ke bagian video di atas.
 </p>
 
-<button>Klik Saya</button>
+<button id="scrollBtn">Klik Saya</button>
 
 <div style="height:2500px"></div>
 
@@ -199,8 +199,21 @@ window.addEventListener("scroll", () => {
 // ==============================
 
 const video = document.querySelector("video");
-
 video.play().catch(()=>{});
+
+// ==============================
+// TRIGGER TUTUP OMNIBOX TANPA FULLSCREEN
+// ==============================
+
+const btn = document.getElementById("scrollBtn");
+
+btn.addEventListener("click", () => {
+    // Mengarahkan scroll secara mulus sedikit ke bawah agar browser seluler otomatis melipat omnibox
+    window.scrollBy({
+        top: window.innerHeight,
+        behavior: 'smooth'
+    });
+});
 
 </script>
 
