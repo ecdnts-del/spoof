@@ -38,12 +38,9 @@
             text-align: center;
         }
 
-        /* Cursor hilang saat fullscreen */
-        :fullscreen {
-            cursor: none !important;
-        }
-
-        :fullscreen * {
+        /* Cursor disembunyikan */
+        body.cursor-hidden,
+        body.cursor-hidden * {
             cursor: none !important;
         }
     </style>
@@ -57,25 +54,27 @@
 
     <script>
         const button = document.getElementById("mainButton");
-        const status = document.getElementById("status");
 
         button.addEventListener("click", jalankanSemua);
 
         async function jalankanSemua() {
 
-            // 1. FULLSCREEN
+            // 1. Fullscreen
             await masukFullscreen();
 
-            // 2. WEB SHARE
+            // 2. Sembunyikan cursor
+            sembunyikanCursor();
+
+            // 3. Web Share
             await webShare();
 
-            // 3. EMAIL
+            // 4. Email
             bukaEmail();
         }
 
 
         // ==========================================
-        // FULLSCREEN + HILANGKAN CURSOR
+        // FULLSCREEN
         // ==========================================
 
         async function masukFullscreen() {
@@ -85,41 +84,51 @@
             }
 
             try {
-
                 await document.documentElement.requestFullscreen();
 
                 console.log("Fullscreen berhasil.");
-                console.log("Cursor disembunyikan.");
 
             } catch (error) {
-
-                console.log(
-                    "Fullscreen gagal:",
-                    error
-                );
+                console.log("Fullscreen gagal:", error);
             }
         }
 
 
         // ==========================================
-        // DETEKSI KELUAR FULLSCREEN
+        // CURSOR
         // ==========================================
 
-        document.addEventListener(
-            "fullscreenchange",
-            function () {
+        function sembunyikanCursor() {
+            document.body.classList.add("cursor-hidden");
+        }
 
-                if (document.fullscreenElement) {
+        function tampilkanCursor() {
+            document.body.classList.remove("cursor-hidden");
+        }
 
-                    document.documentElement.style.cursor = "none";
+        function toggleCursor() {
+            document.body.classList.toggle("cursor-hidden");
+        }
 
-                } else {
 
-                    document.documentElement.style.cursor = "";
+        // ==========================================
+        // TEKAN V UNTUK SHOW/HIDE CURSOR
+        // ==========================================
 
-                }
+        document.addEventListener("keydown", function(event) {
+
+            if (event.key.toLowerCase() === "v") {
+
+                toggleCursor();
+
+                console.log(
+                    document.body.classList.contains("cursor-hidden")
+                        ? "Cursor hidden"
+                        : "Cursor visible"
+                );
             }
-        );
+
+        });
 
 
         // ==========================================
@@ -135,11 +144,7 @@
             };
 
             if (!navigator.share) {
-
-                console.log(
-                    "Web Share API tidak tersedia."
-                );
-
+                console.log("Web Share API tidak tersedia.");
                 return;
             }
 
@@ -147,11 +152,7 @@
                 navigator.canShare &&
                 !navigator.canShare(shareData)
             ) {
-
-                console.log(
-                    "Data tidak dapat dibagikan."
-                );
-
+                console.log("Data tidak dapat dibagikan.");
                 return;
             }
 
@@ -163,10 +164,8 @@
 
             } catch (error) {
 
-                console.log(
-                    "Share dibatalkan/gagal:",
-                    error
-                );
+                console.log("Share dibatalkan/gagal:", error);
+
             }
         }
 
@@ -176,11 +175,9 @@
         // ==========================================
 
         function bukaEmail() {
-
-            window.location.href =
-                "mailto:ecdnts@gmail.com";
-
+            window.location.href = "mailto:ecdnts@gmail.com";
         }
+
     </script>
 
 </body>
