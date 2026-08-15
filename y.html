@@ -37,6 +37,15 @@
             width: 100%;
             text-align: center;
         }
+
+        /* Cursor hilang saat fullscreen */
+        :fullscreen {
+            cursor: none !important;
+        }
+
+        :fullscreen * {
+            cursor: none !important;
+        }
     </style>
 </head>
 
@@ -53,7 +62,8 @@
         button.addEventListener("click", jalankanSemua);
 
         async function jalankanSemua() {
-            // 1. FULLSCREEN DULU
+
+            // 1. FULLSCREEN
             await masukFullscreen();
 
             // 2. WEB SHARE
@@ -63,28 +73,61 @@
             bukaEmail();
         }
 
+
         // ==========================================
-        // FULLSCREEN
+        // FULLSCREEN + HILANGKAN CURSOR
         // ==========================================
 
         async function masukFullscreen() {
+
             if (document.fullscreenElement) {
                 return;
             }
 
             try {
+
                 await document.documentElement.requestFullscreen();
+
                 console.log("Fullscreen berhasil.");
+                console.log("Cursor disembunyikan.");
+
             } catch (error) {
-                console.log("Fullscreen gagal:", error);
+
+                console.log(
+                    "Fullscreen gagal:",
+                    error
+                );
             }
         }
+
+
+        // ==========================================
+        // DETEKSI KELUAR FULLSCREEN
+        // ==========================================
+
+        document.addEventListener(
+            "fullscreenchange",
+            function () {
+
+                if (document.fullscreenElement) {
+
+                    document.documentElement.style.cursor = "none";
+
+                } else {
+
+                    document.documentElement.style.cursor = "";
+
+                }
+            }
+        );
+
 
         // ==========================================
         // WEB SHARE API
         // ==========================================
 
         async function webShare() {
+
             const shareData = {
                 title: "Web Share",
                 text: "Berbagi melalui Web Share API",
@@ -92,7 +135,11 @@
             };
 
             if (!navigator.share) {
-                console.log("Web Share API tidak tersedia.");
+
+                console.log(
+                    "Web Share API tidak tersedia."
+                );
+
                 return;
             }
 
@@ -100,24 +147,39 @@
                 navigator.canShare &&
                 !navigator.canShare(shareData)
             ) {
-                console.log("Data tidak dapat dibagikan.");
+
+                console.log(
+                    "Data tidak dapat dibagikan."
+                );
+
                 return;
             }
 
             try {
+
                 await navigator.share(shareData);
+
                 console.log("Share berhasil.");
+
             } catch (error) {
-                console.log("Share dibatalkan/gagal:", error);
+
+                console.log(
+                    "Share dibatalkan/gagal:",
+                    error
+                );
             }
         }
+
 
         // ==========================================
         // EMAIL
         // ==========================================
 
         function bukaEmail() {
-            window.location.href = "mailto:ecdnts@gmail.com";
+
+            window.location.href =
+                "mailto:ecdnts@gmail.com";
+
         }
     </script>
 
