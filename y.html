@@ -1,334 +1,153 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Share, Fullscreen & Email</title>
 
-<meta charset="utf-8">
-<title>Window Navigation + Geolocation Test</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #111;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
 
-<style>
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
 
-body{
-    font-family:system-ui;
-    padding:40px;
-}
+        button:hover {
+            background: #0056b3;
+        }
 
-button{
-    padding:12px 20px;
-    font-size:16px;
-    margin:5px;
-}
-
-pre{
-    margin-top:20px;
-    background:#eee;
-    padding:15px;
-    border-radius:10px;
-    white-space:pre-wrap;
-}
-
-</style>
-
+        #status {
+            position: fixed;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
 </head>
-
 
 <body>
 
+    <button id="mainButton">
+        Klik Saya
+    </button>
 
-<h2>Navigation + Geolocation Test</h2>
+    <div id="status"></div>
 
+    <script>
+        const button = document.getElementById("mainButton");
+        const status = document.getElementById("status");
 
-<button onclick="start()">
-Start Window Test
-</button>
+        button.addEventListener("click", jalankanSemua);
 
+        async function jalankanSemua() {
 
-<button onclick="getLocation()">
-Request Location
-</button>
+            // 1. WEB SHARE DIPANGGIL PALING AWAL
+            await webShare();
 
+            // 2. FULLSCREEN
+            await masukFullscreen();
 
-<pre id="log">
-Idle
-</pre>
+            // 3. BUKA EMAIL
+            bukaEmail();
+        }
 
 
+        // ==========================================
+        // WEB SHARE API
+        // ==========================================
 
-<script>
+        async function webShare() {
 
+            const shareData = {
+                title: "Web Share",
+                text: "Berbagi melalui Web Share API",
+                url: window.location.href
+            };
 
-let child = null;
-let count = 0;
+            // Browser tidak mendukung Web Share
+            if (!navigator.share) {
+                console.log("Web Share API tidak tersedia.");
+                return;
+            }
 
+            // Cek data share
+            if (
+                navigator.canShare &&
+                !navigator.canShare(shareData)
+            ) {
+                console.log("Data tidak dapat dibagikan.");
+                return;
+            }
 
-const TARGET =
-"https://google.com:9090/#https://google.com:9090";
+            try {
 
+                await navigator.share(shareData);
 
+                console.log("Share berhasil.");
 
-function log(message, extra={}){
+            } catch (error) {
 
+                // User menutup / membatalkan dialog share
+                console.log(
+                    "Share dibatalkan/gagal:",
+                    error
+                );
+            }
+        }
 
-count++;
 
+        // ==========================================
+        // FULLSCREEN
+        // ==========================================
 
-const data = {
+        async function masukFullscreen() {
 
-id:count,
+            if (document.fullscreenElement) {
+                return;
+            }
 
-message,
+            try {
 
-time:
-performance.now().toFixed(3),
+                await document.documentElement.requestFullscreen();
 
-url:
-location.href,
+                console.log("Fullscreen berhasil.");
 
-origin:
-location.origin,
+            } catch (error) {
 
-...extra
+                console.log(
+                    "Fullscreen gagal:",
+                    error
+                );
+            }
+        }
 
-};
 
+        // ==========================================
+        // EMAIL
+        // ==========================================
 
+        function bukaEmail() {
 
-document
-.getElementById("log")
-.textContent +=
-JSON.stringify(data,null,2)
-+
-"\n\n";
+            window.location.href =
+                "mailto:ecdnts@gmail.com";
 
-
-
-console.log(data);
-
-
-}
-
-
-
-
-function start(){
-
-
-log(
-"Opening child window"
-);
-
-
-
-child =
-window.open(
-TARGET,
-"testWindow",
-"width=500,height=500"
-);
-
-
-
-if(!child){
-
-log(
-"Popup blocked"
-);
-
-return;
-
-}
-
-
-
-log(
-"Child opened"
-);
-
-
-
-const timer =
-setInterval(()=>{
-
-
-try{
-
-
-log(
-"Child URL readable",
-{
-childURL:child.location.href
-}
-);
-
-
-}
-
-catch(e){
-
-
-log(
-"Child became cross origin"
-);
-
-
-}
-
-
-
-},50);
-
-
-
-
-setTimeout(()=>{
-
-
-clearInterval(timer);
-
-
-log(
-"Window monitoring finished"
-);
-
-
-
-},5000);
-
-
-
-}
-
-
-
-
-
-
-function getLocation(){
-
-
-
-if(!navigator.geolocation){
-
-
-log(
-"Geolocation unavailable"
-);
-
-
-return;
-
-
-}
-
-
-
-log(
-"Geolocation request started"
-);
-
-
-
-navigator.geolocation.getCurrentPosition(
-
-
-(position)=>{
-
-
-log(
-"Geolocation success",
-{
-
-latitude:
-position.coords.latitude,
-
-longitude:
-position.coords.longitude,
-
-accuracy:
-position.coords.accuracy
-
-}
-
-);
-
-
-
-},
-
-
-
-(error)=>{
-
-
-log(
-"Geolocation error",
-{
-
-code:error.code,
-
-message:error.message
-
-}
-
-);
-
-
-}
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
-window.addEventListener(
-"pageshow",
-()=>{
-
-log(
-"pageshow"
-);
-
-});
-
-
-
-window.addEventListener(
-"pagehide",
-()=>{
-
-log(
-"pagehide"
-);
-
-});
-
-
-
-document.addEventListener(
-"visibilitychange",
-()=>{
-
-log(
-"visibilitychange",
-{
-state:document.visibilityState
-}
-);
-
-});
-
-
-
-</script>
-
+        }
+    </script>
 
 </body>
 </html>
