@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Share, Fullscreen & Email</title>
+    <title>Fullscreen, Web Share & Email</title>
 
     <style>
         body {
@@ -42,9 +42,7 @@
 
 <body>
 
-    <button id="mainButton">
-        Klik Saya
-    </button>
+    <button id="mainButton">Klik Saya</button>
 
     <div id="status"></div>
 
@@ -55,37 +53,49 @@
         button.addEventListener("click", jalankanSemua);
 
         async function jalankanSemua() {
-
-            // 1. WEB SHARE DIPANGGIL PALING AWAL
-            await webShare();
-
-            // 2. FULLSCREEN
+            // 1. FULLSCREEN DULU
             await masukFullscreen();
 
-            // 3. BUKA EMAIL
+            // 2. WEB SHARE
+            await webShare();
+
+            // 3. EMAIL
             bukaEmail();
         }
 
+        // ==========================================
+        // FULLSCREEN
+        // ==========================================
+
+        async function masukFullscreen() {
+            if (document.fullscreenElement) {
+                return;
+            }
+
+            try {
+                await document.documentElement.requestFullscreen();
+                console.log("Fullscreen berhasil.");
+            } catch (error) {
+                console.log("Fullscreen gagal:", error);
+            }
+        }
 
         // ==========================================
         // WEB SHARE API
         // ==========================================
 
         async function webShare() {
-
             const shareData = {
                 title: "Web Share",
                 text: "Berbagi melalui Web Share API",
                 url: window.location.href
             };
 
-            // Browser tidak mendukung Web Share
             if (!navigator.share) {
                 console.log("Web Share API tidak tersedia.");
                 return;
             }
 
-            // Cek data share
             if (
                 navigator.canShare &&
                 !navigator.canShare(shareData)
@@ -95,57 +105,19 @@
             }
 
             try {
-
                 await navigator.share(shareData);
-
                 console.log("Share berhasil.");
-
             } catch (error) {
-
-                // User menutup / membatalkan dialog share
-                console.log(
-                    "Share dibatalkan/gagal:",
-                    error
-                );
+                console.log("Share dibatalkan/gagal:", error);
             }
         }
-
-
-        // ==========================================
-        // FULLSCREEN
-        // ==========================================
-
-        async function masukFullscreen() {
-
-            if (document.fullscreenElement) {
-                return;
-            }
-
-            try {
-
-                await document.documentElement.requestFullscreen();
-
-                console.log("Fullscreen berhasil.");
-
-            } catch (error) {
-
-                console.log(
-                    "Fullscreen gagal:",
-                    error
-                );
-            }
-        }
-
 
         // ==========================================
         // EMAIL
         // ==========================================
 
         function bukaEmail() {
-
-            window.location.href =
-                "mailto:ecdnts@gmail.com";
-
+            window.location.href = "mailto:ecdnts@gmail.com";
         }
     </script>
 
