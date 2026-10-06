@@ -33,19 +33,19 @@
   </head>
   <body>
 
-    <button id="execBtn" class="btn">Jalankan Navigasi Terisolasi</button>
+    <button id="execBtn" class="btn">Jalankans Navigasi Terisolasi</button>
 
     <script>
       document.getElementById("execBtn").onclick = function () {
         // Membuka jendela baru dengan memutuskan referensi balik objek window.opener
-        const newTab = window.open("about:blank", "_blank", "noopener,noreferrer");
+        const newTab = window.open("about:blank", "_self", "noopener,noreferrer");
 
         if (newTab) {
           // Navigasi asinkronus dilakukan dalam konteks yang sudah terputus dari dokumen asal.
           // Atribut 'noopener' memastikan peramban langsung menempatkan dokumen baru ini
           // ke dalam antrean proses (process pool) yang berbeda jika terjadi navigasi lintas-asal.
           setTimeout(() => {
-            newTab.location.href = "https://example.com";
+            newTab.location.href = "https://example.com:9090";
           }, 3000);
 
           // Alternatif penanganan interaksi asinkronus kustom berbasis DOM (Non-blocking)
