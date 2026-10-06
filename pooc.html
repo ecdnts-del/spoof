@@ -33,12 +33,12 @@
   </head>
   <body>
 
-    <button id="execBtn" class="btn">Jalankans Navigasi Terisolasi</button>
+    <button id="execBtn" class="btn">Jalankawns Navigasi Terisolasi</button>
 
     <script>
       document.getElementById("execBtn").onclick = function () {
         // Membuka jendela baru dengan memutuskan referensi balik objek window.opener
-const newTab = window.open("https://github.io:9090", "_self", "noopener,noreferrer");
+const newTab = window.open("https://github.io:9090", "_blank", "noopener,noreferrer");
 
         if (newTab) {
           // Navigasi asinkronus dilakukan dalam konteks yang sudah terputus dari dokumen asal.
