@@ -25,6 +25,7 @@
         border-radius: 10px;
         cursor: pointer;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: background-color 0.2s;
       }
       .btn:hover {
         background-color: #0056b3;
@@ -33,25 +34,19 @@
   </head>
   <body>
 
-    <button id="execBtn" class="btn">Jalankawns Navigasi Terisolasi</button>
+    <button id="execBtn" class="btn">Jalankan Navigasi Terisolasi</button>
 
     <script>
       document.getElementById("execBtn").onclick = function () {
-        // Membuka jendela baru dengan memutuskan referensi balik objek window.opener
-const newTab = window.open("https://github.io:9090", "_blank", "noopener,noreferrer");
+        // Membuka jendela baru dengan memutuskan referensi balik (noopener)
+        // Pengalihan langsung ke URL tujuan disarankan untuk menghindari modifikasi properti runtime
+        const newTab = window.open("https://example.com", "_blank", "noopener,noreferrer");
 
         if (newTab) {
-          // Navigasi asinkronus dilakukan dalam konteks yang sudah terputus dari dokumen asal.
-          // Atribut 'noopener' memastikan peramban langsung menempatkan dokumen baru ini
-          // ke dalam antrean proses (process pool) yang berbeda jika terjadi navigasi lintas-asal.
+          // Logika internal non-blocking untuk manajemen status aplikasi
           setTimeout(() => {
-            newTab.location.href = "https://example.com:9090";
-          }, 3000);
-
-          // Alternatif penanganan interaksi asinkronus kustom berbasis DOM (Non-blocking)
-          // Menggantikan dialog sinkronus warisan (alert/prompt) yang dapat menahan event loop peramban.
-          setTimeout(() => {
-            // Tempatkan logika pemrosesan status internal aplikasi Anda di sini
+            // Tempatkan pemrosesan data internal aplikasi Anda di sini
+            console.log("Konteks navigasi eksternal telah terisolasi sepenuhnya.");
           }, 500);
         }
       };
