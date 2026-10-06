@@ -1,22 +1,117 @@
-<h1>Buy Xbox game passes</h1>
-<button id="pipButton">Make payment.</button>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Praktik Keamanan Navigasi & Dialog</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: #f5f5f7;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      button {
+        padding: 15px 30px;
+        font-size: 18px;
+        background: #007aff;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      /* Gaya untuk Modal Dialog Kustom */
+      dialog {
+        border: none;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        width: 100%;
+      }
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .dialog-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .dialog-container input {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Tombol Navigasi Aman -->
+    <button id="openTabBtn">Buka Tab Baru (Aman)</button>
+    
+    <!-- Tombol Pemicu Dialog Kustom -->
+    <button id="openDialogBtn">Tampilkan Dialog Kustom</button>
 
-<script>
-pipButton.addEventListener("click", async () => {
-  const player = document.querySelector("#player");
-  const w = window.open(`javascript:document.write("<h2>Going to paypal.com for payment. Please double click on this page to continue.</h2>"); 
-                         var flag = true;
-                         function run() {
-                            if(flag) {                       
-                              documentPictureInPicture.requestWindow({width: 1000, height:1000})
-                              .then(w => w.document.write("<h1>Paypal</h1>Key in your card details: <input></input>"));
-                              flag = false;
-                            } else { 
-                              window.open("https://paypal.com");
-                            };
-                         }
-                         document.addEventListener("click", run)
-                        `)
+    <!-- Elemen Dialog HTML5 Bawaan untuk Menggantikan prompt() -->
+    <dialog id="customDialog">
+      <form method="dialog" class="dialog-container">
+        <h3>Konfirmasi Identitas</h3>
+        <label for="inputPwd">Masukkan pesan:</label>
+        <input type="text" id="inputPwd" placeholder="Ketik sesuatu..." required />
+        <div class="dialog-actions">
+          <button type="button" id="cancelBtn" style="background:#8e8e93">Batal</button>
+          <button type="submit" style="background:#34c759">Kirim</button>
+        </div>
+      </form>
+    </dialog>
 
-});
-</script>
+    <script>
+      // 1. Penanganan Pembukaan Tab Baru Secara Aman
+      document.getElementById("openTabBtn").onclick = function () {
+        // Menggunakan rel="noopener" memastikan tab baru tidak memiliki akses kembali ke window.opener
+        const newTab = window.open("https://apple.com", "_blank", "noopener,noreferrer");
+        
+        if (newTab) {
+          console.log("Tab baru berhasil dibuka dalam proses terisolasi.");
+        }
+      };
+
+      // 2. Penanganan Dialog Kustom yang Terikat pada DOM Halaman
+      const dialog = document.getElementById("customDialog");
+      const openDialogBtn = document.getElementById("openDialogBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+
+      openDialogBtn.onclick = function() {
+        // Tampilkan modal (secara otomatis mengunci interaksi di luar modal pada tab ini)
+        dialog.showModal();
+      };
+
+      cancelBtn.onclick = function() {
+        dialog.close();
+      };
+
+      dialog.addEventListener('close', () => {
+        if (dialog.returnValue !== '') {
+          const userInput = document.getElementById("inputPwd").value;
+          console.log("Input pengguna:", userInput);
+          // Lakukan validasi atau pemrosesan data di sini
+        }
+      });
+    </script>
+  </body>
+</html>
