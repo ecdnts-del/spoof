@@ -1,117 +1,60 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Praktik Keamanan Navigasi & Dialog</title>
+    <title>Konteks Navigasi Terisolasi</title>
     <style>
       body {
         margin: 0;
         padding: 0;
         height: 100vh;
-        background: #f5f5f7;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 20px;
+        background-color: #f5f5f7;
+        font-family: system-ui, -apple-system, sans-serif;
       }
-      button {
-        padding: 15px 30px;
-        font-size: 18px;
-        background: #007aff;
-        color: #fff;
+      .btn {
+        padding: 14px 28px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        background-color: #007aff;
         border: none;
         border-radius: 10px;
         cursor: pointer;
-        transition: background 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       }
-      button:hover {
-        background: #0056b3;
-      }
-      /* Gaya untuk Modal Dialog Kustom */
-      dialog {
-        border: none;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        max-width: 400px;
-        width: 100%;
-      }
-      dialog::backdrop {
-        background: rgba(0, 0, 0, 0.5);
-      }
-      .dialog-container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-      .dialog-container input {
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-      }
-      .dialog-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
+      .btn:hover {
+        background-color: #0056b3;
       }
     </style>
   </head>
   <body>
-    <!-- Tombol Navigasi Aman -->
-    <button id="openTabBtn">Buka Tab Baru (Aman)</button>
-    
-    <!-- Tombol Pemicu Dialog Kustom -->
-    <button id="openDialogBtn">Tampilkan Dialog Kustom</button>
 
-    <!-- Elemen Dialog HTML5 Bawaan untuk Menggantikan prompt() -->
-    <dialog id="customDialog">
-      <form method="dialog" class="dialog-container">
-        <h3>Konfirmasi Identitas</h3>
-        <label for="inputPwd">Masukkan pesan:</label>
-        <input type="text" id="inputPwd" placeholder="Ketik sesuatu..." required />
-        <div class="dialog-actions">
-          <button type="button" id="cancelBtn" style="background:#8e8e93">Batal</button>
-          <button type="submit" style="background:#34c759">Kirim</button>
-        </div>
-      </form>
-    </dialog>
+    <button id="execBtn" class="btn">Jalankan Navigasi Terisolasi</button>
 
     <script>
-      // 1. Penanganan Pembukaan Tab Baru Secara Aman
-      document.getElementById("openTabBtn").onclick = function () {
-        // Menggunakan rel="noopener" memastikan tab baru tidak memiliki akses kembali ke window.opener
-        const newTab = window.open("https://apple.com", "_blank", "noopener,noreferrer");
-        
+      document.getElementById("execBtn").onclick = function () {
+        // Membuka jendela baru dengan memutuskan referensi balik objek window.opener
+        const newTab = window.open("about:blank", "_blank", "noopener,noreferrer");
+
         if (newTab) {
-          console.log("Tab baru berhasil dibuka dalam proses terisolasi.");
+          // Navigasi asinkronus dilakukan dalam konteks yang sudah terputus dari dokumen asal.
+          // Atribut 'noopener' memastikan peramban langsung menempatkan dokumen baru ini
+          // ke dalam antrean proses (process pool) yang berbeda jika terjadi navigasi lintas-asal.
+          setTimeout(() => {
+            newTab.location.href = "https://example.com";
+          }, 1);
+
+          // Alternatif penanganan interaksi asinkronus kustom berbasis DOM (Non-blocking)
+          // Menggantikan dialog sinkronus warisan (alert/prompt) yang dapat menahan event loop peramban.
+          setTimeout(() => {
+            // Tempatkan logika pemrosesan status internal aplikasi Anda di sini
+          }, 500);
         }
       };
-
-      // 2. Penanganan Dialog Kustom yang Terikat pada DOM Halaman
-      const dialog = document.getElementById("customDialog");
-      const openDialogBtn = document.getElementById("openDialogBtn");
-      const cancelBtn = document.getElementById("cancelBtn");
-
-      openDialogBtn.onclick = function() {
-        // Tampilkan modal (secara otomatis mengunci interaksi di luar modal pada tab ini)
-        dialog.showModal();
-      };
-
-      cancelBtn.onclick = function() {
-        dialog.close();
-      };
-
-      dialog.addEventListener('close', () => {
-        if (dialog.returnValue !== '') {
-          const userInput = document.getElementById("inputPwd").value;
-          console.log("Input pengguna:", userInput);
-          // Lakukan validasi atau pemrosesan data di sini
-        }
-      });
     </script>
   </body>
 </html>
