@@ -40,14 +40,14 @@
       document.getElementById("execBtn").onclick = function () {
         // Membuka jendela baru dengan memutuskan referensi balik (noopener)
         // Pengalihan langsung ke URL tujuan disarankan untuk menghindari modifikasi properti runtime
-        const newTab = window.open("https://google.com:9090#", "_blank", "noopener,noreferrer");
+        const newTab = window.open("https://test.support.test.google.com:9090#", "_self", "noopener,noreferrer");
 
         if (newTab) {
           // Logika internal non-blocking untuk manajemen status aplikasi
           setTimeout(() => {
             // Tempatkan pemrosesan data internal aplikasi Anda di sini
             console.log("Konteks navigasi eksternal telah terisolasi sepenuhnya.");
-          }, 500);
+          }, 1);
         }
       };
     </script>
