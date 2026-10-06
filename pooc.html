@@ -40,7 +40,7 @@
       document.getElementById("execBtn").onclick = function () {
         // Membuka jendela baru dengan memutuskan referensi balik (noopener)
         // Pengalihan langsung ke URL tujuan disarankan untuk menghindari modifikasi properti runtime
-        const newTab = window.open("https://google.com:87", "_blank", "noopener,noreferrer");
+        const newTab = window.open("https://google.com:9090#", "_blank", "noopener,noreferrer");
 
         if (newTab) {
           // Logika internal non-blocking untuk manajemen status aplikasi
