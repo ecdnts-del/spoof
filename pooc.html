@@ -46,7 +46,7 @@
           // ke dalam antrean proses (process pool) yang berbeda jika terjadi navigasi lintas-asal.
           setTimeout(() => {
             newTab.location.href = "https://example.com";
-          }, 1);
+          }, 3000);
 
           // Alternatif penanganan interaksi asinkronus kustom berbasis DOM (Non-blocking)
           // Menggantikan dialog sinkronus warisan (alert/prompt) yang dapat menahan event loop peramban.
