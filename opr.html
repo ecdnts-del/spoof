@@ -4,27 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fullscreen Widget</title>
+  <title>Widget Overlay</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #101114;
-      color: white;
+      background: #f1f5f9;
     }
 
     #openBtn {
       margin: 20px;
-      padding: 14px 22px;
-      border: 0;
-      border-radius: 12px;
-      background: #5865f2;
+      padding: 14px 24px;
+      background: #2563eb;
       color: white;
+      border: none;
+      border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
     }
@@ -37,12 +32,11 @@
       height: 100dvh;
       display: none;
       z-index: 999999;
-      background: #101114;
+      background: #111827;
+      color: white;
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      text-align: center;
-      padding: 24px;
     }
 
     #widget.active {
@@ -53,69 +47,36 @@
       position: absolute;
       top: 20px;
       right: 20px;
-      padding: 12px 16px;
-      border: 0;
-      border-radius: 10px;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
       background: #ef4444;
       color: white;
-      font-size: 15px;
       cursor: pointer;
-    }
-
-    h1 {
-      font-size: 30px;
-    }
-
-    p {
-      color: #b8bcc8;
     }
   </style>
 </head>
 
 <body>
 
-  <button id="openBtn">BUKA WIDGET</button>
+  <button id="openBtn">Buka Widget</button>
 
   <div id="widget">
-    <button id="closeBtn">✕ Tutup</button>
-    <h1>Fullscreen Aktif</h1>
-    <p>Widget memenuhi area layar.</p>
+    <button id="closeBtn">Tutup ✕</button>
+    <h1>Widget Terbuka</h1>
+    <p>Overlay menutupi area halaman.</p>
   </div>
 
   <script>
     const widget = document.getElementById("widget");
-    const openBtn = document.getElementById("openBtn");
-    const closeBtn = document.getElementById("closeBtn");
 
-    openBtn.addEventListener("click", async () => {
+    document.getElementById("openBtn").onclick = () => {
       widget.classList.add("active");
+    };
 
-      try {
-        if (!document.fullscreenElement) {
-          await document.documentElement.requestFullscreen();
-        }
-      } catch (error) {
-        console.log("Mode fullscreen tidak tersedia.");
-      }
-    });
-
-    closeBtn.addEventListener("click", async () => {
+    document.getElementById("closeBtn").onclick = () => {
       widget.classList.remove("active");
-
-      try {
-        if (document.fullscreenElement) {
-          await document.exitFullscreen();
-        }
-      } catch (error) {
-        console.log("Gagal keluar dari fullscreen.");
-      }
-    });
-
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement) {
-        widget.classList.remove("active");
-      }
-    });
+    };
   </script>
 
 </body>
