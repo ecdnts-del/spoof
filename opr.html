@@ -3,168 +3,101 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Auto Scroll Controller</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auto Cover</title>
 
 <style>
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: auto;
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background: #000;
+  overflow-x: hidden;
+  scrollbar-width: none;
 }
 
-body {
-  margin: 0;
-  background: #101114;
-  color: white;
-  font-family: Arial, sans-serif;
+body::-webkit-scrollbar {
+  display: none;
 }
 
-.panel {
+#cover {
   position: fixed;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  z-index: 100;
-  padding: 16px;
-  border-radius: 14px;
-  background: #242631;
-  box-shadow: 0 4px 20px #0008;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  object-fit: cover;
+  display: block;
+  z-index: 2147483647;
+  pointer-events: none;
 }
 
-h3 {
-  margin: 0 0 12px;
-}
-
-.buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-button {
-  padding: 12px 15px;
-  border: 0;
-  border-radius: 9px;
-  background: #4263eb;
-  color: white;
-  font-size: 14px;
-}
-
-#stop {
-  background: #dc2626;
-}
-
-#status {
-  margin: 12px 0 0;
-  font-size: 13px;
-  color: #bfc5d8;
-}
-
-#content {
-  padding: 230px 20px 100px;
-}
-
-.block {
-  height: 75vh;
-  margin-bottom: 20px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #243b55, #141e30);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
+#scroll-space {
+  height: 500vh;
+  width: 1px;
+  pointer-events: none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="panel">
-  <h3>Auto Scroll</h3>
+<img
+  id="cover"
+  src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
+  alt=""
+>
 
-  <div class="buttons">
-    <button id="start">▶ Mulai Auto Scroll</button>
-    <button id="stop">■ Berhenti</button>
-    <button id="reset">↺ Reset</button>
-  </div>
-
-  <p id="status">Status: berhenti</p>
-</div>
-
-<main id="content">
-  <h2>Area Scroll</h2>
-  <p>Tekan Mulai untuk menggulir halaman secara otomatis.</p>
-  <div class="block">Bagian 1</div>
-  <div class="block">Bagian 2</div>
-  <div class="block">Bagian 3</div>
-  <div class="block">Bagian 4</div>
-  <div class="block">Bagian 5</div>
-</main>
+<div id="scroll-space"></div>
 
 <script>
-const startBtn = document.getElementById("start");
-const stopBtn = document.getElementById("stop");
-const resetBtn = document.getElementById("reset");
-const status = document.getElementById("status");
+(() => {
+  let previous = 0;
+  let running = true;
 
-let running = false;
-let animationId = null;
-let lastTime = 0;
+  function scrollContinuously(time) {
+    if (!running) return;
 
-const speed = 1200; // piksel per detik
+    if (document.hidden) {
+      previous = 0;
+      requestAnimationFrame(scrollContinuously);
+      return;
+    }
 
-function scrollLoop(time) {
-  if (!running) return;
+    if (!previous) previous = time;
 
-  if (!lastTime) lastTime = time;
+    const elapsed = Math.min((time - previous) / 1000, 0.04);
+    previous = time;
 
-  const delta = Math.min((time - lastTime) / 1000, 0.05);
-  lastTime = time;
+    const max = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight
+    );
 
-  const maxScroll =
-    document.documentElement.scrollHeight -
-    window.innerHeight;
+    if (max > 0) {
+      if (window.scrollY >= max - 1) {
+        window.scrollTo(0, 0);
+      } else {
+        window.scrollBy(0, 700 * elapsed);
+      }
+    }
 
-  if (window.scrollY < maxScroll) {
-    window.scrollBy(0, speed * delta);
+    requestAnimationFrame(scrollContinuously);
   }
 
-  animationId = requestAnimationFrame(scrollLoop);
-}
+  window.addEventListener("load", () => {
+    requestAnimationFrame(scrollContinuously);
+  });
 
-startBtn.addEventListener("click", () => {
-  if (running) return;
-
-  running = true;
-  lastTime = 0;
-  status.textContent = "Status: auto-scroll aktif";
-
-  animationId = requestAnimationFrame(scrollLoop);
-});
-
-stopBtn.addEventListener("click", () => {
-  running = false;
-  cancelAnimationFrame(animationId);
-  status.textContent = "Status: berhenti";
-});
-
-resetBtn.addEventListener("click", () => {
-  running = false;
-  cancelAnimationFrame(animationId);
-  window.scrollTo(0, 0);
-  status.textContent = "Status: kembali ke atas";
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden && running) {
-    running = false;
-    cancelAnimationFrame(animationId);
-    status.textContent = "Scroll dihentikan saat tab tidak aktif";
-  }
-});
+  document.addEventListener("visibilitychange", () => {
+    previous = 0;
+  });
+})();
 </script>
 
 </body>
