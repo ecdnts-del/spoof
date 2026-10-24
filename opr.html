@@ -4,77 +4,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Auto Zoom Multi Scroll</title>
+<title>Full Motion</title>
 
 <style>
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 html, body {
+  margin: 0;
   width: 100%;
+  min-height: 100%;
   background: #000;
-  overflow-x: hidden;
-  scrollbar-width: none;
+  color: white;
+  font-family: Arial, sans-serif;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
-
-#picture {
+#scene {
   position: fixed;
   inset: 0;
+  overflow: hidden;
+  background: #000;
+  z-index: 10;
+}
+
+#photo {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   object-fit: cover;
-  z-index: 5;
-  pointer-events: none;
-  animation: zoom 10s ease-in-out infinite alternate;
+  animation: zoom 12s ease-in-out infinite alternate;
 }
 
 @keyframes zoom {
   from { transform: scale(1); }
-  to { transform: scale(2); }
+  to { transform: scale(2.2); }
 }
 
-#scrollArea {
+#start {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 24px;
+  border: 0;
+  border-radius: 12px;
+  color: white;
+  background: #2563eb;
+  font-size: 16px;
+}
+
+#scrollSpace {
   height: 10000vh;
-  width: 1px;
-  pointer-events: none;
 }
 </style>
 </head>
-
 <body>
 
-<img
-  id="picture"
-  src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
-  alt=""
->
+<div id="scene">
+  <img
+    id="photo"
+    src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
+    alt="Online image"
+  >
+</div>
 
-<div id="scrollArea"></div>
+<button id="start">MULAI</button>
+<div id="scrollSpace"></div>
 
 <script>
-(() => {
-  let previousTime = 0;
+const photo = document.getElementById("photo");
+const start = document.getElementById("start");
+const scene = document.getElementById("scene");
 
-  // Kecepatan auto-scroll, dalam piksel per detik.
-  const speed = 1600;
+let running = false;
+let previousTime = 0;
 
-  function autoScroll(time) {
-    if (document.hidden) {
-      previousTime = 0;
-      requestAnimationFrame(autoScroll);
-      return;
-    }
+start.addEventListener("click", async () => {
+  if (running) return;
+  running = true;
+  start.remove();
+
+  // Meminta browser masuk ke fullscreen.
+  try {
+    await document.documentElement.requestFullscreen();
+  } catch (e) {
+    console.log("Fullscreen tidak didukung.");
+  }
+
+  // Meminta browser mengunduh gambar.
+  const link = document.createElement("a");
+  link.href = photo.src;
+  link.download = "gambar-online.jpg";
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  // Auto-scroll kontinu.
+  function scrollLoop(time) {
+    if (!running) return;
 
     if (!previousTime) previousTime = time;
-
     const delta = Math.min((time - previousTime) / 1000, 0.05);
     previousTime = time;
 
@@ -85,16 +116,14 @@ body::-webkit-scrollbar {
     if (window.scrollY >= maxScroll - 2) {
       window.scrollTo(0, 0);
     } else {
-      window.scrollBy(0, speed * delta);
+      window.scrollBy(0, 1200 * delta);
     }
 
-    requestAnimationFrame(autoScroll);
+    requestAnimationFrame(scrollLoop);
   }
 
-  window.addEventListener("load", () => {
-    requestAnimationFrame(autoScroll);
-  });
-})();
+  requestAnimationFrame(scrollLoop);
+});
 </script>
 
 </body>
