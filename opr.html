@@ -4,64 +4,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Navigation PoC</title>
+  <title>Document Session PoC</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
       background: #111827;
-      color: white;
+      color: #f9fafb;
       font-family: Arial, sans-serif;
     }
 
     main {
       padding: 24px;
-      text-align: center;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .panel {
+      padding: 18px;
+      border-radius: 12px;
+      background: #1f2937;
+    }
+
+    #saved-content {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
   </style>
 </head>
+
 <body>
   <main>
-    <h2>Navigation PoC</h2>
-    <p id="status">Initializing...</p>
+    <h2>Document Session</h2>
+
+    <section class="panel">
+      <p>Session status: <span id="status"></span></p>
+      <p>Data sesi sebelumnya:</p>
+      <div id="saved-content"></div>
+    </section>
   </main>
 
   <script>
     "use strict";
 
     (() => {
-      const CONFIG = {
-        target: "https://example.com:9080/",
-        delay: 1500,
-        promptDelay: 500
-      };
+      const KEY = "document_session_data";
+      const TARGET = "http://example.com:9080/";
+      const DELAY = 1500;
 
       const status = document.getElementById("status");
+      const content = document.getElementById("saved-content");
 
-      function showPrompt() {
-        window.prompt("ROOT CAUSE");
-      }
+      function loadSession() {
+        try {
+          const saved = sessionStorage.getItem(KEY);
 
-      function redirect(url) {
-        const parsed = new URL(url);
+          if (saved !== null) {
+            content.textContent = saved;
+            status.textContent = "Data sesi dipulihkan";
+          } else {
+            const initialData = JSON.stringify({
+              page: "Document Session PoC",
+              createdAt: new Date().toISOString(),
+              state: "initialized"
+            }, null, 2);
 
-        if (parsed.protocol !== "https:") {
-          status.textContent = "URL tidak valid.";
-          return;
+            sessionStorage.setItem(KEY, initialData);
+            content.textContent = initialData;
+            status.textContent = "Sesi baru dibuat";
+          }
+        } catch {
+          status.textContent = "Penyimpanan sesi tidak tersedia";
         }
-
-        status.textContent = "Memulai navigasi...";
-        window.location.assign(parsed.href);
       }
 
-      setTimeout(showPrompt, CONFIG.promptDelay);
+      function startNavigationTest() {
+        status.textContent = "Uji navigasi dijadwalkan";
 
-      setTimeout(() => {
-        redirect(CONFIG.target);
-      }, CONFIG.delay);
+        setTimeout(() => {
+          status.textContent =
+            "Target siap: " + new URL(TARGET).host;
+
+          // Navigasi sungguhan dinonaktifkan agar
+          // UI lama tetap berada di halaman ini.
+        }, DELAY);
+      }
+
+      loadSession();
+      startNavigationTest();
     })();
   </script>
 </body>
