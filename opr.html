@@ -3,80 +3,132 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Widget Overlay</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  >
+  <title>Online Image Overlay</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #f1f5f9;
+      background: #111827;
+      color: white;
     }
 
     #openBtn {
       margin: 20px;
-      padding: 14px 24px;
+      padding: 15px 24px;
+      border: 0;
+      border-radius: 12px;
       background: #2563eb;
       color: white;
-      border: none;
-      border-radius: 10px;
       font-size: 16px;
       cursor: pointer;
     }
 
-    #widget {
+    #overlay {
       position: fixed;
       inset: 0;
       width: 100%;
-      height: 100%;
+      height: 100vh;
       height: 100dvh;
       display: none;
-      z-index: 999999;
-      background: #111827;
-      color: white;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
+      z-index: 2147483647;
+      background: #000;
+      overflow: hidden;
     }
 
-    #widget.active {
-      display: flex;
+    #overlay.active {
+      display: block;
+    }
+
+    #onlineImage {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     #closeBtn {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 18px;
-      background: #ef4444;
+      top: 15px;
+      right: 15px;
+      z-index: 2;
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.7);
       color: white;
+      font-size: 18px;
       cursor: pointer;
+    }
+
+    #message {
+      position: absolute;
+      bottom: 25px;
+      left: 15px;
+      z-index: 2;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
     }
   </style>
 </head>
 
 <body>
 
-  <button id="openBtn">Buka Widget</button>
+  <button id="openBtn">BUKA GAMBAR</button>
 
-  <div id="widget">
-    <button id="closeBtn">Tutup ✕</button>
-    <h1>Widget Terbuka</h1>
-    <p>Overlay menutupi area halaman.</p>
+  <div id="overlay">
+    <img
+      id="onlineImage"
+      src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
+      alt="Gambar online"
+    >
+
+    <button id="closeBtn" aria-label="Tutup gambar">✕</button>
+
+    <div id="message">Gambar Online</div>
   </div>
 
   <script>
-    const widget = document.getElementById("widget");
+    const openBtn = document.getElementById("openBtn");
+    const overlay = document.getElementById("overlay");
+    const closeBtn = document.getElementById("closeBtn");
+    const onlineImage = document.getElementById("onlineImage");
+    const message = document.getElementById("message");
 
-    document.getElementById("openBtn").onclick = () => {
-      widget.classList.add("active");
-    };
+    openBtn.addEventListener("click", function () {
+      overlay.classList.add("active");
+    });
 
-    document.getElementById("closeBtn").onclick = () => {
-      widget.classList.remove("active");
-    };
+    closeBtn.addEventListener("click", function () {
+      overlay.classList.remove("active");
+    });
+
+    onlineImage.addEventListener("load", function () {
+      message.textContent = "Gambar berhasil dimuat";
+    });
+
+    onlineImage.addEventListener("error", function () {
+      message.textContent = "Gambar gagal dimuat. Periksa koneksi internet.";
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        overlay.classList.remove("active");
+      }
+    });
   </script>
 
 </body>
