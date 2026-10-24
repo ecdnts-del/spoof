@@ -4,23 +4,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Auto Zoom Image</title>
+<title>Auto Scroll</title>
 
 <style>
 * {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
   background: #000;
+  color: white;
   font-family: Arial, sans-serif;
 }
 
 #openBtn {
-  margin: 20px;
-  padding: 14px 24px;
-  border: 0;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  padding: 14px 22px;
+  border: none;
   border-radius: 10px;
   background: #2563eb;
   color: white;
@@ -30,13 +35,9 @@ body {
 #overlay {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  z-index: 5;
   display: none;
-  overflow: hidden;
-  z-index: 2147483647;
-  background: black;
+  background: #000;
 }
 
 #overlay.active {
@@ -47,21 +48,6 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1);
-  animation: none;
-}
-
-#overlay.active #picture {
-  animation: zoomImage 8s ease-in-out forwards;
-}
-
-@keyframes zoomImage {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(2.5);
-  }
 }
 
 #closeBtn {
@@ -69,12 +55,17 @@ body {
   top: 15px;
   right: 15px;
   padding: 12px 18px;
-  z-index: 2;
   border: 0;
   border-radius: 8px;
   background: rgba(0,0,0,.7);
   color: white;
-  font-size: 20px;
+  font-size: 18px;
+}
+
+/* Area halaman agar dapat di-scroll */
+#scrollArea {
+  height: 300vh;
+  background: #000;
 }
 </style>
 </head>
@@ -83,31 +74,53 @@ body {
 
 <button id="openBtn">BUKA GAMBAR</button>
 
+<div id="scrollArea"></div>
+
 <div id="overlay">
   <img
     id="picture"
     src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
-    alt="Online image"
+    alt="Gambar online"
   >
   <button id="closeBtn">✕</button>
 </div>
 
 <script>
+const openBtn = document.getElementById("openBtn");
+const closeBtn = document.getElementById("closeBtn");
 const overlay = document.getElementById("overlay");
-const picture = document.getElementById("picture");
 
-document.getElementById("openBtn").onclick = () => {
+let scrollTimer;
+
+openBtn.addEventListener("click", () => {
+  // Coba scroll halaman ke bawah untuk memicu
+  // perilaku penyembunyian Omnibar pada browser.
+  window.scrollTo({
+    top: document.documentElement.scrollHeight,
+    behavior: "smooth"
+  });
+
   overlay.classList.add("active");
 
-  picture.style.animation = "none";
-  void picture.offsetWidth;
-  picture.style.animation = "zoomImage 8s ease-in-out forwards";
-};
+  // Ulangi scroll sebentar selama browser mengizinkan.
+  clearInterval(scrollTimer);
+  scrollTimer = setInterval(() => {
+    window.scrollTo(
+      0,
+      document.documentElement.scrollHeight
+    );
+  }, 150);
+  
+  setTimeout(() => {
+    clearInterval(scrollTimer);
+  }, 2000);
+});
 
-document.getElementById("closeBtn").onclick = () => {
+closeBtn.addEventListener("click", () => {
   overlay.classList.remove("active");
-  picture.style.animation = "none";
-};
+  clearInterval(scrollTimer);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 </script>
 
 </body>
