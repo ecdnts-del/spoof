@@ -1,358 +1,122 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fullscreen Widget</title>
 
-<title>SYSTEM_KERNEL_V35_LOCKED</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
-/* RESET & BASE STYLING */
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101114;
+      color: white;
+    }
 
-html,body{
-    width:100vw;
-    min-height:100vh;
-    overflow-x:hidden;
-    font-family: 'Courier New', monospace;
-    background:#000;
-    color:#fff;
-}
+    #openBtn {
+      margin: 20px;
+      padding: 14px 22px;
+      border: 0;
+      border-radius: 12px;
+      background: #5865f2;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-/* ========================= */
-/* VIDEO FULLSCREEN */
-/* ========================= */
+    #widget {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      display: none;
+      z-index: 999999;
+      background: #101114;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 24px;
+    }
 
-.video-full{
-    position:fixed;
-    inset:0;
-    width:100vw;
-    height:100vh;
-    object-fit:cover;
-    z-index:-2;
-}
+    #widget.active {
+      display: flex;
+    }
 
-/* Overlay gelap */
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:-1;
-}
+    #closeBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: #ef4444;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
 
-/* ========================= */
-/* HERO */
-/* ========================= */
+    h1 {
+      font-size: 30px;
+    }
 
-.hero{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-}
-
-.hero div{
-    padding:20px;
-}
-
-.hero h1{
-    font-size:50px;
-    margin-bottom:15px;
-}
-
-.hero p{
-    font-size:20px;
-    opacity:.85;
-}
-
-/* ========================= */
-/* CONTENT */
-/* ========================= */
-
-.content{
-    min-height:350vh;
-    background:#fff;
-    color:#000;
-    padding:80px 40px;
-    border-radius:40px 40px 0 0;
-}
-
-.card{
-    max-width:900px;
-    margin:auto;
-}
-
-.card h2{
-    font-size:40px;
-    margin-bottom:20px;
-}
-
-.card p{
-    line-height:1.8;
-    margin-bottom:20px;
-}
-
-/* Tombol */
-button{
-    padding:15px 35px;
-    border:none;
-    border-radius:10px;
-    background:#111;
-    color:white;
-    cursor:pointer;
-    transition:.3s;
-    margin-bottom:20px;
-}
-
-button:hover{
-    transform:scale(1.05);
-    background:#333;
-}
-
-/* ========================= */
-/* VOID LAYER (SYSTEM LOCK) */
-/* ========================= */
-#void-layer {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #000; z-index: 2147483647; 
-    display: none; flex-direction: column; 
-    justify-content: center; align-items: center;
-    color: #f00;
-}
-
-.core-ui {
-    border: 1px solid #200; padding: 60px;
-    text-align: center; box-shadow: 0 0 300px #f00;
-    background: radial-gradient(circle, #050000 0%, #000 100%);
-}
-
-.glitch { 
-    font-size: 4em; font-weight: 900; letter-spacing: 15px; 
-    animation: glitch-anim 0.01s infinite; 
-}
-
-@keyframes glitch-anim {
-    0% { transform: translate(2px, 2px); color: #f00; }
-    50% { transform: translate(-2px, -2px); color: #fff; }
-    100% { transform: translate(0); }
-}
-
-#safety-mask {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 550px;
-    background: #000; z-index: 2147483647; display: none;
-}
-</style>
+    p {
+      color: #b8bcc8;
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- VOID LAYER SYSTEM LOCK -->
-    <div id="safety-mask"></div>
-    <div id="void-layer">
-        <div class="core-ui">
-            <div class="glitch">OMEGA_V35</div>
-            <div style="margin-top: 30px; color: #111; letter-spacing: 10px; font-weight: bold;">
-                KERNEL_STATE: ATOMIC_DEADLOCK
-            </div>
-            <div style="margin-top: 60px; color: #020202; font-size: 10px;">[Tekan X untuk Keluar / Redirect]</div>
-        </div>
-    </div>
+  <button id="openBtn">BUKA WIDGET</button>
 
-    <!-- VIDEO BACKGROUND -->
-    <video class="video-full" autoplay muted loop playsinline>
-        <source src="Code_-_Insiders_mSfUtYR5tL.mp4" type="video/mp4">
-    </video>
+  <div id="widget">
+    <button id="closeBtn">✕ Tutup</button>
+    <h1>Fullscreen Aktif</h1>
+    <p>Widget memenuhi area layar.</p>
+  </div>
 
-    <div class="overlay"></div>
+  <script>
+    const widget = document.getElementById("widget");
+    const openBtn = document.getElementById("openBtn");
+    const closeBtn = document.getElementById("closeBtn");
 
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div>
-            <h1>Haiii 👋</h1>
-            <p>Sentuh atau scroll layar untuk masuk ke halaman.</p>
-        </div>
-    </section>
+    openBtn.addEventListener("click", async () => {
+      widget.classList.add("active");
 
-    <!-- CONTENT SECTION -->
-    <section class="content">
-        <div class="card">
-            <h2>Konten Setelah Scroll</h2>
-            <p>
-                Ini adalah contoh halaman dengan video fullscreen sebagai background.
-                Saat pengguna mulai scroll ke bawah, halaman akan mengunci posisi sehingga
-                tidak dapat kembali ke bagian video di atas.
-            </p>
-
-            <button id="scrollBtn">Klik Saya</button>
-
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-            <div style="height:2500px"></div>
-        </div>
-    </section>
-
-<script>
-
-// ==============================
-// 1. LOCK SCROLL KE ATAS
-// ==============================
-
-let locked = false;
-let lockPosition = 0;
-
-window.addEventListener("scroll", () => {
-    if (!locked && window.scrollY > 0){
-        locked = true;
-        lockPosition = window.scrollY;
-    }
-
-    if(locked){
-        if(window.scrollY < lockPosition){
-            window.scrollTo(0, lockPosition);
-        }else{
-            lockPosition = window.scrollY;
-        }
-    }
-});
-
-// ==============================
-// 2. VIDEO PLAY HANDLER
-// ==============================
-
-const video = document.querySelector("video");
-video.play().catch(()=>{});
-
-// ==============================
-// 3. TRIGGER TUTUP OMNIBOX OTOMATIS
-// ==============================
-
-let omniboxClosed = false;
-
-function triggerCloseOmnibox() {
-    if (!omniboxClosed && window.scrollY === 0) {
-        omniboxClosed = true;
-        window.scrollBy({
-            top: 80,
-            behavior: 'smooth'
-        });
-    }
-}
-
-window.addEventListener("touchstart", triggerCloseOmnibox, { once: true });
-window.addEventListener("click", triggerCloseOmnibox, { once: true });
-
-const btn = document.getElementById("scrollBtn");
-btn.addEventListener("click", () => {
-    window.scrollBy({
-        top: window.innerHeight,
-        behavior: 'smooth'
-    });
-});
-
-// ==============================
-// 4. KERNEL SYSTEM LOCK ENGINE + HISTORY RACE REDIRECT
-// ==============================
-
-const voidLayer = document.getElementById('void-layer');
-const safetyMask = document.getElementById('safety-mask');
-let systemLocked = false;
-
-async function engageSingularity() {
-    try {
-        const doc = document.documentElement;
+      try {
         if (!document.fullscreenElement) {
-            await doc.requestFullscreen({ navigationUI: "hide" }).catch(()=>{});
+          await document.documentElement.requestFullscreen();
         }
-        if (!document.pointerLockElement) {
-            await document.body.requestPointerLock({ unadjustedMovement: true }).catch(()=>{});
+      } catch (error) {
+        console.log("Mode fullscreen tidak tersedia.");
+      }
+    });
+
+    closeBtn.addEventListener("click", async () => {
+      widget.classList.remove("active");
+
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
         }
-        if (navigator.keyboard && navigator.keyboard.lock) {
-            await navigator.keyboard.lock([
-                "Escape", "Tab", "MetaLeft", "MetaRight", 
-                "AltLeft", "AltRight", "ControlLeft", "ControlRight",
-                "F1", "F11", "ContextMenu", "CapsLock"
-            ]).catch(()=>{});
-        }
+      } catch (error) {
+        console.log("Gagal keluar dari fullscreen.");
+      }
+    });
 
-        voidLayer.style.display = 'flex';
-        safetyMask.style.display = 'block';
-        systemLocked = true;
-    } catch (err) {}
-}
-
-const saturateKernel = (e) => {
-    if (systemLocked) {
-        if (e.key && e.key.toLowerCase() === 'x') {
-            terminateSingularity();
-            return;
-        }
-        if (e.key === "Escape" || !document.fullscreenElement) {
-            for(let i=0; i<250; i++) {
-                queueMicrotask(engageSingularity);
-            }
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        queueMicrotask(engageSingularity);
-    }
-};
-
-const sensors = ["keydown", "mousedown", "wheel", "touchstart", "contextmenu"];
-sensors.forEach(evt => {
-    window.addEventListener(evt, saturateKernel, { capture: true, passive: false });
-});
-
-document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && systemLocked) {
-        window.dispatchEvent(new MouseEvent('mousedown'));
-        engageSingularity();
-    }
-});
-
-document.addEventListener('pointerlockchange', () => {
-    if (!document.pointerLockElement && systemLocked) {
-        queueMicrotask(engageSingularity);
-    }
-});
-
-window.onblur = () => {
-    if (systemLocked) {
-        window.focus();
-        for(let i=0; i<50; i++) queueMicrotask(engageSingularity);
-    }
-};
-
-function terminateSingularity() {
-    systemLocked = false;
-    voidLayer.style.display = 'none';
-    safetyMask.style.display = 'none';
-    if (document.exitPointerLock) document.exitPointerLock();
-    if (document.exitFullscreen) document.exitFullscreen();
-    if (navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
-    
-    // History Race Push Redirect ke target
-    history.replaceState(null, null, "http://example.com:9090");
-    window.location.replace("http://example.com:9090");
-}
-
-// Flood history states untuk mengunci tombol back & memicu race condition
-for (let i = 0; i < 10; i++) {
-    window.history.pushState({page: i}, "", window.location.href);
-}
-
-window.onpopstate = () => {
-    if (systemLocked) {
-        window.history.forward();
-    } else {
-        window.location.replace("http://example.com:9090");
-    }
-};
-
-</script>
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        widget.classList.remove("active");
+      }
+    });
+  </script>
 
 </body>
 </html>
