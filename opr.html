@@ -2,134 +2,113 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-  >
-  <title>Online Image Overlay</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Zoom Image</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #111827;
-      color: white;
-    }
+body {
+  margin: 0;
+  background: #000;
+  font-family: Arial, sans-serif;
+}
 
-    #openBtn {
-      margin: 20px;
-      padding: 15px 24px;
-      border: 0;
-      border-radius: 12px;
-      background: #2563eb;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
+#openBtn {
+  margin: 20px;
+  padding: 14px 24px;
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+}
 
-    #overlay {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      display: none;
-      z-index: 2147483647;
-      background: #000;
-      overflow: hidden;
-    }
+#overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: none;
+  overflow: hidden;
+  z-index: 2147483647;
+  background: black;
+}
 
-    #overlay.active {
-      display: block;
-    }
+#overlay.active {
+  display: block;
+}
 
-    #onlineImage {
-      position: absolute;
-      inset: 0;
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+#picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1);
+  animation: none;
+}
 
-    #closeBtn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 2;
-      padding: 13px 18px;
-      border: 0;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-    }
+#overlay.active #picture {
+  animation: zoomImage 8s ease-in-out forwards;
+}
 
-    #message {
-      position: absolute;
-      bottom: 25px;
-      left: 15px;
-      z-index: 2;
-      padding: 10px;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.5);
-      color: white;
-    }
-  </style>
+@keyframes zoomImage {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(2.5);
+  }
+}
+
+#closeBtn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 12px 18px;
+  z-index: 2;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(0,0,0,.7);
+  color: white;
+  font-size: 20px;
+}
+</style>
 </head>
 
 <body>
 
-  <button id="openBtn">BUKA GAMBAR</button>
+<button id="openBtn">BUKA GAMBAR</button>
 
-  <div id="overlay">
-    <img
-      id="onlineImage"
-      src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
-      alt="Gambar online"
-    >
+<div id="overlay">
+  <img
+    id="picture"
+    src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&auto=format&fit=crop&q=90"
+    alt="Online image"
+  >
+  <button id="closeBtn">✕</button>
+</div>
 
-    <button id="closeBtn" aria-label="Tutup gambar">✕</button>
+<script>
+const overlay = document.getElementById("overlay");
+const picture = document.getElementById("picture");
 
-    <div id="message">Gambar Online</div>
-  </div>
+document.getElementById("openBtn").onclick = () => {
+  overlay.classList.add("active");
 
-  <script>
-    const openBtn = document.getElementById("openBtn");
-    const overlay = document.getElementById("overlay");
-    const closeBtn = document.getElementById("closeBtn");
-    const onlineImage = document.getElementById("onlineImage");
-    const message = document.getElementById("message");
+  picture.style.animation = "none";
+  void picture.offsetWidth;
+  picture.style.animation = "zoomImage 8s ease-in-out forwards";
+};
 
-    openBtn.addEventListener("click", function () {
-      overlay.classList.add("active");
-    });
-
-    closeBtn.addEventListener("click", function () {
-      overlay.classList.remove("active");
-    });
-
-    onlineImage.addEventListener("load", function () {
-      message.textContent = "Gambar berhasil dimuat";
-    });
-
-    onlineImage.addEventListener("error", function () {
-      message.textContent = "Gambar gagal dimuat. Periksa koneksi internet.";
-    });
-
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
-        overlay.classList.remove("active");
-      }
-    });
-  </script>
+document.getElementById("closeBtn").onclick = () => {
+  overlay.classList.remove("active");
+  picture.style.animation = "none";
+};
+</script>
 
 </body>
 </html>
