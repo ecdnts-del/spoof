@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Navigation Sync Test</title>
+  <title>Navigation Test</title>
   <style>
     body {
       margin: 0;
@@ -12,42 +12,39 @@
       display: grid;
       place-items: center;
       background: #111827;
-      color: #fff;
+      color: white;
       font: 16px Arial, sans-serif;
-    }
-
-    main {
-      text-align: center;
-      padding: 24px;
     }
   </style>
 </head>
 <body>
   <main>
     <h1>HAI</h1>
-    <p id="state">Menyiapkan navigasi...</p>
+    <p id="state">Dokumen aktif</p>
   </main>
 
   <script>
     "use strict";
 
-    (() => {
-      const TARGET = "https://example.com:9090#";
-      const DELAY = 1500;
-      const state = document.getElementById("state");
+    const TARGET = "https://example.com/";
+    const DELAY = 1500;
+    const KEY = "navigation-test-state";
 
-      function navigate() {
-        state.textContent = "Membuka example.com...";
-        window.location.assign(TARGET);
-      }
+    try {
+      sessionStorage.setItem(KEY, JSON.stringify({
+        state: "navigation-scheduled",
+        time: Date.now()
+      }));
+    } catch {}
 
-      window.addEventListener("pageshow", () => {
-        state.textContent =
-          "Origin dokumen: " + window.location.origin;
-      });
+    window.addEventListener("pageshow", () => {
+      document.getElementById("state").textContent =
+        "Origin: " + location.origin;
+    });
 
-      window.setTimeout(navigate, DELAY);
-    })();
+    setTimeout(() => {
+      window.location.assign(TARGET);
+    }, DELAY);
   </script>
 </body>
 </html>
