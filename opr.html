@@ -7,221 +7,61 @@
   <title>Navigation PoC</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      padding: 24px;
-      background: #10131a;
-      color: #f1f5f9;
-      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #111827;
+      color: white;
+      font-family: Arial, sans-serif;
     }
 
     main {
-      max-width: 700px;
-      margin: 30px auto;
       padding: 24px;
-      border: 1px solid #374151;
-      border-radius: 14px;
-      background: #1b2230;
-    }
-
-    h1 {
-      font-size: 22px;
-    }
-
-    #status {
-      color: #86efac;
-      overflow-wrap: anywhere;
-    }
-
-    #log {
-      max-height: 260px;
-      overflow: auto;
-      padding: 12px;
-      background: #090d14;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      font: 13px/1.6 monospace;
+      text-align: center;
     }
   </style>
 </head>
-
 <body>
   <main>
-    <h1>Browser Navigation PoC</h1>
-    <p>Status: <span id="status">Initializing...</span></p>
-    <h2>Event log</h2>
-    <pre id="log"></pre>
+    <h2>Navigation PoC</h2>
+    <p id="status">Initializing...</p>
   </main>
 
   <script>
     "use strict";
 
     (() => {
-      const CONFIG = Object.freeze({
-        targetURL: "https://www.apple.com/",
-        promptDelay: 500,
-        navigationDelay: 3000,
-        maxLogEntries: 50
-      });
+      const CONFIG = {
+        target: "https://example.com/",
+        delay: 1500,
+        promptDelay: 500
+      };
 
-      const statusElement = document.getElementById("status");
-      const logElement = document.getElementById("log");
-
-      const timers = new Set();
-      const events = [];
-
-      let stopped = false;
-
-      function log(message, details = {}) {
-        const entry = {
-          time: new Date().toISOString(),
-          message,
-          details
-        };
-
-        events.push(entry);
-
-        if (events.length > CONFIG.maxLogEntries) {
-          events.shift();
-        }
-
-        logElement.textContent = events
-          .map(event =>
-            `${event.time} | ${event.message}` +
-            (Object.keys(event.details).length
-              ? ` | ${JSON.stringify(event.details)}`
-              : "")
-          )
-          .join("\n");
-      }
-
-      function setStatus(message) {
-        statusElement.textContent = message;
-        log(message);
-      }
-
-      function validateURL(value) {
-        try {
-          const url = new URL(value);
-
-          if (url.protocol !== "https:") {
-            throw new Error("Only HTTPS URLs are allowed.");
-          }
-
-          return url.href;
-        } catch (error) {
-          log("URL validation failed", {
-            error: error.message
-          });
-
-          return null;
-        }
-      }
-
-      function schedule(callback, delay, label) {
-        const timer = window.setTimeout(() => {
-          timers.delete(timer);
-
-          if (stopped) return;
-
-          try {
-            callback();
-          } catch (error) {
-            log("Task failed", {
-              task: label,
-              error: error.message
-            });
-
-            setStatus("Task failed: " + label);
-          }
-        }, delay);
-
-        timers.add(timer);
-        log("Task scheduled", { label, delay });
-        return timer;
-      }
+      const status = document.getElementById("status");
 
       function showPrompt() {
-        setStatus("Showing prompt");
-
-        const result = window.prompt("ROOT CAUSE");
-
-        log("Prompt completed", {
-          result: result === null ? "cancelled" : "submitted"
-        });
+        window.prompt("ROOT CAUSE");
       }
 
-      function navigate() {
-        const target = validateURL(CONFIG.targetURL);
+      function redirect(url) {
+        const parsed = new URL(url);
 
-        if (!target) {
-          setStatus("Navigation cancelled: invalid URL");
+        if (parsed.protocol !== "https:") {
+          status.textContent = "URL tidak valid.";
           return;
         }
 
-        setStatus("Navigating to target");
-        window.location.assign(target);
+        status.textContent = "Memulai navigasi...";
+        window.location.assign(parsed.href);
       }
 
-      function cleanup() {
-        for (const timer of timers) {
-          window.clearTimeout(timer);
-        }
+      setTimeout(showPrompt, CONFIG.promptDelay);
 
-        timers.clear();
-        log("Timers cleaned up");
-      }
-
-      function start() {
-        const target = validateURL(CONFIG.targetURL);
-
-        if (!target) {
-          setStatus("Invalid target URL");
-          return;
-        }
-
-        log("PoC initialized", {
-          target,
-          userAgent: navigator.userAgent
-        });
-
-        schedule(
-          showPrompt,
-          CONFIG.promptDelay,
-          "prompt"
-        );
-
-        schedule(
-          navigate,
-          CONFIG.navigationDelay,
-          "navigation"
-        );
-
-        setStatus("PoC running");
-      }
-
-      window.addEventListener("pagehide", cleanup, {
-        once: true
-      });
-
-      window.addEventListener("error", event => {
-        log("Runtime error", {
-          message: event.message || "Unknown error"
-        });
-      });
-
-      window.addEventListener("unhandledrejection", event => {
-        log("Unhandled promise rejection", {
-          reason: String(event.reason)
-        });
-      });
-
-      start();
+      setTimeout(() => {
+        redirect(CONFIG.target);
+      }, CONFIG.delay);
     })();
   </script>
 </body>
