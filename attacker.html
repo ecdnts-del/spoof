@@ -1,65 +1,68 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Window History Demo</title>
-  <style>
-    body { font-family: Arial, sans-serif; }
-    #log { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
-    button { margin: 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POC APK Download</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #101827;
+    font-family: Arial, sans-serif;
+    color: white;
+  }
+  .card {
+    background: #1e293b;
+    padding: 35px;
+    border-radius: 15px;
+    text-align: center;
+    width: 280px;
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+</style>
 </head>
 <body>
-  <h2>Demo Window History</h2>
-  <button onclick="checkHistory()">Cek History Tab Ini</button>
-  <button onclick="goBack()">Kembali</button>
-  <button onclick="goForward()">Maju</button>
-  <button onclick="goToPage()">Pergi ke Halaman Awal</button>
-  <button onclick="pushState()">Tambah State Baru</button>
-  <button onclick="replaceState()">Ganti State</button>
 
-  <div id="log"><strong>Log Navigasi:</strong><br></div>
+<div class="card">
+  <h2>Simple APK</h2>
+  <p>POC Download Demo</p>
+  <button onclick="downloadAPK()">Download APK</button>
+  <p id="status"></p>
+</div>
 
-  <script>
-    function log(message) {
-      const logDiv = document.getElementById("log");
-      logDiv.innerHTML += message + "<br>";
-    }
+<script>
+function downloadAPK() {
+  const content = "Simple APK Download POC Demo";
+  const blob = new Blob([content], {
+    type: "application/vnd.android.package-archive"
+  });
 
-    function checkHistory() {
-      log("Jumlah halaman di history tab ini: " + window.history.length);
-    }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "simple.apk";
+  a.click();
 
-    function goBack() {
-      log("Navigasi: kembali ke halaman sebelumnya");
-      window.history.back();
-    }
+  URL.revokeObjectURL(url);
+  document.getElementById("status").textContent =
+    "Download berhasil dimulai!";
+}
+</script>
 
-    function goForward() {
-      log("Navigasi: maju ke halaman berikutnya");
-      window.history.forward();
-    }
-
-    function goToPage() {
-      log("Navigasi: lompat mundur 1 halaman");
-      window.history.go(-1);
-    }
-
-    function pushState() {
-      const state = { page: "extra" };
-      window.history.pushState(state, "Extra Page", "?extra");
-      log("Push state baru: " + JSON.stringify(state));
-    }
-
-    function replaceState() {
-      const state = { page: "replaced" };
-      window.history.replaceState(state, "Replaced Page", "?replaced");
-      log("Replace state: " + JSON.stringify(state));
-    }
-
-    // Event listener untuk deteksi perubahan state
-    window.onpopstate = function(event) {
-      log("Popstate event: " + JSON.stringify(event.state));
-    };
-  </script>
 </body>
 </html>
