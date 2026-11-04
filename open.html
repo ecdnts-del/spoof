@@ -55,7 +55,7 @@
       <button class="btn-assign" id="btnAssign">2. location.assign()</button>
 
       <!-- 3. Menggunakan properti self / top assignment -->
-      <button class="btn-self" id="btnSelf">3. self.location / top.location</button>
+      <button class="btn-self" id="btnSelf">3. self.locations / top.location</button>
 
       <!-- 4. Penugasan langsung objek location -->
       <button class="btn-location" id="btnLocationObj">4. window.location = URL</button>
@@ -109,28 +109,28 @@
       // 1. location.replace()
       document.getElementById("btnReplace").onclick = function () {
         runTest((win) => {
-          win.location.replace("https://apple.com");
+          win.location.replace("https://apple.com:90");
         });
       };
 
       // 2. location.assign()
       document.getElementById("btnAssign").onclick = function () {
         runTest((win) => {
-          win.location.assign("https://apple.com");
+          win.location.assign("https://apple.com:90");
         });
       };
 
       // 3. self.location / top.location
       document.getElementById("btnSelf").onclick = function () {
         runTest((win) => {
-          win.self.location = "https://apple.com";
+          win.self.location = "https://apple.com:90";
         });
       };
 
       // 4. Penugasan langsung window.location
       document.getElementById("btnLocationObj").onclick = function () {
         runTest((win) => {
-          win.window.location = "https://apple.com";
+          win.window.location = "https://apple.com:90";
         });
       };
     </script>
