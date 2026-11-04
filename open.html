@@ -4,121 +4,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chromium Drag Drop Regression</title>
-<style>
-* { box-sizing:border-box; }
+<title>Chromium iOS Drag Drop Regression</title>
 
-body {
-  margin:0;
-  min-height:100vh;
-  font-family:Arial,sans-serif;
-  background:#f3f4f6;
-  display:grid;
-  place-items:center;
+<style>
+* {
+  box-sizing: border-box;
 }
 
-main {
-  width:min(90%,420px);
-  background:white;
-  padding:28px;
-  border-radius:16px;
-  text-align:center;
-  box-shadow:0 5px 25px #0002;
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 45px 16px;
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+}
+
+.container {
+  max-width: 440px;
+  margin: auto;
+  padding: 25px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px #0002;
+  text-align: center;
 }
 
 button {
-  background:#007aff;
-  color:white;
-  border:0;
-  padding:15px 30px;
-  border-radius:10px;
-  font-size:17px;
-}
-
-#status {
-  margin-top:20px;
-  padding:14px;
-  background:#111;
-  color:#00ff90;
-  overflow-wrap:anywhere;
-  font-size:13px;
+  padding: 15px 30px;
+  border: 0;
+  border-radius: 9px;
+  background: #007aff;
+  color: white;
+  font-size: 17px;
 }
 
 iframe {
-  width:100%;
-  height:100px;
-  border:1px solid #ddd;
-  margin-top:20px;
+  width: 100%;
+  height: 110px;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+}
+
+#drop {
+  margin-top: 20px;
+  padding: 35px 10px;
+  border: 2px dashed #aaa;
+  color: #555;
+}
+
+#status {
+  margin-top: 20px;
+  padding: 12px;
+  background: #111;
+  color: #00ff90;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
 }
 </style>
 </head>
+
 <body>
-<main>
-  <h2>Chromium Security Test</h2>
-  <p>Invalid-port navigation regression test</p>
+
+<div class="container">
+  <h2>Chromium Security Regression</h2>
+
+  <p>Drag-and-drop navigation test</p>
 
   <button id="start">START TEST</button>
 
-  <iframe id="testFrame"
-    title="Drag and drop test"
-    sandbox="allow-scripts allow-popups"
-    srcdoc="<p>Controlled test frame</p>">
-  </iframe>
+  <iframe id="frame" title="Controlled drag test"></iframe>
 
-  <div id="status">Ready</div>
-</main>
+  <div id="drop">Drop area</div>
+
+  <pre id="status">Ready</pre>
+</div>
 
 <script>
 const status = document.getElementById("status");
+const frame = document.getElementById("frame");
 
-function report(message) {
-  status.textContent = message;
+function log(message) {
+  status.textContent +=
+    "\n" + new Date().toISOString() + " | " + message;
 }
 
+frame.srcdoc = `
+<!DOCTYPE html>
+<html>
+<body style="
+  font-family:Arial;
+  text-align:center;
+  padding:15px;
+">
+  <a
+    href="https://example.com:81/"
+    draggable="true"
+    id="testLink"
+    style="
+      display:block;
+      padding:20px;
+      font-size:24px;
+      font-weight:bold;
+      color:#2563eb;
+    "
+  >DRAG TEST LINK</a>
+
+  <script>
+    document.getElementById("testLink")
+      .addEventListener("dragstart", function() {
+        parent.postMessage(
+          {type:"DRAG_STARTED"},
+          "*"
+        );
+      });
+  <\/script>
+</body>
+</html>
+`;
+
+window.addEventListener("message", event => {
+  if (event.source !== frame.contentWindow) return;
+
+  if (event.data?.type === "DRAG_STARTED") {
+    log("Iframe drag started");
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  log("Visibility: " + document.visibilityState);
+});
+
+window.addEventListener("pagehide", () => {
+  log("Parent pagehide");
+});
+
+window.addEventListener("pageshow", event => {
+  log("Parent pageshow; persisted=" + event.persisted);
+});
+
 document.getElementById("start").onclick = () => {
-  report("Starting regression test...");
+  log("TEST STARTED");
+  log("Browser URL: " + location.href);
 
   const w = window.open("about:blank", "_blank");
 
   if (!w) {
-    report("Popup blocked by browser");
+    log("Popup blocked");
     return;
   }
 
+  log("Test WebState opened");
+
   w.document.write(`
-    <!doctype html>
+    <!DOCTYPE html>
     <html>
-    <head>
-      <title>Controlled Test Page</title>
-    </head>
-    <body style="font-family:Arial;text-align:center;padding:30px">
+    <head><title>Controlled Test</title></head>
+    <body style="font-family:Arial;padding:25px">
       <h1>Controlled Test Document</h1>
-      <p>Navigation lifecycle test</p>
-      <p id="state">Initial document active</p>
+      <p id="result">Initial document active</p>
     </body>
     </html>
   `);
 
   w.document.close();
 
-  report("Initial document created");
+  log("Initial document created");
+
+  w.addEventListener("pagehide", () => {
+    log("Test pagehide");
+  });
+
+  w.addEventListener("pageshow", event => {
+    log("Test pageshow; persisted=" + event.persisted);
+  });
+
+  w.addEventListener("beforeunload", () => {
+    log("Test beforeunload");
+  });
 
   setTimeout(() => {
     try {
+      log("Requesting invalid-port navigation");
+
       w.location.href = "https://example.com:81/";
-      report("Invalid-port navigation requested");
-    } catch (e) {
-      report("Navigation exception: " + e.name);
+    } catch (error) {
+      log("Navigation error: " + error.name);
     }
-  }, 1000);
+  }, 1500);
 
   setTimeout(() => {
-    report(
-      "Window closed: " + w.closed +
-      " | Check browser address bar and document state manually."
-    );
-  }, 5000);
+    log("Popup closed: " + w.closed);
+
+    try {
+      log("Popup URL: " + w.location.href);
+    } catch (error) {
+      log("Cross-origin restriction: " + error.name);
+    }
+
+    log("TEST OBSERVATION POINT");
+  }, 8000);
 };
 </script>
+
 </body>
 </html>
