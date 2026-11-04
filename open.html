@@ -2,83 +2,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chrome iOS Download Origin Test</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 24px;
-      text-align: center;
-    }
-
-    button {
-      background: #16834a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 14px 22px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .info {
-      margin-top: 24px;
-      padding: 14px;
-      background: #f1f1f1;
-      border-radius: 8px;
-      text-align: left;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chrome iOS Origin Regression Lab</title>
+<style>
+body {
+  font-family: -apple-system, sans-serif;
+  padding: 20px;
+}
+button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border: 0;
+  border-radius: 8px;
+  background: #167c45;
+  color: white;
+  font-size: 16px;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #eee;
+  padding: 12px;
+}
+</style>
 </head>
 <body>
 
-  <h2>Download Origin Regression Test</h2>
+<h2>Download Origin Regression Lab</h2>
+<p>Chrome iOS security UI testing</p>
 
-  <p>
-    Testing Unicode filename handling
-    in Chrome for iOS.
-  </p>
+<button onclick="test('normal')">
+  T01 - Normal filename
+</button>
 
-  <button onclick="runTest()">
-    Start Download Test
-  </button>
+<button onclick="test('long')">
+  T02 - Long filename
+</button>
 
-  <div class="info">
-    <strong>Test configuration</strong>
-    <p>Unicode: U+3164, U+200B, U+2060</p>
-    <p>Expected: Actual download origin remains visible.</p>
-  </div>
+<button onclick="test('unicode')">
+  T03 - Unicode whitespace
+</button>
 
-  <script>
-    function runTest() {
-      const filename =
-        "unicode-test-\u3164\u200B\u2060.txt";
+<button onclick="test('invisible')">
+  T04 - Invisible characters
+</button>
 
-      const content =
-        "Chrome iOS download origin regression test.\n" +
-        "This file is harmless.";
+<button onclick="test('mixed')">
+  T05 - Mixed Unicode
+</button>
 
-      const blob = new Blob(
-        [content],
-        { type: "text/plain" }
-      );
+<pre id="result">Waiting for test...</pre>
 
-      const url = URL.createObjectURL(blob);
+<script>
+function test(type) {
+  const cases = {
+    normal: "normal-download.txt",
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
+    long: "long-".repeat(60) + ".txt",
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    unicode:
+      "test-\u3164\u3164\u3164.txt",
 
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-      }, 5000);
-    }
-  </script>
+    invisible:
+      "test-\u200B\u2060\u200B.txt",
+
+    mixed:
+      "test-\u3164\u200B\u2060\u2800.txt"
+  };
+
+  const filename = cases[type];
+
+  const content =
+    "Harmless Chrome download regression test.\n";
+
+  const blob = new Blob(
+    [content],
+    { type: "text/plain" }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  document.getElementById("result").textContent =
+    "Test: " + type +
+    "\nFilename: " + filename +
+    "\nExpected: Origin remains visible.";
+
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+</script>
 
 </body>
 </html>
