@@ -1,228 +1,160 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=yes">
-
-<title>Chromium iOS Security Regression Testing</title>
+      content="width=device-width, initial-scale=1">
+<title>Chromium iOS Security Testing</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  background: #fff;
-  font-family: Arial, sans-serif;
-}
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    background: #fff;
+    color: #222;
+  }
 
-button {
-  padding: 15px 30px;
-  background: #007aff;
-  color: white;
-  border: 0;
-  border-radius: 10px;
-  font-size: 17px;
-  margin: 8px;
-}
+  button {
+    display: block;
+    margin: 35vh auto 24px;
+    padding: 16px 36px;
+    border: 0;
+    border-radius: 10px;
+    background: #007aff;
+    color: white;
+    font-size: 18px;
+  }
 
-#controls {
-  text-align: center;
-  padding-top: 30vh;
-}
-
-#log {
-  margin: 15px;
-  padding: 15px;
-  background: #111;
-  color: #00ff90;
-  border-radius: 8px;
-  font-size: 11px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-height: 40vh;
-  overflow-y: auto;
-}
-
-#status {
-  padding: 12px;
-  text-align: center;
-  font-weight: bold;
-}
+  #log {
+    padding: 12px;
+    background: #111;
+    color: #00ff90;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
 </style>
 </head>
 
 <body>
 
-<div id="controls">
-  <h2>TESTING SECURITY TEST</h2>
-  <button id="startBtn">CLICK HERE</button>
-  <button id="recoveryBtn" disabled>TEST RECOVERY</button>
-</div>
+<button id="startBtn">START TESTING</button>
 
-<div id="status">Status: READY</div>
 <pre id="log"></pre>
 
 <script>
 const output = document.getElementById("log");
-const status = document.getElementById("status");
-
-let popup = null;
-let started = false;
 
 function log(message) {
-  const timestamp = new Date().toISOString();
-
   output.textContent +=
-    timestamp + " | " + message + "\n";
-
-  output.scrollTop = output.scrollHeight;
+    new Date().toISOString() +
+    " | " + message + "\n";
 }
 
-function setStatus(message) {
-  status.textContent = "Status: " + message;
-  log(message);
-}
+document.getElementById("startBtn").onclick = async function () {
+  this.disabled = true;
 
-function monitorVisibility() {
-  log("Visibility: " + document.visibilityState);
-}
+  log("TESTING STARTED");
+  log("Initial URL: " + location.href);
+  log("Initial origin: " + location.origin);
 
-document.addEventListener(
-  "visibilitychange",
-  monitorVisibility
-);
-
-window.addEventListener("pagehide", () => {
-  log("Parent PAGEHIDE");
-});
-
-window.addEventListener("pageshow", () => {
-  log("Parent PAGESHOW");
-});
-
-window.addEventListener("focus", () => {
-  log("Parent WINDOW FOCUS");
-});
-
-window.addEventListener("blur", () => {
-  log("Parent WINDOW BLUR");
-});
-
-document.getElementById("startBtn").onclick = () => {
-  if (started) return;
-
-  started = true;
-
-  setStatus("TEST STARTED");
-
-  log("Parent URL: " + location.href);
-  log("Parent origin: " + location.origin);
-
-  popup = window.open("about:blank", "_blank");
+  const popup = window.open("about:blank", "_blank");
 
   if (!popup) {
-    setStatus("POPUP BLOCKED");
+    log("RESULT: Popup blocked");
+    this.disabled = false;
     return;
   }
 
-  log("Popup created");
+  log("New WebState requested");
 
-  try {
-    popup.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Testing Security Test</title>
-      </head>
+  popup.document.write(`
+    <!doctype html>
+    <html>
+    <head>
+      <title>TESTING</title>
+    </head>
+    <body style="font-family:Arial;text-align:center;padding:30px">
+      <h1 style="color:#007aff">TESTING</h1>
+      <h2>Chromium iOS Regression</h2>
+      <p>Navigation lifecycle observation</p>
+    </body>
+    </html>
+  `);
 
-      <body style="
-        margin:0;
-        padding:25px;
-        text-align:center;
-        font-family:Arial;
-        background:white;
-      ">
+  popup.document.close();
 
-        <h1 style="color:red">
-          TESTING SECURITY TEST
-        </h1>
+  log("Document injection completed");
 
-        <h2 style="color:#007aff">
-          Chromium iOS Navigation Test
-        </h2>
+  popup.addEventListener("pagehide", () => {
+    log("Popup: pagehide");
+  });
 
-        <p>Testing WebState lifecycle.</p>
+  popup.addEventListener("pageshow", () => {
+    log("Popup: pageshow");
+  });
 
-        <p id="state">INITIAL DOCUMENT</p>
-
-      </body>
-      </html>
-    `);
-
-    popup.document.close();
-
-    log("Initial document injected");
-    setStatus("INITIAL DOCUMENT CREATED");
-
-  } catch (error) {
-    log("Document injection error: " + error.message);
-    return;
-  }
+  popup.addEventListener("visibilitychange", () => {
+    log("Popup visibility: " +
+        popup.document.visibilityState);
+  });
 
   setTimeout(() => {
     try {
-      log("Redirect requested");
-      popup.location.href = "https://testing.com";
-      setStatus("REDIRECT REQUESTED");
+      log("Testing invalid-port navigation");
+
+      popup.location.href =
+        "http://127.0.0.1:65536/";
+
+      log("Navigation request submitted");
     } catch (error) {
-      log("Redirect error: " + error.message);
+      log("Navigation exception: " + error.name);
     }
   }, 1000);
 
   setTimeout(() => {
     try {
       log("Popup closed: " + popup.closed);
-
-      if (!popup.closed) {
-        try {
-          log("Popup URL: " + popup.location.href);
-        } catch (error) {
-          log("Cross-origin restriction: " + error.name);
-        }
-      }
+      log("Popup current URL: " + popup.location.href);
     } catch (error) {
-      log("Popup status error: " + error.message);
+      log("URL inaccessible: " + error.name);
     }
   }, 3000);
 
   setTimeout(() => {
-    document.getElementById("recoveryBtn").disabled = false;
-    setStatus("INITIAL TEST OBSERVATION COMPLETED");
-  }, 5000);
+    log("Testing active-tab JavaScript dialog");
+
+    try {
+      const result = window.confirm(
+        "TESTING: JavaScript dialog regression check"
+      );
+
+      log("Confirm result: " + result);
+    } catch (error) {
+      log("Dialog exception: " + error.name);
+    }
+  }, 4000);
+
+  setTimeout(() => {
+    log("TESTING COMPLETED");
+  }, 6000);
 };
 
-document.getElementById("recoveryBtn").onclick = () => {
-  log("=== RECOVERY TEST ===");
+document.addEventListener("visibilitychange", () => {
+  log("Parent visibility: " + document.visibilityState);
+});
 
-  if (!popup || popup.closed) {
-    setStatus("POPUP UNAVAILABLE");
-    return;
-  }
+window.addEventListener("pagehide", () => {
+  log("Parent pagehide");
+});
 
-  try {
-    log("Attempting navigation to testing.com");
-    popup.location.href = "https://testing.com";
-    setStatus("RECOVERY NAVIGATION REQUESTED");
-  } catch (error) {
-    log("Recovery error: " + error.message);
-  }
-};
-
-log("Regression test initialized");
-log("Initial origin: " + location.origin);
-log("Initial visibility: " + document.visibilityState);
+window.addEventListener("pageshow", () => {
+  log("Parent pageshow");
+});
 </script>
 
 </body>
