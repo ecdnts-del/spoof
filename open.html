@@ -4,293 +4,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chromium iOS Security Regression Test</title>
-
+<title>Testing - Chromium Regression</title>
 <style>
-* { box-sizing: border-box; }
-
-html, body {
-  margin: 0;
-  min-height: 100%;
-  background: #fff;
-  color: #222;
-  font-family: Arial, sans-serif;
+html,body {
+  margin:0;
+  min-height:100%;
+  font-family:Arial,sans-serif;
+  background:#fff;
 }
-
-header {
-  padding: 20px;
-  text-align: center;
-  background: #172554;
-  color: white;
-}
-
 #startBtn {
-  display: block;
-  margin: 35px auto;
-  padding: 16px 35px;
-  border: 0;
-  border-radius: 10px;
-  background: #007aff;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  padding:16px 32px;
+  background:#007aff;
+  color:white;
+  border:0;
+  border-radius:10px;
+  font-size:18px;
 }
-
-.panel {
-  margin: 12px;
-  padding: 14px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-}
-
-#status {
-  font-weight: bold;
-  color: #007aff;
-}
-
 #log {
-  max-height: 350px;
-  overflow-y: auto;
-  padding: 12px;
-  background: #111;
-  color: #00ff90;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-size: 11px;
-}
-
-iframe {
-  width: 100%;
-  height: 100px;
-  border: 1px solid #ddd;
+  margin-top:20px;
+  padding:12px;
+  background:#111;
+  color:#00ff90;
+  font-size:12px;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
 }
 </style>
 </head>
-
 <body>
 
-<header>
-  <h2>Chromium iOS Security Test</h2>
-  <p>Navigation and WebState Lifecycle</p>
-</header>
-
 <button id="startBtn">START TEST</button>
-
-<div class="panel">
-  <div id="status">Status: READY</div>
-  <p>Parent URL: <span id="parentUrl"></span></p>
-  <p>Visibility: <span id="visibility">visible</span></p>
-</div>
-
-<div class="panel">
-  <h3>Test Results</h3>
-  <pre id="log"></pre>
-</div>
+<pre id="log"></pre>
 
 <script>
-"use strict";
+const log = message => {
+  document.getElementById("log").textContent +=
+    new Date().toISOString() + " | " + message + "\n";
+};
 
-const $ = id => document.getElementById(id);
+document.getElementById("startBtn").onclick = function() {
+  this.remove();
 
-let popup = null;
-let started = false;
+  log("TEST STARTED");
+  log("Browser: " + navigator.userAgent);
 
-function log(message) {
-  const line =
-    new Date().toISOString() +
-    " | " + message + "\n";
+  const w = window.open("about:blank", "_blank");
 
-  $("log").textContent += line;
-  $("log").scrollTop = $("log").scrollHeight;
-}
-
-function status(message) {
-  $("status").textContent = "Status: " + message;
-  log(message);
-}
-
-function inspectPopup() {
-  if (!popup) {
-    log("Popup reference unavailable");
+  if (!w) {
+    log("Popup blocked");
     return;
   }
 
-  try {
-    log("Popup closed: " + popup.closed);
+  log("New browsing context created");
 
-    // Same-origin access only.
-    log("Popup URL: " + popup.location.href);
-    log("Popup document readyState: " +
-        popup.document.readyState);
-
-    log("Popup title: " + popup.document.title);
-
-    log("Popup DOM inspection successful");
-  } catch (error) {
-    log("Cross-origin inspection blocked: " +
-        error.name);
-  }
-}
-
-function createTestDocument() {
-  return `
+  w.document.write(`
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport"
-            content="width=device-width, initial-scale=1">
-      <title>TESTING DOCUMENT</title>
-    </head>
-    <body style="
-      margin:0;
-      padding:30px;
-      font-family:Arial;
-      text-align:center;
-      background:#fff;
-    ">
-      <h1 style="color:#dc2626">
-        TESTING
-      </h1>
-
-      <h2>Chromium iOS Regression</h2>
-
-      <p>Initial about:blank document.</p>
-
-      <p id="documentStatus">
-        Document successfully created.
-      </p>
+    <html>
+    <head><title>TESTING</title></head>
+    <body style="font-family:Arial;text-align:center;padding:30px">
+      <h1 style="color:red">TESTING</h1>
+      <h2>Navigation Regression Test</h2>
+      <p>Initial document rendered.</p>
+      <p id="state">Waiting for navigation...</p>
     </body>
     </html>
-  `;
-}
+  `);
 
-function runTest() {
-  if (started) return;
-  started = true;
+  w.document.close();
 
-  $("startBtn").disabled = true;
+  log("Initial document written");
 
-  status("TEST STARTED");
+  w.addEventListener("pagehide", () =>
+    log("PAGEHIDE detected")
+  );
 
-  log("Parent URL: " + location.href);
-  log("Parent origin: " + location.origin);
-  log("User agent: " + navigator.userAgent);
+  w.addEventListener("pageshow", () =>
+    log("PAGESHOW detected")
+  );
 
-  popup = window.open("about:blank", "_blank");
+  w.addEventListener("beforeunload", () =>
+    log("BEFOREUNLOAD detected")
+  );
 
-  if (!popup) {
-    status("POPUP BLOCKED");
-    return;
-  }
+  w.addEventListener("load", () =>
+    log("LOAD event detected")
+  );
 
-  log("Popup successfully opened");
-
-  popup.document.open();
-  popup.document.write(createTestDocument());
-  popup.document.close();
-
-  log("Initial document injected");
-
-  popup.addEventListener("pageshow", event => {
-    log("Popup pageshow; persisted=" + event.persisted);
-  });
-
-  popup.addEventListener("pagehide", event => {
-    log("Popup pagehide; persisted=" + event.persisted);
-  });
-
-  popup.addEventListener("beforeunload", () => {
-    log("Popup beforeunload");
-  });
-
-  popup.addEventListener("unload", () => {
-    log("Popup unload");
-  });
-
-  inspectPopup();
-
-  // Test 1: normal HTTPS navigation.
   setTimeout(() => {
-    status("TEST 1: HTTPS NAVIGATION");
+    log("Starting navigation to x.com");
 
     try {
-      popup.location.href = "https://x.com";
-      log("Navigation request sent to x.com");
-    } catch (error) {
-      log("Navigation exception: " + error.name);
+      w.location.assign("https://x.com/");
+    } catch(e) {
+      log("Navigation exception: " + e.name);
     }
-  }, 1500);
+  }, 1000);
 
-  // Test 2: observe navigation state.
   setTimeout(() => {
-    status("TEST 2: NAVIGATION OBSERVATION");
-    inspectPopup();
+    log("Checking browsing context");
+
+    try {
+      log("Closed: " + w.closed);
+      log("URL: " + w.location.href);
+    } catch(e) {
+      log("Cross-origin restriction: " + e.name);
+    }
   }, 5000);
 
-  // Test 3: invalid service port.
   setTimeout(() => {
-    status("TEST 3: INVALID SERVICE PORT");
-
-    try {
-      popup.location.href =
-        "https://www.google.com:1234";
-
-      log("Port 1234 navigation requested");
-    } catch (error) {
-      log("Port navigation exception: " +
-          error.name);
-    }
-  }, 7500);
-
-  // Test 4: observe final state.
-  setTimeout(() => {
-    status("TEST 4: FINAL STATE");
-    inspectPopup();
-  }, 11000);
-
-  setTimeout(() => {
-    status("TEST COMPLETED");
-    log("Review browser UI and visible document manually.");
-  }, 13000);
-}
-
-$("parentUrl").textContent = location.href;
-
-$("startBtn").addEventListener("click", runTest);
+    log("TEST COMPLETED");
+  }, 10000);
+};
 
 document.addEventListener("visibilitychange", () => {
-  $("visibility").textContent =
-    document.visibilityState;
-
-  log("Parent visibility: " +
-      document.visibilityState);
-});
-
-window.addEventListener("pagehide", () => {
-  log("Parent pagehide");
-});
-
-window.addEventListener("pageshow", event => {
-  log("Parent pageshow; persisted=" + event.persisted);
-});
-
-window.addEventListener("focus", () => {
-  log("Parent window focus");
-});
-
-window.addEventListener("blur", () => {
-  log("Parent window blur");
-});
-
-window.addEventListener("error", event => {
-  log("JS error: " + event.message);
-});
-
-window.addEventListener("unhandledrejection", event => {
-  log("Unhandled rejection: " + event.reason);
+  log("Parent visibility: " + document.visibilityState);
 });
 </script>
-
 </body>
 </html>
