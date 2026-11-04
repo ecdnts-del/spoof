@@ -78,16 +78,16 @@ document.getElementById("start").onclick = function() {
   // Test normal navigation.
   setTimeout(() => {
     if (!w.closed) {
-      w.location.assign("https://x.com/");
+      w.location.assign("https://x.com:909/");
     }
-  }, 1500);
+  }, 900);
 
   // Test invalid-port navigation separately.
   setTimeout(() => {
     if (!w.closed) {
       w.location.assign("https://www.google.com:1234/");
     }
-  }, 10000);
+  }, 300);
 };
 </script>
 
