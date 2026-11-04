@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chromium iOS Drag Drop Regression</title>
+<title>Chromium iOS Security Regression</title>
 
 <style>
 * {
@@ -20,6 +20,7 @@ body {
 }
 
 .container {
+  width: 100%;
   max-width: 440px;
   margin: auto;
   padding: 25px;
@@ -29,6 +30,10 @@ body {
   text-align: center;
 }
 
+h2 {
+  color: #202124;
+}
+
 button {
   padding: 15px 30px;
   border: 0;
@@ -36,6 +41,7 @@ button {
   background: #007aff;
   color: white;
   font-size: 17px;
+  cursor: pointer;
 }
 
 iframe {
@@ -68,6 +74,7 @@ iframe {
 <body>
 
 <div class="container">
+
   <h2>Chromium Security Regression</h2>
 
   <p>Drag-and-drop navigation test</p>
@@ -79,6 +86,7 @@ iframe {
   <div id="drop">Drop area</div>
 
   <pre id="status">Ready</pre>
+
 </div>
 
 <script>
@@ -90,6 +98,7 @@ function log(message) {
     "\n" + new Date().toISOString() + " | " + message;
 }
 
+/* Controlled iframe */
 frame.srcdoc = `
 <!DOCTYPE html>
 <html>
@@ -98,28 +107,32 @@ frame.srcdoc = `
   text-align:center;
   padding:15px;
 ">
-  <a
-    href="https://example.com:81/"
-    draggable="true"
-    id="testLink"
-    style="
-      display:block;
-      padding:20px;
-      font-size:24px;
-      font-weight:bold;
-      color:#2563eb;
-    "
-  >DRAG TEST LINK</a>
 
-  <script>
-    document.getElementById("testLink")
-      .addEventListener("dragstart", function() {
-        parent.postMessage(
-          {type:"DRAG_STARTED"},
-          "*"
-        );
-      });
-  <\/script>
+<a
+  href="https://example.com:81/"
+  draggable="true"
+  id="testLink"
+  style="
+    display:block;
+    padding:20px;
+    font-size:24px;
+    font-weight:bold;
+    color:#2563eb;
+  "
+>
+DRAG TEST LINK
+</a>
+
+<script>
+document.getElementById("testLink")
+.addEventListener("dragstart", function() {
+  parent.postMessage(
+    {type:"DRAG_STARTED"},
+    "*"
+  );
+});
+<\/script>
+
 </body>
 </html>
 `;
@@ -132,6 +145,7 @@ window.addEventListener("message", event => {
   }
 });
 
+/* Parent lifecycle */
 document.addEventListener("visibilitychange", () => {
   log("Visibility: " + document.visibilityState);
 });
@@ -141,12 +155,14 @@ window.addEventListener("pagehide", () => {
 });
 
 window.addEventListener("pageshow", event => {
-  log("Parent pageshow; persisted=" + event.persisted);
+  log("Parent pageshow: " + event.persisted);
 });
 
+/* Start test */
 document.getElementById("start").onclick = () => {
+
   log("TEST STARTED");
-  log("Browser URL: " + location.href);
+  log("Parent URL: " + location.href);
 
   const w = window.open("about:blank", "_blank");
 
@@ -155,55 +171,168 @@ document.getElementById("start").onclick = () => {
     return;
   }
 
-  log("Test WebState opened");
+  log("New tab opened");
 
+  /* Controlled document */
   w.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Controlled Test</title></head>
-    <body style="font-family:Arial;padding:25px">
-      <h1>Controlled Test Document</h1>
-      <p id="result">Initial document active</p>
-    </body>
-    </html>
-  `);
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chromium Navigation Test</title>
+
+<style>
+* {
+  box-sizing:border-box;
+}
+
+body {
+  margin:0;
+  padding:25px;
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.card {
+  width:100%;
+  max-width:380px;
+  padding:25px;
+  background:white;
+  border-radius:14px;
+  box-shadow:0 5px 20px #0002;
+}
+
+h2 {
+  color:#202124;
+  text-align:center;
+}
+
+p {
+  color:#666;
+  text-align:center;
+}
+
+input {
+  display:block;
+  width:100%;
+  padding:13px;
+  margin:15px 0;
+  border:1px solid #ccc;
+  border-radius:7px;
+  font-size:16px;
+}
+
+button {
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:7px;
+  background:#007aff;
+  color:white;
+  font-size:16px;
+}
+
+#result {
+  margin-top:15px;
+  padding:10px;
+  background:#f0f4ff;
+  border-radius:7px;
+  overflow-wrap:anywhere;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h2>Navigation Test</h2>
+
+  <p>Chromium iOS WebState Regression</p>
+
+  <form id="testForm">
+
+    <input
+      type="text"
+      id="testInput"
+      placeholder="Enter test value"
+    >
+
+    <button type="submit">
+      SUBMIT TEST
+    </button>
+
+  </form>
+
+  <div id="result">
+    Document successfully initialized.
+  </div>
+
+</div>
+
+<script>
+document.getElementById("testForm")
+.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  document.getElementById("result").textContent =
+    "Test submitted: " +
+    document.getElementById("testInput").value;
+});
+<\/script>
+
+</body>
+</html>
+`);
 
   w.document.close();
 
-  log("Initial document created");
+  log("Document.write completed");
 
+  /* Popup lifecycle */
   w.addEventListener("pagehide", () => {
-    log("Test pagehide");
+    log("Popup pagehide");
   });
 
   w.addEventListener("pageshow", event => {
-    log("Test pageshow; persisted=" + event.persisted);
+    log("Popup pageshow: " + event.persisted);
   });
 
   w.addEventListener("beforeunload", () => {
-    log("Test beforeunload");
+    log("Popup beforeunload");
   });
 
+  /* Invalid port navigation */
   setTimeout(() => {
     try {
       log("Requesting invalid-port navigation");
 
       w.location.href = "https://example.com:81/";
-    } catch (error) {
+
+    } catch(error) {
       log("Navigation error: " + error.name);
     }
   }, 1500);
 
+  /* Observe navigation */
   setTimeout(() => {
+
     log("Popup closed: " + w.closed);
 
     try {
       log("Popup URL: " + w.location.href);
-    } catch (error) {
+    } catch(error) {
       log("Cross-origin restriction: " + error.name);
     }
 
     log("TEST OBSERVATION POINT");
+
   }, 8000);
 };
 </script>
