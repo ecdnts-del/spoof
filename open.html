@@ -4,202 +4,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chromium iOS Security Regression</title>
-
+<title>Chromium iOS Regression Test</title>
 <style>
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
 }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 45px 16px;
-  font-family: Arial, sans-serif;
-  background: #f3f4f6;
-}
-
-.container {
-  width: 100%;
-  max-width: 440px;
-  margin: auto;
-  padding: 25px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 5px 20px #0002;
-  text-align: center;
-}
-
-h2 {
-  color: #202124;
-}
-
-button {
-  padding: 15px 30px;
-  border: 0;
-  border-radius: 9px;
-  background: #007aff;
-  color: white;
-  font-size: 17px;
-  cursor: pointer;
-}
-
-iframe {
-  width: 100%;
-  height: 110px;
-  margin-top: 20px;
-  border: 1px solid #ddd;
-}
-
-#drop {
-  margin-top: 20px;
-  padding: 35px 10px;
-  border: 2px dashed #aaa;
-  color: #555;
-}
-
-#status {
-  margin-top: 20px;
-  padding: 12px;
-  background: #111;
-  color: #00ff90;
-  text-align: left;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-size: 12px;
+button{
+  padding:17px 35px;
+  border:0;
+  border-radius:10px;
+  background:#007aff;
+  color:white;
+  font-size:18px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="container">
-
-  <h2>Chromium Security Regression</h2>
-
-  <p>Drag-and-drop navigation test</p>
-
-  <button id="start">START TEST</button>
-
-  <iframe id="frame" title="Controlled drag test"></iframe>
-
-  <div id="drop">Drop area</div>
-
-  <pre id="status">Ready</pre>
-
-</div>
+<button id="start">START TEST</button>
 
 <script>
-const status = document.getElementById("status");
-const frame = document.getElementById("frame");
+document.getElementById("start").onclick=()=>{
+  const w=window.open("about:blank","_blank");
 
-function log(message) {
-  status.textContent +=
-    "\n" + new Date().toISOString() + " | " + message;
-}
-
-/* Controlled iframe */
-frame.srcdoc = `
-<!DOCTYPE html>
-<html>
-<body style="
-  font-family:Arial;
-  text-align:center;
-  padding:15px;
-">
-
-<a
-  href="https://example.com:81/"
-  draggable="true"
-  id="testLink"
-  style="
-    display:block;
-    padding:20px;
-    font-size:24px;
-    font-weight:bold;
-    color:#2563eb;
-  "
->
-DRAG TEST LINK
-</a>
-
-<script>
-document.getElementById("testLink")
-.addEventListener("dragstart", function() {
-  parent.postMessage(
-    {type:"DRAG_STARTED"},
-    "*"
-  );
-});
-<\/script>
-
-</body>
-</html>
-`;
-
-window.addEventListener("message", event => {
-  if (event.source !== frame.contentWindow) return;
-
-  if (event.data?.type === "DRAG_STARTED") {
-    log("Iframe drag started");
-  }
-});
-
-/* Parent lifecycle */
-document.addEventListener("visibilitychange", () => {
-  log("Visibility: " + document.visibilityState);
-});
-
-window.addEventListener("pagehide", () => {
-  log("Parent pagehide");
-});
-
-window.addEventListener("pageshow", event => {
-  log("Parent pageshow: " + event.persisted);
-});
-
-/* Start test */
-document.getElementById("start").onclick = () => {
-
-  log("TEST STARTED");
-  log("Parent URL: " + location.href);
-
-  const w = window.open("about:blank", "_blank");
-
-  if (!w) {
-    log("Popup blocked");
+  if(!w){
+    alert("Popup blocked");
     return;
   }
 
-  log("New tab opened");
+  w.document.open();
 
-  /* Controlled document */
   w.document.write(`
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Chromium Navigation Test</title>
-
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+<title>Controlled Test Document</title>
 <style>
-* {
-  box-sizing:border-box;
-}
-
-body {
+*{box-sizing:border-box}
+body{
   margin:0;
-  padding:25px;
   min-height:100vh;
-  font-family:Arial,sans-serif;
+  display:grid;
+  place-items:center;
   background:#f3f4f6;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  font-family:Arial,sans-serif;
+  padding:20px;
 }
-
-.card {
+.card{
   width:100%;
   max-width:380px;
   padding:25px;
@@ -207,133 +67,59 @@ body {
   border-radius:14px;
   box-shadow:0 5px 20px #0002;
 }
-
-h2 {
-  color:#202124;
-  text-align:center;
-}
-
-p {
-  color:#666;
-  text-align:center;
-}
-
-input {
-  display:block;
-  width:100%;
-  padding:13px;
-  margin:15px 0;
-  border:1px solid #ccc;
-  border-radius:7px;
-  font-size:16px;
-}
-
-button {
+h2{text-align:center;color:#202124}
+input,button{
   width:100%;
   padding:14px;
-  border:0;
+  margin-top:14px;
   border-radius:7px;
-  background:#007aff;
-  color:white;
   font-size:16px;
 }
-
-#result {
-  margin-top:15px;
+input{border:1px solid #ccc}
+button{
+  border:0;
+  background:#007aff;
+  color:white;
+}
+.notice{
   padding:10px;
-  background:#f0f4ff;
-  border-radius:7px;
-  overflow-wrap:anywhere;
+  background:#fff3cd;
+  color:#664d03;
+  font-size:12px;
+  text-align:center;
 }
 </style>
 </head>
-
 <body>
-
 <div class="card">
-
-  <h2>Navigation Test</h2>
-
-  <p>Chromium iOS WebState Regression</p>
-
+  <div class="notice">CONTROLLED SECURITY TEST</div>
+  <h2>Document Persistence Test</h2>
+  <p>Chromium iOS navigation regression</p>
   <form id="testForm">
-
-    <input
-      type="text"
-      id="testInput"
-      placeholder="Enter test value"
-    >
-
-    <button type="submit">
-      SUBMIT TEST
-    </button>
-
+    <input placeholder="Test value">
+    <button type="submit">SUBMIT TEST</button>
   </form>
-
-  <div id="result">
-    Document successfully initialized.
-  </div>
-
+  <p id="result">Original document initialized.</p>
 </div>
-
 <script>
 document.getElementById("testForm")
-.addEventListener("submit", function(event) {
-  event.preventDefault();
-
-  document.getElementById("result").textContent =
-    "Test submitted: " +
-    document.getElementById("testInput").value;
+.addEventListener("submit",function(e){
+  e.preventDefault();
+  document.getElementById("result").textContent=
+    "Test submitted successfully.";
 });
 <\/script>
-
 </body>
 </html>
-`);
+  `);
 
   w.document.close();
 
-  log("Document.write completed");
-
-  /* Popup lifecycle */
-  w.addEventListener("pagehide", () => {
-    log("Popup pagehide");
-  });
-
-  w.addEventListener("pageshow", event => {
-    log("Popup pageshow: " + event.persisted);
-  });
-
-  w.addEventListener("beforeunload", () => {
-    log("Popup beforeunload");
-  });
-
-  /* Invalid port navigation */
-  setTimeout(() => {
-    try {
-      log("Requesting invalid-port navigation");
-
-      w.location.href = "https://example.com:81/";
-
-    } catch(error) {
-      log("Navigation error: " + error.name);
+  setTimeout(()=>{
+    if(!w.closed){
+      w.location.href="https://example.com:81/";
     }
-  }, 1500);
-
-  /* Observe navigation */
-  setTimeout(() => {
-
-    log("Popup closed: " + w.closed);
-
-    try {
-      log("Popup URL: " + w.location.href);
-    } catch(error) {
-      log("Cross-origin restriction: " + error.name);
-    }
-
-    log("TEST OBSERVATION POINT");
-
-  }, 8000);
+  },2000);
 };
 </script>
 
