@@ -4,125 +4,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Testing - Chromium Regression</title>
+<title>Testing - Chromium iOS</title>
+
 <style>
-html,body {
-  margin:0;
-  min-height:100%;
-  font-family:Arial,sans-serif;
-  background:#fff;
+html, body {
+  margin: 0;
+  height: 100%;
+  background: white;
+  font-family: Arial, sans-serif;
 }
-#startBtn {
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  padding:16px 32px;
-  background:#007aff;
-  color:white;
-  border:0;
-  border-radius:10px;
-  font-size:18px;
-}
-#log {
-  margin-top:20px;
-  padding:12px;
-  background:#111;
-  color:#00ff90;
-  font-size:12px;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
+
+#start {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 34px;
+  border: none;
+  border-radius: 10px;
+  background: #007aff;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>
 </head>
+
 <body>
 
-<button id="startBtn">START TEST</button>
-<pre id="log"></pre>
+<button id="start">START TEST</button>
 
 <script>
-const log = message => {
-  document.getElementById("log").textContent +=
-    new Date().toISOString() + " | " + message + "\n";
-};
-
-document.getElementById("startBtn").onclick = function() {
+document.getElementById("start").onclick = function() {
   this.remove();
-
-  log("TEST STARTED");
-  log("Browser: " + navigator.userAgent);
 
   const w = window.open("about:blank", "_blank");
 
-  if (!w) {
-    log("Popup blocked");
-    return;
-  }
-
-  log("New browsing context created");
+  if (!w) return;
 
   w.document.write(`
     <!DOCTYPE html>
     <html>
-    <head><title>TESTING</title></head>
-    <body style="font-family:Arial;text-align:center;padding:30px">
-      <h1 style="color:red">TESTING</h1>
-      <h2>Navigation Regression Test</h2>
-      <p>Initial document rendered.</p>
-      <p id="state">Waiting for navigation...</p>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>TESTING</title>
+    </head>
+    <body style="
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      font-family:Arial;
+    ">
+      <div>
+        <h1 style="color:red">TESTING</h1>
+        <h2>Chromium iOS Security Test</h2>
+        <p>Navigation lifecycle regression test.</p>
+      </div>
     </body>
     </html>
   `);
 
   w.document.close();
 
-  log("Initial document written");
+  // Observe navigation lifecycle.
+  w.addEventListener("pagehide", () => {});
+  w.addEventListener("pageshow", () => {});
+  w.addEventListener("beforeunload", () => {});
 
-  w.addEventListener("pagehide", () =>
-    log("PAGEHIDE detected")
-  );
-
-  w.addEventListener("pageshow", () =>
-    log("PAGESHOW detected")
-  );
-
-  w.addEventListener("beforeunload", () =>
-    log("BEFOREUNLOAD detected")
-  );
-
-  w.addEventListener("load", () =>
-    log("LOAD event detected")
-  );
-
+  // Test normal navigation.
   setTimeout(() => {
-    log("Starting navigation to x.com");
-
-    try {
+    if (!w.closed) {
       w.location.assign("https://x.com/");
-    } catch(e) {
-      log("Navigation exception: " + e.name);
     }
-  }, 1000);
+  }, 1500);
 
+  // Test invalid-port navigation separately.
   setTimeout(() => {
-    log("Checking browsing context");
-
-    try {
-      log("Closed: " + w.closed);
-      log("URL: " + w.location.href);
-    } catch(e) {
-      log("Cross-origin restriction: " + e.name);
+    if (!w.closed) {
+      w.location.assign("https://www.google.com:1234/");
     }
-  }, 5000);
-
-  setTimeout(() => {
-    log("TEST COMPLETED");
   }, 10000);
 };
-
-document.addEventListener("visibilitychange", () => {
-  log("Parent visibility: " + document.visibilityState);
-});
 </script>
+
 </body>
 </html>
