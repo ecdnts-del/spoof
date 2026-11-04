@@ -2,57 +2,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WebState Visibility Regression Test</title>
-<style>
-body {
-  font-family: sans-serif;
-  padding: 20px;
-}
-button {
-  padding: 12px;
-  margin: 6px;
-}
-iframe {
-  width: 100%;
-  height: 180px;
-  border: 1px solid #aaa;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, user-scalable=yes">
+  <title> - Chromium Regression Test</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: white;
+    }
+
+    button {
+      padding: 15px 30px;
+      margin: 8px;
+      border: 0;
+      border-radius: 10px;
+      background: #007aff;
+      color: white;
+      font-size: 17px;
+    }
+
+    .container {
+      padding: 25px;
+      text-align: center;
+    }
+
+    #log {
+      margin-top: 20px;
+      padding: 12px;
+      background: #eee;
+      text-align: left;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
+    <h2> Security Testing</h2>
+    <p>Chromium Gerrit </p>
 
-<h2>JavaScript Dialog Regression Test</h2>
+    <button onclick="testAlert()">Test Alert</button>
+    <button onclick="testConfirm()">Test Confirm</button>
+    <button onclick="testPrompt()">Test Prompt</button>
+    <button onclick="openTestTab()">Open Test Tab</button>
 
-<button onclick="testAlert()">Test Alert</button>
-<button onclick="testConfirm()">Test Confirm</button>
-<button onclick="testPrompt()">Test Prompt</button>
+    <div id="log">Waiting for test...</div>
+  </div>
 
-<p id="result">Waiting for test...</p>
+  <script>
+    function log(message) {
+      document.getElementById("log").textContent +=
+        "\n" + new Date().toISOString() + " | " + message;
+    }
 
-<script>
-function testAlert() {
-  document.getElementById("result").textContent =
-    "Alert requested";
+    function testAlert() {
+      log("Alert requested");
+      alert("lert");
+      log("Alert returned");
+    }
 
-  alert("Visibility regression test");
-}
+    function testConfirm() {
+      log("Confirm requested");
 
-function testConfirm() {
-  const result = confirm("Confirm regression test");
+      const result = confirm(
+        "a confirm regression test"
+      );
 
-  document.getElementById("result").textContent =
-    "Confirm result: " + result;
-}
+      log("Confirm result: " + result);
+    }
 
-function testPrompt() {
-  const result = prompt("Prompt regression test");
+    function testPrompt() {
+      log("Prompt requested");
 
-  document.getElementById("result").textContent =
-    "Prompt result: " + result;
-}
-</script>
+      const result = prompt(
+        "a prompt regression test",
+        "test"
+      );
 
+      log("Prompt result: " + result);
+    }
+
+    function openTestTab() {
+      log("Opening test tab");
+
+      const tab = window.open("about:blank", "_blank");
+
+      if (!tab) {
+        log("Popup blocked");
+        return;
+      }
+
+      tab.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>spoof Test</title></head>
+        <body style="font-family:Arial;padding:30px">
+          <h1>a TEST PAGE</h1>
+          <p>Chromium JavaScript Dialog Regression Test</p>
+          <button onclick="alert('Visible tab alert test')">
+            Test Alert
+          </button>
+        </body>
+        </html>
+      `);
+
+      tab.document.close();
+
+      log("Test tab created");
+
+      setTimeout(function() {
+        tab.location.href = "https://apple.com";
+        log("Navigation requested to apple.com");
+      }, 1000);
+    }
+  </script>
 </body>
 </html>
