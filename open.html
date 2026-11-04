@@ -3,23 +3,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chromium iOS Security Testing</title>
 
 <style>
-  body {
+  html, body {
     margin: 0;
-    padding: 24px;
+    padding: 20px;
+    min-height: 100%;
     font-family: Arial, sans-serif;
-    background: #fff;
-    color: #222;
+    background: white;
   }
 
   button {
-    display: block;
-    margin: 35vh auto 24px;
-    padding: 16px 36px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 32px;
     border: 0;
     border-radius: 10px;
     background: #007aff;
@@ -28,14 +29,18 @@
   }
 
   #log {
-    padding: 12px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 35%;
+    overflow-y: auto;
     background: #111;
     color: #00ff90;
-    font-size: 12px;
+    padding: 12px;
+    font-size: 11px;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    max-height: 40vh;
-    overflow-y: auto;
   }
 </style>
 </head>
@@ -43,104 +48,93 @@
 <body>
 
 <button id="startBtn">START TESTING</button>
-
 <pre id="log"></pre>
 
 <script>
-const output = document.getElementById("log");
+const logElement = document.getElementById("log");
 
 function log(message) {
-  output.textContent +=
+  logElement.textContent +=
     new Date().toISOString() +
     " | " + message + "\n";
 }
 
-document.getElementById("startBtn").onclick = async function () {
+document.getElementById("startBtn").onclick = function () {
   this.disabled = true;
 
   log("TESTING STARTED");
-  log("Initial URL: " + location.href);
-  log("Initial origin: " + location.origin);
+  log("Parent URL: " + location.href);
 
-  const popup = window.open("about:blank", "_blank");
+  const newTab = window.open("about:blank", "_blank");
 
-  if (!popup) {
-    log("RESULT: Popup blocked");
+  if (!newTab) {
+    log("ERROR: Popup blocked");
     this.disabled = false;
     return;
   }
 
-  log("New WebState requested");
+  log("New tab opened");
 
-  popup.document.write(`
+  newTab.document.write(`
     <!doctype html>
     <html>
     <head>
+      <meta charset="UTF-8">
       <title>TESTING</title>
     </head>
-    <body style="font-family:Arial;text-align:center;padding:30px">
-      <h1 style="color:#007aff">TESTING</h1>
-      <h2>Chromium iOS Regression</h2>
-      <p>Navigation lifecycle observation</p>
+    <body style="
+      margin:0;
+      padding:30px;
+      text-align:center;
+      font-family:Arial;
+      background:white;
+    ">
+      <h1 style="color:#007aff">
+        TESTING SECURITY TEST
+      </h1>
+
+      <h2>Chromium iOS Navigation Test</h2>
+
+      <p>Observing WebState lifecycle and navigation.</p>
     </body>
     </html>
   `);
 
-  popup.document.close();
+  newTab.document.close();
 
-  log("Document injection completed");
+  log("Test document injected");
 
-  popup.addEventListener("pagehide", () => {
-    log("Popup: pagehide");
+  newTab.addEventListener("pagehide", () => {
+    log("EVENT: pagehide");
   });
 
-  popup.addEventListener("pageshow", () => {
-    log("Popup: pageshow");
-  });
-
-  popup.addEventListener("visibilitychange", () => {
-    log("Popup visibility: " +
-        popup.document.visibilityState);
+  newTab.addEventListener("pageshow", () => {
+    log("EVENT: pageshow");
   });
 
   setTimeout(() => {
     try {
-      log("Testing invalid-port navigation");
+      log("NAVIGATION: https://testing.com");
 
-      popup.location.href =
-        "http://127.0.0.1:65536/";
-
-      log("Navigation request submitted");
+      newTab.location.href = "https://testing.com";
     } catch (error) {
-      log("Navigation exception: " + error.name);
+      log("Navigation error: " + error.name);
     }
   }, 1000);
 
   setTimeout(() => {
+    log("Checking popup state");
+    log("Popup closed: " + newTab.closed);
+
     try {
-      log("Popup closed: " + popup.closed);
-      log("Popup current URL: " + popup.location.href);
+      log("Popup URL: " + newTab.location.href);
     } catch (error) {
-      log("URL inaccessible: " + error.name);
+      log("Cross-origin restriction: " + error.name);
     }
   }, 3000);
 
   setTimeout(() => {
-    log("Testing active-tab JavaScript dialog");
-
-    try {
-      const result = window.confirm(
-        "TESTING: JavaScript dialog regression check"
-      );
-
-      log("Confirm result: " + result);
-    } catch (error) {
-      log("Dialog exception: " + error.name);
-    }
-  }, 4000);
-
-  setTimeout(() => {
-    log("TESTING COMPLETED");
+    log("TESTING OBSERVATION COMPLETED");
   }, 6000);
 };
 
