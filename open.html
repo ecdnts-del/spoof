@@ -1,126 +1,112 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, user-scalable=yes">
-  <title> - Chromium Regression Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chromium iOS Security Regression Test</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-      background: white;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
 
-    button {
-      padding: 15px 30px;
-      margin: 8px;
-      border: 0;
-      border-radius: 10px;
-      background: #007aff;
-      color: white;
-      font-size: 17px;
-    }
+  button {
+    margin-top: 40vh;
+    padding: 16px 32px;
+    background: #007aff;
+    color: white;
+    border: 0;
+    border-radius: 10px;
+    font-size: 18px;
+  }
 
-    .container {
-      padding: 25px;
-      text-align: center;
-    }
-
-    #log {
-      margin-top: 20px;
-      padding: 12px;
-      background: #eee;
-      text-align: left;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-  </style>
+  #log {
+    padding: 20px;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+</style>
 </head>
 
 <body>
-  <div class="container">
-    <h2> Security Testing</h2>
-    <p>Chromium Gerrit </p>
 
-    <button onclick="testAlert()">Test Alert</button>
-    <button onclick="testConfirm()">Test Confirm</button>
-    <button onclick="testPrompt()">Test Prompt</button>
-    <button onclick="openTestTab()">Open Test Tab</button>
+<h2>Chromium iOS Regression Test</h2>
 
-    <div id="log">Waiting for test...</div>
-  </div>
+<button id="start">START TEST</button>
 
-  <script>
-    function log(message) {
-      document.getElementById("log").textContent +=
-        "\n" + new Date().toISOString() + " | " + message;
+<pre id="log"></pre>
+
+<script>
+const log = (message) => {
+  document.getElementById("log").textContent +=
+    new Date().toISOString() + " | " + message + "\n";
+};
+
+document.getElementById("start").onclick = () => {
+  log("Test started");
+
+  const popup = window.open("about:blank", "_blank");
+
+  if (!popup) {
+    log("Popup blocked");
+    return;
+  }
+
+  log("New WebState opened");
+
+  popup.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Security Test</title>
+    </head>
+    <body style="
+      font-family:Arial;
+      text-align:center;
+      padding:30px;
+    ">
+      <h1>TESTING SECURITY TEST</h1>
+      <h2>WebState Navigation Test</h2>
+      <p>Testing Chromium iOS dialog handling.</p>
+    </body>
+    </html>
+  `);
+
+  popup.document.close();
+
+  log("Test document injected");
+
+  setTimeout(() => {
+    try {
+      popup.location.href = "https://testing.com";
+      log("Navigation requested");
+    } catch (e) {
+      log("Navigation error: " + e.message);
     }
+  }, 1000);
 
-    function testAlert() {
-      log("Alert requested");
-      alert("lert");
-      log("Alert returned");
-    }
+  setTimeout(() => {
+    log("Testing JavaScript dialog policy");
 
-    function testConfirm() {
-      log("Confirm requested");
-
-      const result = confirm(
-        "a confirm regression test"
+    try {
+      const result = popup.eval(
+        "window.prompt('Chromium security regression test')"
       );
 
-      log("Confirm result: " + result);
+      log("Prompt returned: " + String(result));
+    } catch (e) {
+      log("Prompt exception: " + e.message);
     }
+  }, 2000);
 
-    function testPrompt() {
-      log("Prompt requested");
+  setTimeout(() => {
+    log("Regression test observation completed");
+  }, 5000);
+};
+</script>
 
-      const result = prompt(
-        "a prompt regression test",
-        "test"
-      );
-
-      log("Prompt result: " + result);
-    }
-
-    function openTestTab() {
-      log("Opening test tab");
-
-      const tab = window.open("about:blank", "_blank");
-
-      if (!tab) {
-        log("Popup blocked");
-        return;
-      }
-
-      tab.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head><title>spoof Test</title></head>
-        <body style="font-family:Arial;padding:30px">
-          <h1>a TEST PAGE</h1>
-          <p>Chromium JavaScript Dialog Regression Test</p>
-          <button onclick="alert('Visible tab alert test')">
-            Test Alert
-          </button>
-        </body>
-        </html>
-      `);
-
-      tab.document.close();
-
-      log("Test tab created");
-
-      setTimeout(function() {
-        tab.location.href = "https://apple.com:9090:";
-        log("Navigation requested to apple.com:9090");
-      }, 1000);
-    }
-  </script>
 </body>
 </html>
