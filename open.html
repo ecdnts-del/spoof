@@ -4,83 +4,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chrome iOS Origin Regression Lab</title>
+<title>Chrome iOS Origin Security Lab</title>
+
 <style>
 body {
   font-family: -apple-system, sans-serif;
   padding: 20px;
+  background: #f5f5f5;
+  color: #222;
 }
+
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
 button {
-  display: block;
   width: 100%;
   padding: 14px;
-  margin: 10px 0;
-  border: 0;
+  margin: 6px 0;
+  border: none;
   border-radius: 8px;
   background: #167c45;
   color: white;
-  font-size: 16px;
+  font-size: 15px;
 }
+
 pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-size: 12px;
   background: #eee;
   padding: 12px;
+  border-radius: 8px;
 }
 </style>
 </head>
+
 <body>
 
-<h2>Download Origin Regression Lab</h2>
-<p>Chrome iOS security UI testing</p>
+<h2>Chrome iOS Origin Security Lab</h2>
 
-<button onclick="test('normal')">
-  T01 - Normal filename
+<p>
+CVE-2026-7931 — Download Origin Regression Testing
+</p>
+
+<div class="card">
+<h3>Test Cases</h3>
+
+<button onclick="runTest('normal')">
+P01 - Normal filename
 </button>
 
-<button onclick="test('long')">
-  T02 - Long filename
+<button onclick="runTest('long')">
+P02 - Extreme filename
 </button>
 
-<button onclick="test('unicode')">
-  T03 - Unicode whitespace
+<button onclick="runTest('u3164')">
+P03 - Hangul Filler
 </button>
 
-<button onclick="test('invisible')">
-  T04 - Invisible characters
+<button onclick="runTest('u200b')">
+P04 - Zero Width Space
 </button>
 
-<button onclick="test('mixed')">
-  T05 - Mixed Unicode
+<button onclick="runTest('u2060')">
+P05 - Word Joiner
 </button>
 
-<pre id="result">Waiting for test...</pre>
+<button onclick="runTest('mixed')">
+P06 - Mixed Unicode
+</button>
+
+<button onclick="runTest('repeat')">
+P07 - Repeated downloads
+</button>
+</div>
+
+<div class="card">
+<h3>Test Results</h3>
+<pre id="output">Waiting for test...</pre>
+</div>
 
 <script>
-function test(type) {
-  const cases = {
-    normal: "normal-download.txt",
+const testCases = {
+  normal: "normal-download.txt",
 
-    long: "long-".repeat(60) + ".txt",
+  long: "filename-".repeat(100) + ".txt",
 
-    unicode:
-      "test-\u3164\u3164\u3164.txt",
+  u3164: "test-\u3164\u3164\u3164.txt",
 
-    invisible:
-      "test-\u200B\u2060\u200B.txt",
+  u200b: "test-\u200B\u200B\u200B.txt",
 
-    mixed:
-      "test-\u3164\u200B\u2060\u2800.txt"
-  };
+  u2060: "test-\u2060\u2060\u2060.txt",
 
-  const filename = cases[type];
+  mixed:
+    "test-\u3164\u200B\u2060\u2800.txt"
+};
 
+function log(message) {
+  const output = document.getElementById("output");
+  output.textContent += "\n" + message;
+}
+
+function downloadFile(filename) {
   const content =
-    "Harmless Chrome download regression test.\n";
+    "Harmless Chrome iOS origin regression test.\n";
 
   const blob = new Blob(
     [content],
-    { type: "text/plain" }
+    {type: "text/plain"}
   );
 
   const url = URL.createObjectURL(blob);
@@ -93,12 +128,35 @@ function test(type) {
   link.click();
   link.remove();
 
-  document.getElementById("result").textContent =
-    "Test: " + type +
-    "\nFilename: " + filename +
-    "\nExpected: Origin remains visible.";
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
 
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+function runTest(type) {
+  document.getElementById("output").textContent =
+    "Chrome iOS Origin Regression Test\n";
+
+  log("Test ID: " + type);
+  log("Timestamp: " + new Date().toISOString());
+
+  if (type === "repeat") {
+    for (let i = 1; i <= 3; i++) {
+      downloadFile("regression-test-" + i + ".txt");
+      log("Download initiated: " + i);
+    }
+  } else {
+    const filename = testCases[type];
+
+    if (!filename) return;
+
+    log("Filename length: " + filename.length);
+    log("Filename: " + JSON.stringify(filename));
+
+    downloadFile(filename);
+  }
+
+  log("Expected: Actual download origin remains visible.");
+  log("Inspect collapsed and expanded notification.");
+  log("Record the observed result manually.");
 }
 </script>
 
