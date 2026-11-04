@@ -3,305 +3,217 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
- content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Chrome Android Time Picker UI Test</title>
+<title>Chromium Blob Origin Test</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
-  color: #202124;
-  background: #f8f9fa;
-}
-
-header {
-  position: sticky;
-  top: 0;
-  background: white;
-  padding: 18px;
-  border-bottom: 1px solid #ddd;
-  z-index: 2;
-}
-
-main {
   padding: 20px;
+  background: #f5f5f5;
+  color: #202124;
 }
 
 .card {
   background: white;
-  border: 1px solid #dadce0;
   border-radius: 12px;
   padding: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 button {
+  padding: 12px;
   width: 100%;
-  padding: 14px;
+  margin: 6px 0;
+  background: #1a73e8;
   border: 0;
   border-radius: 8px;
-  background: #1a73e8;
   color: white;
-  font-size: 15px;
-  margin: 7px 0;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #999;
-  border-radius: 6px;
-  font-size: 16px;
-}
-
-#log {
-  height: 260px;
-  overflow: auto;
+pre {
   background: #171717;
-  color: #a5f3a5;
+  color: #9ef59e;
   padding: 12px;
-  font: 12px monospace;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.status {
-  padding: 12px;
-  background: #e8f0fe;
-  border-radius: 8px;
-  margin: 12px 0;
-}
-
-.spacer {
-  height: 850px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #777;
+  white-space: pre-wrap;
+  font-size: 12px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <strong>Chrome Android UI Behavior Test</strong>
-  <div>Native time picker experiment</div>
-</header>
+<h2>Chromium Blob Origin Test</h2>
 
-<main>
-
-<section class="card">
-  <h3>Test environment</h3>
-  <div id="environment"></div>
-</section>
-
-<section class="card">
-  <h3>Native picker test</h3>
-  <p>
-    Open the native time picker and observe browser UI behavior.
-  </p>
-
-  <input id="timeInput" type="time">
-
-  <button id="openPicker">
-    Open Native Time Picker
-  </button>
-</section>
-
-<section class="card">
-  <h3>Viewport information</h3>
-  <div class="status" id="viewport">
-    Waiting for events...
-  </div>
-</section>
-
-<div class="spacer">
-  Scroll testing area
+<div class="card">
+  <h3>Current document</h3>
+  <pre id="current"></pre>
 </div>
 
-<section class="card">
-  <h3>Recovery test</h3>
+<div class="card">
+  <h3>Tests</h3>
 
-  <p>
-    Observe whether browser navigation UI becomes visible
-    during normal user interactions.
-  </p>
-
-  <button id="scrollTest">
-    Scroll to top
+  <button id="createBlob">
+    Create Blob Document
   </button>
 
-  <label for="focusTest">Focus test field</label>
-  <input id="focusTest" type="text"
-    placeholder="Tap to focus this field">
-</section>
+  <button id="sameOrigin">
+    Test Same-Origin replaceState
+  </button>
 
-<section class="card">
-  <h3>Event log</h3>
-  <pre id="log"></pre>
+  <button id="crossOrigin">
+    Test Cross-Origin replaceState
+  </button>
 
-  <button id="clearLog">Clear log</button>
-  <button id="downloadLog">Download evidence log</button>
-</section>
+  <button id="download">
+    Download Test Results
+  </button>
+</div>
 
-</main>
+<div class="card">
+  <h3>Results</h3>
+  <pre id="results"></pre>
+</div>
 
 <script>
-const logElement = document.getElementById("log");
-const viewportElement = document.getElementById("viewport");
-const timeInput = document.getElementById("timeInput");
+const results = [];
 
-const started = performance.now();
-
-function log(event, details = {}) {
-  const elapsed = (
-    performance.now() - started
-  ).toFixed(1);
-
+function record(name, data) {
   const entry = {
-    elapsed_ms: elapsed,
-    timestamp: new Date().toISOString(),
-    event,
-    details
+    time: new Date().toISOString(),
+    test: name,
+    data
   };
 
-  logElement.textContent +=
-    JSON.stringify(entry) + "\n";
+  results.push(entry);
 
-  logElement.scrollTop = logElement.scrollHeight;
-
-  updateViewport();
+  document.getElementById("results").textContent =
+    JSON.stringify(results, null, 2);
 }
 
-function updateViewport() {
-  const vv = window.visualViewport;
-
-  const data = {
-    innerWidth: window.innerWidth,
-    innerHeight: window.innerHeight,
-    visualWidth: vv?.width ?? null,
-    visualHeight: vv?.height ?? null,
-    visualOffsetTop: vv?.offsetTop ?? null,
-    visualScale: vv?.scale ?? null,
-    scrollY: window.scrollY,
-    focusedElement:
-      document.activeElement?.tagName ?? null
+function inspect() {
+  return {
+    href: location.href,
+    origin: location.origin,
+    protocol: location.protocol,
+    hostname: location.hostname,
+    historyLength: history.length,
+    userAgent: navigator.userAgent
   };
-
-  viewportElement.textContent =
-    JSON.stringify(data, null, 2);
 }
 
-document.getElementById("environment").textContent =
-  JSON.stringify({
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    screenWidth: screen.width,
-    screenHeight: screen.height,
-    devicePixelRatio: devicePixelRatio,
-    viewportWidth: innerWidth,
-    viewportHeight: innerHeight
-  }, null, 2);
-
-document.getElementById("openPicker")
-  .addEventListener("click", () => {
-    log("TIME_PICKER_BUTTON_CLICK");
-
-    try {
-      timeInput.showPicker();
-      log("SHOW_PICKER_CALLED");
-    } catch (error) {
-      log("SHOW_PICKER_ERROR", {
-        name: error.name,
-        message: error.message
-      });
-    }
-  });
-
-timeInput.addEventListener("focus", () => {
-  log("TIME_INPUT_FOCUS");
-});
-
-timeInput.addEventListener("blur", () => {
-  log("TIME_INPUT_BLUR");
-});
-
-timeInput.addEventListener("change", () => {
-  log("TIME_INPUT_CHANGE");
-});
-
-window.addEventListener("scroll", () => {
-  log("WINDOW_SCROLL", {
-    scrollY: window.scrollY
-  });
-}, { passive: true });
-
-window.addEventListener("resize", () => {
-  log("WINDOW_RESIZE");
-});
-
-if (window.visualViewport) {
-  visualViewport.addEventListener("resize", () => {
-    log("VISUAL_VIEWPORT_RESIZE");
-  });
-
-  visualViewport.addEventListener("scroll", () => {
-    log("VISUAL_VIEWPORT_SCROLL");
-  });
+function update() {
+  document.getElementById("current").textContent =
+    JSON.stringify(inspect(), null, 2);
 }
 
-document.getElementById("focusTest")
-  .addEventListener("focus", () => {
-    log("RECOVERY_FIELD_FOCUS");
+document.getElementById("createBlob")
+.addEventListener("click", () => {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Blob Origin Test</title>
+    </head>
+    <body>
+      <h2>Blob document active</h2>
+      <pre id="info"></pre>
+      <script>
+        document.getElementById("info").textContent =
+          JSON.stringify({
+            href: location.href,
+            origin: location.origin,
+            protocol: location.protocol,
+            hostname: location.hostname
+          }, null, 2);
+      <\/script>
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], {
+    type: "text/html"
   });
 
-document.getElementById("focusTest")
-  .addEventListener("blur", () => {
-    log("RECOVERY_FIELD_BLUR");
+  const url = URL.createObjectURL(blob);
+
+  record("BLOB_CREATED", {
+    blobURL: url,
+    currentOrigin: location.origin
   });
 
-document.getElementById("scrollTest")
-  .addEventListener("click", () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+  location.href = url;
+});
 
-    log("SCROLL_TO_TOP_REQUESTED");
-  });
+document.getElementById("sameOrigin")
+.addEventListener("click", () => {
+  try {
+    const newURL = new URL(location.href);
 
-document.getElementById("clearLog")
-  .addEventListener("click", () => {
-    logElement.textContent = "";
-    log("LOG_CLEARED");
-  });
-
-document.getElementById("downloadLog")
-  .addEventListener("click", () => {
-    const blob = new Blob(
-      [logElement.textContent],
-      { type: "application/jsonl" }
+    history.replaceState(
+      {},
+      "",
+      newURL.href
     );
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    record("SAME_ORIGIN_SUCCESS", inspect());
 
-    a.href = url;
-    a.download = "chrome-ui-test.jsonl";
-    a.click();
+  } catch (error) {
+    record("SAME_ORIGIN_ERROR", {
+      name: error.name,
+      message: error.message
+    });
+  }
 
-    URL.revokeObjectURL(url);
-  });
+  update();
+});
 
-updateViewport();
-log("TEST_INITIALIZED");
+document.getElementById("crossOrigin")
+.addEventListener("click", () => {
+  try {
+    history.replaceState(
+      {},
+      "",
+      "https://example.com/test"
+    );
+
+    record("CROSS_ORIGIN_UNEXPECTED_SUCCESS",
+      inspect());
+
+  } catch (error) {
+    record("CROSS_ORIGIN_REJECTED", {
+      name: error.name,
+      message: error.message,
+      currentURL: location.href,
+      currentOrigin: location.origin
+    });
+  }
+
+  update();
+});
+
+document.getElementById("download")
+.addEventListener("click", () => {
+  const blob = new Blob(
+    [JSON.stringify(results, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "chromium-origin-test.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+});
+
+update();
+record("INITIALIZED", inspect());
 </script>
 
 </body>
