@@ -85,7 +85,7 @@ document.getElementById("start").onclick = function() {
   // Test invalid-port navigation separately.
   setTimeout(() => {
     if (!w.closed) {
-      w.location.assign("https://www.google.com:1234/");
+      w.location.assign("https://www.x.com:1234/");
     }
   }, 300);
 };
