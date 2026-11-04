@@ -6,106 +6,115 @@
 <title>Chromium iOS Security Regression Test</title>
 
 <style>
-  body {
-    margin: 0;
-    background: #fff;
-    font-family: Arial, sans-serif;
-    text-align: center;
-  }
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  background: #f4f6fa;
+  color: #222;
+}
 
-  button {
-    margin-top: 40vh;
-    padding: 16px 32px;
-    background: #007aff;
-    color: white;
-    border: 0;
-    border-radius: 10px;
-    font-size: 18px;
-  }
+button {
+  padding: 14px 20px;
+  margin: 5px;
+  border: 0;
+  border-radius: 8px;
+  background: #007aff;
+  color: white;
+  font-size: 15px;
+}
 
-  #log {
-    padding: 20px;
-    text-align: left;
-    overflow-wrap: anywhere;
-  }
+#log {
+  background: #111;
+  color: #00ff90;
+  padding: 15px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-height: 200px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>Chromium iOS Regression Test</h2>
+<h2>Chromium iOS Security Test</h2>
 
-<button id="start">START TEST</button>
+<p>Origin: testing.com</p>
+
+<button onclick="runTest()">START TEST</button>
+<button onclick="testDialogs()">TEST DIALOGS</button>
+<button onclick="testNavigation()">TEST NAVIGATION</button>
 
 <pre id="log"></pre>
 
 <script>
 const log = (message) => {
-  document.getElementById("log").textContent +=
-    new Date().toISOString() + " | " + message + "\n";
+  const output = document.getElementById("log");
+
+  output.textContent +=
+    new Date().toISOString() +
+    " | " + message + "\n";
 };
 
-document.getElementById("start").onclick = () => {
-  log("Test started");
+document.addEventListener("visibilitychange", () => {
+  log("Visibility: " + document.visibilityState);
+});
 
-  const popup = window.open("about:blank", "_blank");
+window.addEventListener("pagehide", () => {
+  log("Page hidden");
+});
 
-  if (!popup) {
-    log("Popup blocked");
-    return;
+window.addEventListener("pageshow", () => {
+  log("Page shown");
+});
+
+function runTest() {
+  log("=== TEST STARTED ===");
+  log("Current origin: " + location.origin);
+  log("Current URL: " + location.href);
+  log("Visibility: " + document.visibilityState);
+}
+
+function testDialogs() {
+  log("=== JAVASCRIPT DIALOG TEST ===");
+
+  try {
+    alert("Testing Chromium alert handling");
+    log("Alert returned");
+  } catch (e) {
+    log("Alert error: " + e.message);
   }
 
-  log("New WebState opened");
+  try {
+    const result = confirm("Testing confirm handling");
+    log("Confirm result: " + result);
+  } catch (e) {
+    log("Confirm error: " + e.message);
+  }
 
-  popup.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Security Test</title>
-    </head>
-    <body style="
-      font-family:Arial;
-      text-align:center;
-      padding:30px;
-    ">
-      <h1>TESTING SECURITY TEST</h1>
-      <h2>WebState Navigation Test</h2>
-      <p>Testing Chromium iOS dialog handling.</p>
-    </body>
-    </html>
-  `);
+  try {
+    const result = prompt("Testing prompt handling");
+    log("Prompt result: " + String(result));
+  } catch (e) {
+    log("Prompt error: " + e.message);
+  }
 
-  popup.document.close();
+  log("Dialog test completed");
+}
 
-  log("Test document injected");
+function testNavigation() {
+  log("=== NAVIGATION TEST ===");
 
-  setTimeout(() => {
-    try {
-      popup.location.href = "https://testing.com:9090/login";
-      log("Navigation requested");
-    } catch (e) {
-      log("Navigation error: " + e.message);
-    }
-  }, 1000);
+  log("Navigation starting");
 
-  setTimeout(() => {
-    log("Testing JavaScript dialog policy");
+  location.assign("https://testing.com");
 
-    try {
-      const result = popup.eval(
-        "window.prompt('Chromium security regression test')"
-      );
+  log("Navigation request submitted");
+}
 
-      log("Prompt returned: " + String(result));
-    } catch (e) {
-      log("Prompt exception: " + e.message);
-    }
-  }, 2000);
-
-  setTimeout(() => {
-    log("Regression test observation completed");
-  }, 5000);
-};
+log("Regression test initialized");
+log("Origin: " + location.origin);
 </script>
 
 </body>
