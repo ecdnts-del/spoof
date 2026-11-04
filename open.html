@@ -3,244 +3,136 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chromium Blob Origin Regression PoC</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
+<title>iOS Chrome Blob Origin Regression Test</title>
 
 <style>
 body {
-  font-family: -apple-system, Arial, sans-serif;
-  background: #f1f3f4;
+  font-family: -apple-system, BlinkMacSystemFont,
+               Arial, sans-serif;
+  margin: 24px;
   color: #202124;
-  padding: 18px;
 }
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 14px;
-}
+
+h2 { font-size: 20px; }
+
 button {
-  width: 100%;
-  padding: 13px;
-  margin: 5px 0;
+  padding: 12px 18px;
   border: 0;
   border-radius: 8px;
   background: #1a73e8;
   color: white;
   font-size: 15px;
+  margin: 5px 0;
 }
+
 pre {
-  background: #202124;
-  color: #a5f3a5;
-  padding: 12px;
-  border-radius: 8px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  background: #f1f3f4;
+  padding: 14px;
+  border-radius: 8px;
   font-size: 12px;
 }
+
+.pass { color: #188038; }
+.fail { color: #d93025; }
 </style>
 </head>
 
 <body>
 
-<h2>Chromium Blob Origin Test</h2>
+<h2>Blob Origin Security Regression Test</h2>
 
-<div class="card">
-  <h3>Environment</h3>
-  <pre id="environment"></pre>
-</div>
+<p>
+  Tests browser handling of blob URLs and History API
+  origin restrictions.
+</p>
 
-<div class="card">
-  <h3>Origin tests</h3>
-  <button onclick="testCurrentOrigin()">
-    Inspect Current Origin
-  </button>
-  <button onclick="testSameOrigin()">
-    Same-Origin replaceState
-  </button>
-  <button onclick="testCrossOrigin()">
-    Cross-Origin replaceState
-  </button>
-  <button onclick="testBlobCreation()">
-    Create Blob URL
-  </button>
-  <button onclick="downloadResults()">
-    Download Results
-  </button>
-</div>
+<button id="run">Run regression test</button>
 
-<div class="card">
-  <h3>Test results</h3>
-  <pre id="results"></pre>
-</div>
+<pre id="output">Ready.</pre>
 
 <script>
-const results = [];
+const output = document.getElementById("output");
 
-function record(test, result, details = {}) {
-  const item = {
-    timestamp: new Date().toISOString(),
-    test,
-    result,
-    details
-  };
-
-  results.push(item);
-
-  document.getElementById("results").textContent =
-    JSON.stringify(results, null, 2);
+function log(message) {
+  output.textContent += "\n" + message;
 }
 
-function inspectOrigin() {
-  return {
-    href: location.href,
-    origin: location.origin,
-    protocol: location.protocol,
-    hostname: location.hostname,
-    historyLength: history.length,
-    userAgent: navigator.userAgent
-  };
-}
+async function runTest() {
+  output.textContent = "Starting tests...\n";
 
-function testCurrentOrigin() {
-  record(
-    "CURRENT_ORIGIN",
-    "OBSERVED",
-    inspectOrigin()
-  );
-}
+  log("User agent: " + navigator.userAgent);
+  log("Platform: " + navigator.platform);
+  log("Current URL: " + location.href);
+  log("Current origin: " + location.origin);
 
-function testSameOrigin() {
-  try {
-    const url = new URL(location.href);
+  // Test 1: Blob URL creation
+  const blob = new Blob([
+    "<!doctype html><html><body>",
+    "<h2>Blob document test</h2>",
+    "<p>Regression test document.</p>",
+    "</body></html>"
+  ], {
+    type: "text/html"
+  });
 
-    history.replaceState(
-      { test: "same-origin" },
-      "",
-      url.href
-    );
+  const blobURL = URL.createObjectURL(blob);
 
-    record(
-      "SAME_ORIGIN",
-      "ACCEPTED",
-      inspectOrigin()
-    );
-  } catch (e) {
-    record(
-      "SAME_ORIGIN",
-      "REJECTED",
-      {
-        name: e.name,
-        message: e.message
-      }
-    );
-  }
-}
+  log("\n[TEST 1] Blob URL creation");
+  log("Blob URL: " + blobURL);
 
-function testCrossOrigin() {
+  // Test 2: URL origin parsing
+  log("\n[TEST 2] Origin information");
+
+  const parsed = new URL(blobURL);
+
+  log("Protocol: " + parsed.protocol);
+  log("Origin: " + parsed.origin);
+
+  // Test 3: Same-origin replaceState
+  log("\n[TEST 3] Same-origin replaceState");
+
   try {
     history.replaceState(
-      { test: "cross-origin" },
+      { regression: true },
       "",
-      "https://example.com/test"
+      location.pathname + location.search
     );
 
-    record(
-      "CROSS_ORIGIN",
-      "UNEXPECTED_ACCEPTANCE",
-      inspectOrigin()
-    );
+    log("PASS: Same-origin replaceState accepted");
   } catch (e) {
-    record(
-      "CROSS_ORIGIN",
-      "REJECTED",
-      {
-        name: e.name,
-        message: e.message,
-        currentOrigin: location.origin
-      }
-    );
+    log("FAIL: " + e.name + ": " + e.message);
   }
+
+  // Test 4: Cross-origin replaceState
+  log("\n[TEST 4] Cross-origin replaceState");
+
+  try {
+    history.replaceState(
+      {},
+      "",
+      "https://example.com/regression-test"
+    );
+
+    log("FAIL: Cross-origin URL was accepted");
+  } catch (e) {
+    log("PASS: Cross-origin URL rejected");
+    log("Exception: " + e.name);
+  }
+
+  log("\n[TEST 5] Browser-visible state");
+  log("Current URL: " + location.href);
+  log("Current origin: " + location.origin);
+
+  log("\nCompleted.");
 }
 
-function testBlobCreation() {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Blob Test</title>
-    </head>
-    <body>
-      <h2>Blob document</h2>
-      <pre id="info"></pre>
-      <script>
-        document.getElementById("info").textContent =
-          JSON.stringify({
-            href: location.href,
-            origin: location.origin,
-            protocol: location.protocol
-          }, null, 2);
-      <\/script>
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob(
-    [html],
-    { type: "text/html" }
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  record(
-    "BLOB_CREATED",
-    "SUCCESS",
-    {
-      blobURL: url,
-      creatorOrigin: location.origin
-    }
-  );
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.textContent = "Open isolated Blob test document";
-  link.style.display = "block";
-
-  document.querySelector(".card").appendChild(link);
-}
-
-function downloadResults() {
-  const blob = new Blob(
-    [JSON.stringify(results, null, 2)],
-    { type: "application/json" }
-  );
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = "chromium-origin-results.json";
-  link.click();
-
-  URL.revokeObjectURL(url);
-}
-
-document.getElementById("environment").textContent =
-  JSON.stringify({
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    screen: {
-      width: screen.width,
-      height: screen.height
-    },
-    viewport: {
-      width: innerWidth,
-      height: innerHeight
-    }
-  }, null, 2);
-
-record("INITIALIZED", "SUCCESS", inspectOrigin());
+document.getElementById("run")
+  .addEventListener("click", runTest);
 </script>
 
 </body>
