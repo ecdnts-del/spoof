@@ -31,7 +31,7 @@
     </style>
   </head>
   <body>
-    <button id="startBtn">TEST HEAVY BLOCKING</button>
+    <button id="startBtn">TEST HEAVYS BLOCKING</button>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
@@ -61,7 +61,7 @@
             } catch (e) {
               console.error(e);
             }
-          }, 5);
+          }, 2);
 
           // Membekukan thread utama menggunakan beban komputasi berat (Synchronous Busy-Wait) 
           // sebagai pengganti fungsi prompt() yang sudah ditambal oleh patch IsVisible().
@@ -69,7 +69,7 @@
             try {
               const start = Date.now();
               // Memblokir thread selama beberapa detik secara kontinu
-              while (Date.now() - start < 3000) {
+              while (Date.now() - start < 400) {
                 newTab.Math.random(); 
               }
             } catch (e) {
