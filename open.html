@@ -4,90 +4,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Testing - Chromium iOS</title>
-
+<title>Testing Navigation Loop</title>
 <style>
-html, body {
-  margin: 0;
-  height: 100%;
-  background: white;
-  font-family: Arial, sans-serif;
+html,body {
+  margin:0;
+  height:100%;
+  font-family:Arial,sans-serif;
+  background:white;
 }
-
-#start {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 16px 34px;
-  border: none;
-  border-radius: 10px;
-  background: #007aff;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+button {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  padding:16px 32px;
+  border:0;
+  border-radius:10px;
+  background:#007aff;
+  color:white;
+  font-size:18px;
 }
 </style>
 </head>
-
 <body>
 
 <button id="start">START TEST</button>
 
 <script>
-document.getElementById("start").onclick = function() {
-  this.remove();
-
+document.getElementById("start").onclick = () => {
   const w = window.open("about:blank", "_blank");
-
   if (!w) return;
 
   w.document.write(`
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>TESTING</title>
-    </head>
-    <body style="
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      font-family:Arial;
-    ">
-      <div>
-        <h1 style="color:red">TESTING</h1>
-        <h2>Chromium iOS Security Test</h2>
-        <p>Navigation lifecycle regression test.</p>
-      </div>
+    <body style="font-family:Arial;text-align:center;padding:30px">
+      <h1>TESTING</h1>
+      <p>Navigation regression test</p>
     </body>
     </html>
   `);
-
   w.document.close();
 
-  // Observe navigation lifecycle.
-  w.addEventListener("pagehide", () => {});
-  w.addEventListener("pageshow", () => {});
-  w.addEventListener("beforeunload", () => {});
+  let count = 0;
+  const max = 1000;
 
-  // Test normal navigation.
-  setTimeout(() => {
-    if (!w.closed) {
-      w.location.assign("https://x.com:909/");
-    }
-  }, 900);
+  const navigate = () => {
+    if (w.closed || count >= max) return;
 
-  // Test invalid-port navigation separately.
-  setTimeout(() => {
-    if (!w.closed) {
-      w.location.assign("https://www.x.com:1234/");
+    count++;
+
+    try {
+      w.location.replace("https://x.com:9090");
+    } catch (e) {
+      return;
     }
-  }, 300);
+
+    setTimeout(navigate, 1000);
+  };
+
+  setTimeout(navigate, 1500);
 };
 </script>
 
