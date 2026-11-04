@@ -4,159 +4,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chrome iOS Origin Security Lab</title>
-
+<title>WebState Visibility Regression Test</title>
 <style>
 body {
-  font-family: -apple-system, sans-serif;
+  font-family: sans-serif;
   padding: 20px;
-  background: #f5f5f5;
-  color: #222;
 }
-
-.card {
-  background: white;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 14px;
-}
-
 button {
-  width: 100%;
-  padding: 14px;
-  margin: 6px 0;
-  border: none;
-  border-radius: 8px;
-  background: #167c45;
-  color: white;
-  font-size: 15px;
-}
-
-pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  background: #eee;
   padding: 12px;
-  border-radius: 8px;
+  margin: 6px;
+}
+iframe {
+  width: 100%;
+  height: 180px;
+  border: 1px solid #aaa;
 }
 </style>
 </head>
-
 <body>
 
-<h2>Chrome iOS Origin Security Lab</h2>
+<h2>JavaScript Dialog Regression Test</h2>
 
-<p>
-CVE-2026-7931 — Download Origin Regression Testing
-</p>
+<button onclick="testAlert()">Test Alert</button>
+<button onclick="testConfirm()">Test Confirm</button>
+<button onclick="testPrompt()">Test Prompt</button>
 
-<div class="card">
-<h3>Test Cases</h3>
-
-<button onclick="runTest('normal')">
-P01 - Normal filename
-</button>
-
-<button onclick="runTest('long')">
-P02 - Extreme filename
-</button>
-
-<button onclick="runTest('u3164')">
-P03 - Hangul Filler
-</button>
-
-<button onclick="runTest('u200b')">
-P04 - Zero Width Space
-</button>
-
-<button onclick="runTest('u2060')">
-P05 - Word Joiner
-</button>
-
-<button onclick="runTest('mixed')">
-P06 - Mixed Unicode
-</button>
-
-<button onclick="runTest('repeat')">
-P07 - Repeated downloads
-</button>
-</div>
-
-<div class="card">
-<h3>Test Results</h3>
-<pre id="output">Waiting for test...</pre>
-</div>
+<p id="result">Waiting for test...</p>
 
 <script>
-const testCases = {
-  normal: "normal-download.txt",
+function testAlert() {
+  document.getElementById("result").textContent =
+    "Alert requested";
 
-  long: "filename-".repeat(100) + ".txt",
-
-  u3164: "test-\u3164\u3164\u3164.txt",
-
-  u200b: "test-\u200B\u200B\u200B.txt",
-
-  u2060: "test-\u2060\u2060\u2060.txt",
-
-  mixed:
-    "test-\u3164\u200B\u2060\u2800.txt"
-};
-
-function log(message) {
-  const output = document.getElementById("output");
-  output.textContent += "\n" + message;
+  alert("Visibility regression test");
 }
 
-function downloadFile(filename) {
-  const content =
-    "Harmless Chrome iOS origin regression test.\n";
+function testConfirm() {
+  const result = confirm("Confirm regression test");
 
-  const blob = new Blob(
-    [content],
-    {type: "text/plain"}
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url), 15000);
+  document.getElementById("result").textContent =
+    "Confirm result: " + result;
 }
 
-function runTest(type) {
-  document.getElementById("output").textContent =
-    "Chrome iOS Origin Regression Test\n";
+function testPrompt() {
+  const result = prompt("Prompt regression test");
 
-  log("Test ID: " + type);
-  log("Timestamp: " + new Date().toISOString());
-
-  if (type === "repeat") {
-    for (let i = 1; i <= 3; i++) {
-      downloadFile("regression-test-" + i + ".txt");
-      log("Download initiated: " + i);
-    }
-  } else {
-    const filename = testCases[type];
-
-    if (!filename) return;
-
-    log("Filename length: " + filename.length);
-    log("Filename: " + JSON.stringify(filename));
-
-    downloadFile(filename);
-  }
-
-  log("Expected: Actual download origin remains visible.");
-  log("Inspect collapsed and expanded notification.");
-  log("Record the observed result manually.");
+  document.getElementById("result").textContent =
+    "Prompt result: " + result;
 }
 </script>
 
