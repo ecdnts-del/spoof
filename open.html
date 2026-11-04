@@ -1,22 +1,20 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
-<title>TESTING - Chromium iOS Security PoC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chromium iOS Security Regression Testing</title>
 
 <style>
 html, body {
   margin: 0;
-  padding: 0;
   min-height: 100%;
-  background: white;
+  background: #fff;
   font-family: Arial, sans-serif;
 }
 
-button {
+#startBtn {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -24,63 +22,41 @@ button {
   padding: 16px 32px;
   background: #007aff;
   color: white;
-  border: none;
+  border: 0;
   border-radius: 10px;
   font-size: 18px;
 }
 
 #log {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 35%;
-  overflow-y: auto;
+  margin-top: 20px;
   padding: 12px;
-  background: #111;
-  color: #00ff90;
-  font-size: 11px;
+  font-size: 12px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  color: #00ff90;
+  background: #111;
 }
 </style>
 </head>
 
 <body>
 
-<button id="startBtn">START TESTING</button>
+<button id="startBtn">START TEST</button>
 <pre id="log"></pre>
 
 <script>
-let w = null;
+const log = (message) => {
+  document.getElementById("log").textContent +=
+    new Date().toISOString() + " | " + message + "\n";
+};
 
-const logElement = document.getElementById("log");
+document.getElementById("startBtn").onclick = function () {
+  this.remove();
 
-function log(message) {
-  logElement.textContent +=
-    new Date().toISOString() +
-    " | " + message + "\n";
-}
-
-function observePopup() {
-  if (!w || w.closed) {
-    log("Popup unavailable");
-    return;
-  }
-
-  try {
-    log("Popup URL: " + w.location.href);
-  } catch (error) {
-    log("Cross-origin access restricted: " + error.name);
-  }
-}
-
-function startTesting() {
-  log("=== TESTING STARTED ===");
-
+  log("TEST STARTED");
   log("Parent URL: " + location.href);
 
-  w = window.open("about:blank", "_blank");
+  const w = window.open("about:blank", "_blank");
 
   if (!w) {
     log("Popup blocked");
@@ -90,9 +66,10 @@ function startTesting() {
   log("New WebState opened");
 
   w.document.write(`
-    <!doctype html>
+    <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8">
       <title>TESTING</title>
     </head>
     <body style="
@@ -101,20 +78,16 @@ function startTesting() {
       text-align:center;
       font-family:Arial;
     ">
-      <h1 style="color:#007aff">
-        TESTING SECURITY TEST
-      </h1>
-
-      <h2>Chromium iOS Navigation Test</h2>
-
-      <p>Observing WebState lifecycle.</p>
+      <h1 style="color:red">TESTING</h1>
+      <h2>Chromium iOS Security Test</h2>
+      <p>Navigation lifecycle regression test.</p>
     </body>
     </html>
   `);
 
   w.document.close();
 
-  log("Document injected");
+  log("HTML injected successfully");
 
   w.addEventListener("pagehide", () => {
     log("Popup pagehide");
@@ -124,43 +97,53 @@ function startTesting() {
     log("Popup pageshow");
   });
 
+  w.addEventListener("beforeunload", () => {
+    log("Popup beforeunload");
+  });
+
   setTimeout(() => {
     try {
-      log("Navigation: https://testing.com");
-      w.location.href = "https://testing.com";
-    } catch (error) {
-      log("Navigation error: " + error.name);
+      log("Testing navigation to x.com");
+      w.location.href = "https://x.com";
+    } catch (e) {
+      log("Navigation error: " + e.name);
     }
   }, 1000);
 
-  setTimeout(observePopup, 3000);
+  setTimeout(() => {
+    try {
+      log("Testing invalid-port navigation");
+      w.location.href = "https://www.google.com:1234";
+    } catch (e) {
+      log("Invalid-port error: " + e.name);
+    }
+  }, 5000);
 
   setTimeout(() => {
-    log("Active dialog test");
+    log("Popup closed: " + w.closed);
 
     try {
-      const result = window.confirm(
-        "TESTING - JavaScript Dialog Regression"
-      );
-
-      log("Confirm result: " + result);
-    } catch (error) {
-      log("Dialog error: " + error.name);
+      log("Popup URL: " + w.location.href);
+    } catch (e) {
+      log("Cross-origin access: " + e.name);
     }
-  }, 4000);
-
-  setTimeout(observePopup, 6000);
+  }, 8000);
 
   setTimeout(() => {
-    log("=== TESTING COMPLETED ===");
-  }, 7000);
-}
+    log("Testing JavaScript dialog policy");
 
-document.getElementById("startBtn")
-  .addEventListener("click", function () {
-    this.disabled = true;
-    startTesting();
-  });
+    try {
+      w.alert("TESTING ALERT");
+      log("Alert returned");
+    } catch (e) {
+      log("Alert error: " + e.name);
+    }
+  }, 10000);
+
+  setTimeout(() => {
+    log("TEST COMPLETED");
+  }, 12000);
+};
 
 document.addEventListener("visibilitychange", () => {
   log("Parent visibility: " + document.visibilityState);
@@ -168,10 +151,6 @@ document.addEventListener("visibilitychange", () => {
 
 window.addEventListener("pagehide", () => {
   log("Parent pagehide");
-});
-
-window.addEventListener("pageshow", () => {
-  log("Parent pageshow");
 });
 </script>
 
