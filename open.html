@@ -170,7 +170,8 @@
             const blob = new Blob([BLOB_DOC], { type: 'text/html' });
             const blobUrl = URL.createObjectURL(blob);
             
-            document.getElementById('launcher-log.innerHTML') = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
+            // [FIXED] Memperbaiki sintaks innerHTML yang sebelumnya salah
+            document.getElementById('launcher-log').innerHTML = `<span class="info">Mengarahkan ke: ${blobUrl}</span>`;
             diag.textContent += `[*] Mengalihkan navigasi ke: ${blobUrl}\n`;
             
             // Eksekusi navigasi otomatis ke blob URL
