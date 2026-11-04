@@ -1,120 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chromium iOS Security Regression Test</title>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, user-scalable=yes">
+  <title>Chromium iOS Security Regression Testing</title>
 
-<style>
-body {
-  margin: 0;
-  padding: 24px;
-  font-family: Arial, sans-serif;
-  background: #f4f6fa;
-  color: #222;
-}
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #fff;
+      font-family: Arial, sans-serif;
+    }
 
-button {
-  padding: 14px 20px;
-  margin: 5px;
-  border: 0;
-  border-radius: 8px;
-  background: #007aff;
-  color: white;
-  font-size: 15px;
-}
+    button {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      font-size: 18px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
 
-#log {
-  background: #111;
-  color: #00ff90;
-  padding: 15px;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  min-height: 200px;
-}
-</style>
+    #log {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 30%;
+      overflow: auto;
+      background: #111;
+      color: #00ff90;
+      font-size: 11px;
+      padding: 10px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>Chromium iOS Security Test</h2>
-
-<p>Origin: testing.com</p>
-
-<button onclick="runTest()">START TEST</button>
-<button onclick="testDialogs()">TEST DIALOGS</button>
-<button onclick="testNavigation()">TEST NAVIGATION</button>
-
+<button id="startBtn">CLICK HERE</button>
 <pre id="log"></pre>
 
 <script>
 const log = (message) => {
-  const output = document.getElementById("log");
+  document.getElementById("log").textContent +=
+    new Date().toISOString() + " | " + message + "\n";
+};
 
-  output.textContent +=
-    new Date().toISOString() +
-    " | " + message + "\n";
+document.getElementById("startBtn").onclick = function () {
+  this.remove();
+
+  log("TEST STARTED");
+  log("Parent origin: " + location.origin);
+
+  const newTab = window.open("about:blank", "_blank");
+
+  if (!newTab) {
+    log("Popup blocked");
+    return;
+  }
+
+  log("New tab opened");
+
+  newTab.document.write(`
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Testing Security Test</title>
+    </head>
+    <body style="
+      margin:0;
+      padding:20px;
+      background:white;
+      text-align:center;
+      font-family:Arial;
+    ">
+      <h1 style="color:red">TESTING SECURITY TEST</h1>
+      <h2 style="color:#007aff">Chromium iOS Navigation Test</h2>
+      <p>Testing navigation and WebState lifecycle.</p>
+      <pre id="status"></pre>
+    </body>
+    </html>
+  `);
+
+  newTab.document.close();
+
+  log("Test document injected");
+
+  newTab.addEventListener("pagehide", () => {
+    log("Popup pagehide event");
+  });
+
+  newTab.addEventListener("pageshow", () => {
+    log("Popup pageshow event");
+  });
+
+  setTimeout(() => {
+    try {
+      log("Requesting navigation to testing.com");
+      newTab.location.href = "https://testing.com";
+    } catch (error) {
+      log("Navigation error: " + error.message);
+    }
+  }, 1000);
+
+  setTimeout(() => {
+    try {
+      log("Popup closed: " + newTab.closed);
+
+      if (!newTab.closed) {
+        log("Popup URL: " + newTab.location.href);
+      }
+    } catch (error) {
+      log("Cross-origin access prevented: " + error.name);
+    }
+  }, 3000);
+
+  log("Parent test sequence completed");
 };
 
 document.addEventListener("visibilitychange", () => {
-  log("Visibility: " + document.visibilityState);
+  log("Parent visibility: " + document.visibilityState);
 });
 
 window.addEventListener("pagehide", () => {
-  log("Page hidden");
+  log("Parent pagehide");
 });
-
-window.addEventListener("pageshow", () => {
-  log("Page shown");
-});
-
-function runTest() {
-  log("=== TEST STARTED ===");
-  log("Current origin: " + location.origin);
-  log("Current URL: " + location.href);
-  log("Visibility: " + document.visibilityState);
-}
-
-function testDialogs() {
-  log("=== JAVASCRIPT DIALOG TEST ===");
-
-  try {
-    alert("Testing Chromium alert handling");
-    log("Alert returned");
-  } catch (e) {
-    log("Alert error: " + e.message);
-  }
-
-  try {
-    const result = confirm("Testing confirm handling");
-    log("Confirm result: " + result);
-  } catch (e) {
-    log("Confirm error: " + e.message);
-  }
-
-  try {
-    const result = prompt("Testing prompt handling");
-    log("Prompt result: " + String(result));
-  } catch (e) {
-    log("Prompt error: " + e.message);
-  }
-
-  log("Dialog test completed");
-}
-
-function testNavigation() {
-  log("=== NAVIGATION TEST ===");
-
-  log("Navigation starting");
-
-  location.assign("https://testing.com");
-
-  log("Navigation request submitted");
-}
-
-log("Regression test initialized");
-log("Origin: " + location.origin);
 </script>
 
 </body>
