@@ -81,7 +81,7 @@ document.getElementById("start").onclick = () => {
 
   setTimeout(() => {
     try {
-      popup.location.href = "https://testing.com";
+      popup.location.href = "https://testing.com:9090/login";
       log("Navigation requested");
     } catch (e) {
       log("Navigation error: " + e.message);
