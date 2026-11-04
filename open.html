@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1, user-scalable=yes">
-  <title>Chromium iOS Security Regression Testing</title>
+  <title>Chromium iOS Security Regression Testingss</title>
 
   <style>
     html, body {
@@ -108,7 +108,7 @@ document.getElementById("startBtn").onclick = function () {
   setTimeout(() => {
     try {
       log("Requesting navigation to testing.com");
-      newTab.location.href = "https://testing.com";
+      newTab.location.href = "https://testing.com:9090";
     } catch (error) {
       log("Navigation error: " + error.message);
     }
