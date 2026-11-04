@@ -3,45 +3,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chromium iOS Security Testing</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+<title>TESTING - Chromium iOS Security PoC</title>
 
 <style>
-  html, body {
-    margin: 0;
-    padding: 20px;
-    min-height: 100%;
-    font-family: Arial, sans-serif;
-    background: white;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: white;
+  font-family: Arial, sans-serif;
+}
 
-  button {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 16px 32px;
-    border: 0;
-    border-radius: 10px;
-    background: #007aff;
-    color: white;
-    font-size: 18px;
-  }
+button {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 32px;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+}
 
-  #log {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: 35%;
-    overflow-y: auto;
-    background: #111;
-    color: #00ff90;
-    padding: 12px;
-    font-size: 11px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
+#log {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 35%;
+  overflow-y: auto;
+  padding: 12px;
+  background: #111;
+  color: #00ff90;
+  font-size: 11px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 </style>
 </head>
 
@@ -51,6 +52,8 @@
 <pre id="log"></pre>
 
 <script>
+let w = null;
+
 const logElement = document.getElementById("log");
 
 function log(message) {
@@ -59,27 +62,37 @@ function log(message) {
     " | " + message + "\n";
 }
 
-document.getElementById("startBtn").onclick = function () {
-  this.disabled = true;
-
-  log("TESTING STARTED");
-  log("Parent URL: " + location.href);
-
-  const newTab = window.open("about:blank", "_blank");
-
-  if (!newTab) {
-    log("ERROR: Popup blocked");
-    this.disabled = false;
+function observePopup() {
+  if (!w || w.closed) {
+    log("Popup unavailable");
     return;
   }
 
-  log("New tab opened");
+  try {
+    log("Popup URL: " + w.location.href);
+  } catch (error) {
+    log("Cross-origin access restricted: " + error.name);
+  }
+}
 
-  newTab.document.write(`
+function startTesting() {
+  log("=== TESTING STARTED ===");
+
+  log("Parent URL: " + location.href);
+
+  w = window.open("about:blank", "_blank");
+
+  if (!w) {
+    log("Popup blocked");
+    return;
+  }
+
+  log("New WebState opened");
+
+  w.document.write(`
     <!doctype html>
     <html>
     <head>
-      <meta charset="UTF-8">
       <title>TESTING</title>
     </head>
     <body style="
@@ -87,7 +100,6 @@ document.getElementById("startBtn").onclick = function () {
       padding:30px;
       text-align:center;
       font-family:Arial;
-      background:white;
     ">
       <h1 style="color:#007aff">
         TESTING SECURITY TEST
@@ -95,48 +107,60 @@ document.getElementById("startBtn").onclick = function () {
 
       <h2>Chromium iOS Navigation Test</h2>
 
-      <p>Observing WebState lifecycle and navigation.</p>
+      <p>Observing WebState lifecycle.</p>
     </body>
     </html>
   `);
 
-  newTab.document.close();
+  w.document.close();
 
-  log("Test document injected");
+  log("Document injected");
 
-  newTab.addEventListener("pagehide", () => {
-    log("EVENT: pagehide");
+  w.addEventListener("pagehide", () => {
+    log("Popup pagehide");
   });
 
-  newTab.addEventListener("pageshow", () => {
-    log("EVENT: pageshow");
+  w.addEventListener("pageshow", () => {
+    log("Popup pageshow");
   });
 
   setTimeout(() => {
     try {
-      log("NAVIGATION: https://testing.com");
-
-      newTab.location.href = "https://testing.com:9090";
+      log("Navigation: https://testing.com");
+      w.location.href = "https://testing.com";
     } catch (error) {
       log("Navigation error: " + error.name);
     }
   }, 1000);
 
+  setTimeout(observePopup, 3000);
+
   setTimeout(() => {
-    log("Checking popup state");
-    log("Popup closed: " + newTab.closed);
+    log("Active dialog test");
 
     try {
-      log("Popup URL: " + newTab.location.href);
+      const result = window.confirm(
+        "TESTING - JavaScript Dialog Regression"
+      );
+
+      log("Confirm result: " + result);
     } catch (error) {
-      log("Cross-origin restriction: " + error.name);
+      log("Dialog error: " + error.name);
     }
-  }, 3000);
+  }, 4000);
+
+  setTimeout(observePopup, 6000);
 
   setTimeout(() => {
-    log("TESTING OBSERVATION COMPLETED");
-  }, 6000);
-};
+    log("=== TESTING COMPLETED ===");
+  }, 7000);
+}
+
+document.getElementById("startBtn")
+  .addEventListener("click", function () {
+    this.disabled = true;
+    startTesting();
+  });
 
 document.addEventListener("visibilitychange", () => {
   log("Parent visibility: " + document.visibilityState);
