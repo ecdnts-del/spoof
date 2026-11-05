@@ -87,6 +87,7 @@
     }
 
     let clickCount = 0;
+    let watchId = null;
 
     document.body.onclick = async () => {
         clickCount++;
@@ -100,14 +101,36 @@
             appendLog("[Ditolak oleh Sistem]: " + e.message);
         }
 
-        // Ketika ketukan mencapai angka 9 (sesuai panduan visual CLICK FASTER), panggil geolokasi seketika
+        // Ketika ketukan mencapai angka 9, aktifkan pelacakan posisi real-time berakurasi tinggi
         if (clickCount === 9) {
-            appendLog("Batas ketukan tercapai. Memicu permintaan geolokasi otomatis...");
-            navigator.geolocation.getCurrentPosition(
-                (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
-                (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+            appendLog("Batas ketukan tercapai. Memulai pelacakan real-time berakurasi tinggi...");
+            
+            // Konfigurasi opsi untuk memaksa keakuratan GPS maksimal
+            const geoOptions = {
+                enableHighAccuracy: true, // Memaksa penggunaan GPS perangkat (bukan sekadar Wi-Fi/Cell tower)
+                timeout: 10000,           // Batas waktu tunggu respons (10 detik)
+                maximumAge: 0             // Mencegah cache posisi lama, ambil data terbaru
+            };
+
+            // Menggunakan watchPosition agar posisi terus terpantau secara real-time
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const acc = pos.coords.accuracy;
+                    appendLog(`[Real-Time GPS] Lat: ${lat}, Lon: ${lon} (Akurasi: ${acc} meter)`);
+                },
+                (err) => { 
+                    appendLog("Error / Ditolak: " + err.message); 
+                },
+                geoOptions
             );
-            // Reset counter jika ingin mengulang simulasi dari awal
+
+            // Reset counter setelah pemicuan tercapai
             clickCount = 0;
         }
     };
