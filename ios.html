@@ -39,7 +39,13 @@
             max-height: 150px;
             overflow-y: auto;
         }
-        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        code {
+            background: #2d2d2d;
+            color: #ff8a80;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
         .interactive-zone {
             position: relative;
             margin-bottom: 20px;
@@ -95,6 +101,8 @@
     const intervalHistory = [];
     const MAX_LOGS = 100;
 
+    // Logging
+
     function appendLog(msg) {
         console.log(msg);
 
@@ -112,6 +120,8 @@
         }
     }
 
+    // User activation
+
     function activationState() {
         if (!navigator.userActivation) {
             return "unavailable";
@@ -123,6 +133,8 @@
                 navigator.userActivation.hasBeenActive
         });
     }
+
+    // Permission monitoring
 
     async function monitorPermission() {
         try {
@@ -148,7 +160,7 @@
         }
     }
 
-    // Pointer interaction monitoring
+    // Pointer monitoring
 
     document.body.addEventListener("pointerdown", (event) => {
 
@@ -177,11 +189,10 @@
             `Activation=${activationState()}`
         );
 
-        // Observe picker invocation
+        // Picker observation
 
         try {
             pickerAttempts++;
-
             input.showPicker();
 
             appendLog(
@@ -196,7 +207,7 @@
             );
         }
 
-        // Interaction threshold observation
+        // Nine-interaction observation
 
         if (clickCount === 9) {
 
@@ -214,7 +225,7 @@
             );
 
             appendLog(
-                `[Statistics] Average interval=${averageInterval}ms, ` +
+                `[Statistics] Average=${averageInterval}ms, ` +
                 `Picker attempts=${pickerAttempts}, ` +
                 `Picker errors=${pickerErrors}, ` +
                 `Permission=${permissionStatus?.state ?? "unknown"}`
@@ -225,7 +236,7 @@
 
     }, { passive: true });
 
-    // Geolocation: explicitly requested by the user
+    // Geolocation API
 
     function requestGeolocation() {
 
@@ -240,49 +251,87 @@
         }
 
         appendLog(
-            `[Geolocation Request] Permission=` +
-            `${permissionStatus?.state ?? "unknown"}`
+            "[Geolocation] Requesting location permission..."
         );
 
         const geoOptions = {
             enableHighAccuracy: true,
-            timeout: 3000,
+            timeout: 10000,
             maximumAge: 0
         };
 
         watchId = navigator.geolocation.watchPosition(
 
             (position) => {
+
+                const coords = position.coords;
+
                 appendLog(
-                    `[GPS Result] Lat=${position.coords.latitude}, ` +
-                    `Lon=${position.coords.longitude}, ` +
-                    `Accuracy=${position.coords.accuracy}m`
+                    `[GPS SUCCESS] Latitude=${coords.latitude}, ` +
+                    `Longitude=${coords.longitude}, ` +
+                    `Accuracy=${coords.accuracy}m`
                 );
+
+                appendLog(
+                    `[GPS DETAILS] Timestamp=${new Date(
+                        position.timestamp
+                    ).toLocaleTimeString()}`
+                );
+
             },
 
             (error) => {
+
                 appendLog(
-                    `[Geolocation Error] Code=${error.code}, ` +
+                    `[GPS ERROR] Code=${error.code}, ` +
                     `Message=${error.message}`
                 );
+
+                if (watchId !== null) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+
             },
 
             geoOptions
         );
     }
 
+    // Stop Geolocation
+
     function stopGeolocation() {
 
         if (watchId !== null) {
+
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
 
-            appendLog("[Geolocation] Watch stopped.");
+            appendLog("[Geolocation] Tracking stopped.");
 
         } else {
-            appendLog("[Geolocation] No active watch.");
+
+            appendLog("[Geolocation] No active tracking.");
+
         }
     }
+
+    // Explicit confirmation after nine interactions
+
+    document.body.addEventListener("click", (event) => {
+
+        if (event.target === input) {
+            return;
+        }
+
+        if (clickCount >= 9) {
+            appendLog(
+                "[Geolocation] Interaction threshold observed. " +
+                "Location request requires explicit confirmation."
+            );
+        }
+
+    });
 
     // Visibility monitoring
 
@@ -317,6 +366,10 @@
     );
 
     monitorPermission();
+
+    // Geolocation is intentionally not auto-triggered.
+    // Call requestGeolocation() from an explicit user action
+    // in an authorized test interface.
 
 })();
 </script>
