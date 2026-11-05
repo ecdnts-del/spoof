@@ -19,7 +19,7 @@
 <body>
 
 <div class="container">
-    <h2>Issue  Research </h2>
+    <h2>Issue  m </h2>
     <span class="badge">Lifecycle & History State Management</span>
     
     <div id="panel">
@@ -70,7 +70,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
     // 2. Pengelolaan Jendela Popup dengan Sinkronisasi Dokumen Aman
     logTerm('[2/3] Menginisialisasi konteks popup asinkron...');
     try {
-        const newTab = window.open("about:blank", "_self");
+        const newTab = window.open("about:blank", "_blank");
         if (newTab) {
             newTab.document.write(`
                 <!DOCTYPE html>
@@ -97,7 +97,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
                         }
-                    }, 370);
+                    }, 380);
                 });
             });
         } else {
@@ -116,7 +116,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
         } catch (err) {
             logTerm('[3/3] Prompt dilewati atau diblokir.');
         }
-    }, 770);
+    }, 900);
 };
 </script>
 
