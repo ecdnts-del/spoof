@@ -20,11 +20,13 @@
             min-height: 90vh;
             cursor: pointer;
         }
+
         h1 {
             color: #ff5252;
             font-size: 18px;
             margin-bottom: 5px;
         }
+
         .info-box {
             background: #1e1e1e;
             border: 1px solid #333;
@@ -39,6 +41,7 @@
             max-height: 150px;
             overflow-y: auto;
         }
+
         code {
             background: #2d2d2d;
             color: #ff8a80;
@@ -46,6 +49,7 @@
             border-radius: 3px;
             font-family: monospace;
         }
+
         .interactive-zone {
             position: relative;
             margin-bottom: 20px;
@@ -55,32 +59,37 @@
         }
     </style>
 </head>
+
 <body>
 
-    <h1>ðŸ”´ Double-Tap Interaction Labss</h1>
-    <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
+    <h1>Double-Tap Interaction Lab</h1>
+
+    <p style="font-size: 12px; color: #888;">
+        Simulation of repeated pointer interactions and browser permission behavior.
+    </p>
 
     <div class="interactive-zone">
         <input id="input" type="time" list="times" style="display:none;" />
+
         <datalist id="times">
             <select>
                 <option label="--">00:00</option>
                 <option label="--">00:01</option>
-                <option label="        Allow this time        ">00:02</option>
+                <option label="Allow this time">00:02</option>
                 <option label="--">00:03</option>
                 <option label="--">00:04</option>
                 <option label="--">00:05</option>
                 <option label="--">00:06</option>
                 <option label="--">00:07</option>
-                <option label="        CLICK FASTER ðŸ”´        ">00:08</option>
-                <option label="--">CLICK FASTER  ðŸ”´</option>
-                <option label="--">CLICK FASTER  ðŸ”´</option>
+                <option label="Click faster">00:08</option>
+                <option label="--">00:09</option>
+                <option label="--">00:10</option>
             </select>
         </datalist>
     </div>
 
     <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Menunggu interaksi klik...
+        <strong>Status Log:</strong> Waiting for interaction...
     </div>
 
 <script>
@@ -92,16 +101,6 @@
 
     let clickCount = 0;
     let watchId = null;
-    let lastPointerTime = null;
-    let permissionStatus = null;
-
-    let pickerAttempts = 0;
-    let pickerErrors = 0;
-
-    const intervalHistory = [];
-    const MAX_LOGS = 100;
-
-    // Logging
 
     function appendLog(msg) {
         console.log(msg);
@@ -112,15 +111,9 @@
 
         logBox.appendChild(line);
         logBox.scrollTop = logBox.scrollHeight;
-
-        while (logBox.children.length > MAX_LOGS) {
-            if (logBox.children.length > 1) {
-                logBox.removeChild(logBox.children[1]);
-            }
-        }
     }
 
-    // User activation
+    // User activation observation
 
     function activationState() {
         if (!navigator.userActivation) {
@@ -134,101 +127,43 @@
         });
     }
 
-    // Permission monitoring
-
-    async function monitorPermission() {
-        try {
-            permissionStatus =
-                await navigator.permissions.query({
-                    name: "geolocation"
-                });
-
-            appendLog(
-                `[Permission Initial] ${permissionStatus.state}`
-            );
-
-            permissionStatus.addEventListener("change", () => {
-                appendLog(
-                    `[Permission Changed] ${permissionStatus.state}`
-                );
-            });
-
-        } catch (error) {
-            appendLog(
-                `[Permission API Error] ${error.name}: ${error.message}`
-            );
-        }
-    }
-
-    // Pointer monitoring
+    // Pointer interaction monitoring
 
     document.body.addEventListener("pointerdown", (event) => {
 
-        const now = performance.now();
-
-        const interval = lastPointerTime === null
-            ? null
-            : Number((now - lastPointerTime).toFixed(2));
-
-        lastPointerTime = now;
         clickCount++;
 
-        if (interval !== null) {
-            intervalHistory.push(interval);
-
-            if (intervalHistory.length > 100) {
-                intervalHistory.shift();
-            }
-        }
-
         appendLog(
-            `[Pointer #${clickCount}] ` +
-            `Type=${event.pointerType}, ` +
-            `Trusted=${event.isTrusted}, ` +
-            `Interval=${interval ?? "first"}ms, ` +
-            `Activation=${activationState()}`
+            `Pointer #${clickCount} | ` +
+            `Type: ${event.pointerType} | ` +
+            `Trusted: ${event.isTrusted} | ` +
+            `Activation: ${activationState()}`
         );
 
-        // Picker observation
+        // Picker interaction observation
 
         try {
-            pickerAttempts++;
             input.showPicker();
 
-            appendLog(
-                `[Picker Requested] Attempt=${pickerAttempts}`
-            );
+            appendLog("showPicker() invoked.");
 
         } catch (error) {
-            pickerErrors++;
 
             appendLog(
-                `[Picker Error] ${error.name}: ${error.message}`
+                `Picker error: ${error.name}: ${error.message}`
             );
         }
 
-        // Nine-interaction observation
+        // Interaction threshold observation
 
         if (clickCount === 9) {
 
-            const averageInterval =
-                intervalHistory.length
-                    ? (
-                        intervalHistory.reduce(
-                            (sum, value) => sum + value, 0
-                        ) / intervalHistory.length
-                    ).toFixed(2)
-                    : "N/A";
-
             appendLog(
-                "[Interaction Threshold] Nine interactions recorded."
+                "Nine pointer interactions recorded."
             );
 
             appendLog(
-                `[Statistics] Average=${averageInterval}ms, ` +
-                `Picker attempts=${pickerAttempts}, ` +
-                `Picker errors=${pickerErrors}, ` +
-                `Permission=${permissionStatus?.state ?? "unknown"}`
+                "Geolocation requires explicit user confirmation."
             );
 
             clickCount = 0;
@@ -241,41 +176,25 @@
     function requestGeolocation() {
 
         if (!navigator.geolocation) {
-            appendLog("[Geolocation] API unavailable.");
+            appendLog("Geolocation API unavailable.");
             return;
         }
 
         if (watchId !== null) {
-            appendLog("[Geolocation] Watch already active.");
+            appendLog("Geolocation watch already active.");
             return;
         }
 
-        appendLog(
-            "[Geolocation] Requesting location permission..."
-        );
-
-        const geoOptions = {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        };
+        appendLog("Requesting Geolocation permission.");
 
         watchId = navigator.geolocation.watchPosition(
 
             (position) => {
 
-                const coords = position.coords;
-
                 appendLog(
-                    `[GPS SUCCESS] Latitude=${coords.latitude}, ` +
-                    `Longitude=${coords.longitude}, ` +
-                    `Accuracy=${coords.accuracy}m`
-                );
-
-                appendLog(
-                    `[GPS DETAILS] Timestamp=${new Date(
-                        position.timestamp
-                    ).toLocaleTimeString()}`
+                    `GPS received: Latitude=${position.coords.latitude}, ` +
+                    `Longitude=${position.coords.longitude}, ` +
+                    `Accuracy=${position.coords.accuracy}m`
                 );
 
             },
@@ -283,8 +202,7 @@
             (error) => {
 
                 appendLog(
-                    `[GPS ERROR] Code=${error.code}, ` +
-                    `Message=${error.message}`
+                    `Geolocation error: ${error.code} - ${error.message}`
                 );
 
                 if (watchId !== null) {
@@ -294,7 +212,11 @@
 
             },
 
-            geoOptions
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
         );
     }
 
@@ -307,69 +229,30 @@
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
 
-            appendLog("[Geolocation] Tracking stopped.");
+            appendLog("Geolocation tracking stopped.");
 
         } else {
 
-            appendLog("[Geolocation] No active tracking.");
+            appendLog("No active Geolocation tracking.");
 
         }
     }
 
-    // Explicit confirmation after nine interactions
-
-    document.body.addEventListener("click", (event) => {
-
-        if (event.target === input) {
-            return;
-        }
-
-        if (clickCount >= 9) {
-            appendLog(
-                "[Geolocation] Interaction threshold observed. " +
-                "Location request requires explicit confirmation."
-            );
-        }
-
-    });
-
-    // Visibility monitoring
-
-    document.addEventListener("visibilitychange", () => {
-        appendLog(
-            `[Visibility] ${document.visibilityState}`
-        );
-    });
-
-    window.addEventListener("blur", () => {
-        appendLog("[Window] Blur detected.");
-    });
-
-    window.addEventListener("focus", () => {
-        appendLog("[Window] Focus restored.");
-    });
-
     // Initialization
 
-    appendLog("[Lab] Initialized.");
+    appendLog("Lab initialized.");
 
     appendLog(
-        `[Environment] SecureContext=${window.isSecureContext}`
+        `Secure context: ${window.isSecureContext}`
     );
 
     appendLog(
-        `[Environment] Geolocation=${!!navigator.geolocation}`
+        `Geolocation available: ${!!navigator.geolocation}`
     );
 
     appendLog(
-        `[Environment] Browser=${navigator.userAgent}`
+        `Browser: ${navigator.userAgent}`
     );
-
-    monitorPermission();
-
-    // Geolocation is intentionally not auto-triggered.
-    // Call requestGeolocation() from an explicit user action
-    // in an authorized test interface.
 
 })();
 </script>
