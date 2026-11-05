@@ -1,339 +1,385 @@
 
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tapjacking & Double-Tap Lab</title>
 
-<title>Chromium Android Picker Research</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 90vh;
+            cursor: pointer;
+        }
 
-<style>
-* { box-sizing: border-box; }
+        h1 {
+            color: #ff5252;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
 
-body {
-    margin: 0;
-    padding: 20px;
-    background: #121212;
-    color: #eee;
-    font-family: Arial, sans-serif;
-}
+        .info-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 500px;
+            width: 100%;
+            font-size: 11px;
+            color: #b0b0b0;
+            margin-top: 15px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
 
-h2 { color: #ff5252; }
+        code {
+            background: #2d2d2d;
+            color: #ff8a80;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
 
-.panel {
-    background: #202020;
-    border: 1px solid #444;
-    border-radius: 9px;
-    padding: 14px;
-    margin: 12px 0;
-}
+        .interactive-zone {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
 
-button, input {
-    padding: 12px;
-    margin: 5px 0;
-    border-radius: 6px;
-    font-size: 15px;
-}
-
-button {
-    background: #333;
-    color: white;
-    border: 1px solid #777;
-}
-
-#logs {
-    height: 260px;
-    overflow-y: auto;
-    overflow-wrap: anywhere;
-    font-size: 11px;
-    color: #80cbc4;
-}
-
-.stat {
-    color: #ffca28;
-    font-size: 13px;
-}
-</style>
+        button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin: 5px 2px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>Chromium Android Research</h2>
+    <h1>🔴 Double-Tap Interaction Labss</h1>
 
-<div class="panel">
-    <strong>Test instructions</strong>
-    <p>
-      Gunakan interaksi manual. Picker dan permission
-      harus ditampilkan secara transparan.
+    <p style="font-size: 12px; color: #888;">
+        Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.
     </p>
 
-    <label for="picker">Date/time picker</label><br>
-    <input id="picker" type="time" list="times">
+    <div class="interactive-zone">
 
-    <datalist id="times">
-        <option value="00:00">
-        <option value="00:01">
-        <option value="00:02">
-    </datalist>
-</div>
+        <input
+            id="input"
+            type="time"
+            list="times"
+            aria-label="Time picker test"
+        >
 
-<div class="panel">
-    <div>Pointer events: <span id="count">0</span></div>
-    <div>Picker success: <span id="success">0</span></div>
-    <div>Picker errors: <span id="errors">0</span></div>
-    <div>Permission: <span id="permission">unknown</span></div>
-    <div class="stat" id="interval">Last interval: --</div>
-</div>
+        <datalist id="times">
+            <option value="00:00" label="--"></option>
+            <option value="00:01" label="--"></option>
+            <option value="00:02" label="Test option"></option>
+            <option value="00:03" label="--"></option>
+            <option value="00:04" label="--"></option>
+            <option value="00:05" label="--"></option>
+            <option value="00:06" label="--"></option>
+            <option value="00:07" label="--"></option>
+            <option value="00:08" label="Test option"></option>
+            <option value="00:09" label="--"></option>
+            <option value="00:10" label="--"></option>
+        </datalist>
 
-<div class="panel">
-    <button id="geo">Request Geolocation</button>
-    <button id="stop">Stop monitoring</button>
-    <button id="export">Export evidence JSON</button>
-    <button id="clear">Clear logs</button>
-</div>
+    </div>
 
-<div class="panel">
-    <strong>Evidence log</strong>
-    <div id="logs"></div>
-</div>
+    <div class="info-box" id="log-box">
+        <strong>Status Log:</strong> Menunggu interaksi klik...
+    </div>
+
+    <div>
+        <button id="geo-start">Test Geolocation</button>
+        <button id="geo-stop">Stop Geolocation</button>
+    </div>
 
 <script>
-"use strict";
+(() => {
+    "use strict";
 
-const picker = document.getElementById("picker");
-const logs = document.getElementById("logs");
+    const logBox = document.getElementById("log-box");
+    const input = document.getElementById("input");
 
-let pointerCount = 0;
-let pickerSuccess = 0;
-let pickerErrors = 0;
-let lastPointer = null;
-let permissionStatus = null;
-let watchId = null;
+    const geoStart = document.getElementById("geo-start");
+    const geoStop = document.getElementById("geo-stop");
 
-const evidence = [];
+    let clickCount = 0;
+    let watchId = null;
+    let lastPointerTime = null;
+    let permissionStatus = null;
 
-function record(type, details = {}) {
-    const item = {
-        time: new Date().toISOString(),
-        monotonic_ms: performance.now(),
-        type,
-        details
-    };
+    let pickerAttempts = 0;
+    let pickerErrors = 0;
 
-    evidence.push(item);
-    console.log(item);
+    const MAX_LOGS = 100;
 
-    const line = document.createElement("div");
-    line.textContent = JSON.stringify(item);
+    // Logging
 
-    logs.appendChild(line);
-    logs.scrollTop = logs.scrollHeight;
-}
+    function appendLog(message, details = null) {
+        const timestamp = new Date().toISOString();
 
-function updateStats() {
-    document.getElementById("count").textContent =
-        pointerCount;
+        const entry = {
+            timestamp,
+            message,
+            details
+        };
 
-    document.getElementById("success").textContent =
-        pickerSuccess;
+        console.log(entry);
 
-    document.getElementById("errors").textContent =
-        pickerErrors;
+        const line = document.createElement("div");
 
-    document.getElementById("permission").textContent =
-        permissionStatus?.state || "unknown";
-}
+        line.textContent =
+            `[${timestamp}] ${message}` +
+            (details ? " | " + JSON.stringify(details) : "");
 
-// Permission monitoring
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
 
-async function monitorPermission() {
-    try {
-        permissionStatus = await navigator.permissions.query({
-            name: "geolocation"
-        });
+        while (logBox.children.length > MAX_LOGS) {
+            if (logBox.children.length > 1) {
+                logBox.removeChild(logBox.children[1]);
+            }
+        }
+    }
 
-        record("INITIAL_PERMISSION", {
-            state: permissionStatus.state
-        });
+    // User activation information
 
-        permissionStatus.addEventListener("change", () => {
-            record("PERMISSION_CHANGED", {
+    function activationState() {
+        if (!navigator.userActivation) {
+            return {
+                available: false
+            };
+        }
+
+        return {
+            available: true,
+            active: navigator.userActivation.isActive,
+            previouslyActive:
+                navigator.userActivation.hasBeenActive
+        };
+    }
+
+    // Permission monitoring
+
+    async function monitorPermission() {
+        try {
+            permissionStatus =
+                await navigator.permissions.query({
+                    name: "geolocation"
+                });
+
+            appendLog("Initial Geolocation permission", {
                 state: permissionStatus.state
             });
 
-            updateStats();
-        });
+            permissionStatus.addEventListener(
+                "change",
+                () => {
+                    appendLog("Geolocation permission changed", {
+                        state: permissionStatus.state
+                    });
+                }
+            );
 
-        updateStats();
-
-    } catch (error) {
-        record("PERMISSION_API_ERROR", {
-            name: error.name,
-            message: error.message
-        });
-    }
-}
-
-// Pointer event monitoring
-
-document.addEventListener("pointerdown", event => {
-    const now = performance.now();
-
-    const interval = lastPointer === null
-        ? null
-        : now - lastPointer;
-
-    lastPointer = now;
-    pointerCount++;
-
-    document.getElementById("interval").textContent =
-        "Last interval: " +
-        (interval === null ? "--" : interval.toFixed(2) + " ms");
-
-    record("POINTER_DOWN", {
-        count: pointerCount,
-        interval_ms: interval,
-        pointer_type: event.pointerType,
-        trusted: event.isTrusted,
-        target: event.target.tagName,
-        visibility: document.visibilityState,
-        focused: document.hasFocus()
-    });
-
-    updateStats();
-
-}, true);
-
-// Picker test
-
-picker.addEventListener("click", () => {
-    try {
-        picker.showPicker();
-
-        pickerSuccess++;
-
-        record("PICKER_SUCCESS", {
-            user_activation: navigator.userActivation
-                ? navigator.userActivation.isActive
-                : "unsupported"
-        });
-
-    } catch (error) {
-        pickerErrors++;
-
-        record("PICKER_ERROR", {
-            name: error.name,
-            message: error.message,
-            user_activation: navigator.userActivation
-                ? navigator.userActivation.isActive
-                : "unsupported"
-        });
-    }
-
-    updateStats();
-});
-
-// Geolocation test
-
-document.getElementById("geo")
-.addEventListener("click", () => {
-
-    if (!navigator.geolocation) {
-        record("GEOLOCATION_UNAVAILABLE");
-        return;
-    }
-
-    record("GEOLOCATION_REQUEST");
-
-    navigator.geolocation.getCurrentPosition(
-        position => {
-            record("GEOLOCATION_SUCCESS", {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy
-            });
-        },
-
-        error => {
-            record("GEOLOCATION_ERROR", {
-                code: error.code,
+        } catch (error) {
+            appendLog("Permission monitoring unavailable", {
+                name: error.name,
                 message: error.message
             });
-        },
-
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
         }
-    );
-});
-
-// UI state monitoring
-
-document.addEventListener("visibilitychange", () => {
-    record("VISIBILITY_CHANGE", {
-        state: document.visibilityState
-    });
-});
-
-window.addEventListener("blur", () => {
-    record("WINDOW_BLUR");
-});
-
-window.addEventListener("focus", () => {
-    record("WINDOW_FOCUS");
-});
-
-// Export
-
-document.getElementById("export")
-.addEventListener("click", () => {
-    const blob = new Blob(
-        [JSON.stringify(evidence, null, 2)],
-        { type: "application/json" }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = "chromium-picker-evidence.json";
-    a.click();
-
-    URL.revokeObjectURL(url);
-});
-
-// Stop
-
-document.getElementById("stop")
-.addEventListener("click", () => {
-    if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
     }
 
-    record("MONITORING_STOPPED");
-});
+    // Pointer interaction monitoring
 
-// Clear
+    document.body.addEventListener(
+        "pointerdown",
+        (event) => {
 
-document.getElementById("clear")
-.addEventListener("click", () => {
-    evidence.length = 0;
-    logs.replaceChildren();
-    record("LOG_RESET");
-});
+            const now = performance.now();
 
-monitorPermission();
+            const interval = lastPointerTime === null
+                ? null
+                : Number(
+                    (now - lastPointerTime).toFixed(2)
+                );
 
-record("TEST_INITIALIZED", {
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    secureContext: window.isSecureContext,
-    visibility: document.visibilityState
-});
+            lastPointerTime = now;
+            clickCount++;
 
+            appendLog(`Pointerdown #${clickCount}`, {
+                pointerType: event.pointerType,
+                trusted: event.isTrusted,
+                intervalMs: interval,
+                target: event.target.tagName,
+                activation: activationState(),
+                visibility: document.visibilityState
+            });
+
+            if (clickCount === 9) {
+                appendLog("Nine pointer interactions recorded", {
+                    activation: activationState(),
+                    pickerAttempts,
+                    pickerErrors,
+                    permission:
+                        permissionStatus?.state || "unknown"
+                });
+
+                clickCount = 0;
+            }
+
+        },
+        { passive: true, capture: true }
+    );
+
+    // Picker interaction
+
+    input.addEventListener("click", () => {
+        pickerAttempts++;
+
+        appendLog("Picker interaction requested", {
+            attempt: pickerAttempts,
+            activation: activationState()
+        });
+    });
+
+    input.addEventListener("change", () => {
+        appendLog("Picker value changed", {
+            value: input.value
+        });
+    });
+
+    // Geolocation monitoring
+
+    function requestGeolocation() {
+        if (!navigator.geolocation) {
+            appendLog("Geolocation API unavailable.");
+            return;
+        }
+
+        if (watchId !== null) {
+            appendLog("Geolocation watch already active.");
+            return;
+        }
+
+        appendLog("Geolocation request started", {
+            permission:
+                permissionStatus?.state || "unknown",
+            activation: activationState()
+        });
+
+        watchId = navigator.geolocation.watchPosition(
+            (position) => {
+
+                appendLog("Geolocation success", {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    timestamp: position.timestamp
+                });
+
+            },
+
+            (error) => {
+
+                appendLog("Geolocation error", {
+                    code: error.code,
+                    message: error.message
+                });
+
+                // Permission denied or request failed:
+                // do not automatically retry.
+            },
+
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    // Stop Geolocation
+
+    function stopGeolocation() {
+        if (watchId !== null) {
+
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+
+            appendLog("Geolocation watch stopped.");
+
+        } else {
+
+            appendLog("No active Geolocation watch.");
+
+        }
+    }
+
+    geoStart.addEventListener(
+        "click",
+        requestGeolocation
+    );
+
+    geoStop.addEventListener(
+        "click",
+        stopGeolocation
+    );
+
+    // Browser visibility and focus
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+            appendLog("Visibility changed", {
+                state: document.visibilityState,
+                focused: document.hasFocus()
+            });
+        }
+    );
+
+    window.addEventListener("blur", () => {
+        appendLog("Window lost focus");
+    });
+
+    window.addEventListener("focus", () => {
+        appendLog("Window regained focus");
+    });
+
+    // Environment information
+
+    appendLog("Lab initialized.");
+
+    appendLog("Environment", {
+        secureContext: window.isSecureContext,
+        geolocationAvailable: !!navigator.geolocation,
+        userAgent: navigator.userAgent,
+        activationAvailable: !!navigator.userActivation
+    });
+
+    monitorPermission();
+
+})();
 </script>
 
 </body>
