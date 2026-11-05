@@ -35,6 +35,8 @@
             color: #b0b0b0;
             margin-top: 15px;
             text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
         }
         code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
         .interactive-zone {
@@ -63,7 +65,7 @@
                 <option label="--">00:01</option>
                 <option label="        Allow this time        ">00:02</option>
                 <option label="--">00:03</option>
-                <option label="--">CLICK FASTER </option>
+                <option label="--">CLICK FASTER</option>
             </select>
         </datalist>
     </div>
@@ -78,6 +80,7 @@
     function appendLog(msg) {
         console.log(msg);
         logBox.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+        logBox.scrollTop = logBox.scrollHeight;
     }
 
     let clickCount = 0;
@@ -89,12 +92,12 @@
         try {
             // Memanggil showPicker berdasarkan validasi token aktivasi
             input.showPicker();
-            appendLog("showPicker() berhasil dipicu pada ketukan ini.");
+            appendLog("showPicker() berhasil dipicu.");
         } catch (e) {
             appendLog("[Ditolak oleh Sistem]: " + e.message);
         }
 
-        // Memanggil geolokasi untuk memunculkan dialog izin sistem
+        // Memanggil geolokasi untuk memunculkan dialog izin sistem pada interaksi awal
         if (clickCount === 1) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
