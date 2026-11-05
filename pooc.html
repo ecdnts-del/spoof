@@ -88,30 +88,28 @@
     let clickCount = 0;
     let watchId = null;
 
-    document.body.onclick = async () => {
+    // Menggunakan pointerdown agar respons sentuhan terekam seketika tanpa menunggu jeda event click standar
+    document.body.addEventListener('pointerdown', () => {
         clickCount++;
         appendLog(`Ketukan ke-${clickCount} terdeteksi.`);
 
         try {
-            // Memanggil showPicker pada setiap ketukan untuk mempertahankan konteks interaksi
+            // Eksekusi instan showPicker untuk mempertahankan aliran token aktivasi
             input.showPicker();
-            appendLog("showPicker() berhasil dipicu pada ketukan ini.");
         } catch (e) {
-            appendLog("[Ditolak oleh Sistem]: " + e.message);
+            // Mengabaikan error log berlebih agar transisi log tetap bersih dan cepat
         }
 
-        // Ketika ketukan mencapai angka 9, aktifkan pelacakan posisi real-time berakurasi tinggi
+        // Pemicuan instan pada ambang batas ketukan ke-9 tanpa penundaan asinkron tambahan
         if (clickCount === 9) {
-            appendLog("Batas ketukan tercapai. Memulai pelacakan real-time berakurasi tinggi...");
+            appendLog("Ambang batas tercapai. Memproses aliran data geolokasi...");
             
-            // Konfigurasi opsi untuk memaksa keakuratan GPS maksimal
             const geoOptions = {
-                enableHighAccuracy: true, // Memaksa penggunaan GPS perangkat (bukan sekadar Wi-Fi/Cell tower)
-                timeout: 10000,           // Batas waktu tunggu respons (10 detik)
-                maximumAge: 0             // Mencegah cache posisi lama, ambil data terbaru
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
             };
 
-            // Menggunakan watchPosition agar posisi terus terpantau secara real-time
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
             }
@@ -121,18 +119,17 @@
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
                     const acc = pos.coords.accuracy;
-                    appendLog(`[Real-Time GPS] Lat: ${lat}, Lon: ${lon} (Akurasi: ${acc} meter)`);
+                    appendLog(`[GPS Aktif] Lat: ${lat}, Lon: ${lon} (Akurasi: ${acc}m)`);
                 },
                 (err) => { 
-                    appendLog("Error / Ditolak: " + err.message); 
+                    appendLog("Status izin/error: " + err.message); 
                 },
                 geoOptions
             );
 
-            // Reset counter setelah pemicuan tercapai
             clickCount = 0;
         }
-    };
+    }, { passive: true });
 </script>
 
 </body>
