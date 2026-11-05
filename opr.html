@@ -2,14 +2,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tapjacking & Double-Tap Lab</title>
-
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont,
-                "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #121212;
@@ -22,13 +20,11 @@
             min-height: 90vh;
             cursor: pointer;
         }
-
         h1 {
             color: #ff5252;
             font-size: 18px;
             margin-bottom: 5px;
         }
-
         .info-box {
             background: #1e1e1e;
             border: 1px solid #333;
@@ -43,15 +39,7 @@
             max-height: 150px;
             overflow-y: auto;
         }
-
-        code {
-            background: #2d2d2d;
-            color: #ff8a80;
-            padding: 2px 4px;
-            border-radius: 6px;
-            font-family: monospace;
-        }
-
+        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
         .interactive-zone {
             position: relative;
             margin-bottom: 20px;
@@ -59,59 +47,34 @@
             display: flex;
             justify-content: center;
         }
-
-        button {
-            background: #333;
-            color: #fff;
-            border: 1px solid #555;
-            border-radius: 5px;
-            padding: 8px 12px;
-            margin: 5px 2px;
-            cursor: pointer;
-        }
     </style>
 </head>
-
 <body>
 
-    <h1>🔴 Double-Tap Interaction Labss</h1>
-
-    <p style="font-size: 12px; color: #888;">
-        Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.
-    </p>
+    <h1>ðŸ”´ Double-Tap Interaction Labss</h1>
+    <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
 
     <div class="interactive-zone">
-
-        <input
-            id="input"
-            type="time"
-            list="times"
-            aria-label="Time picker test"
-        >
-
+        <input id="input" type="time" list="times" style="display:none;" />
         <datalist id="times">
-            <option value="00:00" label="--"></option>
-            <option value="00:01" label="--"></option>
-            <option value="00:02" label="Test option"></option>
-            <option value="00:03" label="--"></option>
-            <option value="00:04" label="--"></option>
-            <option value="00:05" label="--"></option>
-            <option value="00:06" label="--"></option>
-            <option value="00:07" label="--"></option>
-            <option value="00:08" label="Test option"></option>
-            <option value="00:09" label="--"></option>
-            <option value="00:10" label="--"></option>
+            <select>
+                <option label="--">00:00</option>
+                <option label="--">00:01</option>
+                <option label="        Allow this time        ">00:02</option>
+                <option label="--">00:03</option>
+                <option label="--">00:04</option>
+                <option label="--">00:05</option>
+                <option label="--">00:06</option>
+                <option label="--">00:07</option>
+                <option label="        CLICK FASTER ðŸ”´        ">00:08</option>
+                <option label="--">CLICK FASTER  ðŸ”´</option>
+                <option label="--">CLICK FASTER  ðŸ”´</option>
+            </select>
         </datalist>
-
     </div>
 
     <div class="info-box" id="log-box">
         <strong>Status Log:</strong> Menunggu interaksi klik...
-    </div>
-
-    <div>
-        <button id="geo-start">Test Geolocation</button>
-        <button id="geo-stop">Stop Geolocation</button>
     </div>
 
 <script>
@@ -121,9 +84,6 @@
     const logBox = document.getElementById("log-box");
     const input = document.getElementById("input");
 
-    const geoStart = document.getElementById("geo-start");
-    const geoStop = document.getElementById("geo-stop");
-
     let clickCount = 0;
     let watchId = null;
     let lastPointerTime = null;
@@ -132,26 +92,15 @@
     let pickerAttempts = 0;
     let pickerErrors = 0;
 
+    const intervalHistory = [];
     const MAX_LOGS = 100;
 
-    // Logging
-
-    function appendLog(message, details = null) {
-        const timestamp = new Date().toISOString();
-
-        const entry = {
-            timestamp,
-            message,
-            details
-        };
-
-        console.log(entry);
+    function appendLog(msg) {
+        console.log(msg);
 
         const line = document.createElement("div");
-
         line.textContent =
-            `[${timestamp}] ${message}` +
-            (details ? " | " + JSON.stringify(details) : "");
+            `[${new Date().toLocaleTimeString()}] ${msg}`;
 
         logBox.appendChild(line);
         logBox.scrollTop = logBox.scrollHeight;
@@ -163,24 +112,17 @@
         }
     }
 
-    // User activation information
-
     function activationState() {
         if (!navigator.userActivation) {
-            return {
-                available: false
-            };
+            return "unavailable";
         }
 
-        return {
-            available: true,
+        return JSON.stringify({
             active: navigator.userActivation.isActive,
             previouslyActive:
                 navigator.userActivation.hasBeenActive
-        };
+        });
     }
-
-    // Permission monitoring
 
     async function monitorPermission() {
         try {
@@ -189,193 +131,190 @@
                     name: "geolocation"
                 });
 
-            appendLog("Initial Geolocation permission", {
-                state: permissionStatus.state
-            });
-
-            permissionStatus.addEventListener(
-                "change",
-                () => {
-                    appendLog("Geolocation permission changed", {
-                        state: permissionStatus.state
-                    });
-                }
+            appendLog(
+                `[Permission Initial] ${permissionStatus.state}`
             );
 
-        } catch (error) {
-            appendLog("Permission monitoring unavailable", {
-                name: error.name,
-                message: error.message
+            permissionStatus.addEventListener("change", () => {
+                appendLog(
+                    `[Permission Changed] ${permissionStatus.state}`
+                );
             });
+
+        } catch (error) {
+            appendLog(
+                `[Permission API Error] ${error.name}: ${error.message}`
+            );
         }
     }
 
     // Pointer interaction monitoring
 
-    document.body.addEventListener(
-        "pointerdown",
-        (event) => {
+    document.body.addEventListener("pointerdown", (event) => {
 
-            const now = performance.now();
+        const now = performance.now();
 
-            const interval = lastPointerTime === null
-                ? null
-                : Number(
-                    (now - lastPointerTime).toFixed(2)
-                );
+        const interval = lastPointerTime === null
+            ? null
+            : Number((now - lastPointerTime).toFixed(2));
 
-            lastPointerTime = now;
-            clickCount++;
+        lastPointerTime = now;
+        clickCount++;
 
-            appendLog(`Pointerdown #${clickCount}`, {
-                pointerType: event.pointerType,
-                trusted: event.isTrusted,
-                intervalMs: interval,
-                target: event.target.tagName,
-                activation: activationState(),
-                visibility: document.visibilityState
-            });
+        if (interval !== null) {
+            intervalHistory.push(interval);
 
-            if (clickCount === 9) {
-                appendLog("Nine pointer interactions recorded", {
-                    activation: activationState(),
-                    pickerAttempts,
-                    pickerErrors,
-                    permission:
-                        permissionStatus?.state || "unknown"
-                });
-
-                clickCount = 0;
+            if (intervalHistory.length > 100) {
+                intervalHistory.shift();
             }
+        }
 
-        },
-        { passive: true, capture: true }
-    );
+        appendLog(
+            `[Pointer #${clickCount}] ` +
+            `Type=${event.pointerType}, ` +
+            `Trusted=${event.isTrusted}, ` +
+            `Interval=${interval ?? "first"}ms, ` +
+            `Activation=${activationState()}`
+        );
 
-    // Picker interaction
+        // Observe picker invocation
 
-    input.addEventListener("click", () => {
-        pickerAttempts++;
+        try {
+            pickerAttempts++;
 
-        appendLog("Picker interaction requested", {
-            attempt: pickerAttempts,
-            activation: activationState()
-        });
-    });
+            input.showPicker();
 
-    input.addEventListener("change", () => {
-        appendLog("Picker value changed", {
-            value: input.value
-        });
-    });
+            appendLog(
+                `[Picker Requested] Attempt=${pickerAttempts}`
+            );
 
-    // Geolocation monitoring
+        } catch (error) {
+            pickerErrors++;
+
+            appendLog(
+                `[Picker Error] ${error.name}: ${error.message}`
+            );
+        }
+
+        // Interaction threshold observation
+
+        if (clickCount === 9) {
+
+            const averageInterval =
+                intervalHistory.length
+                    ? (
+                        intervalHistory.reduce(
+                            (sum, value) => sum + value, 0
+                        ) / intervalHistory.length
+                    ).toFixed(2)
+                    : "N/A";
+
+            appendLog(
+                "[Interaction Threshold] Nine interactions recorded."
+            );
+
+            appendLog(
+                `[Statistics] Average interval=${averageInterval}ms, ` +
+                `Picker attempts=${pickerAttempts}, ` +
+                `Picker errors=${pickerErrors}, ` +
+                `Permission=${permissionStatus?.state ?? "unknown"}`
+            );
+
+            clickCount = 0;
+        }
+
+    }, { passive: true });
+
+    // Geolocation: explicitly requested by the user
 
     function requestGeolocation() {
+
         if (!navigator.geolocation) {
-            appendLog("Geolocation API unavailable.");
+            appendLog("[Geolocation] API unavailable.");
             return;
         }
 
         if (watchId !== null) {
-            appendLog("Geolocation watch already active.");
+            appendLog("[Geolocation] Watch already active.");
             return;
         }
 
-        appendLog("Geolocation request started", {
-            permission:
-                permissionStatus?.state || "unknown",
-            activation: activationState()
-        });
+        appendLog(
+            `[Geolocation Request] Permission=` +
+            `${permissionStatus?.state ?? "unknown"}`
+        );
+
+        const geoOptions = {
+            enableHighAccuracy: true,
+            timeout: 3000,
+            maximumAge: 0
+        };
 
         watchId = navigator.geolocation.watchPosition(
+
             (position) => {
-
-                appendLog("Geolocation success", {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: position.timestamp
-                });
-
+                appendLog(
+                    `[GPS Result] Lat=${position.coords.latitude}, ` +
+                    `Lon=${position.coords.longitude}, ` +
+                    `Accuracy=${position.coords.accuracy}m`
+                );
             },
 
             (error) => {
-
-                appendLog("Geolocation error", {
-                    code: error.code,
-                    message: error.message
-                });
-
-                // Permission denied or request failed:
-                // do not automatically retry.
+                appendLog(
+                    `[Geolocation Error] Code=${error.code}, ` +
+                    `Message=${error.message}`
+                );
             },
 
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
+            geoOptions
         );
     }
 
-    // Stop Geolocation
-
     function stopGeolocation() {
-        if (watchId !== null) {
 
+        if (watchId !== null) {
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
 
-            appendLog("Geolocation watch stopped.");
+            appendLog("[Geolocation] Watch stopped.");
 
         } else {
-
-            appendLog("No active Geolocation watch.");
-
+            appendLog("[Geolocation] No active watch.");
         }
     }
 
-    geoStart.addEventListener(
-        "click",
-        requestGeolocation
-    );
+    // Visibility monitoring
 
-    geoStop.addEventListener(
-        "click",
-        stopGeolocation
-    );
-
-    // Browser visibility and focus
-
-    document.addEventListener(
-        "visibilitychange",
-        () => {
-            appendLog("Visibility changed", {
-                state: document.visibilityState,
-                focused: document.hasFocus()
-            });
-        }
-    );
+    document.addEventListener("visibilitychange", () => {
+        appendLog(
+            `[Visibility] ${document.visibilityState}`
+        );
+    });
 
     window.addEventListener("blur", () => {
-        appendLog("Window lost focus");
+        appendLog("[Window] Blur detected.");
     });
 
     window.addEventListener("focus", () => {
-        appendLog("Window regained focus");
+        appendLog("[Window] Focus restored.");
     });
 
-    // Environment information
+    // Initialization
 
-    appendLog("Lab initialized.");
+    appendLog("[Lab] Initialized.");
 
-    appendLog("Environment", {
-        secureContext: window.isSecureContext,
-        geolocationAvailable: !!navigator.geolocation,
-        userAgent: navigator.userAgent,
-        activationAvailable: !!navigator.userActivation
-    });
+    appendLog(
+        `[Environment] SecureContext=${window.isSecureContext}`
+    );
+
+    appendLog(
+        `[Environment] Geolocation=${!!navigator.geolocation}`
+    );
+
+    appendLog(
+        `[Environment] Browser=${navigator.userAgent}`
+    );
 
     monitorPermission();
 
