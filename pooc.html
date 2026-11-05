@@ -1,270 +1,195 @@
 
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tapjacking & Double-Tap Lab</title>
 
-<title>Chromium Picker & Activation Lab</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 90vh;
+            cursor: pointer;
+        }
 
-<style>
-  body {
-    font-family: system-ui, sans-serif;
-    background: #121212;
-    color: #eee;
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
-  }
+        h1 {
+            color: #ff5252;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
 
-  h2 { color: #ff7777; }
+        .info-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 500px;
+            width: 100%;
+            font-size: 11px;
+            color: #b0b0b0;
+            margin-top: 15px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
 
-  .panel {
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 14px 0;
-  }
+        code {
+            background: #2d2d2d;
+            color: #ff8a80;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
 
-  button, input {
-    padding: 12px;
-    margin: 6px 0;
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 16px;
-  }
-
-  button {
-    background: #3949ab;
-    color: white;
-    border: 0;
-    border-radius: 7px;
-  }
-
-  #log {
-    background: #080808;
-    padding: 12px;
-    border-radius: 7px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    font-size: 12px;
-    max-height: 350px;
-    overflow-y: auto;
-  }
-
-  .note {
-    color: #aaa;
-    font-size: 13px;
-  }
-</style>
+        .interactive-zone {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2>Chromium Interaction Lab</h2>
+    <h1>🔴 Double-Tap Interaction Labss</h1>
 
-<p class="note">
-  Diagnostic test for picker behavior,
-  transient user activation and Geolocation permission.
-</p>
+    <p style="font-size: 12px; color: #888;">
+        Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.
+    </p>
 
-<div class="panel">
-  <h3>Test A — Native Time Picker</h3>
+    <div class="interactive-zone">
 
-  <input
-    id="timeInput"
-    type="time"
-    list="times"
-    value="00:08">
+        <input
+            id="input"
+            type="time"
+            list="times"
+            aria-label="Time picker test"
+        >
 
-  <datalist id="times">
-    <option value="00:02" label="Test option 1">
-    <option value="00:08" label="Test option 2">
-    <option value="00:10" label="Test option 3">
-  </datalist>
+        <datalist id="times">
+            <option value="00:00" label="--"></option>
+            <option value="00:01" label="--"></option>
+            <option value="00:02" label="Allow this time (test label)"></option>
+            <option value="00:03" label="--"></option>
+            <option value="00:04" label="--"></option>
+            <option value="00:05" label="--"></option>
+            <option value="00:06" label="--"></option>
+            <option value="00:07" label="--"></option>
+            <option value="00:08" label="CLICK FASTER (test label)"></option>
+            <option value="00:09" label="--"></option>
+            <option value="00:10" label="--"></option>
+        </datalist>
 
-  <button id="pickerButton">
-    Open Native Picker
-  </button>
-</div>
+    </div>
 
-<div class="panel">
-  <h3>Test B — User Activation</h3>
-
-  <button id="activationButton">
-    Record Activation State
-  </button>
-</div>
-
-<div class="panel">
-  <h3>Test C — Geolocation Permission</h3>
-
-  <p class="note">
-    Location access is requested only after
-    explicitly pressing the button below.
-  </p>
-
-  <button id="permissionButton">
-    Check Permission
-  </button>
-
-  <button id="locationButton">
-    Request Location
-  </button>
-</div>
-
-<div class="panel">
-  <h3>Diagnostic Log</h3>
-  <div id="log">Waiting for test...</div>
-
-  <button id="clearButton">Clear Log</button>
-  <button id="exportButton">Export Log</button>
-</div>
+    <div class="info-box" id="log-box">
+        <strong>Status Log:</strong> Menunggu interaksi klik...
+    </div>
 
 <script>
 (() => {
-  const logBox = document.getElementById("log");
+    "use strict";
 
-  function log(label, data = {}) {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      event: label,
-      activation: {
-        isActive:
-          navigator.userActivation?.isActive ?? null,
-        hasBeenActive:
-          navigator.userActivation?.hasBeenActive ?? null
-      },
-      data
-    };
+    const logBox = document.getElementById("log-box");
+    const input = document.getElementById("input");
 
-    const line = JSON.stringify(entry);
+    let clickCount = 0;
+    let watchId = null;
 
-    console.log(entry);
+    function appendLog(message) {
+        const timestamp = new Date().toLocaleTimeString();
 
-    logBox.textContent +=
-      (logBox.textContent ? "\n" : "") + line;
+        console.log(`[${timestamp}] ${message}`);
 
-    logBox.scrollTop = logBox.scrollHeight;
-  }
+        const line = document.createElement("div");
+        line.textContent = `[${timestamp}] ${message}`;
 
-  const input = document.getElementById("timeInput");
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
 
-  document.getElementById("pickerButton")
-    .addEventListener("click", () => {
-
-      log("BEFORE_SHOW_PICKER");
-
-      try {
-        input.showPicker();
-        log("SHOW_PICKER_RETURNED");
-      } catch (error) {
-        log("SHOW_PICKER_ERROR", {
-          name: error.name,
-          message: error.message
-        });
-      }
-
-      log("AFTER_SHOW_PICKER");
-    });
-
-  document.getElementById("activationButton")
-    .addEventListener("click", () => {
-      log("ACTIVATION_SNAPSHOT");
-    });
-
-  document.getElementById("permissionButton")
-    .addEventListener("click", async () => {
-
-      if (!navigator.permissions) {
-        log("PERMISSIONS_API_UNAVAILABLE");
-        return;
-      }
-
-      try {
-        const result =
-          await navigator.permissions.query({
-            name: "geolocation"
-          });
-
-        log("GEOLOCATION_PERMISSION", {
-          state: result.state
-        });
-
-        result.onchange = () => {
-          log("PERMISSION_CHANGED", {
-            state: result.state
-          });
-        };
-
-      } catch (error) {
-        log("PERMISSION_QUERY_ERROR", {
-          name: error.name,
-          message: error.message
-        });
-      }
-    });
-
-  document.getElementById("locationButton")
-    .addEventListener("click", () => {
-
-      log("GEOLOCATION_REQUEST_STARTED");
-
-      if (!navigator.geolocation) {
-        log("GEOLOCATION_UNAVAILABLE");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          log("GEOLOCATION_SUCCESS", {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          });
-        },
-        error => {
-          log("GEOLOCATION_ERROR", {
-            code: error.code,
-            message: error.message
-          });
-        },
-        {
-          enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 0
+        // Keep the log bounded.
+        while (logBox.children.length > 100) {
+            logBox.removeChild(logBox.children[1]);
         }
-      );
+    }
+
+    function activationState() {
+        if (!navigator.userActivation) {
+            return "unavailable";
+        }
+
+        return JSON.stringify({
+            active: navigator.userActivation.isActive,
+            previouslyActive:
+                navigator.userActivation.hasBeenActive
+        });
+    }
+
+    document.body.addEventListener("pointerdown", (event) => {
+
+        clickCount++;
+
+        appendLog(
+            `Pointerdown #${clickCount}, type=${event.pointerType}, ` +
+            `activation=${activationState()}`
+        );
+
+        // Observe picker behavior without hiding errors.
+        // Picker is opened only by direct interaction with its input.
+        if (event.target === input) {
+            try {
+                input.showPicker();
+                appendLog("showPicker() invoked");
+            } catch (error) {
+                appendLog(
+                    `Picker error: ${error.name}: ${error.message}`
+                );
+            }
+        }
+
+        if (clickCount === 9) {
+            appendLog(
+                "Interaction threshold reached. " +
+                "No automatic permission request was made."
+            );
+
+            clickCount = 0;
+        }
+
+    }, { passive: true });
+
+    // Explicit, user-initiated location test.
+    // This does not connect location approval to datalist selections.
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            appendLog("Geolocation watch stopped.");
+        }
     });
 
-  document.getElementById("clearButton")
-    .addEventListener("click", () => {
-      logBox.textContent = "";
-    });
+    appendLog("Lab initialized.");
 
-  document.getElementById("exportButton")
-    .addEventListener("click", () => {
-      const blob = new Blob(
-        [logBox.textContent],
-        { type: "text/plain" }
-      );
+    appendLog(
+        `Secure context: ${window.isSecureContext}`
+    );
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-
-      a.href = url;
-      a.download = "chromium-diagnostic-log.txt";
-      a.click();
-
-      URL.revokeObjectURL(url);
-    });
-
-  log("LAB_INITIALIZED", {
-    userAgent: navigator.userAgent,
-    secureContext: window.isSecureContext
-  });
+    appendLog(
+        `Geolocation available: ${!!navigator.geolocation}`
+    );
 
 })();
 </script>
