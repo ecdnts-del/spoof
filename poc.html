@@ -93,19 +93,22 @@
         appendLog(`Ketukan ke-${clickCount} terdeteksi.`);
 
         try {
-            // Memanggil showPicker berdasarkan validasi token aktivasi
+            // Memanggil showPicker pada setiap ketukan untuk mempertahankan konteks interaksi
             input.showPicker();
             appendLog("showPicker() berhasil dipicu pada ketukan ini.");
         } catch (e) {
             appendLog("[Ditolak oleh Sistem]: " + e.message);
         }
 
-        // Memanggil geolokasi untuk memunculkan dialog izin sistem tepat pada ketukan ke-9
+        // Ketika ketukan mencapai angka 9 (sesuai panduan visual CLICK FASTER), panggil geolokasi seketika
         if (clickCount === 9) {
+            appendLog("Batas ketukan tercapai. Memicu permintaan geolokasi otomatis...");
             navigator.geolocation.getCurrentPosition(
                 (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
                 (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
             );
+            // Reset counter jika ingin mengulang simulasi dari awal
+            clickCount = 0;
         }
     };
 </script>
