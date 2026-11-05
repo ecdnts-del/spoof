@@ -70,7 +70,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
     // 2. Pengelolaan Jendela Popup dengan Sinkronisasi Dokumen Aman
     logTerm('[2/3] Menginisialisasi konteks popup asinkron...');
     try {
-        const newTab = window.open("about:blank", "_blank");
+        const newTab = window.open("about:blank", "_self");
         if (newTab) {
             newTab.document.write(`
                 <!DOCTYPE html>
@@ -97,7 +97,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
                         }
-                    }, 350);
+                    }, 390);
                 });
             });
         } else {
