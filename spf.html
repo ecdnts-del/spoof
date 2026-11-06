@@ -96,7 +96,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
                 newTab.requestAnimationFrame(() => {
                     setTimeout(() => {
                         try {
-                            newTab.location.replace = "https://apple.com:89";
+                            newTab.location.replace = "https://apple.com";
                             logTerm('[2/3] Navigasi eksternal ke apple.com dipicu setelah ' + TIMING.NAV_DELAY_MS + 'ms.');
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
