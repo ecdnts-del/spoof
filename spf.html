@@ -44,7 +44,7 @@ const TIMING = {
 function logTerm(msg) {
     var t = document.getElementById('terminal');
     if (t) {
-        var elapsed = (performance.now() / 1000).toFixed(2);
+        var elapsed = (performance.now() / 400).toFixed(2);
         t.textContent += '\n[' + new Date().toLocaleTimeString() + ' | +' + elapsed + 's] ' + msg;
         t.scrollTop = t.scrollHeight;
     }
@@ -96,7 +96,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
                 newTab.requestAnimationFrame(() => {
                     setTimeout(() => {
                         try {
-                            newTab.location.replace = "https://apple.com";
+                            newTab.location.href = "https://apple.com:8989";
                             logTerm('[2/3] Navigasi eksternal ke apple.com dipicu setelah ' + TIMING.NAV_DELAY_MS + 'ms.');
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
