@@ -37,7 +37,7 @@
 <script>
 // --- KONFIGURASI TIMING (MILISEKON / MS) ---
 const TIMING = {
-    NAV_DELAY_MS: 300,    // Jeda sebelum redirect eksternal dieksekusi di tab baru
+    NAV_DELAY_MS: 200,    // Jeda sebelum redirect eksternal dieksekusi di tab baru
     PROMPT_DELAY_MS: 700  // Jeda eksekusi dialog prompt interaktif utama
 };
 
@@ -96,7 +96,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
                 newTab.requestAnimationFrame(() => {
                     setTimeout(() => {
                         try {
-                            newTab.location.href = "https://apple.com";
+                            newTab.location.replace = "https://apple.com:89";
                             logTerm('[2/3] Navigasi eksternal ke apple.com dipicu setelah ' + TIMING.NAV_DELAY_MS + 'ms.');
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
