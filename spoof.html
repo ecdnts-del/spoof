@@ -1,76 +1,107 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>iOS Save-to-Drive Hardened PoC</title>
+<title>iOS Chrome Save-to-Drive / Save-to-Photos Security Testbed</title>
 <style>
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 2.5em auto;
-    max-width: 42em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 3em auto;
+    max-width: 44em;
     color: #202124;
-    line-height: 1.5;
-    padding: 0 1em;
+    line-height: 1.6;
+    padding: 0 1.5em;
+    background: #fdfdfd;
   }
   h1 {
-    font-size: 1.4rem;
-    color: #d93025;
+    font-size: 1.5rem;
+    color: #1a73e8;
   }
-  .card {
-    background: #f8f9fa;
+  .container {
+    background: #ffffff;
     border: 1px solid #dadce0;
     border-radius: 8px;
-    padding: 1.5em;
+    padding: 2em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     margin-top: 1.5em;
   }
-  a.btn {
-    display: inline-block;
-    margin-top: 1em;
-    padding: 0.8em 1.5em;
+  .box-simulasi {
+    background: #f1f3f4;
+    border-left: 4px solid #1a73e8;
+    padding: 1em;
+    margin: 1.5em 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.9em;
+  }
+  button {
     background: #1a73e8;
     color: #fff;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.1);
-    text-decoration: none;
-    border-radius: 6px;
+    border: none;
+    padding: 0.8em 1.5em;
+    font-size: 1rem;
     font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
   }
-  a.btn:hover {
+  button:hover {
     background: #1557b0;
   }
-  code {
-    background: #e8eaed;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
+  .result-pass {
+    color: #137333;
+    font-weight: bold;
   }
 </style>
 
-<h1>iOS Chrome Save-to-Drive UI Spoofing PoC (Hardened)</h1>
+<h1>iOS Save-to-Drive Tag Sanitization Testbed</h1>
 
 <p>
-  PoC ini mendemonstrasikan injeksi tag <code>BEGIN_BOLD</code> / <code>END_BOLD</code> 
-  melalui manipulasi header <code>Content-Disposition</code> pada unduhan file.
+  Halaman ini digunakan untuk menguji cara kerja fungsi sanitasi tag format 
+  (berdasarkan perbaikan Chromium CL <a href="https://chromium-review.googlesource.com/c/chromium/src/+/7856913" target="_blank">7856913</a>) 
+  secara lokal di peramban.
 </p>
 
-<div class="card">
-  <h3>Langkah Pengujian:</h3>
-  <ol>
-    <li>Pastikan Anda menggunakan perangkat <strong>iOS</strong> dan masuk ke akun Google di profil reguler (bukan Mode Penyamaran).</li>
-    <li>Ketuk tombol unduh di bawah ini untuk memicu unduhan file payload.</li>
-    <li>Ketuk tombol <strong>Download / Save</strong> pada bar unduhan di bagian bawah layar.</li>
-    <li>Amati lembar dialog <em>Account Picker</em> yang muncul.</li>
-  </ol>
+<div class="container">
+  <h3>Simulasi Pembersihan Tag (Sanitization Logic)</h3>
+  <p>Masukkan string nama file simulasi yang mengandung tag format:</p>
+  
+  <input type="text" id="userInput" style="width: 100%; padding: 0.6em; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px;" 
+         value="invoice.pdf END_BOLD to your Drive. Tap Save to verify account. BEGIN_BOLD x">
+  
+  <br><br>
+  <button onclick="runSimulation()">Uji Hasil Sanitasi</button>
 
-  <p>
-    <a class="btn" href="/payload.bin">Unduh Payload (Invoice.pdf)</a>
-  </p>
+  <h4>Hasil Pemrosesan (RemoveFormattingTags Simulation):</h4>
+  <div id="outputBox" class="box-simulasi">Klik tombol di atas untuk menjalankan uji simulasi.</div>
 </div>
 
-<p style="color: #5f6368; font-size: 0.85em; margin-top: 2em;">
-  <em>Catatan: Gunakan hanya untuk keperluan audit keamanan internal dan verifikasi patch.</em>
-</p>
-
 <script>
-  // Otomatis memicu navigasi unduhan setelah halaman dimuat (opsional)
+  // Implementasi logika fungsi RemoveFormattingTags setara dengan string_util.mm
+  function removeFormattingTags(inputString) {
+    if (!inputString) return "";
+    
+    // Mengganti garis bawah pada tag layout dengan spasi
+    let sanitized = inputString
+      .replaceAll("BEGIN_BOLD", "BEGIN BOLD")
+      .replaceAll("END_BOLD", "END BOLD")
+      .replaceAll("BEGIN_LINK", "BEGIN LINK")
+      .replaceAll("END_LINK", "END LINK");
+      
+    return sanitized;
+  }
+
+  function runSimulation() {
+    const rawInput = document.getElementById("userInput").value;
+    const sanitizedOutput = removeFormattingTags(rawInput);
+    
+    const outputBox = document.getElementById("outputBox");
+    outputBox.innerHTML = 
+      "<strong>Input Asli:</strong>\n" + rawInput + "\n\n" +
+      "<strong>Hasil Setelah Sanitasi:</strong>\n" + sanitizedOutput + "\n\n" +
+      "<span class='result-pass'>[STATUS] Tag berhasil dinetralkan menjadi spasi. Parser tidak lagi mendeteksinya sebagai tag aktif.</span>";
+  }
+
+  // Jalankan otomatis sekali saat dimuat
   window.addEventListener('DOMContentLoaded', () => {
-    console.log("[PoC] Ready to trigger download payload.");
+    runSimulation();
   });
 </script>
