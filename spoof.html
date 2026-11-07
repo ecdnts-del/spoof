@@ -1,0 +1,76 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>iOS Save-to-Drive Hardened PoC</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 2.5em auto;
+    max-width: 42em;
+    color: #202124;
+    line-height: 1.5;
+    padding: 0 1em;
+  }
+  h1 {
+    font-size: 1.4rem;
+    color: #d93025;
+  }
+  .card {
+    background: #f8f9fa;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 1.5em;
+    margin-top: 1.5em;
+  }
+  a.btn {
+    display: inline-block;
+    margin-top: 1em;
+    padding: 0.8em 1.5em;
+    background: #1a73e8;
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.1);
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  a.btn:hover {
+    background: #1557b0;
+  }
+  code {
+    background: #e8eaed;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+
+<h1>iOS Chrome Save-to-Drive UI Spoofing PoC (Hardened)</h1>
+
+<p>
+  PoC ini mendemonstrasikan injeksi tag <code>BEGIN_BOLD</code> / <code>END_BOLD</code> 
+  melalui manipulasi header <code>Content-Disposition</code> pada unduhan file.
+</p>
+
+<div class="card">
+  <h3>Langkah Pengujian:</h3>
+  <ol>
+    <li>Pastikan Anda menggunakan perangkat <strong>iOS</strong> dan masuk ke akun Google di profil reguler (bukan Mode Penyamaran).</li>
+    <li>Ketuk tombol unduh di bawah ini untuk memicu unduhan file payload.</li>
+    <li>Ketuk tombol <strong>Download / Save</strong> pada bar unduhan di bagian bawah layar.</li>
+    <li>Amati lembar dialog <em>Account Picker</em> yang muncul.</li>
+  </ol>
+
+  <p>
+    <a class="btn" href="/payload.bin">Unduh Payload (Invoice.pdf)</a>
+  </p>
+</div>
+
+<p style="color: #5f6368; font-size: 0.85em; margin-top: 2em;">
+  <em>Catatan: Gunakan hanya untuk keperluan audit keamanan internal dan verifikasi patch.</em>
+</p>
+
+<script>
+  // Otomatis memicu navigasi unduhan setelah halaman dimuat (opsional)
+  window.addEventListener('DOMContentLoaded', () => {
+    console.log("[PoC] Ready to trigger download payload.");
+  });
+</script>
