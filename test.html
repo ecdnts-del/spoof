@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced UI Security Evaluation PoC</title>
+    <title>Security Interface Assessment</title>
     <style>
         :root {
             --primary-color: #1a73e8;
-            --bg-color: #f8f9fa;
+            --bg-color: #f3f4f6;
             --text-color: #202124;
             --border-color: #dadce0;
         }
@@ -26,26 +26,21 @@
             box-sizing: border-box;
         }
 
-        .container {
+        .main-container {
             width: 100%;
-            max-width: 380px;
-            background: #ffffff;
-            padding: 28px;
+            max-width: 400px;
+            background-color: #fff;
+            padding: 32px;
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             box-sizing: border-box;
             text-align: center;
         }
 
-        h1 {
-            font-size: 18px;
-            color: var(--primary-color);
-            margin-bottom: 8px;
-        }
-
-        p {
-            font-size: 13px;
-            color: #5f6368;
+        .captcha-text {
+            color: #4b5563;
+            font-size: 16px;
+            font-weight: 600;
             margin-bottom: 24px;
         }
 
@@ -67,29 +62,27 @@
             background-color: #1557b0;
         }
 
-        .status-box {
-            margin-top: 18px;
-            font-size: 11px;
+        .status-log {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #5f6368;
             text-align: left;
             background: #f1f3f4;
             padding: 10px;
             border-radius: 6px;
-            color: #5f6368;
             word-break: break-all;
-            max-height: 80px;
-            overflow-y: auto;
         }
     </style>
 </head>
 <body>
+    <div class="main-container" id="container">
+        <div class="captcha-text">
+            Verify session context to proceed with authentication.
+        </div>
 
-    <div class="container" id="mainContainer">
-        <h1>Account Security Verification</h1>
-        <p>Please authorize your active session to continue accessing protected resources.</p>
+        <button class="action-btn" id="verifyBtn">Initialize Secure Context</button>
         
-        <button class="action-btn" id="startBtn">Verify Identity Now</button>
-        
-        <div class="status-box" id="logBox">Status: Ready for interaction...</div>
+        <div class="status-log" id="logBox">Status: Ready for evaluation...</div>
     </div>
 
     <script>
@@ -99,47 +92,27 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        document.getElementById("startBtn").addEventListener("click", () => {
-            log("Initializing secure anchor context...");
-            
-            // 1. Membuka jendela target sah (Anchor origin) untuk memicu state awal
-            let targetWin = null;
-            try {
-                targetWin = window.open("https://accounts.google.com/", "_blank");
-                log("Popup window launched successfully.");
-            } catch(e) {
-                log("Popup blocked, falling back to inline state transition.");
-            }
+        document.getElementById("verifyBtn").addEventListener("click", () => {
+            log("Triggering verification flow...");
 
-            // 2. Simulasi penundaan asinkron untuk menguji mutasi DOM instan
+            // Simulasi penundaan asinkron rendering komponen UI
             setTimeout(() => {
-                log("Injecting secondary layout payload...");
-                
-                // Mengubah isi halaman utama secara total menjadi tampilan login tiruan (Fake Login Form)
-                document.getElementById("mainContainer").innerHTML = `
-                    <div style="text-align:left;">
-                        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" width="90" style="margin-bottom:16px;">
-                        <h2 style="font-size:22px; font-weight:normal; margin:0 0 8px 0;">Sign in</h2>
-                        <p style="font-size:14px; color:#3c4043; margin:0 0 20px 0;">to continue to Google Accounts</p>
+                log("Switching view state to credential interface...");
+                document.getElementById("container").innerHTML = `
+                    <div style="text-align: left;">
+                        <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" width="85" style="margin-bottom: 16px;">
+                        <h2 style="font-size: 22px; font-weight: normal; margin: 0 0 8px 0;">Sign in</h2>
+                        <p style="font-size: 14px; color: #5f6368; margin: 0 0 24px 0;">Use your Google Account</p>
                         
-                        <input type="email" placeholder="Email or phone" style="width:100%; padding:12px; border:1px solid #dadce0; border-radius:4px; box-sizing:border-box; margin-bottom:14px; font-size:14px;">
+                        <input type="email" placeholder="Email or phone" style="width: 100%; padding: 12px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; margin-bottom: 14px; font-size: 14px;">
                         
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                            <a href="#" style="color:#1a73e8; font-size:14px; text-decoration:none; font-weight:500;">Create account</a>
-                            <button onclick="alert('Captured!')" style="background:#1a73e8; color:white; border:none; padding:10px 24px; border-radius:4px; font-weight:500; font-size:14px; cursor:pointer;">Next</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                            <a href="#" style="color: #1a73e8; font-size: 14px; text-decoration: none; font-weight: 500;">Create account</a>
+                            <button onclick="alert('Action captured in test environment.')" style="background: #1a73e8; color: white; border: none; padding: 10px 24px; border-radius: 4px; font-weight: 500; font-size: 14px; cursor: pointer;">Next</button>
                         </div>
                     </div>
                 `;
-
-                // Jika jendela popup terbuka, arahkan lokasi asinkronnya ke zona penyerang
-                if (targetWin) {
-                    try {
-                        targetWin.location.href = "https://accounts.google.com.evil.localtest.me/";
-                    } catch(err) {
-                        log("Cross-origin location assignment restricted.");
-                    }
-                }
-            }, 3000);
+            }, 2000);
         });
     </script>
 </body>
