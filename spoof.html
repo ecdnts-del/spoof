@@ -50,7 +50,7 @@
 
     <div class="card">
         <h2>Security Verification</h2>
-        <p>Tekan dan tahan (Long Press) tautan di bawah ini, lalu pilih opsi <b>"Preview Page"</b>.</p>
+        <a>Tekan dan tahan (Long Press) tautan di bawah ini, lalu pilih opsi <a>"Preview Page"</a>.</a>
         
         <!-- Target Link yang memicu konteks menu -->
         <a href="https://google.com" class="target-link" id="spoofTarget">Long Press -> Preview Page</a>
@@ -83,7 +83,7 @@
                     // Menangkap error jika dibatalkan pengguna atau diblokir oleh patch keamanan browser
                     logElement.innerText = `Status Diblokir/Gagal: ${err.name} - ${err.message}`;
                 }
-            }, 2500); // Waktu tunda optimal dalam milidetik (dapat disesuaikan)
+            }, 1400); // Waktu tunda optimal dalam milidetik (dapat disesuaikan)
         });
 
         // Tambahan pemantauan visibilitas halaman untuk melacak status transisi tab/preview
