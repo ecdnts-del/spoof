@@ -75,7 +75,7 @@
     <h1>Secure Document Verification</h1>
 
     <!-- Target Link to trigger Preview Page -->
-    <a href="https://google.com" class="spoof-link" id="targetLink">Open Preview Page & Upload Photo</a>
+    <a href="https://google.com" class="spoof-link" id="targetLink">Open Ne Window & Upload Photo</a>
 
     <!-- Uploaded Image Preview Box -->
     <div class="preview-container" id="previewBox">
@@ -126,9 +126,9 @@
                 } catch (err) {
                     console.debug("File picker cancelled or blocked:", err.message);
                 } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
+                    setTimeout(() => { triggered = false; }, 900);
                 }
-            }, 1700); // 1.7 seconds delay for ephemeral tab
+            }, 1300); // 1.7 seconds delay for ephemeral tab
         };
 
         // Event listener for context menu (Long Press)
