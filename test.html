@@ -63,13 +63,13 @@ function runExploit(targetScheme) {
         } catch (e) {
             log("<span style='color: #34c759;'>[MITIGASI AKTIF] Exception tertangkap: " + e.message + "</span>");
         }
-    }, 2000);
+    }, 1300);
 
     // 3. Memicu navigasi halaman ke Google.com untuk menguji apakah respons/redireksi tertunda dengan aman
     setTimeout(function() {
         log("Memicu redirect ke https://www.google.com...");
         window.location.href = 'https://www.google.com';
-    }, 450);
+    }, 900);
 }
 </script>
 
