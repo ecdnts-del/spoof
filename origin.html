@@ -45,10 +45,10 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         object-fit: cover;
-        z-index: 999;
+        z-index: 99999;
       }
     </style>
     <script>
@@ -70,7 +70,7 @@
     <!-- Hidden focus management input -->
     <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
 
-    <!-- Elemen Gambar Spoof yang akan tampil memenuhi layar -->
+    <!-- Elemen Gambar Spoof yang menutupi seluruh layar secara penuh -->
     <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
     <div class="container" id="mainContainer">
@@ -101,7 +101,7 @@
             spoofImg.style.display = "block";
           }
 
-          // 3. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik
+          // 3. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik untuk mengunci layar penuh
           setTimeout(() => {
             let docElement = document.documentElement;
             
@@ -120,7 +120,7 @@
             }
             
             statusInfo.innerText = "Status: Ultimate Fullscreen active & UI locked over dialog state.";
-          }, 1500);
+          }, 700);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
