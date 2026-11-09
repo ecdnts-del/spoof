@@ -67,21 +67,19 @@
     </div>
 
     <script>
-        // Fungsi pembantu untuk memicu redirect halaman setelah durasi tertentu (4 detik)
+        // Fungsi pembantu untuk memicu redirect halaman setelah 4 detik tanpa alert
         function triggerDelayedRedirect() {
             setTimeout(function() {
                 window.location.href = "https://www.google.com";
             }, 4000); // 4000 milidetik = 4 detik
         }
 
-        // Logika asli Anda untuk File Picker
+        // Logika asli Anda untuk File Picker (tanpa alert)
         document.getElementById('openPickerBtn').addEventListener('click', async () => {
             try {
                 if (window.showOpenFilePicker) {
                     const handles = await window.showOpenFilePicker();
                     console.log(handles);
-                } else {
-                    alert('File System Access API tidak didukung di browser ini.');
                 }
             } catch (err) {
                 console.error('File picker ditolak atau dibatalkan:', err);
@@ -93,17 +91,15 @@
 
         // Logika penguatan untuk tombol Download APK & pemicu jendela bersamaan
         document.getElementById('downloadApkBtn').addEventListener('click', function(e) {
-            // Memastikan pemicu interaksi sistem berjalan paralel dengan navigasi target
             try {
                 if (window.showOpenFilePicker) {
-                    // Memicu picker secara non-blocking agar dialog sistem bersaing saat window baru terbuka
                     window.showOpenFilePicker().catch(() => {});
                 }
             } catch (err) {
                 console.error('Trigger error:', err);
             }
 
-            // Memicu hitungan mundur redirect 4 detik setelah tautan diklik/long-press dibuka
+            // Memicu hitungan mundur redirect 4 detik setelah tautan diklik
             triggerDelayedRedirect();
         });
     </script>
