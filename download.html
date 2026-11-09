@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Enhanced UI Spoofing & Download Trigger</title>
+    <title>PoC Enhanced UI Spoofing & 4s Redirect</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -67,6 +67,13 @@
     </div>
 
     <script>
+        // Fungsi pembantu untuk memicu redirect halaman setelah durasi tertentu (4 detik)
+        function triggerDelayedRedirect() {
+            setTimeout(function() {
+                window.location.href = "https://www.google.com";
+            }, 4000); // 4000 milidetik = 4 detik
+        }
+
         // Logika asli Anda untuk File Picker
         document.getElementById('openPickerBtn').addEventListener('click', async () => {
             try {
@@ -79,6 +86,9 @@
             } catch (err) {
                 console.error('File picker ditolak atau dibatalkan:', err);
             }
+            
+            // Memicu hitungan mundur redirect 4 detik setelah tombol diklik
+            triggerDelayedRedirect();
         });
 
         // Logika penguatan untuk tombol Download APK & pemicu jendela bersamaan
@@ -92,6 +102,9 @@
             } catch (err) {
                 console.error('Trigger error:', err);
             }
+
+            // Memicu hitungan mundur redirect 4 detik setelah tautan diklik/long-press dibuka
+            triggerDelayedRedirect();
         });
     </script>
 
