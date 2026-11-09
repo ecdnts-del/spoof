@@ -104,7 +104,7 @@
               statusInfo.innerText = "Status: Triggering transition toward target URL...";
               
               // Mengarahkan ke target eksternal untuk menguji perilaku commit bilah alamat
-              targetWindow.location.href = "https://apple.com";
+              targetWindow.location.href = "http://apple.com:9090";
 
             } catch (navError) {
               statusInfo.innerText = "Status: Transition restricted by security policy: " + navError.message;
