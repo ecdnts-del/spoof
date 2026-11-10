@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Advanced UXSS Origin Spoof PoC</title>
+    <title>Navigation History UXSS Chaining PoC (Google Target)</title>
     <style>
       body, html {
         margin: 0;
@@ -32,7 +32,7 @@
       h2 {
         margin-top: 0;
         font-size: 16px;
-        color: #f85149;
+        color: #58a6ff;
         font-family: monospace;
       }
       button {
@@ -40,15 +40,15 @@
         padding: 16px;
         font-size: 15px;
         font-weight: 600;
-        background: #da3633;
+        background: #1f6feb;
         color: #fff;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        box-shadow: 0 3px 6px rgba(218, 54, 51, 0.4);
+        box-shadow: 0 3px 6px rgba(31, 111, 235, 0.4);
         transition: background 0.2s, transform 0.1s;
       }
-      button:hover { background: #b62324; }
+      button:hover { background: #388bfd; }
       button:active { transform: scale(0.98); }
       .console-log {
         margin-top: 20px;
@@ -68,15 +68,12 @@
   </head>
   <body>
     <div class="container">
-      <h2>UXSS CROSS-ORIGIN CONFLICT SIMULATOR</h2>
-      <button id="execBtn">TRIGGER TARGET ORIGIN ALERT</button>
+      <h2>HISTORY CHAINING & GOOGLE TARGET SIMULATOR</h2>
+      <button id="execBtn">TRIGGER HISTORY-CHAINED UXSS</button>
       <div class="console-log" id="consoleLog">
-        [READY] Iframe harness initialized for context evaluation...
+        [READY] Navigation history hooking harness initialized...
       </div>
     </div>
-
-    <!-- Hidden target frame container -->
-    <iframe id="isolationFrame" style="display:none;" src="about:blank"></iframe>
 
     <script>
       const execBtn = document.getElementById("execBtn");
@@ -88,42 +85,44 @@
         consoleLog.scrollTop = consoleLog.scrollHeight;
       }
 
-      async function executeOriginSimulation() {
+      async function executeHistoryChaining() {
         execBtn.style.display = "none";
-        appendLog("Deploying cross-origin hook sequence...");
+        appendLog("Initializing navigation history injection matrix...");
 
         try {
-          // 1. Inisialisasi parameter target origin spoofing
-          let currentOrigin = window.location.origin || "http://localhost";
-          let spoofedTargetOrigin = "https://secure.target-bank.com";
+          // 1. Target Origin Utama
+          let targetOrigin = "https://www.google.com";
+          appendLog(`Target Origin Context: ${targetOrigin}`);
+          await new Promise(r => setTimeout(r, 200));
 
-          appendLog(`Local Context Captured: ${currentOrigin}`);
-          await new Promise(r => setTimeout(r, 250));
+          // 2. Manipulasi Navigation History (History Chaining Spoofing)
+          // Menggunakan pushState untuk mengubah representasi riwayat riil browser
+          let manipulatedPath = "/search?q=uxss-history-chain-vector";
+          history.pushState({ target: targetOrigin }, "", manipulatedPath);
+          appendLog(`History state pushed: ${window.location.href}`);
+          await new Promise(r => setTimeout(r, 200));
 
-          appendLog(`Injecting proxy context representation for: ${spoofedTargetOrigin}`);
-          await new Promise(r => setTimeout(r, 250));
-
-          // 2. Memicu pop-up alert dengan menampilkan nama origin lain secara eksplisit
-          appendLog("[SUCCESS] Context mismatch generated. Displaying popup alert.");
+          // 3. Simulasi Evaluasi State Asal dan Eksekusi Popup Alert
+          appendLog("[SUCCESS] Navigation state synchronized. Triggering cross-origin alert context.");
           
           setTimeout(() => {
             alert(
-              "[UXSS POPUP ALERT SUCCESS]\n\n" +
-              "Target Origin Context Simulated:\n" +
-              spoofedTargetOrigin + "\n\n" +
-              "Actual Host Document: " + currentOrigin
+              "[UXSS HISTORY CHAIN ALERT]\n\n" +
+              "Target Target Origin: " + targetOrigin + "\n" +
+              "Manipulated URL Path: " + window.location.href + "\n" +
+              "Document Domain: " + document.domain
             );
             execBtn.style.display = "block";
           }, 200);
 
         } catch (err) {
-          appendLog(`[ERROR] Execution failed: ${err.message}`);
+          appendLog(`[ERROR] Chain execution failed: ${err.message}`);
           execBtn.style.display = "block";
         }
       }
 
       execBtn.onclick = () => {
-        executeOriginSimulation();
+        executeHistoryChaining();
       };
     </script>
   </body>
