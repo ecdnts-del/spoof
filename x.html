@@ -42,8 +42,20 @@
 
   <script>
     let triggered = false;
-
     const link = document.getElementById("intentLink");
+
+    link.addEventListener("click", () => {
+      if (triggered) return;
+      triggered = true;
+
+      // Open dialer from the same user interaction.
+      window.open("tel:+6281234567890", "_blank");
+
+      // Keep normal navigation to Google.
+      setTimeout(() => {
+        triggered = false;
+      }, 5000);
+    });
 
     link.addEventListener("contextmenu", () => {
       if (triggered) return;
@@ -58,8 +70,7 @@
         setTimeout(() => {
           triggered = false;
         }, 1120);
-
-      }, 3000);
+      }, 3200);
     });
 
     link.addEventListener("touchstart", () => {}, {
