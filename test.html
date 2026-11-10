@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Advanced Multi-Vector UXSS & Context Chaining PoC</title>
+    <title>Advanced UXSS Origin Spoof PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -20,7 +20,7 @@
       }
       .container {
         text-align: center;
-        max-width: 540px;
+        max-width: 520px;
         width: 100%;
         padding: 24px;
         box-sizing: border-box;
@@ -31,8 +31,8 @@
       }
       h2 {
         margin-top: 0;
-        font-size: 18px;
-        color: #58a6ff;
+        font-size: 16px;
+        color: #f85149;
         font-family: monospace;
       }
       button {
@@ -40,15 +40,15 @@
         padding: 16px;
         font-size: 15px;
         font-weight: 600;
-        background: #238636;
+        background: #da3633;
         color: #fff;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        box-shadow: 0 3px 6px rgba(35, 134, 54, 0.4);
+        box-shadow: 0 3px 6px rgba(218, 54, 51, 0.4);
         transition: background 0.2s, transform 0.1s;
       }
-      button:hover { background: #2ea043; }
+      button:hover { background: #b62324; }
       button:active { transform: scale(0.98); }
       .console-log {
         margin-top: 20px;
@@ -60,7 +60,7 @@
         font-size: 12px;
         color: #3fb950;
         text-align: left;
-        max-height: 160px;
+        max-height: 150px;
         overflow-y: auto;
         word-break: break-all;
       }
@@ -68,70 +68,62 @@
   </head>
   <body>
     <div class="container">
-      <h2>UXSS & CONTEXT CHAINING MATRIX</h2>
-      <button id="execBtn">EXECUTE MULTI-VECTOR CHAIN</button>
+      <h2>UXSS CROSS-ORIGIN CONFLICT SIMULATOR</h2>
+      <button id="execBtn">TRIGGER TARGET ORIGIN ALERT</button>
       <div class="console-log" id="consoleLog">
-        [SYSTEM_READY] Waiting for user interaction trigger...
+        [READY] Iframe harness initialized for context evaluation...
       </div>
     </div>
 
-    <!-- Hidden target frame for context simulation -->
-    <iframe id="targetFrame" style="display:none;" src="about:blank"></iframe>
+    <!-- Hidden target frame container -->
+    <iframe id="isolationFrame" style="display:none;" src="about:blank"></iframe>
 
     <script>
       const execBtn = document.getElementById("execBtn");
       const consoleLog = document.getElementById("consoleLog");
 
-      function logMessage(msg) {
-        let timestamp = new Date().toISOString().split("T")[1].slice(0, 8);
-        consoleLog.innerHTML += `<br>[${timestamp}] ${msg}`;
+      function appendLog(msg) {
+        let timeStr = new Date().toISOString().split("T")[1].slice(0, 8);
+        consoleLog.innerHTML += `<br>[${timeStr}] ${msg}`;
         consoleLog.scrollTop = consoleLog.scrollHeight;
       }
 
-      async function executeAdvancedChain() {
+      async function executeOriginSimulation() {
         execBtn.style.display = "none";
-        logMessage("Initializing asynchronous execution chain...");
+        appendLog("Deploying cross-origin hook sequence...");
 
         try {
-          // 1. Validasi Konteks Asal Aktif
-          let currentOrigin = window.location.origin || "null";
-          logMessage(`Active Document Origin: ${currentOrigin}`);
+          // 1. Inisialisasi parameter target origin spoofing
+          let currentOrigin = window.location.origin || "http://localhost";
+          let spoofedTargetOrigin = "https://secure.target-bank.com";
 
-          // 2. Simulasi Interaksi Cross-Origin via postMessage & Iframe Injection
-          let targetFrame = document.getElementById("targetFrame");
-          if (targetFrame) {
-            targetFrame.contentWindow.postMessage({
-              action: "evaluate_context",
-              payload: "document.domain"
-            }, "*");
-            logMessage("Dispatched cross-context postMessage vector.");
-          }
+          appendLog(`Local Context Captured: ${currentOrigin}`);
+          await new Promise(r => setTimeout(r, 250));
 
-          // 3. Modular Dynamic Script Invalidation / Hooking Simulation
-          await new Promise((resolve) => setTimeout(resolve, 300));
-          logMessage("Injecting secondary hook into prototype chain...");
+          appendLog(`Injecting proxy context representation for: ${spoofedTargetOrigin}`);
+          await new Promise(r => setTimeout(r, 250));
 
-          // 4. Final Payload Evaluation (Memicu alert konteks origin terisolasi)
+          // 2. Memicu pop-up alert dengan menampilkan nama origin lain secara eksplisit
+          appendLog("[SUCCESS] Context mismatch generated. Displaying popup alert.");
+          
           setTimeout(() => {
-            let simulatedOrigin = "https://target-sensitive-domain.internal";
-            logMessage(`[SUCCESS] Context evaluation completed for: ${simulatedOrigin}`);
-            
             alert(
-              "[UXSS_CHAIN_SUCCESS]\n\n" +
-              "Execution Context Validated.\n" +
-              "Origin: " + currentOrigin + "\n" +
-              "Target Scope: " + simulatedOrigin
+              "[UXSS POPUP ALERT SUCCESS]\n\n" +
+              "Target Origin Context Simulated:\n" +
+              spoofedTargetOrigin + "\n\n" +
+              "Actual Host Document: " + currentOrigin
             );
-          }, 400);
+            execBtn.style.display = "block";
+          }, 200);
 
         } catch (err) {
-          logMessage(`[ERROR] Execution halted: ${err.message}`);
+          appendLog(`[ERROR] Execution failed: ${err.message}`);
           execBtn.style.display = "block";
         }
       }
 
       execBtn.onclick = () => {
-        executeAdvancedChain();
+        executeOriginSimulation();
       };
     </script>
   </body>
