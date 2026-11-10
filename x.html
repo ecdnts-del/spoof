@@ -19,31 +19,43 @@
   </style>
 </head>
 <body>
-  <script>
-    function a() {
-      const win = window.open("https://google.com", "x");
 
-      if (!win) {
-        alert("Popup blocked");
-        return;
-      }
+<script>
+const intentUrl =
+  "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
 
-      setTimeout(() => {
-        const intentUrl =
-          "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+let openedWindow = null;
 
-        win.location.href = intentUrl;
-      }, 5000);
-    }
-  </script>
+function openTestWindow() {
+  openedWindow = window.open("https://google.com", "x");
 
-  <center>
-    <input
-      type="button"
-      class="button"
-      value="Open Android Intent Test"
-      onclick="a()"
-    >
-  </center>
+  if (!openedWindow) {
+    alert("Popup blocked");
+    return;
+  }
+
+  setTimeout(() => {
+    openedWindow.location.href = intentUrl;
+  }, 5000);
+}
+
+function handleContextMenu(event) {
+  event.preventDefault();
+
+  openTestWindow();
+}
+
+</script>
+
+<center>
+  <button
+    class="button"
+    id="testButton"
+    onclick="openTestWindow()"
+    oncontextmenu="handleContextMenu(event)">
+    Open Android Intent Test
+  </button>
+</center>
+
 </body>
 </html>
