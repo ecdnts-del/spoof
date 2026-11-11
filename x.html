@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Android Intent PoC - Forced Redirect</title>
+  <title>Android Intent - Add to Home Screen PoC</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -35,9 +35,8 @@
 <body>
 
   <h2>Android Intent Test</h2>
-  <!-- Mengarahkan link secara langsung ke google.com sebagai fallback dasar -->
-  <a href="https://www.google.com" id="intentLink" target="_blank">
-    Open Window & Android Intent Test
+  <a href="https://www.google.com" id="intentLink">
+    Trigger Add to Home Screen & Open Google
   </a>
 
   <script>
@@ -47,33 +46,35 @@
     let isTriggered = false;
 
     document.getElementById("intentLink").addEventListener("click", function(e) {
+      // Mencegah navigasi default agar script memiliki kontrol penuh atas timing
+      e.preventDefault();
+
       if (isTriggered) return;
       isTriggered = true;
 
-      // 1. Buat iframe tersembunyi khusus untuk memicu skema intent di background
-      // Cara ini mencegah intent mengambil alih jendela utama browser Anda
+      // 1. Eksekusi intent ke dalam iframe tersembunyi terlebih dahulu
+      // Ini memicu Google App / Quick Search Box memunculkan dialog add to home screen
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = INTENT_URL;
       document.body.appendChild(iframe);
 
-      // 2. Buka target URL (google.com) di tab/jendela baru secara bersamaan
-      const newWindow = window.open(TARGET_URL, '_blank');
-
-      // 3. Pastikan halaman saat ini juga ikut mengarah ke Google jika window.open diblokir
+      // 2. Berikan jeda waktu (timing) yang ideal (misal: 600ms) 
+      // Agar dialog sistem sempat muncul di atas layar sebelum browser memuat google.com
       setTimeout(() => {
-        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-          window.location.replace(TARGET_URL);
-        }
-      }, 300);
-
-      // 4. Bersihkan elemen iframe setelah eksekusi
-      setTimeout(() => {
+        // Hapus iframe untuk membersihkan DOM
         if (iframe && iframe.parentNode) {
           iframe.parentNode.removeChild(iframe);
         }
+
+        // 3. Lakukan redirect otomatis ke google.com
+        window.location.href = TARGET_URL;
+      }, 600);
+
+      // Reset status jika diperlukan setelah beberapa detik
+      setTimeout(() => {
         isTriggered = false;
-      }, 1500);
+      }, 2000);
     });
   </script>
 
