@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Android Intent PoC - Enhanced</title>
+  <title>Android Intent PoC - Forced Redirect</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -35,7 +35,8 @@
 <body>
 
   <h2>Android Intent Test</h2>
-  <a href="https://www.google.com" id="intentLink">
+  <!-- Mengarahkan link secara langsung ke google.com sebagai fallback dasar -->
+  <a href="https://www.google.com" id="intentLink" target="_blank">
     Open Window & Android Intent Test
   </a>
 
@@ -46,29 +47,33 @@
     let isTriggered = false;
 
     document.getElementById("intentLink").addEventListener("click", function(e) {
-      // Mencegah navigasi default sejenak agar eksekusi script berjalan sempurna
-      e.preventDefault();
-
       if (isTriggered) return;
       isTriggered = true;
 
-      // 1. Eksekusi intent Android terlebih dahulu
-      window.location.href = INTENT_URL;
+      // 1. Buat iframe tersembunyi khusus untuk memicu skema intent di background
+      // Cara ini mencegah intent mengambil alih jendela utama browser Anda
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = INTENT_URL;
+      document.body.appendChild(iframe);
 
-      // 2. Timing terstruktur untuk memastikan fallback/redirect otomatis ke Google Utama berjalan lancar
-      setTimeout(() => {
-        window.location.replace(TARGET_URL);
-      }, 400);
+      // 2. Buka target URL (google.com) di tab/jendela baru secara bersamaan
+      const newWindow = window.open(TARGET_URL, '_blank');
 
-      // Reset status setelah beberapa saat jika diperlukan
+      // 3. Pastikan halaman saat ini juga ikut mengarah ke Google jika window.open diblokir
       setTimeout(() => {
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          window.location.replace(TARGET_URL);
+        }
+      }, 300);
+
+      // 4. Bersihkan elemen iframe setelah eksekusi
+      setTimeout(() => {
+        if (iframe && iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
         isTriggered = false;
       }, 1500);
-    });
-
-    // Otomatis picu juga ketika halaman selesai dimuat jika diperlukan intervensi instan (opsional)
-    window.addEventListener('DOMContentLoaded', () => {
-      // Anda bisa menambahkan auto-trigger di sini jika ingin langsung berjalan saat halaman dibuka
     });
   </script>
 
