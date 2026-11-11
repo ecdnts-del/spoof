@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Launcher</title>
+    <title>PoC Link</title>
     <style>
         body {
             display: flex;
@@ -14,26 +14,26 @@
             background-color: #0d1117;
             font-family: sans-serif;
         }
-        button {
-            padding: 14px 28px;
+        .btn-link {
+            display: inline-block;
+            padding: 16px 32px;
             font-size: 16px;
             font-weight: bold;
             color: #ffffff;
             background-color: #238636;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             transition: background 0.2s;
         }
-        button:hover {
+        .btn-link:hover {
             background-color: #2ea043;
         }
     </style>
 </head>
 <body>
 
-    <button onclick="window.open('https://ecdnts-del.github.io/spoof/f.html', '_blank')">Buka Target PoC</button>
+    <a href="https://ecdnts-del.github.io/spoof/f.html" class="btn-link">Akses Target</a>
 
 </body>
 </html>
