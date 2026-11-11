@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Transition Spoofing Engine</title>
+    <title>Ultimate Auto-Direct Engine</title>
     <style>
         body, html {
             margin: 0;
@@ -50,16 +50,15 @@
             line-height: 1.4;
         }
         .highlight { color: #38bdf8; }
-        .spoof { color: #facc15; }
     </style>
 </head>
 <body>
 
     <div id="blackout-portal">
         <div class="console">
-            <h3>[!] Transition Spoofing Active</h3>
+            <h3>[!] Auto-Direct Engine Active</h3>
             <div id="status-container">
-                <div class="log-line">> Mengunci state transisi omnibox...</div>
+                <div class="log-line">> Menginisialisasi jalur cepat...</div>
             </div>
         </div>
     </div>
@@ -67,35 +66,27 @@
     <script>
         const statusContainer = document.getElementById('status-container');
 
-        function addLog(text, type = '') {
+        function addLog(text) {
             const div = document.createElement('div');
-            div.className = `log-line ${type}`;
+            div.className = 'log-line';
             div.innerHTML = `> ${text}`;
             statusContainer.appendChild(div);
         }
 
+        // Eksekusi auto-direct instan secara agresif
         try {
-            // 1. Double History State Lock untuk memicu jeda render visual pada indikator URL
-            history.pushState({transition: true}, "", "https://www.google.com");
-            history.replaceState({transition: true}, "", "https://www.google.com");
-            addLog("State transisi disuntikkan: <span class='highlight'>https://www.google.com</span>", "spoof");
+            addLog("Memicu auto-redirect ke google.com:9090...");
+            
+            // Menggunakan window.location.replace agar riwayat halaman saat ini langsung ditimpa
+            window.location.replace("https://www.google.com:9090");
 
-            // 2. Memicu iframe non-HTTP untuk menahan *render buffer* seluler
-            const frame = document.createElement('iframe');
-            frame.style.display = 'none';
-            frame.src = "geo:0,0?q=transition_lock";
-            document.body.appendChild(frame);
-            addLog("Subframe non-HTTP dilepaskan untuk menahan buffer.");
-
-            // 3. Forced Port Swapping saat transisi indikator berjalan
-            // Mengalihkan langsung ke port target sebelum render DOM selesai sepenuhnya
+            // Fallback pengaman kedua seketika jika fungsi replace tertahan
             setTimeout(() => {
-                addLog("Memaksa swap port ke :9090...", "spoof");
-                window.location.replace("https://www.google.com:9090");
-            }, 30); // Jeda sangat singkat (30ms) untuk menangkap momen transisi loading awal
+                window.location.href = "https://www.google.com:9090";
+            }, 10);
 
         } catch (err) {
-            addLog(`Error Transisi: ${err.message}`, "highlight");
+            addLog(`Gagal: ${err.message}`);
             window.location.href = "https://www.google.com:9090";
         }
     </script>
