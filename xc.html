@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Global Security Research Terminal</title>
+    <title>Nexus Global Security Research Terminal - Unrestricted</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,9 +12,9 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#07080a',
-                        cardBg: '#0f1117',
-                        borderCol: '#1f2430',
+                        darkBg: '#050608',
+                        cardBg: '#0c0e14',
+                        borderCol: '#1a1f2c',
                         accentGreen: '#10b981',
                         accentBlue: '#3b82f6'
                     }
@@ -28,12 +28,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #07080a; }
-        ::-webkit-scrollbar-thumb { background: #1f2430; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #050608; }
+        ::-webkit-scrollbar-thumb { background: #1a1f2c; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #10b981; }
-        .message-content pre { background: #0d1117 !important; padding: 1rem; border-radius: 0.5rem; border: 1px solid #30363d; margin: 0.75rem 0; position: relative; }
-        .message-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; }
-        .copy-btn { position: absolute; top: 8px; right: 8px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+        .message-content pre { background: #090b10 !important; padding: 1rem; border-radius: 0.5rem; border: 1px solid #1f293d; margin: 0.75rem 0; position: relative; }
+        .message-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; color: #34d399; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: #161b22; border: 1px solid #30363d; color: #c9d1d9; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
         .copy-btn:hover { background: #30363d; color: #ffffff; }
     </style>
 </head>
@@ -43,25 +43,25 @@
     <aside class="w-80 bg-cardBg border-r border-borderCol flex flex-col hidden md:flex">
         <div class="p-4 border-b border-borderCol flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]"></div>
-                <span class="font-bold text-xs tracking-widest uppercase text-emerald-400">Global Search Aggregator</span>
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_#10b981]"></div>
+                <span class="font-bold text-xs tracking-widest uppercase text-emerald-400">Bypass Node v5.0</span>
             </div>
         </div>
 
         <div class="p-4 flex-1 overflow-y-auto space-y-5">
             <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Status Protokol</label>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Status Jaringan</label>
                 <div class="w-full bg-darkBg border border-borderCol rounded-lg px-3 py-2.5 text-xs text-emerald-400 font-mono flex items-center justify-between">
-                    <span>100% FREE / NO API</span>
+                    <span>MULTI-PROXY ACTIVE</span>
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                 </div>
-                <p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed">Mengambil dan merangkum indeks web global secara real-time.</p>
+                <p class="text-[11px] text-gray-500 mt-1.5 leading-relaxed">Bypass aktif: Menembus pembatasan ISP dan firewall lokal secara mandiri.</p>
             </div>
 
             <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Parameter Fokus Riset</label>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Parameter Ekstraksi Riset</label>
                 <textarea id="systemPromptInput" rows="6" 
-                    class="w-full bg-darkBg border border-borderCol rounded-lg p-3 text-xs focus:outline-none focus:border-emerald-500/50 transition resize-none leading-relaxed text-gray-300">Target: Analisis kerentanan tingkat lanjut, advisory CVE, dokumentasi eksploitasi, arsitektur payload, dan mitigasi pertahanan siber global.</textarea>
+                    class="w-full bg-darkBg border border-borderCol rounded-lg p-3 text-xs focus:outline-none focus:border-emerald-500/50 transition resize-none leading-relaxed text-gray-300">Target: Penelusuran mendalam cyber intelligence, kerentanan sistem, advisory CVE, arsitektur payload, dan analisis teknis pertahanan global.</textarea>
             </div>
 
             <div class="pt-2">
@@ -73,7 +73,7 @@
         </div>
 
         <div class="p-4 border-t border-borderCol text-center text-[11px] text-gray-500 font-mono">
-            Nexus Core v4.2 - Secure Node
+            Nexus Bypass Core - Secure
         </div>
     </aside>
 
@@ -83,13 +83,11 @@
         <!-- Header Topbar -->
         <header class="h-14 bg-cardBg border-b border-borderCol px-6 flex items-center justify-between z-10">
             <div class="flex items-center space-x-3">
-                <div class="flex items-center space-x-2">
-                    <span class="font-bold text-sm text-gray-200 tracking-wide">Nexus Research Terminal</span>
-                </div>
-                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-mono">Unrestricted Web Scraping</span>
+                <span class="font-bold text-sm text-gray-200 tracking-wide">Nexus Unrestricted Terminal</span>
+                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-mono">Bypass Engine Active</span>
             </div>
             <div class="text-xs text-gray-400 font-mono hidden sm:block">
-                Mode: Multi-Engine Index
+                Status: Ready for Deep Search
             </div>
         </header>
 
@@ -100,9 +98,9 @@
                 <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.15)]">SEC</div>
                 <div class="bg-cardBg border border-borderCol p-5 rounded-2xl max-w-[88%] text-sm leading-relaxed shadow-xl message-content">
                     <p class="font-semibold text-emerald-400 mb-1.5 flex items-center space-x-2">
-                        <span>Terminal Global Siap Digunakan.</span>
+                        <span>Terminal Siap Menembus Jaringan.</span>
                     </p>
-                    Sistem berjalan sepenuhnya tanpa kunci API. Masukkan target kueri keamanan siber, CVE, atau analisis payload. Terminal akan melakukan penelusuran mendalam lintas engine publik secara instan.
+                    Sistem proksi lapis ganda aktif tanpa batasan API. Masukkan kueri riset keamanan, eksploitasi, atau CVE apa pun. Terminal akan mengekstrak data dari seluruh web secara bersih.
                 </div>
             </div>
         </div>
@@ -111,24 +109,23 @@
         <footer class="p-4 md:p-6 bg-cardBg border-t border-borderCol">
             <form id="chatForm" onsubmit="handleSendMessage(event)" class="max-w-4xl mx-auto flex gap-3 items-end">
                 <div class="relative flex-1">
-                    <textarea id="userInput" rows="1" placeholder="Ketik topik riset keamanan, kerentanan, atau eksploitasi (Tekan Enter untuk kirim)..." 
+                    <textarea id="userInput" rows="1" placeholder="Ketik topik riset keamanan siber atau kerentanan (Tekan Enter untuk kirim)..." 
                         class="w-full bg-darkBg border border-borderCol rounded-xl px-4 py-3.5 focus:outline-none focus:border-emerald-500/60 text-sm transition shadow-inner resize-none max-h-32 text-gray-200 placeholder-gray-500" autocomplete="off" required></textarea>
                 </div>
                 <button type="submit" id="sendButton" 
                     class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-semibold text-sm transition shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center shrink-0 h-[48px] space-x-2">
-                    <span>Mulai Riset</span>
+                    <span>Kirim Kueri</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
             </form>
         </footer>
     </main>
 
-    <!-- Core Engine Handler Script -->
+    <!-- Core Engine & Bypass Handler Script -->
     <script>
         const chatContainer = document.getElementById('chatContainer');
         const chatForm = document.getElementById('chatForm');
         const userInput = document.getElementById('userInput');
-        const systemPromptInput = document.getElementById('systemPromptInput');
         const sendButton = document.getElementById('sendButton');
 
         userInput.addEventListener('input', function() {
@@ -143,6 +140,34 @@
             }
         });
 
+        // Fungsi fetch tangguh dengan multi-proxy fallback matrix untuk bypass pemblokiran jaringan
+        async function fetchWithBypass(targetUrl) {
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+                `https://thingproxy.freeboard.io/fetch/${targetUrl}`
+            ];
+
+            for (const proxyUrl of proxies) {
+                try {
+                    const res = await fetch(proxyUrl, { cache: 'no-cache' });
+                    if (!res.ok) continue;
+                    
+                    const contentType = res.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const json = await res.json();
+                        if (json.contents) return json.contents; // Format allorigins
+                    } else {
+                        const text = await res.text();
+                        if (text && text.length > 50) return text;
+                    }
+                } catch (err) {
+                    // Lanjut coba proksi cadangan berikutnya jika gagal
+                }
+            }
+            throw new Error("Seluruh jalur bypass jaringan terblokir atau offline.");
+        }
+
         async function handleSendMessage(e) {
             e.preventDefault();
             const query = userInput.value.trim();
@@ -156,61 +181,49 @@
 
             const aiMessageDiv = appendMessage('', 'ai');
             const contentBody = aiMessageDiv.querySelector('.message-content');
-            contentBody.innerHTML = '<span class="animate-pulse text-emerald-400 font-mono">Menghubungkan ke jaringan search engine global...</span>';
+            contentBody.innerHTML = '<span class="animate-pulse text-emerald-400 font-mono">Menembus firewall dan mengekstrak data global...</span>';
 
             try {
-                // Melakukan pencarian multi-query untuk hasil riset keamanan yang mendalam
-                const searchQueries = [
-                    query + " cybersecurity vulnerability analysis exploit",
-                    query + " technical documentation payload defense"
-                ];
+                const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query + " cybersecurity vulnerability exploit analysis documentation")}`;
+                const htmlContent = await fetchWithBypass(searchUrl);
 
-                let compiledText = `### Hasil Riset Global & Analisis: "${query}"\n\n`;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                const results = doc.querySelectorAll('.result');
+
+                let compiledText = `### Hasil Penelusuran & Analisis: "${query}"\n\n`;
                 let totalFound = 0;
 
-                for (const q of searchQueries) {
-                    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`;
-                    
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) continue;
+                results.forEach((el) => {
+                    if (totalFound >= 6) return;
+                    const titleEl = el.querySelector('.result__title');
+                    const snippetEl = el.querySelector('.result__snippet');
+                    const linkEl = el.querySelector('.result__url');
 
-                    const data = await response.json();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(data.contents, 'text/html');
-                    const results = doc.querySelectorAll('.result');
+                    if (titleEl && snippetEl) {
+                        const title = titleEl.innerText.trim();
+                        const snippet = snippetEl.innerText.trim();
+                        const link = linkEl ? linkEl.getAttribute('href') : '#';
 
-                    results.forEach((el) => {
-                        if (totalFound >= 6) return;
-                        const titleEl = el.querySelector('.result__title');
-                        const snippetEl = el.querySelector('.result__snippet');
-                        const linkEl = el.querySelector('.result__url');
-
-                        if (titleEl && snippetEl) {
-                            const title = titleEl.innerText.trim();
-                            const snippet = snippetEl.innerText.trim();
-                            const link = linkEl ? linkEl.getAttribute('href') : '#';
-
-                            compiledText += `#### ${title}\n`;
-                            compiledText += `- **Analisis & Rangkuman:** ${snippet}\n`;
-                            compiledText += `- **Sumber Referensi:** \`${link}\`\n\n`;
-                            totalFound++;
-                        }
-                    });
-                }
+                        compiledText += `#### ${title}\n`;
+                        compiledText += `- **Analisis Teknis / Cuplikan:** ${snippet}\n`;
+                        compiledText += `- **Referensi Global:** \`${link}\`\n\n`;
+                        totalFound++;
+                    }
+                });
 
                 if (totalFound === 0) {
-                    compiledText += "Tidak ditemukan data spesifik dari indeks pencarian publik. Coba sesuaikan kata kunci teknis Anda.";
+                    compiledText += "Tidak ditemukan hasil indeks spesifik. Coba perluas kata kunci kueri Anda.";
                 } else {
                     compiledText += `---
-*Riset disintesis dari ${totalFound} sumber indeks publik global tanpa batasan API.*`;
+*Diekstrak melalui multi-proxy bypass tanpa batasan API.*`;
                 }
 
                 contentBody.innerHTML = marked.parse(compiledText);
                 enhanceCodeBlocks(contentBody);
 
             } catch (error) {
-                contentBody.innerHTML = `<span class="text-red-400 font-mono text-xs">GAGAL MENGAMBIL DATA: ${error.message}. Periksa koneksi internet Anda.</span>`;
+                contentBody.innerHTML = `<span class="text-red-400 font-mono text-xs">GAGAL BYPASS: ${error.message}. Periksa koneksi internet Anda atau coba beberapa saat lagi.</span>`;
             } finally {
                 userInput.disabled = false;
                 sendButton.disabled = false;
@@ -259,7 +272,7 @@
             if (isUser) {
                 bubble.innerText = text;
             } else {
-                bubble.innerHTML = text ? marked.parse(text) : '<span class="animate-pulse text-gray-400">Memproses kueri riset...</span>';
+                bubble.innerHTML = text ? marked.parse(text) : '<span class="animate-pulse text-gray-400">Menghubungkan ke node jaringan...</span>';
             }
 
             wrapper.appendChild(avatar);
@@ -271,7 +284,6 @@
         }
 
         function clearChat() {
-            chatHistory = [];
             chatContainer.innerHTML = `
                 <div class="flex items-start space-x-4">
                     <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs shrink-0">SEC</div>
