@@ -2,140 +2,166 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Invalid Port Bypass & Desync Lab</title>
+    <title>Chromium Aggressive Force-Pull Lab POC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        :root {
+            --bg-color: #07090e;
+            --card-bg: #111827;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --btn-bg: #2563eb;
+            --btn-hover: #1d4ed8;
+            --log-bg: #020617;
+            --log-text: #4ade80;
+        }
         body {
-            background-color: #080c14;
-            color: #f1f5f9;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: system-ui, -apple-system, sans-serif;
             text-align: center;
             padding: 40px 20px;
             margin: 0;
         }
         .wrapper {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             max-width: 440px;
             margin: 0 auto;
-            border: 1px solid #334155;
+            border: 1px solid #1f2937;
         }
         h2 {
-            font-size: 1.25rem;
-            color: #38bdf8;
+            font-size: 1.4rem;
+            color: var(--accent);
             margin-bottom: 8px;
+            font-weight: 700;
         }
         p {
             font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.4;
         }
         .btn-trigger {
-            background-color: #3b82f6;
+            background-color: var(--btn-bg);
             color: white;
             border: none;
-            padding: 14px 20px;
+            padding: 15px 20px;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        }
+        .btn-trigger:hover {
+            background-color: var(--btn-hover);
         }
         .btn-trigger:active {
-            background-color: #2563eb;
+            transform: scale(0.98);
         }
         .logger {
-            margin-top: 15px;
-            background: #020617;
+            margin-top: 20px;
+            background: var(--log-bg);
             border: 1px solid #1e293b;
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px;
             font-family: monospace;
             font-size: 0.75rem;
-            color: #4ade80;
+            color: var(--log-text);
             text-align: left;
-            height: 150px;
+            height: 160px;
             overflow-y: auto;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
     <div class="wrapper">
-        <h2>Invalid Port Lab v3</h2>
-        <p>Simulasi injeksi DOM awal dengan pemicu port tidak aman / tertahan.</p>
-        <button id="launchBtn" class="btn-trigger">JALANKAN UJI PORT</button>
-        <div id="logBox" class="logger">[System] Menunggu tindakan...</div>
+        <h2>Force-Pull Lab v5</h2>
+        <p>Injeksi DOM "Hallo" dengan Redundansi Navigasi Paksa ke Target Eksternal.</p>
+        <button id="launchBtn" class="btn-trigger">JALANKAN FORCE-PULL</button>
+        <div id="logBox" class="logger">[System] Menunggu perintah eksekusi...</div>
     </div>
-
-    <!-- Hidden Iframe untuk Isolasi State DOM -->
-    <iframe id="isolatedFrame" style="display:none;" src="about:blank"></iframe>
 
     <script>
         const logBox = document.getElementById('logBox');
 
-        function addLog(msg, isErr = false) {
-            const time = new Date().toLocaleTimeString();
-            const color = isErr ? "#f87171" : "#4ade80";
-            logBox.innerHTML += `<span style="color: ${color}">[${time}] ${msg}</span><br>`;
+        function addLog(msg, isError = false) {
+            const timeStr = new Date().toLocaleTimeString();
+            const color = isError ? "#f87171" : "#4ade80";
+            logBox.innerHTML += `<div style="color: ${color}; margin-bottom: 3px;">[${timeStr}] ${msg}</div>`;
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         document.getElementById('launchBtn').addEventListener('click', function() {
-            addLog("Menginisialisasi konteks pengujian...");
+            addLog("Menginisialisasi kontainer pop-up baru...");
 
-            // Membuka jendela baru dengan about:blank untuk mempertahankan tahap injeksi awal
-            let win = window.open('about:blank', '_blank');
+            // Membuka jendela baru dengan about:blank
+            let targetWin = window.open('about:blank', '_blank');
 
-            if (!win) {
-                addLog("ERROR: Pop-up diblokir oleh peramban.", true);
+            if (!targetWin) {
+                addLog("ERROR: Pop-up diblokir oleh peramban seluler.", true);
                 return;
             }
 
             try {
-                // 1. Menyuntikkan konten render awal "Hallo"
-                win.document.open();
-                win.document.write(`
+                addLog("Menyuntikkan konten render awal ('Hallo')...");
+                
+                // Menyuntikkan payload teks "Hallo" ke dalam konteks kosong
+                targetWin.document.open();
+                targetWin.document.write(`
                     <!DOCTYPE html>
                     <html>
-                    <head><title>Port Stress View</title></head>
-                    <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:70px; font-family:sans-serif;">
-                        <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
-                        <p style="color: #64748b;">Konteks render awal sebelum navigasi port tidak aman dipicu.</p>
+                    <head>
+                        <title>Forced Payload View</title>
+                        <meta charset="utf-8">
+                    </head>
+                    <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:100px; font-family:sans-serif;">
+                        <h1 style="font-size: 3.5rem; font-weight: 800; margin: 0; color: #1e293b;">Hallo</h1>
+                        <p style="color: #64748b; font-size: 1.1rem; margin-top: 10px;">Payload Render Aktif - Menunggu Tarikan Jaringan...</p>
                     </body>
                     </html>
                 `);
-                win.document.close();
-                addLog("Konten 'Hallo' berhasil dirender di about:blank.");
+                targetWin.document.close();
+                addLog("Payload berhasil ditulis ke dokumen.");
 
-                // 2. Memicu navigasi ke port yang masuk dalam daftar Unsafe/Invalid Port Chromium (misal: port 65535 atau 1)
-                // Chromium mendeteksi ini dan memicu ERR_UNSAFE_PORT di level Network/Browser Process.
+                // Memicu stresor ringan pada utas utama (main thread contention)
+                const startTick = performance.now();
+                while (performance.now() - startTick < 50) {
+                    Math.random() * Math.random();
+                }
+
+                // Vektor Redundansi Navigasi Paksa ke target eksternal (example.com)
                 setTimeout(() => {
-                    addLog("Mengarahkan location ke Unsafe Port (port 65535)...");
+                    addLog("Mengeksekusi paksa tarikan navigasi ke example.com...");
+                    
                     try {
-                        // Mencoba bypass proteksi pembatasan port dengan pembungkusan try-catch ketat
-                        win.location.href = "https://example.com:65535";
-                    } catch (navErr) {
-                        addLog("Tertangkap pada navigasi port: " + navErr.message, true);
+                        // Menggunakan location.replace berlapis untuk memaksa penimpaan riwayat
+                        targetWin.location.replace("https://example.com");
+                    } catch (e1) {
+                        addLog("Fallback location.href dipicu...", true);
+                        targetWin.location.href = "https://example.com";
                     }
-                }, 100);
+                }, 80);
 
-                // 3. Menguji ketahanan utas (main thread) dengan penjadwalan modal non-blocking
+                // Penguncian dialog modal opsional untuk menguji stabilitas utas
                 setTimeout(() => {
-                    addLog("Memeriksa responsivitas utas utama...");
+                    addLog("Memverifikasi responsivitas utas target...");
                     try {
-                        // Di browser modern, prompt lintas dokumen pada port terlarang akan diblokir oleh sandboks
-                        win.prompt("PORT STRESS TEST", "Verifikasi Status");
+                        targetWin.prompt("STRESS TEST LOCK", "State Verification");
                     } catch (promptErr) {
-                        addLog("Dialog dibatasi oleh kebijakan sandboks peramban.", true);
+                        addLog("Dialog modal dibatasi oleh sandboks.", true);
                     }
-                }, 400);
+                }, 250);
 
             } catch (err) {
-                addLog("EXCEPTION: " + err.message, true);
+                addLog("CRITICAL EXCEPTION: " + err.message, true);
             }
         });
     </script>
