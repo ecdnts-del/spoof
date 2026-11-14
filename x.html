@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Navigation Desync Lab</title>
+    <title>Navigation Sequence Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -19,10 +19,9 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             max-width: 400px;
             margin: 0 auto;
-            border: 1px: #334155;
         }
         button {
-            background-color: #ef4444;
+            background-color: #3b82f6;
             color: white;
             border: none;
             padding: 14px 20px;
@@ -34,7 +33,7 @@
             margin-top: 15px;
         }
         button:active {
-            background-color: #dc2626;
+            background-color: #2563eb;
         }
         .log {
             margin-top: 15px;
@@ -47,58 +46,49 @@
 <body>
 
     <div class="box">
-        <h2>Lab Simulasi Desync</h2>
-        <p>Uji coba injeksi about:blank dan navigasi tertunda.</p>
-        <button id="trigger">JALANKAN POC</button>
+        <h2>Urutan Navigasi Lab</h2>
+        <p>1. Injeksi about:blank -> 2. Tulis "Hallo" -> 3. Navigasi ke example.com</p>
+        <button id="trigger">JALANKAN URUTAN</button>
         <div id="log" class="log">Status: Menunggu aksi...</div>
     </div>
 
     <script>
         document.getElementById('trigger').addEventListener('click', function() {
             const logEl = document.getElementById('log');
-            logEl.innerText = "Status: Membuka jendela baru...";
+            logEl.innerText = "Status: Membuka about:blank...";
 
-            // 1. Membuka jendela baru dengan konteks kosong (about:blank)
-            let newWindow = window.open('about:blank', '_blank');
+            // Membuka jendela baru dengan about:blank
+            let win = window.open('about:blank', '_blank');
 
-            if (!newWindow) {
-                logEl.innerText = "Status Gagal: Pop-up diblokir oleh browser.";
+            if (!win) {
+                logEl.innerText = "Status Gagal: Pop-up diblokir peramban.";
                 return;
             }
 
             try {
-                // 2. Menyuntikkan konten kustom (Hallo) ke dalam dokumen baru
-                newWindow.document.open();
-                newWindow.document.write(`
+                // Tahap 1 & 2: Menulis dokumen lokal "Hallo" ke dalam konteks kosong
+                win.document.open();
+                win.document.write(`
                     <!DOCTYPE html>
                     <html>
-                    <head><title>Injected View</title></head>
-                    <body style="background:white; color:black; text-align:center; padding-top:50px; font-family:sans-serif;">
+                    <head><title>Local Injection</title></head>
+                    <body style="background:white; color:black; text-align:center; padding-top:60px; font-family:sans-serif;">
                         <h1>Hallo</h1>
-                        <p>Konten uji coba terinjeksi pada about:blank</p>
+                        <p>Konteks awal sebelum navigasi dialihkan.</p>
                     </body>
                     </html>
                 `);
-                newWindow.document.close();
-                logEl.innerText = "Status: Konten 'Hallo' berhasil ditulis.";
+                win.document.close();
+                logEl.innerText = "Status: Berhasil menulis 'Hallo'. Menyiapkan navigasi...";
 
-                // 3. Memicu navigasi asinkron tertunda ke target (misal: example.com)
+                // Tahap 3: Paksa tarik / alihkan ke example.com setelah jeda singkat
                 setTimeout(() => {
-                    logEl.innerText = "Status: Memicu navigasi ke target...";
-                    newWindow.location.href = "https://example.com";
-                }, 300);
-
-                // 4. Percobaan pemanggilan dialog modal untuk menguji respons thread
-                setTimeout(() => {
-                    try {
-                        newWindow.prompt("Security Check Required", "Session Lock");
-                    } catch (e) {
-                        console.log("Modal dibatasi/diblokir oleh kebijakan keamanan.");
-                    }
-                }, 600);
+                    logEl.innerText = "Status: Mengalihkan ke example.com...";
+                    win.location.replace("https://example.com");
+                }, 400);
 
             } catch (err) {
-                logEl.innerText = "Status Error: " + err.message;
+                logEl.innerText = "Error: " + err.message;
             }
         });
     </script>
