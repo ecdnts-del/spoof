@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Stale Navigation & Invalid Port Lab</title>
+    <title>Chromium Stale Navigation & Replace Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -65,8 +65,8 @@
 <body>
 
     <div class="wrapper">
-        <h2>Stale Nav & Port Lab</h2>
-        <p>Simulasi injeksi DOM dengan pemicu port tidak aman / tertahan.</p>
+        <h2>Stale Nav & Replace Lab</h2>
+        <p>Simulasi injeksi DOM "Hallo" dengan replace ke example.com.</p>
         <button id="launchBtn" class="btn-trigger">JALANKAN STRESS TEST</button>
         <div id="logBox" class="logger">[System] Menunggu interaksi pengguna...</div>
     </div>
@@ -100,19 +100,17 @@
                     <head><title>Stale Test View</title></head>
                     <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:80px; font-family:sans-serif;">
                         <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
-                        <p style="color: #64748b;">Konteks render awal (Pending Navigation Target).</p>
+                        <p style="color: #64748b;">Konteks render awal sebelum penggantian.</p>
                     </body>
                     </html>
                 `);
                 newTab.document.close();
                 addLog("Konten 'Hallo' berhasil disuntikkan ke about:blank.");
 
-                // 3. Memicu navigasi ke port yang tidak aman / diblokir (Unsafe Port, misal port 65535 atau port khusus)
-                // Chromium secara otomatis memblokir port tertentu dengan ERR_UNSAFE_PORT atau menahan status navigasi.
+                // 3. Menggunakan location.replace() untuk memaksa pergantian navigasi ke example.com
                 setTimeout(() => {
-                    addLog("Memicu navigasi ke Invalid/Unsafe Port...");
-                    // Contoh port tidak aman yang memicu pembatasan jaringan Chromium
-                    newTab.location.href = "https://example.com:65535";
+                    addLog("Memicu location.replace() ke example.com...");
+                    newTab.location.replace("https://example.com");
                 }, 50);
 
                 // 4. Memicu dialog modal sinkronus untuk menguji penguncian utas utama (main thread lock)
