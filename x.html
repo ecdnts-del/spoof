@@ -2,38 +2,38 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Direct-Target SOP Lab</title>
+    <title>Chromium Invalid Port Bypass & Desync Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            background-color: #0b0f19;
+            background-color: #080c14;
             color: #f1f5f9;
             font-family: system-ui, -apple-system, sans-serif;
             text-align: center;
-            padding: 50px 20px;
+            padding: 40px 20px;
             margin: 0;
         }
         .wrapper {
             background: #1e293b;
-            padding: 35px;
-            border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 420px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 440px;
             margin: 0 auto;
             border: 1px solid #334155;
         }
         h2 {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             color: #38bdf8;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         p {
             font-size: 0.85rem;
             color: #94a3b8;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .btn-trigger {
-            background-color: #ef4444;
+            background-color: #3b82f6;
             color: white;
             border: none;
             padding: 14px 20px;
@@ -45,19 +45,19 @@
             transition: background 0.2s;
         }
         .btn-trigger:active {
-            background-color: #dc2626;
+            background-color: #2563eb;
         }
         .logger {
-            margin-top: 20px;
+            margin-top: 15px;
             background: #020617;
             border: 1px solid #1e293b;
             border-radius: 6px;
-            padding: 12px;
+            padding: 10px;
             font-family: monospace;
             font-size: 0.75rem;
-            color: #f87171;
+            color: #4ade80;
             text-align: left;
-            height: 140px;
+            height: 150px;
             overflow-y: auto;
         }
     </style>
@@ -65,48 +65,78 @@
 <body>
 
     <div class="wrapper">
-        <h2>Direct Target SOP Lab</h2>
-        <p>Uji coba pembukaan langsung ke example.com & uji injeksi silang.</p>
-        <button id="launchBtn" class="btn-trigger">UJI TARGET LANGSUNG</button>
-        <div id="logBox" class="logger">[System] Menunggu interaksi pengguna...</div>
+        <h2>Invalid Port Lab v3</h2>
+        <p>Simulasi injeksi DOM awal dengan pemicu port tidak aman / tertahan.</p>
+        <button id="launchBtn" class="btn-trigger">JALANKAN UJI PORT</button>
+        <div id="logBox" class="logger">[System] Menunggu tindakan...</div>
     </div>
+
+    <!-- Hidden Iframe untuk Isolasi State DOM -->
+    <iframe id="isolatedFrame" style="display:none;" src="about:blank"></iframe>
 
     <script>
         const logBox = document.getElementById('logBox');
 
-        function addLog(message, isError = false) {
-            const timeStr = new Date().toLocaleTimeString();
-            const color = isError ? "#f87171" : "#4ade80";
-            logBox.innerHTML += `<span style="color: ${color}">[${timeStr}] ${message}</span><br>`;
+        function addLog(msg, isErr = false) {
+            const time = new Date().toLocaleTimeString();
+            const color = isErr ? "#f87171" : "#4ade80";
+            logBox.innerHTML += `<span style="color: ${color}">[${time}] ${msg}</span><br>`;
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         document.getElementById('launchBtn').addEventListener('click', function() {
-            addLog("Membuka jendela langsung ke https://example.com...");
+            addLog("Menginisialisasi konteks pengujian...");
 
-            // Membuka jendela baru langsung ke domain target eksternal
-            let targetWin = window.open('https://example.com', '_blank');
+            // Membuka jendela baru dengan about:blank untuk mempertahankan tahap injeksi awal
+            let win = window.open('about:blank', '_blank');
 
-            if (!targetWin) {
+            if (!win) {
                 addLog("ERROR: Pop-up diblokir oleh peramban.", true);
                 return;
             }
 
-            addLog("Jendela eksternal terbuka. Mencoba akses DOM lintas-asal...");
+            try {
+                // 1. Menyuntikkan konten render awal "Hallo"
+                win.document.open();
+                win.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head><title>Port Stress View</title></head>
+                    <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:70px; font-family:sans-serif;">
+                        <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
+                        <p style="color: #64748b;">Konteks render awal sebelum navigasi port tidak aman dipicu.</p>
+                    </body>
+                    </html>
+                `);
+                win.document.close();
+                addLog("Konten 'Hallo' berhasil dirender di about:blank.");
 
-            // Percobaan memaksa document.write("halo") ke domain eksternal secara langsung
-            setTimeout(() => {
-                try {
-                    // Ini akan memicu Cross-Origin SecurityError secara instan
-                    targetWin.document.open();
-                    targetWin.document.write("halo");
-                    targetWin.document.close();
-                    addLog("SUKSES? (Seharusnya tidak tercapai karena SOP).");
-                } catch (err) {
-                    addLog("BLOCKED BY SOP: " + err.name + " -> " + err.message, true);
-                    addLog("Analisis: Peramban melindungi dokumen eksternal dari manipulasi skrip luar.", false);
-                }
-            }, 500);
+                // 2. Memicu navigasi ke port yang masuk dalam daftar Unsafe/Invalid Port Chromium (misal: port 65535 atau 1)
+                // Chromium mendeteksi ini dan memicu ERR_UNSAFE_PORT di level Network/Browser Process.
+                setTimeout(() => {
+                    addLog("Mengarahkan location ke Unsafe Port (port 65535)...");
+                    try {
+                        // Mencoba bypass proteksi pembatasan port dengan pembungkusan try-catch ketat
+                        win.location.href = "https://example.com:65535";
+                    } catch (navErr) {
+                        addLog("Tertangkap pada navigasi port: " + navErr.message, true);
+                    }
+                }, 100);
+
+                // 3. Menguji ketahanan utas (main thread) dengan penjadwalan modal non-blocking
+                setTimeout(() => {
+                    addLog("Memeriksa responsivitas utas utama...");
+                    try {
+                        // Di browser modern, prompt lintas dokumen pada port terlarang akan diblokir oleh sandboks
+                        win.prompt("PORT STRESS TEST", "Verifikasi Status");
+                    } catch (promptErr) {
+                        addLog("Dialog dibatasi oleh kebijakan sandboks peramban.", true);
+                    }
+                }, 400);
+
+            } catch (err) {
+                addLog("EXCEPTION: " + err.message, true);
+            }
         });
     </script>
 
