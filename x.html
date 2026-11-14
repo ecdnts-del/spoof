@@ -2,78 +2,45 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Android Chromium Navigation Stress Test</title>
+    <title>Android Blink Navigation Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: sans-serif;
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .box {
-            background: #1e1e1e;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 380px;
-            margin: 0 auto;
-        }
-        button {
-            background-color: #bb86fc;
-            color: #121212;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
-        }
-        button:active {
-            background-color: #9965f4;
-        }
+        body { background: #111; color: #eee; font-family: sans-serif; text-align: center; padding: 50px; }
+        button { background: #ff4444; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>Android Security Test</h3>
-        <p>Tekan tombol di bawah untuk memicu pengujian siklus navigasi asinkron.</p>
-        <button id="exploitBtn">MULAI UJI KETAHANAN</button>
-    </div>
+    <h2>Blink Engine Navigation Test</h2>
+    <p>Uji coba penanganan Blob / Iframe Isolation lokal.</p>
+    <button id="testBtn">JALANKAN TES</button>
 
     <script>
-        document.getElementById('exploitBtn').addEventListener('click', function() {
-            // Target URL yang ingin disimulasikan / ditampilkan pada state awal
-            const targetDomain = "https://www.google.com";
-            
+        document.getElementById('testBtn').addEventListener('click', function() {
             try {
-                // 1. Manipulasi History API untuk memaksa entri palsu sebelum navigasi diproses
-                history.pushState({page: 1}, "Secure State", targetDomain + "/auth-check");
+                // Membuat konten dinamis lokal via Blob URL (Same-Origin aman dari SecurityError)
+                const htmlContent = `<!DOCTYPE html>
+                <html>
+                <head><title>Simulated Sub-State</title></head>
+                <body style="background:white; color:black; text-align:center; padding-top:50px;">
+                    <h1>Konten Terisolasi (Blob)</h1>
+                    <p>Halaman ini berjalan dalam kontainer terisolasi.</p>
+                </body>
+                </html>`;
 
-                // 2. Membuka atau mengarahkan window ke target dengan interval mikro
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Manipulasi history lokal yang sah
+                history.pushState({isolated: true}, "Local State", "#sandbox-view");
+
+                // Navigasi internal ke Blob URL
                 setTimeout(() => {
-                    // Menggunakan metode penggantian lokasi cepat atau manipulasi iframe tertanam
-                    window.location.replace(targetDomain);
-                }, 5);
+                    window.location.href = blobUrl;
+                }, 100);
 
-                // 3. Teknik CPU Starvation mikro (non-blocking total untuk menghindari ANR Android)
-                let start = performance.now();
-                while (performance.now() - start < 150) {
-                    // Beban ringan pada main thread untuk memperlambat pemrosesan commit UI browser
-                    Math.sin(Math.random());
-                }
-
-                // 4. Memunculkan dialog non-blocking / modal cepat untuk menangkap transisi render
-                setTimeout(() => {
-                    // Di Android modern, prompt() sering dibatasi, gunakan alert atau konfirmasi cepat jika diizinkan
-                    alert("Verifikasi Sesi Diperlukan.");
-                }, 50);
-
-            } catch (e) {
-                console.error("Error during execution: ", e);
+            } catch (err) {
+                console.error("Terjadi kesalahan:", err);
+                alert("Diblokir oleh kebijakan keamanan peramban: " + err.message);
             }
         });
     </script>
