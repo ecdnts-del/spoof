@@ -1,48 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Android Blink Navigation Test</title>
+    <title>Android Navigation Test - Example.com</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: #111; color: #eee; font-family: sans-serif; text-align: center; padding: 50px; }
-        button { background: #ff4444; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #334155;
+        }
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: #38bdf8;
+        }
+        p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        button:active {
+            background-color: #2563eb;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
-    <h2>Blink Engine Navigation Test</h2>
-    <p>Uji coba penanganan Blob / Iframe Isolation lokal.</p>
-    <button id="testBtn">JALANKAN TES</button>
+
+    <div class="container">
+        <h2>External Navigation Test</h2>
+        <p>Uji coba pengalihan terstruktur ke example.com.</p>
+        <button id="runTest">BUKA EXAMPLE.COM</button>
+        <div id="status" class="status">Status: Menunggu tindakan...</div>
+    </div>
 
     <script>
-        document.getElementById('testBtn').addEventListener('click', function() {
+        document.getElementById('runTest').addEventListener('click', function() {
+            const statusEl = document.getElementById('status');
+            statusEl.innerText = "Status: Memproses navigasi...";
+
             try {
-                // Membuat konten dinamis lokal via Blob URL (Same-Origin aman dari SecurityError)
-                const htmlContent = `<!DOCTYPE html>
-                <html>
-                <head><title>Simulated Sub-State</title></head>
-                <body style="background:white; color:black; text-align:center; padding-top:50px;">
-                    <h1>Konten Terisolasi (Blob)</h1>
-                    <p>Halaman ini berjalan dalam kontainer terisolasi.</p>
-                </body>
-                </html>`;
+                // Menggunakan path lokal/hash yang valid untuk manipulasi history dalam satu origin
+                history.pushState({ stateId: 1 }, "Local State", "#redirecting");
+                statusEl.innerText = "Status: History state diperbarui.";
 
-                const blob = new Blob([htmlContent], { type: 'text/html' });
-                const blobUrl = URL.createObjectURL(blob);
-
-                // Manipulasi history lokal yang sah
-                history.pushState({isolated: true}, "Local State", "#sandbox-view");
-
-                // Navigasi internal ke Blob URL
+                // Jeda asinkron sebelum melakukan pengalihan standar ke domain eksternal
                 setTimeout(() => {
-                    window.location.href = blobUrl;
-                }, 100);
+                    window.location.replace("https://example.com");
+                }, 150);
 
             } catch (err) {
-                console.error("Terjadi kesalahan:", err);
-                alert("Diblokir oleh kebijakan keamanan peramban: " + err.message);
+                console.error("Kesalahan Eksekusi:", err);
+                statusEl.innerText = "Status Gagal: " + err.message;
             }
         });
     </script>
+
 </body>
 </html>
