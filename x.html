@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Chromium Stale Navigation & Replace Lab</title>
+    <title>Chromium Direct-Target SOP Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -33,7 +33,7 @@
             margin-bottom: 25px;
         }
         .btn-trigger {
-            background-color: #2563eb;
+            background-color: #ef4444;
             color: white;
             border: none;
             padding: 14px 20px;
@@ -45,7 +45,7 @@
             transition: background 0.2s;
         }
         .btn-trigger:active {
-            background-color: #1d4ed8;
+            background-color: #dc2626;
         }
         .logger {
             margin-top: 20px;
@@ -55,9 +55,9 @@
             padding: 12px;
             font-family: monospace;
             font-size: 0.75rem;
-            color: #4ade80;
+            color: #f87171;
             text-align: left;
-            height: 120px;
+            height: 140px;
             overflow-y: auto;
         }
     </style>
@@ -65,67 +65,48 @@
 <body>
 
     <div class="wrapper">
-        <h2>Stale Nav & Replace Lab</h2>
-        <p>Simulasi injeksi DOM "Hallo" dengan replace ke example.com.</p>
-        <button id="launchBtn" class="btn-trigger">JALANKAN STRESS TEST</button>
+        <h2>Direct Target SOP Lab</h2>
+        <p>Uji coba pembukaan langsung ke example.com & uji injeksi silang.</p>
+        <button id="launchBtn" class="btn-trigger">UJI TARGET LANGSUNG</button>
         <div id="logBox" class="logger">[System] Menunggu interaksi pengguna...</div>
     </div>
 
     <script>
         const logBox = document.getElementById('logBox');
 
-        function addLog(message) {
+        function addLog(message, isError = false) {
             const timeStr = new Date().toLocaleTimeString();
-            logBox.innerHTML += `[${timeStr}] ${message}<br>`;
+            const color = isError ? "#f87171" : "#4ade80";
+            logBox.innerHTML += `<span style="color: ${color}">[${timeStr}] ${message}</span><br>`;
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         document.getElementById('launchBtn').addEventListener('click', function() {
-            addLog("Membuka jendela baru (about:blank)...");
+            addLog("Membuka jendela langsung ke https://example.com...");
 
-            // 1. Membuka jendela baru dengan konteks kosong
-            let newTab = window.open('about:blank', '_blank');
+            // Membuka jendela baru langsung ke domain target eksternal
+            let targetWin = window.open('https://example.com', '_blank');
 
-            if (!newTab) {
-                addLog("ERROR: Pop-up diblokir oleh peramban.");
+            if (!targetWin) {
+                addLog("ERROR: Pop-up diblokir oleh peramban.", true);
                 return;
             }
 
-            try {
-                // 2. Menyuntikkan konten awal "Hallo" ke dalam dokumen kosong
-                newTab.document.open();
-                newTab.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head><title>Stale Test View</title></head>
-                    <body style="background:#ffffff; color:#0f172a; text-align:center; padding-top:80px; font-family:sans-serif;">
-                        <h1 style="font-size: 3rem; color: #1e293b;">Hallo</h1>
-                        <p style="color: #64748b;">Konteks render awal sebelum penggantian.</p>
-                    </body>
-                    </html>
-                `);
-                newTab.document.close();
-                addLog("Konten 'Hallo' berhasil disuntikkan ke about:blank.");
+            addLog("Jendela eksternal terbuka. Mencoba akses DOM lintas-asal...");
 
-                // 3. Menggunakan location.replace() untuk memaksa pergantian navigasi ke example.com
-                setTimeout(() => {
-                    addLog("Memicu location.replace() ke example.com...");
-                    newTab.location.replace("https://example.com");
-                }, 50);
-
-                // 4. Memicu dialog modal sinkronus untuk menguji penguncian utas utama (main thread lock)
-                setTimeout(() => {
-                    addLog("Mengeksekusi dialog modal (prompt) untuk mengunci thread...");
-                    try {
-                        newTab.prompt("STALE NAVIGATION / THREAD LOCK", "Verify State");
-                    } catch (e) {
-                        addLog("Modal dibatasi oleh kebijakan keamanan sandbox.");
-                    }
-                }, 250);
-
-            } catch (err) {
-                addLog("EXCEPTION: " + err.message);
-            }
+            // Percobaan memaksa document.write("halo") ke domain eksternal secara langsung
+            setTimeout(() => {
+                try {
+                    // Ini akan memicu Cross-Origin SecurityError secara instan
+                    targetWin.document.open();
+                    targetWin.document.write("halo");
+                    targetWin.document.close();
+                    addLog("SUKSES? (Seharusnya tidak tercapai karena SOP).");
+                } catch (err) {
+                    addLog("BLOCKED BY SOP: " + err.name + " -> " + err.message, true);
+                    addLog("Analisis: Peramban melindungi dokumen eksternal dari manipulasi skrip luar.", false);
+                }
+            }, 500);
         });
     </script>
 
