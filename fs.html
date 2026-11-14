@@ -1,68 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Google Drive Upload</title>
+<title>Google Drive Upload via Intent</title>
 <style>
     h1 {
         margin: 1em;
     }
-
     a {
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 80;
+        display: block;
+        margin-top: 50px;
+        font-size: 18px;
     }
-
     input {
         display: none;
     }
-
     img {
         width: 100%;
+        margin-top: 20px;
     }
 </style>
 </head>
 <body>
 <center>
-<br>
-<br>
-<br>
-<br>
+<br><br><br>
 
-<a id="link" href="https://workspace.google.com/intl/en_in/products/drive/" > Right Click and Open in Split To Open Google Drive & Upload Fast</a>
+<!-- Link to trigger multi-window / open in new window -->
+<a id="link" href="https://workspace.google.com/intl/en_in/products/drive/">Right Click and Open in Split To Open Google Drive & Upload Fast</a>
 <br>
 <img id="img">
 
 </center>
 
+<!-- Standard hidden file input fallback / primary trigger -->
 <input id="fileSelect" type="file" accept="image/*" />
-
-
 
 <script>
   document.getElementById('link').addEventListener('contextmenu', function(event) {
-    // Prevent the default browser context menu from appearing
+    
+    // Delays execution to trigger after "Open in new window" / split-screen is active
+    setTimeout(function() {
+         
+         // Option A: Direct JavaScript click triggering the file input intent
+         fileSelect.click(); 
 
-setTimeout(function() {
+         // Option B: Alternative explicit Android Intent URI dispatch (if applicable to test custom intent routing)
+         // window.location.href = "intent://#Intent;action=android.intent.action.GET_CONTENT;type=image/*;end;";
 
-         fileSelect.click();
-
-
-fileSelect.onchange = (event) => {
-        img.src = URL.createObjectURL(fileSelect.files[0]);
-    }
-
-}, 4000);
-
-
-
-   
+         fileSelect.onchange = (event) => {
+             if (fileSelect.files && fileSelect.files[0]) {
+                 img.src = URL.createObjectURL(fileSelect.files[0]);
+             }
+         }
+    }, 4000);
+    
   });
 </script>
 
 </body>
 </html>
-
-
-</style>
